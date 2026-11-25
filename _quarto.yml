@@ -57,6 +57,11 @@ book:
     - epilogo.qmd
     - 99-Referencias.qmd
 
+  appendices:
+    - A-tablas_estadisticas.qmd
+    - B-funciones_r.qmd
+    - C-glosario.qmd
+
 format:
   html:
     theme:
