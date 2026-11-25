@@ -16,11 +16,5 @@ Una advertencia: después de este libro es probable que usted no vuelva a leer i
 
 Las correcciones y sugerencias de quienes usen el libro son bienvenidas.
 
-## Agradecimientos {.unnumbered}
-
-Este libro le debe mucho a las personas que la vida ha puesto en mi camino: profesores, compañeros, colegas y estudiantes que, cada uno a su manera, me enseñaron que detrás de cada dato hay una medición hecha por alguien y una decisión que depende de ella. A todos ellos, muchas gracias.
-
-Espero que estas páginas acompañen ahora a alguien más en ese mismo camino.
-
 Edwin Matarrita Segura\
 Cartago, Costa Rica
