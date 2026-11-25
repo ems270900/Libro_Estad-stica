@@ -33,6 +33,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Asimetría | Skewness | Falta de simetría de una distribución: una cola más larga que la otra. |
 | Atípico, valor atípico | Outlier | Dato muy alejado del resto. |
 | Axioma | Axiom | Regla básica que se acepta sin demostración; la probabilidad se construye con tres. |
+| Bigote | Whisker | Línea del diagrama de caja que va del borde de la caja al dato más alejado que todavía queda dentro de los límites inferior y superior; termina en un dato real, no en el límite. |
 | Bloque | Block | Grupo de unidades parecidas entre sí, que se usa para quitar una fuente de variación conocida. |
 | Bondad de ajuste | Goodness of fit | Qué tan bien describe un modelo o una distribución a los datos observados. |
 | Caja y bigotes, diagrama de | Box plot, box-and-whisker plot | Gráfico que muestra la mediana, los cuartiles y los valores atípicos. |
@@ -102,6 +103,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Intervalo de predicción | Prediction interval | Rango donde se espera que caiga una observación nueva. |
 | Intervalo de tolerancia | Tolerance interval | Rango que contiene una fracción dada de la población con cierto nivel de confianza. |
 | Ley de los grandes números | Law of large numbers | Al repetir un experimento muchas veces, la frecuencia relativa se acerca a la probabilidad. |
+| Límite inferior, límite superior (de Tukey) | Lower fence, upper fence | $Q_1 - 1.5\,\text{RIC}$ y $Q_3 + 1.5\,\text{RIC}$; los datos fuera de ellos se marcan como posibles atípicos. En otros textos, vallas o cercas. |
 | Margen de seguridad | Safety margin | Diferencia entre la resistencia y la carga; la falla ocurre cuando es negativa. |
 | Máxima verosimilitud | Maximum likelihood | Método que elige los parámetros que hacen más probables los datos observados. |
 | Media | Mean | Suma de los datos dividida entre su número (promedio). |

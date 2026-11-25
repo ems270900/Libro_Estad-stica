@@ -874,35 +874,37 @@ ggplot(ans, aes(x, y)) +
 
 Un valor atípico es un dato que queda muy lejos del resto. Puede ser un error (de medición, de transcripción, de unidades) o un dato real pero poco frecuente, como una crecida extraordinaria. Lo primero se corrige; lo segundo es información valiosa y no se borra. Antes de decidir, hay que identificarlo.
 
-### Criterio de las vallas de Tukey
+### Límites inferior y superior de Tukey
 
-@tukey1977exploratory propuso marcar como atípico todo dato que esté a más de 1.5 veces el RIC por debajo de $Q_1$ o por encima de $Q_3$. Los límites se llaman vallas:
+@tukey1977exploratory propuso marcar como atípico todo dato que esté a más de 1.5 veces el RIC por debajo de $Q_1$ o por encima de $Q_3$. Esos dos valores son el límite inferior y el límite superior:
 
 $$
-\text{Valla inferior} = Q_1 - 1.5\,\text{RIC}, \qquad \text{Valla superior} = Q_3 + 1.5\,\text{RIC}
+\text{Límite inferior} = Q_1 - 1.5\,\text{RIC}, \qquad \text{Límite superior} = Q_3 + 1.5\,\text{RIC}
 $$ {#eq-med-vallas}
+
+En otros textos estos valores se llaman vallas o cercas (en inglés, *fences*). Un límite es una frontera calculada y casi nunca coincide con un dato; el extremo del bigote, en cambio, siempre es un dato observado: el más alejado de la caja que todavía queda dentro de los límites.
 
 Con datos en forma de campana, este criterio marca muy pocos datos, menos de uno por cada cien [@hoaglin1986performance]. En distribuciones asimétricas, como las lluvias o los caudales máximos, marca más datos en la cola larga, y esos datos casi nunca son errores.
 
-¿Por qué 1.5? @tukey1977exploratory lo eligió como un compromiso práctico y no como resultado de una fórmula: un factor menor marcaría como raros muchos datos normales, y uno mayor dejaría pasar errores evidentes. El mismo autor definió unas vallas externas a 3 RIC de los cuartiles. Un dato entre las vallas internas (1.5 RIC) y las externas (3 RIC) se llama atípico leve, y uno más allá de las externas, atípico extremo. Algunos programas dibujan los dos con símbolos distintos.
+¿Por qué 1.5? @tukey1977exploratory lo eligió como un compromiso práctico y no como resultado de una fórmula: un factor menor marcaría como raros muchos datos normales, y uno mayor dejaría pasar errores evidentes. El mismo autor definió unos límites externos a 3 RIC de los cuartiles. Un dato entre los límites internos (1.5 RIC) y los externos (3 RIC) se llama atípico leve, y uno más allá de las externas, atípico extremo. Algunos programas dibujan los dos con símbolos distintos.
 
 La lógica del criterio se entiende con una analogía de obra. En una cuadrilla, la mitad central de los rendimientos diarios (el RIC) dice cuánto varía un día normal. Un día que se sale de ese rango en más de vez y media su ancho merece una pregunta (¿llovió?, ¿faltó material?), pero no por eso se borra de la bitácora.
 
 ### Construcción del diagrama de caja
 
-El diagrama de caja (o de caja y bigotes), presentado en el capítulo 4, resume la distribución con estas piezas:
+El diagrama de caja (o de caja y bigotes) lo propuso @tukey1977exploratory para explorar datos a mano. Ocupa poco espacio, así que caben muchas cajas una junto a otra, y por eso es el gráfico preferido para comparar una variable cuantitativa entre grupos [@wilke2019fundamentals]. Resume la distribución con estas piezas:
 
 1. Una caja que va de $Q_1$ a $Q_3$. Su largo es el RIC y contiene el 50 % central de los datos.
 2. Una línea dentro de la caja en la mediana.
-3. Dos bigotes que salen de la caja hasta el dato más alejado que todavía está dentro de las vallas. Los bigotes no llegan hasta las vallas, sino hasta un dato real.
-4. Un punto por cada dato fuera de las vallas, que es un posible atípico.
+3. Dos bigotes que salen de la caja hasta el dato más alejado que todavía está dentro de los límites. Los bigotes no llegan hasta los límites, sino hasta un dato real.
+4. Un punto por cada dato fuera de los límites, que es un posible atípico.
 
 La caja muestra en un vistazo el centro (la mediana), la dispersión (el largo de la caja) y la asimetría. Si la mediana está cerca de un extremo de la caja, o si un bigote es mucho más largo que el otro, la distribución es asimétrica. La @fig-med-caja-anatomia señala cada pieza sobre la caja de la lluvia máxima diaria que se calcula en el ejemplo siguiente.
 
 ```{r}
 #| label: fig-med-caja-anatomia
 #| fig-cap: "Partes de un diagrama de caja."
-#| fig-alt: "Diagrama de caja horizontal de la lluvia máxima diaria con rótulos: bigote inferior en 44.8 mm, primer cuartil en 60.65 mm, mediana en 69.1 mm, tercer cuartil en 86.95 mm, bigote superior en 119.0 mm, valla superior punteada en 126.4 mm y un punto atípico en 151.0 mm; una llave sobre la caja indica el RIC de 26.3 mm que contiene el 50 % central de los datos; abajo, los 65 datos como puntos"
+#| fig-alt: "Diagrama de caja horizontal de la lluvia máxima diaria con rótulos: bigote inferior en 44.8 mm, primer cuartil en 60.65 mm, mediana en 69.1 mm, tercer cuartil en 86.95 mm, bigote superior en 119.0 mm, límite superior punteado en 126.4 mm y un punto atípico en 151.0 mm; una llave sobre la caja indica el RIC de 26.3 mm que contiene el 50 % central de los datos; abajo, los 65 datos como puntos"
 #| fig-width: 9
 #| fig-height: 3.8
 #| out-width: "90%"
@@ -925,7 +927,7 @@ ggplot() +
   annotate("text", x = c(44.8, q1c, q2c, q3c, 119), y = c(-0.42, -0.5, -0.5, -0.5, -0.42),
            label = c("bigote\n44.8", "Q1\n60.65", "mediana\n69.1", "Q3\n86.95", "bigote\n119.0"),
            size = 3.1, lineheight = 0.85, vjust = 1) +
-  annotate("text", x = vsc, y = 0.95, label = "valla superior\nQ3 + 1.5 RIC = 126.4", size = 3.1, lineheight = 0.85, color = "#D55E00") +
+  annotate("text", x = vsc, y = 0.95, label = "límite superior\nQ3 + 1.5 RIC = 126.4", size = 3.1, lineheight = 0.85, color = "#D55E00") +
   annotate("text", x = 151, y = 0.3, label = "atípico\n151.0", size = 3.1, lineheight = 0.85, color = "#D55E00") +
   annotate("text", x = 165, y = -0.9, label = "datos", size = 3.1, color = "grey40", hjust = 1) +
   scale_x_continuous(breaks = seq(40, 160, by = 20), limits = c(38, 166)) +
@@ -934,11 +936,11 @@ ggplot() +
   theme_minimal()
 ```
 
-La valla no se dibuja en un diagrama de caja normal; aquí se agregó para mostrar de dónde sale el punto aislado. Debajo de la caja están los 65 datos: se ve que la caja deja dentro el grupo denso de años entre 60 y 87 mm, y que los bigotes alcanzan a todos los demás años salvo uno.
+El límite superior no se dibuja en un diagrama de caja normal; aquí se agregó para mostrar de dónde sale el punto aislado y que el bigote (119.0 mm) se detiene antes del límite (126.4 mm). Debajo de la caja están los 65 datos: se ve que la caja deja dentro el grupo denso de años entre 60 y 87 mm, y que los bigotes alcanzan a todos los demás años salvo uno.
 
 ::: {.callout-note title="Ejemplo: diagrama de caja y asimetría de la lluvia máxima diaria"}
 
-**Planteamiento.** Con las 65 precipitaciones máximas diarias anuales (1956–2020), calcule los cuartiles, el RIC y las vallas de Tukey, identifique los valores atípicos y dibuje el diagrama de caja. Calcule además el coeficiente de asimetría y relaciónelo con la forma del diagrama.
+**Planteamiento.** Con las 65 precipitaciones máximas diarias anuales (1956–2020), calcule los cuartiles, el RIC y los límites inferior y superior de Tukey, identifique los valores atípicos y dibuje el diagrama de caja. Calcule además el coeficiente de asimetría y relaciónelo con la forma del diagrama.
 
 ```{r}
 #| echo: false
@@ -953,16 +955,16 @@ ver_datos("datos/precipitacion_maxima_diaria.csv",
 3. $Q_1$: $L = 0.25 \times 66 = 16.5$. Los datos 16 y 17 son 60.2 y 61.1 mm, así que $Q_1 = 60.2 + 0.5\,(61.1 - 60.2) = 60.65$ mm.
 4. $Q_3$: $L = 0.75 \times 66 = 49.5$. Los datos 49 y 50 son 86.5 y 87.4 mm, así que $Q_3 = 86.5 + 0.5\,(87.4 - 86.5) = 86.95$ mm.
 5. RIC $= 86.95 - 60.65 = 26.30$ mm, y $1.5 \times 26.30 = 39.45$ mm.
-6. Vallas con la @eq-med-vallas: inferior $60.65 - 39.45 = 21.20$ mm; superior $86.95 + 39.45 = 126.40$ mm.
+6. Límites con la @eq-med-vallas: inferior $60.65 - 39.45 = 21.20$ mm; superior $86.95 + 39.45 = 126.40$ mm.
 7. Atípicos: ningún dato es menor que 21.20 mm. Por encima de 126.40 mm solo está 151.0 mm (año 2010).
-8. Bigotes: el inferior llega al menor dato, 44.8 mm; el superior, al mayor dato que no pasa la valla, 119.0 mm.
+8. Bigotes: el inferior llega al menor dato, 44.8 mm; el superior, al mayor dato que no pasa el límite superior, 119.0 mm.
 9. Asimetría con la @eq-med-asimetria. Con $\bar{x} = 75.72$ mm, el promedio de las desviaciones al cubo es $\frac{1}{65}\sum (x_i - \bar{x})^3 = 10\,045.9$ mm³ y el de las desviaciones al cuadrado es $\frac{1}{65}\sum (x_i - \bar{x})^2 = 440.91$ mm². Entonces $g_1 = 10\,045.9 / 440.91^{1.5} = 10\,045.9 / 9258.3 = 1.085$. La versión corregida es $G_1 = 1.085 \times \sqrt{65 \times 64}/63 = 1.111$.
 
 **Pseudocódigo**
 
 1. Leer los datos.
-2. Calcular los cuartiles (tipo 6), el RIC y las vallas.
-3. Buscar los datos fuera de las vallas y los extremos de los bigotes.
+2. Calcular los cuartiles (tipo 6), el RIC y los límites.
+3. Buscar los datos fuera de los límites y los extremos de los bigotes.
 4. Calcular el coeficiente de asimetría con la fórmula y con `e1071::skewness()`.
 5. Dibujar el diagrama de caja con R base y con ggplot2.
 
@@ -972,17 +974,17 @@ lluvia <- read.csv("datos/precipitacion_maxima_diaria.csv")
 x <- lluvia$precipitacion_mm
 n <- length(x)
 
-# 2) Cuartiles, RIC y vallas
+# 2) Cuartiles, RIC y límites inferior y superior
 q <- quantile(x, probs = c(0.25, 0.50, 0.75), type = 6)
 q
 ric <- q[3] - q[1]
-valla_inf <- q[1] - 1.5 * ric
-valla_sup <- q[3] + 1.5 * ric
-c(RIC = unname(ric), valla_inf = unname(valla_inf), valla_sup = unname(valla_sup))
+lim_inf <- q[1] - 1.5 * ric
+lim_sup <- q[3] + 1.5 * ric
+c(RIC = unname(ric), lim_inf = unname(lim_inf), lim_sup = unname(lim_sup))
 
 # 3) Atípicos y extremos de los bigotes
-lluvia[x < valla_inf | x > valla_sup, ]
-c(bigote_inf = min(x[x >= valla_inf]), bigote_sup = max(x[x <= valla_sup]))
+lluvia[x < lim_inf | x > lim_sup, ]
+c(bigote_inf = min(x[x >= lim_inf]), bigote_sup = max(x[x <= lim_sup]))
 
 # 4) Asimetría: fórmula y paquete e1071
 media <- mean(x)
@@ -1023,7 +1025,7 @@ ggplot(lluvia, aes(x = precipitacion_mm, y = "")) +
 :::
 
 ::: {.callout-warning title="Cuidado"}
-`boxplot()` y `geom_boxplot()` no calculan los cuartiles con la @eq-med-posicion. R base usa las "bisagras" de Tukey (`fivenum()`) y ggplot2 usa `quantile()` con su tipo 7. Para la lluvia, la caja de R base va de 61.1 a 86.5 mm, y no de 60.65 a 86.95 mm como en el cálculo a mano. Con muchos datos la diferencia es pequeña y la conclusión sobre los atípicos rara vez cambia, pero con pocos datos un dato puede quedar dentro de las vallas con un método y fuera con otro. Por eso un valor marcado como atípico es una señal para revisar, no una sentencia.
+`boxplot()` y `geom_boxplot()` no calculan los cuartiles con la @eq-med-posicion. R base usa las "bisagras" de Tukey (`fivenum()`) y ggplot2 usa `quantile()` con su tipo 7. Para la lluvia, la caja de R base va de 61.1 a 86.5 mm, y no de 60.65 a 86.95 mm como en el cálculo a mano. Con muchos datos la diferencia es pequeña y la conclusión sobre los atípicos rara vez cambia, pero con pocos datos un dato puede quedar dentro de los límites con un método y fuera con otro. Por eso un valor marcado como atípico es una señal para revisar, no una sentencia.
 :::
 
 ### Cajas lado a lado
@@ -1122,10 +1124,14 @@ v4 <- base_c + geom_boxplot(fill = "#C6DBEF", outlier.shape = NA) +
 - **Caja de ancho variable.** El ancho de cada caja es proporcional a $\sqrt{n}$ del grupo, para que se vea qué grupos tienen más datos [@mcgill1978variations]. En R, `varwidth = TRUE`.
 - **Violín.** @hintze1998violin combinaron la caja con una curva de densidad dibujada simétricamente a cada lado, que se ve como un violín. Muestra la forma completa, incluidos los dos picos que la caja sola esconde. En ggplot2 se hace con `geom_violin()`, y en R base hace falta un paquete adicional.
 - **Caja con puntos.** Se dibujan los datos encima de la caja, con un pequeño desplazamiento horizontal al azar (`geom_jitter()`) para que no se tapen. Es la mejor opción con pocos datos, porque no esconde nada. En R base se logra con `stripchart(..., add = TRUE, vertical = TRUE, method = "jitter")`.
+- **Horizontal.** Las cajas acostadas dejan espacio para nombres de grupos largos y se leen mejor cuando hay muchos grupos.
+- **Por dos variables.** Se dibuja una caja por cada combinación de dos factores, por ejemplo proyecto y mezcla, con un color para el segundo factor.
+
+Con pocos datos la muesca puede salirse de la caja y el dibujo se ve doblado hacia afuera; es la señal de que el intervalo para la mediana es muy ancho. El código de R base y de ggplot2 de cada variante está en la @sec-graf-caja, con el @tbl-graf-caja-variantes como resumen.
 
 ::: {.callout-note title="Ejemplo: comparar dos periodos de caudales con cajas con muesca"}
 
-**Planteamiento.** El capítulo 8 mostró que los caudales máximos anuales de una estación parecen más altos desde los años noventa. Compare los periodos 1966–1992 ($n = 27$) y 1993–2018 ($n = 26$) con sus cuartiles, sus vallas y un diagrama de caja con muesca. ¿Hay atípicos en algún periodo? ¿Las muescas sugieren que las medianas difieren?
+**Planteamiento.** El capítulo 8 mostró que los caudales máximos anuales de una estación parecen más altos desde los años noventa. Compare los periodos 1966–1992 ($n = 27$) y 1993–2018 ($n = 26$) con sus cuartiles, sus límites inferior y superior y un diagrama de caja con muesca. ¿Hay atípicos en algún periodo? ¿Las muescas sugieren que las medianas difieren?
 
 ```{r}
 #| echo: false
@@ -1138,13 +1144,13 @@ ver_datos("datos/caudal_maximo_anual.csv", nombres = c("Año", "Caudal máximo (
 2. Cuartiles del primer periodo con la @eq-med-posicion: para $Q_1$, $L = 0.25 \times 28 = 7$, entero, así que $Q_1 = 312$; para la mediana, $L = 14$ y $\tilde{x} = 570$; para $Q_3$, $L = 21$ y $Q_3 = 716$ m³/s. RIC $= 716 - 312 = 404$ m³/s.
 3. Datos ordenados de 1993–2018: 128, 165, 187, 191, 255, 377, 512, 520, 582, 600, 645, 655, 672, 700, 710, 731, 744, 809, 915, 950, 1126, 1284, 1359, 1394, 1407 y 1496.
 4. Cuartiles del segundo periodo: $Q_1$ con $L = 0.25 \times 27 = 6.75$: $377 + 0.75\,(512 - 377) = 478.25$; mediana con $L = 13.5$: $(672 + 700)/2 = 686$; $Q_3$ con $L = 20.25$: $950 + 0.25\,(1126 - 950) = 994$ m³/s. RIC $= 994 - 478.25 = 515.75$ m³/s.
-5. Vallas con la @eq-med-vallas. Primer periodo: $312 - 1.5 \times 404 = -294$ y $716 + 1.5 \times 404 = 1322$ m³/s. Segundo periodo: $478.25 - 773.63 = -295.38$ y $994 + 773.63 = 1767.63$ m³/s. Ningún caudal queda fuera, así que no hay atípicos. Las vallas inferiores son negativas, lo que solo indica que en una variable positiva y asimétrica la valla de abajo no puede marcar nada.
+5. Límites con la @eq-med-vallas. Primer periodo: $312 - 1.5 \times 404 = -294$ y $716 + 1.5 \times 404 = 1322$ m³/s. Segundo periodo: $478.25 - 773.63 = -295.38$ y $994 + 773.63 = 1767.63$ m³/s. Ningún caudal queda fuera, así que no hay atípicos. Los límites inferiores son negativos, lo que solo indica que en una variable positiva y asimétrica el límite inferior no puede marcar nada.
 6. Muescas: primer periodo $570 \pm 1.58 \times 404/\sqrt{27} = 570 \pm 122.8$, de 447.2 a 692.8 m³/s; segundo periodo $686 \pm 1.58 \times 515.75/\sqrt{26} = 686 \pm 159.8$, de 526.2 a 845.8 m³/s. Los intervalos se traslapan entre 526.2 y 692.8 m³/s.
 
 **Pseudocódigo**
 
 1. Leer los datos y crear la variable del periodo.
-2. Calcular cuartiles, RIC, vallas y muescas por periodo con R base.
+2. Calcular cuartiles, RIC, límites y muescas por periodo con R base.
 3. Repetir el resumen con dplyr.
 4. Dibujar las cajas con muesca con R base y con ggplot2.
 
@@ -1158,7 +1164,7 @@ resumen_periodo <- function(x) {
   q <- quantile(x, c(0.25, 0.50, 0.75), type = 6)
   ric <- q[3] - q[1]
   c(n = length(x), Q1 = q[[1]], mediana = q[[2]], Q3 = q[[3]], RIC = ric[[1]],
-    valla_inf = q[[1]] - 1.5 * ric[[1]], valla_sup = q[[3]] + 1.5 * ric[[1]],
+    lim_inf = q[[1]] - 1.5 * ric[[1]], lim_sup = q[[3]] + 1.5 * ric[[1]],
     muesca_inf = q[[2]] - 1.58 * ric[[1]] / sqrt(length(x)),
     muesca_sup = q[[2]] + 1.58 * ric[[1]] / sqrt(length(x)))
 }
@@ -1205,13 +1211,13 @@ ggplot(caudal, aes(x = periodo, y = caudal_m3s)) +
   theme_minimal()
 ```
 
-**Interpretación.** En el segundo periodo la mediana sube de 570 a 686 m³/s y la caja se alarga hacia arriba: el RIC crece de 404 a 516 m³/s y el cuartil superior pasa de 716 a 994 m³/s. Los años de crecidas grandes se volvieron más frecuentes. Sin embargo, las muescas se traslapan, así que con 26 y 27 años no se puede afirmar con el diagrama que la mediana cambió; la Parte V presenta las pruebas que responden esa pregunta con un nivel de confianza explícito. Ningún caudal se marca como atípico, ni siquiera los 1496 m³/s de 2017, porque el segundo periodo es tan disperso que sus vallas quedan muy altas. R base calcula la caja con las bisagras de `fivenum()`, por eso sus muescas (450.0 a 690.0 y 550.3 a 821.7 m³/s) difieren un poco del cálculo a mano.
+**Interpretación.** En el segundo periodo la mediana sube de 570 a 686 m³/s y la caja se alarga hacia arriba: el RIC crece de 404 a 516 m³/s y el cuartil superior pasa de 716 a 994 m³/s. Los años de crecidas grandes se volvieron más frecuentes. Sin embargo, las muescas se traslapan, así que con 26 y 27 años no se puede afirmar con el diagrama que la mediana cambió; la Parte V presenta las pruebas que responden esa pregunta con un nivel de confianza explícito. Ningún caudal se marca como atípico, ni siquiera los 1496 m³/s de 2017, porque el segundo periodo es tan disperso que sus límites superiores quedan muy altos. R base calcula la caja con las bisagras de `fivenum()`, por eso sus muescas (450.0 a 690.0 y 550.3 a 821.7 m³/s) difieren un poco del cálculo a mano.
 
 :::
 
 ### Interactivo: arme su propio diagrama de caja {#sec-med-int-caja}
 
-En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 días por una misma ruta (datos hipotéticos). Agregue días con el control y el botón, por ejemplo un día con un atasco de 95 minutos, y observe cómo cambian la caja, los bigotes y las vallas. Puede cambiar el factor de las vallas entre 1.5 (vallas internas) y 3 (externas), y mostrar u ocultar los datos individuales.
+En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 días por una misma ruta (datos hipotéticos). Agregue días con el control y el botón, por ejemplo un día con un atasco de 95 minutos, y observe cómo cambian la caja, los bigotes y los límites. Puede cambiar el factor de los límites entre 1.5 (límites internos) y 3 (externos), y mostrar u ocultar los datos individuales.
 
 ::: {#fig-med-int-caja}
 
@@ -1225,12 +1231,12 @@ En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 d�
     <button type="button" class="restaurar">Volver a los 20 días</button>
   </div>
   <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
-    <label><input type="radio" name="int-caja-med-f" value="1.5" checked> Vallas a 1.5 RIC</label>
-    <label><input type="radio" name="int-caja-med-f" value="3"> Vallas a 3 RIC</label>
+    <label><input type="radio" name="int-caja-med-f" value="1.5" checked> Límites a 1.5 RIC</label>
+    <label><input type="radio" name="int-caja-med-f" value="3"> Límites a 3 RIC</label>
     <label><input type="checkbox" class="puntos" checked> Mostrar los datos</label>
   </div>
   <p class="resultado" aria-live="polite"></p>
-  <svg viewBox="0 0 640 200" role="img" aria-label="Diagrama de caja horizontal de los tiempos de viaje con las vallas punteadas y los atípicos en rojo"></svg>
+  <svg viewBox="0 0 640 200" role="img" aria-label="Diagrama de caja horizontal de los tiempos de viaje con los límites punteados y los atípicos en rojo"></svg>
 </div>
 <script>
 (function () {
@@ -1254,8 +1260,8 @@ En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 d�
     var atip = s.filter(function (v) { return v < vi || v > vs; });
     var media = s.reduce(function (a, b) { return a + b; }, 0) / n;
     var g = "";
-    [vi, vs].forEach(function (v) { if (v > x0 && v < x1) g += '<line x1="' + sx(v) + '" x2="' + sx(v) + '" y1="20" y2="110" stroke="#D55E00" stroke-dasharray="3 3"/>' +
-      '<text class="eje-texto" x="' + sx(v) + '" y="15" text-anchor="middle">valla</text>'; });
+    [vi, vs].forEach(function (v, j) { if (v > x0 && v < x1) g += '<line x1="' + sx(v) + '" x2="' + sx(v) + '" y1="20" y2="110" stroke="#D55E00" stroke-dasharray="3 3"/>' +
+      '<text class="eje-texto" x="' + sx(v) + '" y="15" text-anchor="middle">' + (j ? 'lím. sup.' : 'lím. inf.') + '</text>'; });
     g += '<line x1="' + sx(bi) + '" x2="' + sx(q1) + '" y1="65" y2="65" stroke="#6c757d" stroke-width="1.5"/>' +
       '<line x1="' + sx(q3) + '" x2="' + sx(bs) + '" y1="65" y2="65" stroke="#6c757d" stroke-width="1.5"/>' +
       '<line x1="' + sx(bi) + '" x2="' + sx(bi) + '" y1="55" y2="75" stroke="#6c757d" stroke-width="1.5"/>' +
@@ -1275,7 +1281,7 @@ En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 d�
     g += '<text class="eje-texto" x="' + (w / 2) + '" y="182" text-anchor="middle">Tiempo de viaje (min)   ◆ media</text>';
     svg.innerHTML = g;
     texto.textContent = "n = " + n + " · Q1 = " + q1.toFixed(2) + " · mediana = " + q2.toFixed(2) + " · Q3 = " + q3.toFixed(2) +
-      " · RIC = " + ric.toFixed(2) + " · media = " + media.toFixed(2) + " · vallas: [" + vi.toFixed(1) + ", " + vs.toFixed(1) + "] · atípicos: " +
+      " · RIC = " + ric.toFixed(2) + " · media = " + media.toFixed(2) + " · límites: [" + vi.toFixed(1) + ", " + vs.toFixed(1) + "] · atípicos: " +
       (atip.length ? atip.join(", ") : "ninguno");
   }
   raiz.querySelector(".agregar").addEventListener("click", function () { datos.push(parseFloat(control.value)); dibujar(); });
@@ -1293,7 +1299,7 @@ Diagrama de caja interactivo.
 
 :::
 
-Con los 20 días originales, la mediana es 42 min y el día de 58 min queda justo dentro de la valla superior a 1.5 RIC (59.5 min). Al agregar un día de atasco de 95 min, la mediana sigue en 42 min, la media sube de 43.15 a 45.62 min y el nuevo día aparece como atípico. Con vallas a 3 RIC sigue marcado (la valla externa queda en 76.5 min), así que es un atípico extremo. Si se agregan cuatro o cinco días de atasco, la caja se estira y las vallas se alejan, y algunos de esos días dejan de verse atípicos. El criterio de Tukey funciona bien para encontrar datos aislados, pero no para detectar un grupo de valores altos que se repite: para eso sirven el histograma y el conocimiento del fenómeno.
+Con los 20 días originales, la mediana es 42 min y el día de 58 min queda justo dentro del límite superior a 1.5 RIC (59.5 min). Al agregar un día de atasco de 95 min, la mediana sigue en 42 min, la media sube de 43.15 a 45.62 min y el nuevo día aparece como atípico. Con límites a 3 RIC sigue marcado (el límite superior externo queda en 76.5 min), así que es un atípico extremo. Si se agregan cuatro o cinco días de atasco, la caja se estira y los límites se alejan, y algunos de esos días dejan de verse atípicos. El criterio de Tukey funciona bien para encontrar datos aislados, pero no para detectar un grupo de valores altos que se repite: para eso sirven el histograma y el conocimiento del fenómeno.
 
 ## Calculadora de medidas descriptivas {#sec-med-calculadora}
 
@@ -1346,7 +1352,7 @@ La calculadora de la @fig-med-calculadora repite los cálculos de este capítulo
       " · Rango = " + f(s[n - 1] - s[0], 3) + "</p><p>" +
       "Varianza <i>s</i><sup>2</sup> = " + f(varianza, 3) + " · Desviación estándar <i>s</i> = " + f(desv, 3) +
       " · CV = " + cv + " · Asimetría <i>g</i><sub>1</sub> = " + (n > 2 ? f(g1, 3) : "—") + "</p><p>" +
-      "Vallas: [" + f(vi, 3) + ", " + f(vs, 3) + "] · Atípicos: " + (atip.length ? atip.join(", ") : "ninguno");
+      "Límites: [" + f(vi, 3) + ", " + f(vs, 3) + "] · Atípicos: " + (atip.length ? atip.join(", ") : "ninguno");
     // Diagrama de caja
     var w = 640, m = 30, lo = Math.min(s[0], vi), hi = Math.max(s[n - 1], vs);
     var pad = (hi - lo) * 0.05 || 1; lo -= pad; hi += pad;
@@ -1446,15 +1452,15 @@ Errores frecuentes al calcular y reportar medidas descriptivas:
 2. **Reportar demasiados decimales.** Una resistencia media de 30.958333 MPa sugiere una precisión que el ensayo no tiene. Las medidas se dan con una o dos cifras más que los datos.
 3. **Promediar promedios de grupos de distinto tamaño.** El promedio de las medias de tres lotes con 3, 9 y 12 cilindros no es la media de los 24 cilindros: hace falta la media ponderada.
 4. **Dar solo la media de datos asimétricos.** Con caudales, tiempos de viaje o concentraciones, la media sola exagera el valor típico; se agrega la mediana.
-5. **Borrar un atípico sin investigarlo.** Un dato marcado por las vallas se verifica en el registro original; si es real, se conserva.
+5. **Borrar un atípico sin investigarlo.** Un dato marcado por los límites de Tukey se verifica en el registro original; si es real, se conserva.
 6. **Mezclar definiciones de cuantiles.** Cuartiles calculados con `CUARTIL.INC` en un cuadro y con `CUARTIL.EXC` en otro dan resultados que no coinciden con pocos datos.
 :::
 
 ## Ejercicios propuestos
 
-1. Para los datos 5, 2, 9, 8, 1, 7, 9, 9, 8, 9, 7, 6, 4, 5, 9, 4, 1, 3, 3, 3, 5, 6, 2, 1, 4, 6, 6, 8, 3, 6, calcule a mano la media, la varianza, la desviación estándar, la moda, el rango, la mediana, los cuartiles (con la @eq-med-posicion), el RIC y las vallas de Tukey. ¿Hay valores atípicos? Compruebe sus resultados con R y con la calculadora de la @fig-med-calculadora.
+1. Para los datos 5, 2, 9, 8, 1, 7, 9, 9, 8, 9, 7, 6, 4, 5, 9, 4, 1, 3, 3, 3, 5, 6, 2, 1, 4, 6, 6, 8, 3, 6, calcule a mano la media, la varianza, la desviación estándar, la moda, el rango, la mediana, los cuartiles (con la @eq-med-posicion), el RIC y los límites inferior y superior de Tukey. ¿Hay valores atípicos? Compruebe sus resultados con R y con la calculadora de la @fig-med-calculadora.
 2. Con los 53 caudales máximos anuales del capítulo 8, calcule la media, la mediana, la desviación estándar, el coeficiente de variación y el coeficiente de asimetría. ¿Qué forma tiene la distribución? ¿Concuerda con la diferencia entre la media y la mediana?
-3. Con los mismos caudales, calcule los cuartiles con `quantile(x, type = 6)` y con `quantile(x)`, y las vallas de Tukey con cada uno. ¿El caudal de 1496 m³/s de 2017 queda como atípico con los dos métodos? ¿Qué concluye sobre el uso del criterio de las vallas?
+3. Con los mismos caudales, calcule los cuartiles con `quantile(x, type = 6)` y con `quantile(x)`, y los límites de Tukey con cada uno. ¿El caudal de 1496 m³/s de 2017 queda como atípico con los dos métodos? ¿Qué concluye sobre el uso del criterio de los límites de Tukey?
 4. Un laboratorio ensaya cuatro lotes de cilindros con estas resistencias medias y número de cilindros: 29.4 MPa (6), 31.2 MPa (12), 27.8 MPa (3) y 30.5 MPa (9). Calcule la resistencia media de todos los cilindros con la media ponderada y compárela con el promedio simple de los cuatro lotes.
 5. El tránsito promedio diario de una carretera fue 8200, 8650, 9300, 9500 y 10 200 vehículos en cinco años. Calcule la tasa de crecimiento anual promedio con la media geométrica y proyecte el tránsito para dentro de diez años. ¿Qué tasa se obtiene con la media aritmética de los factores? ¿Por qué aquí casi no hay diferencia, y en el ejemplo del acero sí?
 6. Dos lotes de bloques de concreto tienen resistencias medias de 8.2 y 12.5 MPa y desviaciones estándar de 1.1 y 1.3 MPa. ¿Cuál lote es más homogéneo? Justifique con el coeficiente de variación.
@@ -1465,7 +1471,7 @@ Errores frecuentes al calcular y reportar medidas descriptivas:
 11. Calcule para las 40 velocidades la fracción de datos dentro de $\bar{x} \pm s$, $\bar{x} \pm 2s$ y $\bar{x} \pm 3s$. Compárelas con la regla empírica y con el mínimo de Chebyshev de la @eq-med-chebyshev.
 12. Las concentraciones de sólidos suspendidos (mg/L) en 15 muestras de un efluente fueron 22, 25, 19, 31, 27, 24, 88, 26, 23, 29, 21, 28, 25, 30 y 24 (datos hipotéticos). Calcule la media, la mediana, la desviación estándar y la desviación absoluta mediana con `mad(x, constant = 1)`. Repita sin el dato de 88 mg/L. ¿Qué medidas cambiaron más?
 13. Dibuje con ggplot2 los caudales máximos por periodo con las cuatro variantes de la @fig-med-caja-variantes y además con `varwidth = TRUE`. ¿Qué variante elegiría para un informe técnico y por qué?
-14. En el interactivo de la @fig-med-int-caja, agregue días de 70 min uno por uno. ¿Con cuántos días de 70 min deja ese valor de aparecer como atípico con vallas a 1.5 RIC? Explique por qué.
+14. En el interactivo de la @fig-med-int-caja, agregue días de 70 min uno por uno. ¿Con cuántos días de 70 min deja ese valor de aparecer como atípico con límites a 1.5 RIC? Explique por qué.
 15. Use R para calcular la media, la desviación estándar y la mediana de $y$ en cada conjunto del cuarteto de Anscombe (`anscombe`). ¿Qué medida sí distingue un poco a los cuatro conjuntos?
 
 ## Lecturas recomendadas

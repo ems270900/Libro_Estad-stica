@@ -118,6 +118,18 @@ ggplot(cuadro_material, aes(x = n, y = reorder(material, n))) +
 
 :::
 
+### Cuándo usar barras y cuándo no
+
+El gráfico de barras es el gráfico de las variables cualitativas. El ojo compara muy bien longitudes que parten de una misma línea, y por eso las barras se leen mejor que los sectores de un gráfico circular [@cleveland1984graphical]. Convienen para:
+
+- Contar datos por categoría, como los puentes por material.
+- Comparar una cantidad ya calculada entre grupos, como el costo por obra o los vehículos por carril.
+- Mostrar cómo se reparten dos variables cualitativas a la vez, como el material y el estado de los puentes (@sec-pres-contingencia).
+
+No convienen para una variable cuantitativa continua: con la resistencia o el caudal cada valor es distinto, y una barra por valor no dice nada; para eso está el histograma de la @sec-pres-cuantitativa. Tampoco convienen para resumir una variable cuantitativa con una barra de su promedio, porque la barra esconde cuánto varían los datos; en ese caso la caja del capítulo 9 o los puntos muestran más [@wilke2019fundamentals].
+
+Dos decisiones mejoran casi cualquier gráfico de barras. Cuando los nombres son largos o hay muchas categorías, las barras horizontales se leen mejor, como en la @fig-pres-barras-gg. Y ordenar las barras de mayor a menor deja ver enseguida cuál es la categoría más frecuente; solo se dejan en su orden natural cuando las categorías tienen uno, como "bueno, regular, malo" o los meses del año. El eje de las barras empieza siempre en cero, por la razón que muestra la @fig-pres-eje. El código de R base para cada variante está en la @sec-graf-barras.
+
 ### El gráfico circular
 
 El gráfico circular (o de pastel) divide un círculo en sectores proporcionales a la frecuencia relativa de cada categoría. Solo tiene sentido cuando las categorías son partes de un todo que suma 100 %. El ojo compara mal los ángulos y las áreas, así que con más de tres o cuatro categorías, o con categorías de tamaño parecido, el gráfico de barras se lee mejor [@wilke2019fundamentals; @healy2018dataviz]. La @fig-pres-circular compara las dos formas con los mismos datos.
@@ -546,6 +558,10 @@ Cada forma sugiere algo sobre el origen de los datos:
 Con menos de unos 30 datos, un histograma puede mostrar picos o huecos que son solo producto del azar. Un segundo pico formado por dos o tres datos no prueba que haya dos poblaciones. Con pocos datos conviene mirar también el gráfico de puntos y el diagrama de caja del capítulo 9 antes de describir la forma.
 :::
 
+### Cuándo usar el histograma y cuándo no {#sec-pres-hist-uso}
+
+El histograma conviene para ver la forma de una variable cuantitativa con unos 30 datos o más, para detectar grupos mezclados y para decidir qué distribución de probabilidad describe los datos (Parte IV). No conviene con pocos datos, porque con 10 datos la forma depende casi por completo de dónde caen los límites de las clases, como muestra el interactivo de la @fig-pres-int-origen; ahí es mejor el gráfico de puntos de la @fig-pres-puntos o una caja. Tampoco sirve para comparar muchos grupos: tres histogramas uno encima del otro se leen peor que tres cajas lado a lado (capítulo 9). La @sec-graf-hist muestra cómo se dibuja con `hist()` y cómo se cambian las clases con el argumento `breaks`.
+
 ### Interactivo: el mismo ancho, otro punto de partida
 
 El ancho de clase no es lo único que cambia la forma de un histograma: el límite donde empieza la primera clase también lo hace. En la @fig-pres-int-origen, el ancho está fijo en el valor que elija y el control mueve el punto de partida de las clases para la serie de 65 lluvias. Con el ancho de 16 mm del ejemplo, compare el histograma que empieza en 44 mm con el que empieza en 52 mm.
@@ -798,7 +814,45 @@ ggplot(mezclas, aes(x = relacion_ac, y = resistencia_mpa)) +
 
 Los puntos bajan de izquierda a derecha: a más agua por unidad de cemento, menos resistencia. La nube es angosta, así que la relación es fuerte, y se curva un poco, con una caída más rápida en las relaciones bajas. Con R base el mismo gráfico se hace con `plot(mezclas$relacion_ac, mezclas$resistencia_mpa)`. Los capítulos 24 y 25 miden esta relación con el coeficiente de correlación y la describen con una recta de regresión.
 
-### Series de tiempo
+#### Qué buscar en una nube de puntos
+
+La @fig-graf-dispersion-patrones muestra los patrones que se buscan al mirar un diagrama de dispersión:
+
+- **Dirección.** Si la nube sube, la relación es positiva; si baja, es negativa.
+- **Forma.** Si los puntos siguen una recta, la relación es lineal; si siguen una curva, no. Esto decide qué modelo usar en la Parte VI.
+- **Fuerza.** Cuanto más angosta la nube alrededor de la recta o la curva, más fuerte la relación. Una nube redonda indica que no hay relación.
+- **Atípicos y grupos.** Un punto lejos de la nube, o dos nubes separadas, piden revisar los datos antes de calcular nada.
+
+```{r}
+#| label: fig-graf-dispersion-patrones
+#| fig-cap: "Patrones de un diagrama de dispersión."
+#| fig-alt: "Cuatro nubes de puntos: una que sube en línea recta, una que baja, una redonda sin dirección y una en forma de curva"
+#| echo: false
+#| fig-height: 5.4
+#| fig-width: 8
+#| out-width: "90%"
+
+set.seed(11)
+x <- runif(60, 0, 10)
+par(mfrow = c(2, 2), mar = c(3.2, 3.2, 2.2, 1), mgp = c(2, 0.6, 0))
+plot(x, 2 + 0.8 * x + rnorm(60, 0, 0.8), pch = 19, col = "#1C6BA0", main = "Positiva y lineal",
+     xlab = "x", ylab = "y", cex.main = 0.95)
+plot(x, 10 - 0.7 * x + rnorm(60, 0, 1.2), pch = 19, col = "#1C6BA0", main = "Negativa y lineal",
+     xlab = "x", ylab = "y", cex.main = 0.95)
+plot(x, rnorm(60, 5, 2), pch = 19, col = "#1C6BA0", main = "Sin relación",
+     xlab = "x", ylab = "y", cex.main = 0.95)
+plot(x, 0.25 * (x - 5)^2 + rnorm(60, 0, 0.5), pch = 19, col = "#1C6BA0", main = "Curva",
+     xlab = "x", ylab = "y", cex.main = 0.95)
+par(mfrow = c(1, 1))
+```
+
+::: {.callout-warning title="Cuidado"}
+Que dos variables se muevan juntas no quiere decir que una cause la otra. En los días calurosos sube el ozono y también sube el consumo de helados, pero los helados no producen ozono: las dos variables dependen del calor. La Parte VI trata cómo medir una relación y qué se puede concluir de ella.
+:::
+
+La @sec-graf-dispersion muestra cómo se dibuja con `plot()` y qué opciones ayudan cuando hay muchos puntos o datos de varios órdenes de magnitud.
+
+### Series de tiempo {#sec-pres-series}
 
 Cuando la variable horizontal es el tiempo, los puntos se unen con líneas para que se vea la secuencia. La @fig-pres-serie muestra el caudal máximo anual de un río entre 1966 y 2018, medido en una estación fluviométrica (datos reales anonimizados).
 
@@ -823,6 +877,8 @@ ggplot(caudal, aes(x = anio, y = caudal_m3s)) +
 ```
 
 En una serie de tiempo se buscan tres cosas: tendencia (si la variable sube o baja con los años), cambios bruscos de nivel y valores aislados muy distintos. En esta serie, el promedio de 1966–1992 es 543 m³/s y el de 1993–2018 es 735 m³/s, y los seis caudales mayores ocurrieron después de 2006. Antes de usar la serie para diseñar habría que averiguar si el cambio es real (más lluvia o cambios en la cuenca) o si se debe a un cambio en la estación o en el método de medición.
+
+La línea conviene cuando el eje horizontal tiene un orden natural, casi siempre el tiempo, y lo que interesa es el cambio: dónde están los picos, si hay una tendencia o un ciclo diario o anual. No conviene cuando el eje horizontal son categorías sin orden, como los proyectos o los materiales, porque la línea entre "Edificio" y "Pavimento" no significa nada; ahí van barras o puntos. Si faltan datos en la serie, la línea no debe saltarse el hueco como si nada: unir los puntos de los dos lados inventa los valores del medio, y es mejor dejar la línea cortada. Los puntos encima de la línea conviene ponerlos cuando hay pocos datos, como en la @fig-pres-serie, para que se vea dónde están las mediciones; con cientos de datos, como una serie diaria de varios años, basta con la línea. La @sec-graf-lineas muestra cómo se hace con `plot()`.
 
 Cuando una serie salta mucho de un año a otro, la tendencia se ve mejor con una media móvil: cada punto de la nueva curva es el promedio de los datos de una ventana de años centrada en él. La @fig-pres-movil agrega a la serie de caudales la media móvil de 11 años. En R base se calcula con `stats::filter(x, rep(1/11, 11))`, que deja sin valor los cinco primeros y los cinco últimos años, porque su ventana queda incompleta.
 
