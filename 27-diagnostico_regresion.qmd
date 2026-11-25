@@ -14,8 +14,8 @@ library(patchwork)
 library(kableExtra)
 options(knitr.kable.NA = "")
 azul <- "#1C6BA0"
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-mod_mezclas <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+mod_tramo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
 ```
 
 ## Supuestos del modelo lineal {#sec-diag-supuestos}
@@ -31,7 +31,7 @@ No todos los supuestos pesan igual. El @tbl-diag-supuestos resume qué pasa cuan
 
 ```{r}
 #| label: tbl-diag-supuestos
-#| tbl-cap: "Consecuencias de la falla de cada supuesto y cómo se revisa."
+#| tbl-cap: "Supuestos de la regresión y su revisión."
 #| echo: false
 
 data.frame(
@@ -111,13 +111,13 @@ La función `plot()` aplicada a un modelo de `lm()` dibuja cuatro gráficos de d
 
 ```{r}
 #| label: fig-diag-plot-base
-#| fig-cap: "Los cuatro gráficos de diagnóstico de `plot()` para el modelo de las diez mezclas."
+#| fig-cap: "Gráficos de diagnóstico de `plot()`."
 #| fig-alt: "Cuatro gráficos de diagnóstico con pocos puntos y sin patrones claros"
 #| fig-width: 8
 #| fig-height: 7
 
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
 par(mfrow = c(2, 2))   # cuatro gráficos en una sola figura, 2 x 2
 plot(modelo)
 par(mfrow = c(1, 1))
@@ -165,7 +165,7 @@ summary(con_log)$coefficients
 
 ```{r}
 #| label: fig-diag-cilindros
-#| fig-cap: "Residuos contra la edad con la edad en escala lineal (izquierda) y logarítmica (derecha)."
+#| fig-cap: "Residuos contra la edad en dos escalas."
 #| fig-alt: "A la izquierda, los residuos de 7 días están arriba de cero y los de 3 días abajo; a la derecha, los tres grupos están centrados en cero"
 #| fig-width: 8
 #| fig-height: 3.8
@@ -240,7 +240,7 @@ La @fig-diag-tres-casos muestra los tres casos. Un atípico en el centro de los 
 
 ```{r}
 #| label: fig-diag-tres-casos
-#| fig-cap: "Valor atípico, punto de alto apalancamiento y punto influyente. La línea gris punteada es la recta sin el punto naranja (datos hipotéticos)."
+#| fig-cap: "Atípico, apalancamiento e influencia."
 #| fig-alt: "Tres paneles con doce puntos en línea y un punto naranja: en el primero está muy arriba en el centro, en el segundo muy a la derecha sobre la línea, en el tercero muy a la derecha y arriba, y la recta se inclina hacia él"
 #| fig-width: 9
 #| fig-height: 3.6
@@ -283,30 +283,30 @@ $$ {#eq-diag-cook}
 
 donde $r_i$ es el residuo estandarizado (@eq-diag-estandarizado), $h_{ii}$ el apalancamiento y $p + 1$ el número de coeficientes del modelo. La fórmula deja ver que un punto es influyente cuando tiene residuo grande, apalancamiento grande o, sobre todo, las dos cosas. Se suele revisar con cuidado cualquier punto con $D_i > 1$ [@montgomery2012introduction, cap. 6]; algunos textos usan el criterio más estricto $D_i > 4/n$.
 
-::: {.callout-note title="Ejemplo: apalancamiento, residuos estandarizados y distancia de Cook de las mezclas"}
+::: {.callout-note title="Ejemplo: apalancamiento, residuos estandarizados y distancia de Cook del modelo de velocidad"}
 
-**Planteamiento.** Para el modelo de las diez mezclas, calcule el apalancamiento, el residuo estandarizado y la distancia de Cook de cada mezcla. Diga si alguna es de alto apalancamiento o influyente.
+**Planteamiento.** Para el modelo de velocidad y densidad de los diez periodos, calcule el apalancamiento, el residuo estandarizado y la distancia de Cook de cada periodo. Diga si alguno es de alto apalancamiento o influyente.
 
 **Solución:**
 
-1. Del capítulo 25: $n = 10$, $\bar{x} = 0.559$, $S_{xx} = 0.091890$, $s = 1.0421$ MPa y $p + 1 = 2$ coeficientes.
-2. Para la mezcla 10 ($x = 0.70$, $e = 1.195$ MPa), apalancamiento (@eq-diag-h):
+1. Del capítulo 25: $n = 10$, $\bar{x} = 42$ veh/km/carril, $S_{xx} = 4240$, $s = 2.0663$ km/h y $p + 1 = 2$ coeficientes.
+2. Para el periodo 8 ($x = 60$, $e = 3.608$ km/h), apalancamiento (@eq-diag-h):
    $$
-   h_{10} = \frac{1}{10} + \frac{(0.70 - 0.559)^2}{0.091890} = 0.1 + \frac{0.019881}{0.091890} = 0.316
+   h_{8} = \frac{1}{10} + \frac{(60 - 42)^2}{4240} = 0.1 + \frac{324}{4240} = 0.176
    $$
-3. Residuo estandarizado (@eq-diag-estandarizado): $r_{10} = 1.195 / \left(1.0421\sqrt{1 - 0.316}\right) = 1.195/0.8616 = 1.39$.
-4. Distancia de Cook (@eq-diag-cook): $D_{10} = (1.39^2/2)(0.316/0.684) = 0.966 \times 0.462 = 0.445$.
-5. Las demás mezclas siguen igual (@tbl-diag-influencia). El límite de apalancamiento es $2(2)/10 = 0.40$: ninguna lo pasa, aunque la mezcla 1 ($h = 0.375$) está cerca por ser la de menor relación. Ningún $|r_i|$ pasa de 2 y ninguna $D_i$ pasa de 1.
+3. Residuo estandarizado (@eq-diag-estandarizado): $r_{8} = 3.608 / \left(2.0663\sqrt{1 - 0.176}\right) = 3.608/1.8752 = 1.92$.
+4. Distancia de Cook (@eq-diag-cook): $D_{8} = (1.92^2/2)(0.176/0.824) = 1.851 \times 0.214 = 0.397$.
+5. Los demás periodos siguen igual (@tbl-diag-influencia). El límite de apalancamiento es $2(2)/10 = 0.40$: ninguno lo pasa, aunque el periodo 10 ($h = 0.373$) está cerca por ser el de mayor densidad. Ningún $|r_i|$ pasa de 2 y ninguna $D_i$ pasa de 1.
 
 ```{r}
 #| label: tbl-diag-influencia
-#| tbl-cap: "Apalancamiento, residuos estandarizados y distancia de Cook de las diez mezclas."
+#| tbl-cap: "Diagnóstico de los diez periodos."
 #| echo: false
 
-data.frame(i = 1:10, x = sprintf("%.2f", mezclas$relacion_ac), e = sprintf("%.3f", residuals(mod_mezclas)),
-           h = sprintf("%.3f", hatvalues(mod_mezclas)), r = sprintf("%.2f", rstandard(mod_mezclas)),
-           D = sprintf("%.3f", cooks.distance(mod_mezclas))) %>%
-  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>e<sub>i</sub></i> (MPa)", "<i>h<sub>ii</sub></i>",
+data.frame(i = 1:10, x = sprintf("%d", tramo$densidad_veh_km), e = sprintf("%.3f", residuals(mod_tramo)),
+           h = sprintf("%.3f", hatvalues(mod_tramo)), r = sprintf("%.2f", rstandard(mod_tramo)),
+           D = sprintf("%.3f", cooks.distance(mod_tramo))) %>%
+  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i> (veh/km)", "<i>e<sub>i</sub></i> (km/h)", "<i>h<sub>ii</sub></i>",
                     "<i>r<sub>i</sub></i>", "<i>D<sub>i</sub></i>"), escape = FALSE, align = "c") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
@@ -320,9 +320,9 @@ data.frame(i = 1:10, x = sprintf("%.2f", mezclas$relacion_ac), e = sprintf("%.3f
 
 ```{r}
 # 1) Modelo
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
-x <- mezclas$relacion_ac
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
+x <- tramo$densidad_veh_km
 n <- length(x)
 e <- residuals(modelo)
 s <- sigma(modelo)
@@ -342,22 +342,22 @@ which(abs(r) > 2)
 which(D > 1)
 ```
 
-**Interpretación.** Ninguna mezcla domina el ajuste. La que más influye es la 10 ($D = 0.445$), porque está en un extremo del rango y su residuo es de los más grandes, pero quitarla no cambiaría las conclusiones. Las mezclas de los extremos tienen más apalancamiento que las del centro; por eso, al planear ensayos, se recomienda repetir algunas mezclas en los extremos del rango.
+**Interpretación.** Ningún periodo domina el ajuste. El que más influye es el 8 ($D = 0.397$), porque tiene el residuo más grande y está lejos del centro, pero quitarlo no cambiaría las conclusiones. Los periodos de los extremos tienen más apalancamiento que los del centro; por eso, al planear un aforo, conviene registrar varios periodos con la vía casi vacía y varios cerca de la congestión.
 
 :::
 
 ### Interactivo: un punto que se mueve
 
-Con los dos controles se mueve una mezcla adicional (en naranja) que se agrega a las diez del ejemplo. La recta azul se ajusta con los once puntos y la gris punteada con los diez originales. Debajo aparecen el apalancamiento, el residuo estandarizado y la distancia de Cook del punto naranja.
+Con los dos controles se mueve un periodo adicional (en naranja) que se agrega a los diez del ejemplo. La recta azul se ajusta con los once puntos y la gris punteada con los diez originales. Debajo aparecen el apalancamiento, el residuo estandarizado y la distancia de Cook del punto naranja.
 
 ::: {#fig-diag-interactivo}
 
 ```{=html}
 <div class="interactivo" id="int-influencia">
-  <label><span>Relación a/c del punto nuevo:</span> <output>0.55</output>
-    <input type="range" min="0.30" max="1.00" step="0.01" value="0.55"></label>
-  <label><span>Resistencia del punto nuevo (MPa):</span> <output>34.0</output>
-    <input type="range" min="5" max="50" step="0.5" value="34"></label>
+  <label><span>Densidad del punto nuevo (veh/km/carril):</span> <output>42</output>
+    <input type="range" min="0" max="120" step="1" value="42"></label>
+  <label><span>Velocidad del punto nuevo (km/h):</span> <output>54.0</output>
+    <input type="range" min="0" max="100" step="0.5" value="54"></label>
   <svg viewBox="0 0 640 320" role="img" aria-label="Diez puntos fijos y uno móvil con dos rectas de regresión"></svg>
   <p class="resultado" aria-live="polite"></p>
 </div>
@@ -366,11 +366,11 @@ Con los dos controles se mueve una mezcla adicional (en naranja) que se agrega a
   var raiz = document.getElementById("int-influencia");
   var ctl = raiz.querySelectorAll("input"), sal = raiz.querySelectorAll("output");
   var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
-  var xs0 = [0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70];
-  var ys0 = [44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1];
+  var xs0 = [12, 18, 24, 30, 36, 44, 52, 60, 68, 76];
+  var ys0 = [76.5, 73.4, 71.3, 64.4, 58.5, 49.8, 45.4, 43.7, 32.9, 27.1];
   var w = 640, h = 320, m = 44;
-  var sx = function (x) { return m + (x - 0.30) / 0.70 * (w - 2 * m); };
-  var sy = function (y) { return h - m - (y - 0) / 55 * (h - 2 * m); };
+  var sx = function (x) { return m + x / 120 * (w - 2 * m); };
+  var sy = function (y) { return h - m - y / 100 * (h - 2 * m); };
   function ajuste(xs, ys) {
     var n = xs.length, mx = 0, my = 0, sxx = 0, sxy = 0, sse = 0;
     for (var i = 0; i < n; i++) { mx += xs[i] / n; my += ys[i] / n; }
@@ -381,27 +381,27 @@ Con los dos controles se mueve una mezcla adicional (en naranja) que se agrega a
   }
   var a0 = ajuste(xs0, ys0);
   function recta(a, estilo) {
-    return '<line x1="' + sx(0.30) + '" x2="' + sx(1.00) + '" y1="' + sy(a.b0 + a.b1 * 0.30) + '" y2="' + sy(a.b0 + a.b1 * 1.00) + '" ' + estilo + '/>';
+    return '<line x1="' + sx(0) + '" x2="' + sx(120) + '" y1="' + sy(a.b0) + '" y2="' + sy(a.b0 + a.b1 * 120) + '" ' + estilo + '/>';
   }
   function dibujar() {
     var xn = parseFloat(ctl[0].value), yn = parseFloat(ctl[1].value);
-    sal[0].textContent = xn.toFixed(2); sal[1].textContent = yn.toFixed(1);
+    sal[0].textContent = xn.toFixed(0); sal[1].textContent = yn.toFixed(1);
     var a = ajuste(xs0.concat([xn]), ys0.concat([yn]));
     var hh = 1 / a.n + Math.pow(xn - a.mx, 2) / a.sxx;
     var e = yn - a.b0 - a.b1 * xn, r = e / (a.s * Math.sqrt(1 - hh)), D = r * r / 2 * hh / (1 - hh);
     var g = '<defs><clipPath id="int-influencia-recorte"><rect x="' + m + '" y="0" width="' + (w - 2 * m) + '" height="' + (h - m) + '"/></clipPath></defs>';
-    for (var t = 0; t <= 50; t += 10) g += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
-    for (var u = 0.3; u <= 1.001; u += 0.1) g += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(1) + '</text>';
+    for (var t = 0; t <= 100; t += 20) g += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    for (var u = 0; u <= 120; u += 20) g += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u + '</text>';
     g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
       '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
-      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Densidad (veh/km/carril)</text>' +
       '<g clip-path="url(#int-influencia-recorte)">' + recta(a0, 'stroke="#888" stroke-width="2" stroke-dasharray="6 4"') +
       recta(a, 'stroke="#1C6BA0" stroke-width="2.5"') + '</g>';
     for (var q = 0; q < xs0.length; q++) g += '<circle cx="' + sx(xs0[q]) + '" cy="' + sy(ys0[q]) + '" r="4" fill="#222"/>';
     g += '<circle cx="' + sx(xn) + '" cy="' + sy(yn) + '" r="7" fill="#D55E00"/>';
     svg.innerHTML = g;
     var marca = D > 1 ? " (influyente: D > 1)" : (hh > 4 / a.n ? " (alto apalancamiento)" : "");
-    texto.textContent = "Recta con el punto: ŷ = " + a.b0.toFixed(1) + " " + (a.b1 < 0 ? "− " : "+ ") + Math.abs(a.b1).toFixed(1) +
+    texto.textContent = "Recta con el punto: ŷ = " + a.b0.toFixed(1) + " " + (a.b1 < 0 ? "− " : "+ ") + Math.abs(a.b1).toFixed(3) +
       " x   |   h = " + hh.toFixed(3) + "   r = " + r.toFixed(2) + "   D de Cook = " + D.toFixed(2) + marca;
   }
   ctl[0].addEventListener("input", dibujar);
@@ -411,11 +411,11 @@ Con los dos controles se mueve una mezcla adicional (en naranja) que se agrega a
 </script>
 ```
 
-Una mezcla adicional movible y su efecto sobre la recta. El límite de apalancamiento es 2(2)/11 = 0.36.
+Efecto de un periodo adicional sobre la recta.
 
 :::
 
-Si el punto naranja se pone en el centro (relación 0.55) y se sube hasta 50 MPa, el residuo crece mucho, pero la recta casi no se inclina y $D$ queda debajo de 1. Si se lleva a una relación de 0.95 sobre la prolongación de la recta (unos 9 MPa), el apalancamiento pasa de 0.6 y $D$ sigue pequeña. Si a esa misma relación se le pone una resistencia de 30 MPa, la recta gira y $D$ pasa de 1.
+Si el punto naranja se pone en el centro (42 veh/km) y se sube hasta 90 km/h, el residuo estandarizado pasa de 2.9, pero la recta solo se desplaza hacia arriba, no gira, y $D$ queda en 0.44. Si se lleva a 105 veh/km sobre la prolongación de la recta (unos 5 km/h), el apalancamiento pasa de 0.5 y $D$ sigue pequeña. Si a esa misma densidad se le pone una velocidad de 40 km/h, la recta gira y $D$ pasa de 4.
 
 ### Qué hacer con un punto influyente
 
@@ -541,7 +541,7 @@ exp(predict(loglog, nueva, interval = "prediction"))
 
 ```{r}
 #| label: fig-diag-cuencas
-#| fig-cap: "Residuos contra valores ajustados del modelo lineal (izquierda) y del modelo log-log (derecha)."
+#| fig-cap: "Residuos del modelo lineal y del log-log."
 #| fig-alt: "A la izquierda, los residuos se abren como un embudo hacia la derecha; a la derecha, forman una banda pareja alrededor de cero"
 #| fig-width: 8
 #| fig-height: 3.8
@@ -588,8 +588,8 @@ Los capítulos 24 a 27 se resumen en una secuencia de trabajo que sirve para cua
 ## Ejercicios propuestos
 
 1. Para cada patrón, diga cuál es el problema más probable y una medida razonable: (a) residuos en forma de U contra los ajustados; (b) residuos cuya dispersión crece con los ajustados; (c) dos predictores con $r = 0.98$ y errores estándar muy grandes; (d) residuos consecutivos en el tiempo con el mismo signo; (e) una observación que cambia todos los coeficientes al quitarla.
-2. En las diez mezclas, suponga que la resistencia de la mezcla 2 se digitó como 31.5 en vez de 41.5 MPa. Ajuste de nuevo el modelo y calcule $h$, $r$ y $D$ de esa mezcla. ¿Es un atípico, un punto de alto apalancamiento o un punto influyente?
-3. Calcule a mano el apalancamiento de una mezcla nueva con relación 0.90 si se agregara a las diez del ejemplo (use $\bar{x}$ y $S_{xx}$ de los once puntos). Compare con el límite $2(p+1)/n$.
+2. En los diez periodos del tramo, suponga que la velocidad del periodo 2 se digitó como 37.4 en vez de 73.4 km/h. Ajuste de nuevo el modelo y calcule $h$, $r$ y $D$ de ese periodo. ¿Es un atípico, un punto de alto apalancamiento o un punto influyente?
+3. Calcule a mano el apalancamiento de un periodo nuevo con 100 veh/km/carril si se agregara a los diez del ejemplo (use $\bar{x}$ y $S_{xx}$ de los once puntos). Compare con el límite $2(p+1)/n$.
 4. Con el modelo log-log de las cuencas, calcule a mano la predicción para 50 km² y para 1000 km². ¿Cuál de las dos es una extrapolación?
 5. Con el modelo de los cilindros con $\ln(\text{edad})$, dibuje los cuatro gráficos de `plot()` y describa lo que ve en cada uno.
 6. Simule en R 100 pares con `x <- runif(100, 1, 10)` y `y <- 2 + 3 * x + rnorm(100, sd = x)`. Ajuste la recta, haga los gráficos de diagnóstico y la prueba de Breusch-Pagan, y explique el resultado.

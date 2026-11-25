@@ -8,4 +8,4 @@ Ningún método de este libro reemplaza el criterio de quien lo aplica. Una prue
 
 La ingeniería civil trabaja para la gente: los puentes que cruza, el agua que bebe, los edificios donde vive. Detrás de cada muestra que se ensaya hay una decisión que afecta a alguien que nunca va a leer el informe. Si estas páginas ayudan a que esas decisiones se tomen con mejores datos y con más cuidado, habrán cumplido su propósito.
 
-Gracias por leer. Y la próxima vez que alguien le diga que un río tiene en promedio 80 cm de profundidad, pregunte por la desviación estándar antes de cruzarlo.
+Gracias por leer. Y la próxima vez que alguien le diga que, en promedio, todo está bien, pregunte por la desviación estándar.

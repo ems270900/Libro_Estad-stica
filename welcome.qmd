@@ -4,24 +4,17 @@ page-layout: article
 
 # Prefacio {.unnumbered}
 
-Hay un chiste viejo que circula en las escuelas de ingeniería. Un ingeniero llega a un río, lee en el informe que la profundidad media es de 80 cm, calcula que con su estatura de 1.75 m le sobra margen y empieza a cruzar. No llegó al otro lado. El río tenía 30 cm en casi todo el ancho y 2.5 m en el centro del cauce. El promedio estaba bien calculado; lo que faltó fue preguntar por la variabilidad. Este libro trata, en buena parte, de esa pregunta.
+Un estadístico mete la cabeza en el horno y los pies en el congelador. Alguien le pregunta cómo se siente y responde: "En promedio, de maravilla". El promedio estaba bien calculado; lo que faltó fue preguntar por la variabilidad. Este libro trata, en buena parte, de esa pregunta.
 
-La estadística tiene mala fama entre quienes estudian ingeniería civil. Se le ve como el curso que se mete entre las materias "de ingeniería" para recordar que existen las fórmulas con sumatorias, los subíndices que no se acaban y una tabla de la normal que nunca trae justo el valor que se necesita. Si usted abrió este libro porque el curso es obligatorio, nadie se lo va a reprochar, y además está en buena compañía. La buena noticia es que la ingeniería civil vive de datos con ruido. Los cilindros de un mismo concreto no fallan a la misma carga, dos conteos de tránsito en la misma esquina no dan el mismo número y ningún año llueve igual que el anterior. Cuando eso se entiende, la estadística deja de ser un trámite y pasa a ser la forma de decidir con datos que nunca vienen limpios.
+Si usted abrió estas páginas porque el curso es obligatorio, nadie se lo va a reprochar. La estadística tiene fama de ser el curso de las sumatorias interminables y de la tabla de la normal que nunca trae justo el valor que se busca. Pero la ingeniería civil vive de datos con ruido: los cilindros de un mismo concreto no fallan a la misma carga y ningún año llueve igual que el anterior. Cuando eso se entiende, la estadística deja de ser un trámite y se vuelve la forma de decidir con datos que nunca vienen limpios.
 
-El texto nació del material de un curso de probabilidad y estadística de la Escuela de Ingeniería Civil de la Universidad de Costa Rica y sigue la forma del libro *Hidrología Aplicada a la Ingeniería Civil*, del mismo autor. Está pensado para quien aprende estadística y R por primera vez, sin experiencia previa en ninguno de los dos. También sirve a quien ya trabaja y vuelve a buscar cómo se hacía una prueba $t$ o qué significaba aquel valor $p$ que salió en un informe.
+El libro es para quien aprende estadística y R por primera vez, sin experiencia previa en ninguno de los dos. Cada ejemplo se resuelve dos veces, primero a mano y después con R, y los dos caminos dan el mismo número. Si no lo dan, alguien se equivocó (casi siempre la calculadora, por supuesto).
 
-Cuatro rasgos lo distinguen de un manual tradicional:
+Sé que aprender R puede ser frustrante al principio, porque así lo fue para mí. Una coma fuera de lugar detiene todo y R contesta con un mensaje que parece escrito para otra persona. A todos nos pasa. Con el tiempo uno aprende a leer el mensaje antes de entrar en pánico, y el capítulo 1 ayuda con eso.
 
-- **Los ejemplos se resuelven dos veces.** Primero a mano, paso a paso, como se haría con calculadora en un examen. Después con código R que se puede copiar, ejecutar y adaptar a otros datos. Los dos caminos dan el mismo número, y si no lo dan, alguien se equivocó (casi siempre la calculadora, por supuesto).
-- **R se aprende antes que la teoría.** La primera parte enseña R y RStudio desde cero, con capturas de pantalla, para que en el resto del libro el código sea un apoyo y no un obstáculo.
-- **Los datos se pueden descargar y los gráficos se pueden mover.** Cada conjunto de datos trae su botón de descarga, y muchos capítulos tienen interactivos con deslizadores para ver qué pasa con una distribución o un intervalo cuando cambia un parámetro.
-- **El libro es abierto.** El texto tiene una licencia con la que se puede compartir y adaptar con fines no comerciales, y el código puede reutilizarse sin restricciones.
+Una advertencia: después de este libro es probable que usted no vuelva a leer igual una noticia que diga "el promedio subió". Ese efecto secundario no tiene cura, pero es de los buenos.
 
-No hace falta saber programar para empezar. Sé que aprender R puede ser frustrante al principio, porque así lo fue para mí. Una coma fuera de lugar detiene todo, un paquete se niega a instalarse y R contesta con un mensaje que parece escrito para otra persona. A todos nos ha pasado, y a todos nos sigue pasando de vez en cuando; la diferencia es que con el tiempo uno aprende a leer el mensaje antes de entrar en pánico. El capítulo 1 tiene una sección entera dedicada a esos errores, y cada ejemplo trae un pseudocódigo que explica qué hace cada línea. Se puede avanzar al propio ritmo: primero leyendo el código, luego copiándolo y cambiando los datos, y al final escribiendo el propio.
-
-Una advertencia antes de empezar: después de este libro es probable que usted no vuelva a leer igual una noticia que diga "el promedio subió". Va a querer saber cuántos datos había, cuánto variaban y si la diferencia cabe dentro del error de muestreo. Ese efecto secundario no tiene cura, pero es de los buenos.
-
-Las correcciones y sugerencias de quienes usen el libro son bienvenidas y ayudan a mejorarlo en cada edición.
+Las correcciones y sugerencias de quienes usen el libro son bienvenidas.
 
 ## Agradecimientos {.unnumbered}
 

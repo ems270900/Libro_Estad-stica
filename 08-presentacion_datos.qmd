@@ -124,7 +124,7 @@ El gráfico circular (o de pastel) divide un círculo en sectores proporcionales
 
 ```{r}
 #| label: fig-pres-circular
-#| fig-cap: "Material de los 40 puentes en gráfico circular y en barras."
+#| fig-cap: "Material de los 40 puentes en dos gráficos."
 #| fig-alt: "A la izquierda, un círculo con cuatro sectores; a la derecha, las mismas cuatro categorías como barras horizontales ordenadas, donde es más fácil ver que acero y concreto difieren en solo tres puentes"
 #| fig-width: 9
 #| fig-height: 3.6
@@ -266,7 +266,7 @@ En el código, `head(limites, -1)` da todos los límites menos el último (los l
 
 ```{r}
 #| label: fig-pres-lluvia-base
-#| fig-cap: "Histograma con polígono de frecuencias y ojiva de la lluvia máxima diaria, con R base."
+#| fig-cap: "Histograma, polígono de frecuencias y ojiva."
 #| fig-alt: "A la izquierda, un histograma de siete clases con la clase de 60 a 76 mm como la más alta y una línea que une los centros de las barras; a la derecha, una curva creciente en forma de S que va de 0 a 1"
 #| fig-width: 9
 #| fig-height: 3.8
@@ -285,7 +285,7 @@ par(mfrow = c(1, 1))
 
 ```{r}
 #| label: fig-pres-lluvia-gg
-#| fig-cap: "Histograma y ojiva de la lluvia máxima diaria, con ggplot2."
+#| fig-cap: "Histograma y ojiva con ggplot2."
 #| fig-alt: "Dos gráficos de ggplot2: histograma de siete clases con su polígono de frecuencias y la ojiva con una línea punteada que marca 92 mm y 0.831"
 #| fig-width: 9
 #| fig-height: 3.8
@@ -387,7 +387,7 @@ La ojiva responde preguntas del tipo "¿en qué fracción de los años la lluvia
 </script>
 ```
 
-Ojiva de la precipitación máxima diaria anual. Mueva el control para elegir el valor de lluvia que se quiere leer.
+Ojiva de la precipitación máxima diaria anual.
 
 :::
 
@@ -471,7 +471,7 @@ ver_datos("datos/relacion_ac_resistencia_hipotetica.csv",
 
 ```{r}
 #| label: fig-pres-dispersion
-#| fig-cap: "Resistencia a compresión contra relación agua/cemento de 25 mezclas hipotéticas."
+#| fig-cap: "Resistencia contra relación agua/cemento."
 #| fig-alt: "Nube de puntos que baja de izquierda a derecha, de unos 44 MPa con relación 0.41 a unos 25 MPa con relación 0.69"
 #| echo: false
 
@@ -552,7 +552,7 @@ Hay errores de presentación que se repiten en informes técnicos y que distorsi
 
 ```{r}
 #| label: fig-pres-eje
-#| fig-cap: "Las mismas tres resistencias medias con el eje desde 25 MPa y desde 0 MPa."
+#| fig-cap: "Efecto del inicio del eje vertical."
 #| fig-alt: "Dos gráficos de barras con las mismas tres resistencias de 27.5, 28.4 y 30.0 MPa; a la izquierda el eje empieza en 25 y las barras parecen muy distintas; a la derecha empieza en 0 y las barras son casi iguales"
 #| fig-width: 9
 #| fig-height: 3.4
