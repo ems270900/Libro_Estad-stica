@@ -307,7 +307,7 @@ Los formatos de Word y PDF comparten algunas opciones con el HTML (`toc`, `toc_d
 - `word_document`: con `reference_docx: plantilla.docx` el documento toma los estilos (tipo de letra, márgenes, colores de los títulos) de un archivo de Word que sirve de modelo. Se arma una vez, compilando cualquier documento a Word, cambiando sus estilos en Word y guardándolo con otro nombre. Las figuras salen por defecto de 5 × 4 pulgadas.
 - `pdf_document`: `latex_engine: xelatex` elige el programa que arma el PDF (xelatex maneja mejor las tildes y los tipos de letra del sistema), `keep_tex: true` guarda el archivo intermedio de LaTeX y `fig_caption: true` numera las figuras. Las figuras salen por defecto de 6.5 × 4.5 pulgadas.
 
-Un mismo archivo puede tener los tres formatos a la vez, uno debajo del otro dentro de `output`. El botón Knit usa el primero, y su flecha permite elegir los demás.
+Un mismo archivo puede tener los tres formatos a la vez, uno debajo del otro dentro de `output`. El botón Knit usa el primero, y con su flecha se eligen los demás.
 
 ### Un encabezado para entregar tareas
 
@@ -580,7 +580,7 @@ Partes de un bloque de código.
 
 :::
 
-El nombre no es obligatorio, pero ayuda mucho: cuando la compilación falla, el mensaje dice en qué bloque ocurrió (`Quitting from lines 40-45 (caudales-mes)`), y en RStudio el menú de la parte de abajo del editor permite saltar de un bloque a otro por su nombre. Dos bloques con el mismo nombre detienen la compilación con el error `Duplicate chunk label`.
+El nombre no es obligatorio, pero ayuda mucho: cuando la compilación falla, el mensaje dice en qué bloque ocurrió (`Quitting from lines 40-45 (caudales-mes)`), y en RStudio, con el menú de la parte de abajo del editor, se salta de un bloque a otro por su nombre. Dos bloques con el mismo nombre detienen la compilación con el error `Duplicate chunk label`.
 
 Las opciones también pueden escribirse en las primeras líneas del bloque, cada una en su propia línea que empieza con `#|`. Las dos formas siguientes hacen lo mismo. La segunda es más fácil de leer cuando hay muchas opciones y es la que usa Quarto (@sec-rmd-quarto), así que conviene acostumbrarse a ella. Dentro de las llaves los nombres llevan punto (`fig.cap`); en las líneas `#|` los valores siguen las reglas del YAML (`true` y `false` en minúscula).
 
@@ -1225,6 +1225,24 @@ Para usarla:
 4. Presione Knit. Debe aparecer un informe con tres secciones, un cuadro, una figura y un cuadro resumen.
 5. Cambie el título, el autor y el texto de la conclusión, y adapte los bloques a sus propios datos.
 
+### Una plantilla de tarea
+
+Para entregar tareas, el archivo `plantilla_tarea.Rmd` ya trae el encabezado recomendado de la @sec-rmd-encabezado (índice fijo, secciones numeradas, código visible con botón y data frames con páginas), un bloque `setup` con las opciones generales y los paquetes, y las secciones Enunciado, Datos, Solución y Conclusiones. Usa el conjunto `airquality` de R, así que compila sin descargar ningún dato. Incluye un cuadro con kableExtra, números calculados en el texto y dos gráficos en pestañas.
+
+```{r}
+#| echo: false
+htmltools::div(
+  class = "datos-ejemplo",
+  htmltools::HTML(as.character(xfun::embed_file(
+    "assets/archivos/plantilla_tarea.Rmd",
+    text = htmltools::HTML("&#11015; Descargar <code>plantilla_tarea.Rmd</code>"),
+    class = "boton-datos"
+  )))
+)
+```
+
+Antes de entregar una tarea conviene revisar cinco cosas: que el documento compile desde una sesión nueva de R, que el encabezado tenga el nombre y la fecha, que cada figura y cada cuadro tenga su pie o su título, que los números del texto estén calculados con código en línea y no copiados, y que las advertencias que quedaron a la vista se hayan leído.
+
 ## Otros formatos de salida {#sec-rmd-formatos}
 
 El mismo archivo `.Rmd` se puede compilar a otros formatos. El botón Knit tiene una flecha a la derecha que despliega las opciones Knit to HTML, Knit to PDF y Knit to Word, y al elegir una RStudio agrega el formato al encabezado.
@@ -1246,6 +1264,11 @@ Cuando la compilación falla, RStudio muestra el error en la pestaña Render, ju
 | `Error in yaml::yaml.load` o `Scanner error` | Un problema de sangría o de dos puntos en el encabezado | Revisar los espacios del encabezado (@sec-rmd-encabezado) |
 | El documento muestra el código como texto | Un bloque no se cerró con sus tres acentos graves | Agregar la línea ```` ``` ```` al final del bloque |
 | `there is no package called 'rmarkdown'` | El paquete no está instalado | `install.packages("rmarkdown")` |
+| `unused argument` o `unexpected symbol` en la línea de un bloque | Falta una coma entre las opciones del bloque, o una opción tiene comillas sin cerrar | Revisar la línea de apertura del bloque |
+| El índice no aparece | Falta `toc: true`, o `toc_float` está sin `toc` | Revisar el encabezado (@tbl-rmd-html) |
+| Las figuras no se numeran ni se pueden citar | El formato es `html_document` | Usar `bookdown::html_document2` (@sec-rmd-citas) |
+| `LaTeX failed to compile` o `No LaTeX installation detected` | Se pidió PDF sin tener LaTeX | Instalar tinytex (@sec-rmd-formatos) o compilar a HTML |
+| Una cita sale como `(clave?)` | La clave no está en el archivo `.bib` o está mal escrita | Revisar la clave y el nombre del archivo en `bibliography` |
 
 : Errores frecuentes al compilar un documento de R Markdown. {#tbl-rmd-errores}
 
@@ -1291,6 +1314,13 @@ Un buen hábito es crear un proyecto de RStudio por cada informe o tarea (@sec-r
 8. Descargue la plantilla de la @sec-rmd-plantilla, compílela y cámbiela para que el informe sea del proyecto Puente, con resistencia de diseño de 35 MPa.
 9. Borre a propósito la línea que lee los datos de la plantilla y compílela. Lea el mensaje de error y busque en el @tbl-rmd-errores su causa y su solución.
 10. Compile la plantilla a Word con la flecha del botón Knit. ¿Qué elementos se conservan y cuáles cambian?
+11. Escriba un encabezado con dos autores, la fecha automática en formato día/mes/año, índice fijo a la izquierda con títulos hasta el nivel 2, el tema `cosmo` y código oculto detrás de un botón. Compruébelo en el interactivo de la @fig-rmd-yaml-int y luego compílelo.
+12. Copie el encabezado con errores de la @fig-rmd-yaml-reglas, compílelo y anote el mensaje de cada error. Corríjalos uno por uno.
+13. Con el conjunto `mtcars` de R, haga un bloque que calcule el consumo medio (`mpg`) según el número de cilindros (`cyl`). Compílelo con `results = "hold"`, luego con `collapse = TRUE` y luego con `comment = ""`, y describa qué cambia.
+14. Dibuje el mismo gráfico con `fig.width = 4` y con `fig.width = 10`, los dos con `out.width = "60%"`. Explique por qué cambia el tamaño de las letras.
+15. Con `airquality`, haga un cuadro con kableExtra del viento medio por mes en km/h que tenga el tema `kable_minimal()`, el mes de viento más fuerte resaltado y una nota al pie con la fuente.
+16. Pase la plantilla de tarea al formato `bookdown::html_document2`, cree el archivo `_bookdown.yml` de la @sec-rmd-citas y cite en el texto el cuadro y la figura con `\@ref()`.
+17. Cree un archivo `referencias.bib` con dos referencias copiadas de Google Académico, cítelas en el texto de una de las formas del @tbl-rmd-citas y agregue al final el título `# Referencias`.
 
 ## Lecturas recomendadas
 
