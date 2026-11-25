@@ -207,15 +207,22 @@ Esta fórmula sirve igual para 1, 2 o 20 predictores: solo cambia el número de 
 relleno <- read.csv("datos/asentamiento_relleno_hipotetico.csv")
 modelo <- lm(asentamiento_mm ~ altura_relleno_m + espesor_arcilla_m, data = relleno)
 
-X <- model.matrix(modelo)        # matriz de diseño: columna de unos, x1 y x2
+# Matriz de diseño: columna de unos, x1 y x2
+X <- model.matrix(modelo)
 y <- relleno$asentamiento_mm
-XtX <- t(X) %*% X                # t() transpone; %*% multiplica matrices
+
+# t() transpone, %*% multiplica matrices y solve(M) da la inversa de M
+XtX <- t(X) %*% X
 Xty <- t(X) %*% y
-b <- solve(XtX) %*% Xty          # solve(M) calcula la inversa de M
+b <- solve(XtX) %*% Xty
 b
-y_aj <- X %*% b                  # todos los valores ajustados de una vez
-e <- y - y_aj                    # vector de residuos
-round(t(X) %*% e, 10)            # los residuos son perpendiculares a las columnas de X
+
+# Valores ajustados y residuos de una vez
+y_aj <- X %*% b
+e <- y - y_aj
+
+# Los residuos son perpendiculares a las columnas de X
+round(t(X) %*% e, 10)
 ```
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
