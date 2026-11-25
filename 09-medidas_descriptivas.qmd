@@ -243,7 +243,7 @@ En la @fig-med-interactivo-centro están los doce cilindros. Mueva el control pa
 </script>
 ```
 
-Resistencia de los doce cilindros hipotéticos. El punto anaranjado es el cilindro 8; mueva el control para cambiar su valor.
+Resistencia de doce cilindros hipotéticos.
 
 :::
 
@@ -459,7 +459,7 @@ Además del centro y la dispersión, importa la forma. Una distribución es sim�
 
 ```{r}
 #| label: fig-med-formas
-#| fig-cap: "Distribuciones simétrica, asimétrica a la derecha y asimétrica a la izquierda, con su media y su mediana."
+#| fig-cap: "Media y mediana según la asimetría."
 #| fig-alt: "Tres histogramas; en el simétrico la media y la mediana coinciden en el centro; en el asimétrico a la derecha la media está a la derecha de la mediana; en el asimétrico a la izquierda la media está a la izquierda de la mediana"
 #| fig-width: 9
 #| fig-height: 3.2
@@ -587,7 +587,7 @@ skewness(x, type = 2)
 
 ```{r}
 #| label: fig-med-caja-base
-#| fig-cap: "Diagrama de caja de la precipitación máxima diaria anual, con R base."
+#| fig-cap: "Diagrama de caja de la lluvia máxima con R base."
 #| fig-alt: "Diagrama de caja horizontal: caja de 61 a 87 mm con la mediana en 69 mm, bigote izquierdo corto hasta 45 mm, bigote derecho largo hasta 119 mm y un punto aislado en 151 mm"
 #| fig-height: 2.8
 
@@ -597,7 +597,7 @@ boxplot(x, horizontal = TRUE, col = "#C6DBEF", xlab = "Precipitación máxima di
 
 ```{r}
 #| label: fig-med-caja-gg
-#| fig-cap: "Diagrama de caja de la precipitación máxima diaria anual, con ggplot2."
+#| fig-cap: "Diagrama de caja de la lluvia máxima con ggplot2."
 #| fig-alt: "Diagrama de caja horizontal hecho con ggplot2, igual al anterior, con el valor de 151 mm como punto aislado"
 #| fig-height: 2.8
 
@@ -716,7 +716,7 @@ La calculadora de la @fig-med-calculadora repite los cálculos de este capítulo
 </script>
 ```
 
-Calculadora de medidas descriptivas. Escriba o pegue los datos y los resultados se actualizan solos.
+Calculadora de medidas descriptivas.
 
 :::
 

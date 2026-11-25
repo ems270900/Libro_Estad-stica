@@ -62,7 +62,7 @@ Un histograma divide el rango de los datos en intervalos, llamados clases, y dib
 
 ```{r}
 #| label: fig-graf-hist-base
-#| fig-cap: "Histograma de la resistencia de los 60 cilindros, con `hist()`."
+#| fig-cap: "Histograma de la resistencia con `hist()`."
 #| fig-alt: "Histograma con dos grupos de barras, uno alrededor de 20 MPa y otro alrededor de 35 MPa"
 
 hist(ensayos$resistencia_mpa, col = "#1C6BA0", border = "white",
@@ -112,7 +112,7 @@ El argumento `pch` elige la forma de los puntos (19 es un círculo relleno) y `l
 
 ```{r}
 #| label: fig-graf-base-detalles
-#| fig-cap: "Vehículos por hora en los dos tipos de día, con una línea de referencia en 800 vehículos por hora."
+#| fig-cap: "Vehículos por hora según el tipo de día."
 #| fig-alt: "Dos líneas de vehículos por hora; la del día laboral pasa sobre la línea discontinua de 800 en la mañana y en la tarde, la del fin de semana queda siempre por debajo"
 
 fds <- transito[transito$dia == "Fin de semana", ]
@@ -138,7 +138,7 @@ Las capas se suman con el signo `+`. La primera línea dice qué datos y qué es
 
 ```{r}
 #| label: fig-graf-hist-gg
-#| fig-cap: "Histograma de la resistencia por edad del ensayo, con ggplot2."
+#| fig-cap: "Histograma de la resistencia por edad con ggplot2."
 #| fig-alt: "Histograma con las barras de 7 días a la izquierda en un color y las de 28 días a la derecha en otro"
 
 library(ggplot2)
@@ -162,7 +162,7 @@ Cambiando solo la geometría, los mismos datos dan otro gráfico. La @fig-graf-g
 
 ```{r}
 #| label: fig-graf-geoms
-#| fig-cap: "Cuatro geometrías de ggplot2 con los datos de ensayos y de tránsito."
+#| fig-cap: "Cuatro geometrías de ggplot2."
 #| fig-alt: "Cuatro paneles: barras por proyecto, cajas de resistencia por proyecto, dispersión de asentamiento contra resistencia y líneas de vehículos por hora"
 #| fig-width: 9
 #| fig-height: 6.5
@@ -232,7 +232,7 @@ Cada parte del aspecto de un gráfico de ggplot2 se controla con una capa más. 
 
 ```{r}
 #| label: fig-graf-escalas
-#| fig-cap: "Resistencia a 28 días por proyecto y mezcla, con colores, escala y tema ajustados."
+#| fig-cap: "Resistencia a 28 días por proyecto y mezcla."
 #| fig-alt: "Cajas de resistencia por proyecto, dos por proyecto, en azul para la mezcla A y en naranja para la B, con el eje vertical de 25 a 45 MPa"
 
 ggplot(e28, aes(x = proyecto, y = resistencia_mpa, fill = mezcla)) +
@@ -252,7 +252,7 @@ En ingeniería casi siempre hay un valor contra el que se compara: la resistenci
 
 ```{r}
 #| label: fig-graf-referencia
-#| fig-cap: "Resistencia a 28 días de cada cilindro y resistencia de diseño de su proyecto (línea discontinua)."
+#| fig-cap: "Resistencia de cada cilindro y resistencia de diseño."
 #| fig-alt: "Tres paneles de puntos, uno por proyecto, cada uno con una línea horizontal discontinua en su resistencia de diseño; solo un punto del edificio queda debajo de su línea"
 #| fig-width: 9
 #| fig-height: 3.5
@@ -303,7 +303,7 @@ En un diagrama de dispersión, `geom_smooth(method = "lm")` agrega la recta que 
 
 ```{r}
 #| label: fig-graf-smooth
-#| fig-cap: "Asentamiento y resistencia a 28 días, con una recta de tendencia por proyecto."
+#| fig-cap: "Asentamiento y resistencia a 28 días."
 #| fig-alt: "Puntos de tres colores, uno por proyecto, cada grupo con su recta de tendencia; las rectas son casi horizontales"
 
 ggplot(e28, aes(x = asentamiento_mm, y = resistencia_mpa, color = proyecto)) +
@@ -426,7 +426,7 @@ En ggplot2 un gráfico se construye sumando capas. En el interactivo de la @fig-
 </script>
 ```
 
-Gráfico de la resistencia a 28 días construido capa por capa, con el código de ggplot2 correspondiente.
+Gráfico de ggplot2 construido por capas.
 
 :::
 
@@ -481,7 +481,7 @@ La forma de un histograma depende del ancho de las clases. Con clases muy anchas
 </script>
 ```
 
-Histograma de las 60 resistencias de cilindros según el ancho de clase elegido.
+Histograma según el ancho de clase.
 
 :::
 
@@ -510,7 +510,7 @@ Histograma de las 60 resistencias de cilindros según el ancho de clase elegido.
 
 ```{r}
 #| label: fig-graf-ejemplo
-#| fig-cap: "Histograma de la resistencia a 28 días con clases de 2 MPa."
+#| fig-cap: "Histograma de la resistencia a 28 días."
 #| fig-alt: "Histograma con ocho barras entre 26 y 42 MPa; las más altas están entre 30 y 34 y entre 36 y 38 MPa"
 
 # 1) Resistencias a 28 días
@@ -561,7 +561,7 @@ ggplot(data.frame(r28), aes(x = r28)) +
 
 ```{r}
 #| label: fig-graf-umbral
-#| fig-cap: "Vehículos por hora en los dos tipos de día y umbral de 800 vehículos por hora."
+#| fig-cap: "Vehículos por hora y umbral de 800."
 #| fig-alt: "Dos líneas con puntos; la del día laboral cruza la línea discontinua de 800 en la punta de la mañana y en la de la tarde, la del fin de semana queda debajo todo el día"
 
 # 1) Datos

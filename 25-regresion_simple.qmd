@@ -55,7 +55,7 @@ Un residuo positivo indica que el punto quedó por encima de la recta, y uno neg
 
 ```{r}
 #| label: fig-rls-residuos
-#| fig-cap: "Recta ajustada a los diez periodos y residuos como distancias verticales."
+#| fig-cap: "Recta ajustada y residuos."
 #| fig-alt: "Diez puntos alrededor de una recta descendente, cada uno unido a la recta con un segmento vertical punteado"
 #| echo: false
 
@@ -200,7 +200,7 @@ Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueve
 </script>
 ```
 
-Recta movible sobre los diez periodos y su suma de cuadrados de los residuos.
+Recta movible y suma de cuadrados.
 
 :::
 
@@ -233,7 +233,7 @@ ver_datos("datos/greenshields_tramo_hipotetico.csv",
 
 ```{r}
 #| label: tbl-rls-residuos
-#| tbl-cap: "Valores ajustados y residuos de la recta de mínimos cuadrados."
+#| tbl-cap: "Valores ajustados y residuos."
 #| echo: false
 
 aj <- fitted(mod_tramo); e <- residuals(mod_tramo)
@@ -519,7 +519,7 @@ El estadístico $F$ compara la variación que explica la recta con la que queda 
 
 ```{r}
 #| label: tbl-rls-anova
-#| tbl-cap: "Cuadro ANOVA de la regresión de la velocidad contra la densidad."
+#| tbl-cap: "Cuadro ANOVA de la regresión."
 #| echo: false
 
 av <- anova(mod_tramo)
@@ -643,7 +643,7 @@ La @fig-rls-bandas muestra las dos bandas para todo el rango de los datos. La ba
 
 ```{r}
 #| label: fig-rls-bandas
-#| fig-cap: "Bandas del 95 % para la media y para un periodo."
+#| fig-cap: "Bandas de confianza y de predicción."
 #| fig-alt: "Recta descendente con una banda angosta azul alrededor y una banda ancha gris más afuera que contiene los diez puntos"
 #| echo: false
 
@@ -736,7 +736,7 @@ Con el control se elige la densidad $x_0$. El interactivo calcula $\hat{y}_0$ y 
 </script>
 ```
 
-Intervalos del 95 % para la media (azul) y para un periodo (gris) en la densidad elegida.
+Intervalos para la media y para un periodo.
 
 :::
 
@@ -748,7 +748,7 @@ La @fig-rls-extrapolacion muestra un caso estructural. Una viga hipotética se e
 
 ```{r}
 #| label: fig-rls-extrapolacion
-#| fig-cap: "Recta ajustada en el rango elástico de una viga y su extrapolación (datos hipotéticos)."
+#| fig-cap: "Extrapolación fuera del rango elástico."
 #| fig-alt: "Seis puntos en línea recta hasta 60 kN; más allá, una curva que sube cada vez más rápido y una recta punteada que queda muy por debajo"
 #| echo: false
 

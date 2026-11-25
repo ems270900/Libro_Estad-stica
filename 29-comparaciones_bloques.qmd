@@ -61,7 +61,7 @@ ver_datos("datos/jarras_coagulantes_hipotetico.csv",
 
 ```{r}
 #| label: tbl-mc-tukey-mano
-#| tbl-cap: "Comparaciones por parejas con el método de Tukey (HSD = 2.86 puntos porcentuales)."
+#| tbl-cap: "Comparaciones de Tukey por parejas."
 #| echo: false
 
 library(kableExtra)
@@ -128,7 +128,7 @@ Cada fila de `TukeyHSD()` es una pareja: `diff` es la diferencia de medias, `lwr
 
 ```{r}
 #| label: fig-mc-tukey
-#| fig-cap: "Intervalos de confianza simultáneos al 95 % de Tukey para las diferencias entre coagulantes."
+#| fig-cap: "Intervalos simultáneos de Tukey."
 #| fig-alt: "Seis intervalos horizontales; solo el de cloruro férrico menos sulfato férrico cruza la línea vertical en cero"
 #| echo: false
 
@@ -314,7 +314,7 @@ Dos pruebas complementan los gráficos. La de Shapiro-Wilk tiene como hipótesis
 
 ```{r}
 #| label: fig-mc-residuos
-#| fig-cap: "Residuos del ANOVA de la prueba de jarras: contra los valores ajustados (izquierda) y gráfico cuantil-cuantil normal (derecha)."
+#| fig-cap: "Residuos del ANOVA de la prueba de jarras."
 #| fig-alt: "Dos gráficos de residuos sin patrones visibles; los puntos del gráfico cuantil-cuantil siguen la recta"
 #| fig-width: 9
 #| fig-height: 4
@@ -438,7 +438,7 @@ ver_datos("datos/jarras_muestras_hipotetico.csv",
 
 ```{r}
 #| label: tbl-mc-datos-bloques
-#| tbl-cap: "Remoción de turbiedad (%) por coagulante y muestra de agua cruda, con las medias de fila y de columna."
+#| tbl-cap: "Remoción por coagulante y muestra de agua."
 #| echo: false
 
 muestras <- read.csv("datos/jarras_muestras_hipotetico.csv")
@@ -517,7 +517,7 @@ Ahora también el sulfato férrico y el cloruro férrico se distinguen (diferenc
 
 ```{r}
 #| label: fig-mc-lotes
-#| fig-cap: "Remoción de turbiedad por coagulante. Cada línea une las cuatro jarras de una misma muestra de agua cruda."
+#| fig-cap: "Jarras de cada muestra de agua por coagulante."
 #| fig-alt: "Cinco líneas casi paralelas, una por muestra, que suben del sulfato de aluminio al PAC y bajan hacia el cloruro férrico"
 #| echo: false
 
@@ -629,7 +629,7 @@ En la @fig-mc-int-bloques se puede cambiar cuánto difieren las muestras de agua
 </script>
 ```
 
-Efecto de la diferencia entre muestras de agua sobre el ANOVA con bloques y sin ellos. Cada color es una muestra.
+Efecto de los bloques en el ANOVA.
 
 :::
 

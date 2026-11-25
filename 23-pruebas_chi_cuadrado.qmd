@@ -171,7 +171,7 @@ prueba$statistic
 
 ```{r}
 #| label: tbl-chi-poisson
-#| tbl-cap: "Camiones por intervalo: conteos observados y esperados con el modelo de Poisson."
+#| tbl-cap: "Camiones por intervalo: observados y esperados."
 #| echo: false
 
 tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = esperados,
@@ -185,7 +185,7 @@ tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = espe
 
 ```{r}
 #| label: fig-chi-poisson
-#| fig-cap: "Intervalos observados y esperados según el número de camiones que llegan."
+#| fig-cap: "Frecuencias observadas y esperadas de camiones."
 #| fig-alt: "Barras de conteos observados junto a puntos de los esperados por la Poisson; las mayores diferencias están en 3 y en 4 o más."
 #| echo: false
 
@@ -287,7 +287,7 @@ round(prueba$stdres, 2)               # residuos estandarizados por celda
 
 ```{r}
 #| label: tbl-chi-contingencia
-#| tbl-cap: "Deslizamientos por material y mecanismo: observados y (esperados)."
+#| tbl-cap: "Deslizamientos por material: observados y esperados."
 #| echo: false
 
 celdas <- matrix(sprintf("%d (%.2f)", cuadro, esperados), nrow = nrow(cuadro))
@@ -303,7 +303,7 @@ tibble(material = rownames(cuadro)) %>%
 
 ```{r}
 #| label: fig-chi-fallas
-#| fig-cap: "Mecanismos de falla según el material del talud."
+#| fig-cap: "Mecanismo de falla por material."
 #| fig-alt: "Barras apiladas al 100 % para suelo residual, coluvio y roca meteorizada; el suelo residual tiene más fallas traslacionales que los otros dos."
 #| echo: false
 
@@ -390,7 +390,7 @@ La @fig-chi-calculadora repite la prueba de independencia con cualquier cuadro d
 </script>
 ```
 
-Calculadora de la prueba de independencia. Viene cargada con el cuadro de los materiales y los mecanismos de falla.
+Calculadora de la prueba de independencia.
 
 :::
 
