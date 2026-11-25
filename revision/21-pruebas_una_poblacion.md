@@ -9,3 +9,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Datos: `espesor_carpeta_hipotetico.csv`.
 - Fuentes: Montgomery y Runger (2014), Walpole et al. (2012), Student (1908), Shapiro y Wilk (1965), Helsel et al. (2020).
 - Corrección respecto del material del curso: el ejemplo del pH concluía al revés de lo que dice su decisión; aquí se reemplazó por el espesor de carpeta.
+- Diversificación de ramas (2026-11-25): la prueba binomial exacta pasa a muestras de un efluente sobre el límite de coliformes (4 de 10, p₀ = 0.20; mismos números).

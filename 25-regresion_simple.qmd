@@ -93,7 +93,7 @@ Muchas ecuaciones empíricas de la ingeniería se obtienen con regresiones de es
 
 ```{r}
 #| label: fig-rls-residuos
-#| fig-cap: "Recta ajustada a los diez periodos y residuos como distancias verticales."
+#| fig-cap: "Recta ajustada y residuos."
 #| fig-alt: "Diez puntos alrededor de una recta descendente, cada uno unido a la recta con un segmento vertical punteado"
 #| echo: false
 
@@ -238,7 +238,7 @@ Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueve
 </script>
 ```
 
-Ajuste de una recta a ojo.
+Recta movible y suma de cuadrados.
 
 :::
 
@@ -271,7 +271,7 @@ ver_datos("datos/greenshields_tramo_hipotetico.csv",
 
 ```{r}
 #| label: tbl-rls-residuos
-#| tbl-cap: "Valores ajustados y residuos de la recta de mínimos cuadrados."
+#| tbl-cap: "Valores ajustados y residuos."
 #| echo: false
 
 aj <- fitted(mod_tramo); e <- residuals(mod_tramo)
@@ -699,7 +699,7 @@ El estadístico $F$ compara la variación que explica la recta con la que queda 
 
 ```{r}
 #| label: tbl-rls-anova
-#| tbl-cap: "Cuadro ANOVA de la regresión de la velocidad contra la densidad."
+#| tbl-cap: "Cuadro ANOVA de la regresión."
 #| echo: false
 
 av <- anova(mod_tramo)
@@ -944,7 +944,7 @@ La @fig-rls-bandas muestra las dos bandas para todo el rango de los datos. La ba
 
 ```{r}
 #| label: fig-rls-bandas
-#| fig-cap: "Bandas del 95 % para la media y para un periodo."
+#| fig-cap: "Bandas de confianza y de predicción."
 #| fig-alt: "Recta descendente con una banda angosta azul alrededor y una banda ancha gris más afuera que contiene los diez puntos"
 #| echo: false
 
@@ -1037,7 +1037,7 @@ Con el control se elige la densidad $x_0$. El interactivo calcula $\hat{y}_0$ y 
 </script>
 ```
 
-Intervalos de confianza y de predicción.
+Intervalos para la media y para un periodo.
 
 :::
 

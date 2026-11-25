@@ -238,7 +238,7 @@ En R, cada distribución tiene cuatro funciones que comparten el nombre y cambia
 | `q` | El valor $x$ que deja un área dada a la izquierda (cuantil) | `qnorm(0.975)` da 1.960 |
 | `r` | Números al azar de esa distribución | `rnorm(5, mean = 30, sd = 3)` da 5 valores |
 
-: Significado de la primera letra en las funciones de distribuciones. {#tbl-apb-dpqr-letras}
+: Primera letra de las funciones de distribuciones. {#tbl-apb-dpqr-letras}
 
 | Distribución | Nombre en R | Parámetros | Funciones |
 |:--|:--|:--|:--|

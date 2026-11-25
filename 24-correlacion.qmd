@@ -414,7 +414,7 @@ cuadro %>%
 
 ```{r}
 #| label: fig-cor-mezclas
-#| fig-cap: "Velocidad contra densidad del tránsito en diez periodos."
+#| fig-cap: "Velocidad contra densidad del tránsito."
 #| fig-alt: "Diez puntos que bajan casi en línea recta, desde 77 km/h con 12 veh/km hasta 27 km/h con 76 veh/km"
 
 # 1) Datos y diagrama de dispersión (base R)
@@ -675,7 +675,7 @@ Con el control se cambia la correlación de la población que genera 60 puntos. 
 </script>
 ```
 
-Correlación y efecto de un atípico.
+Puntos con la correlación elegida.
 
 :::
 
@@ -906,7 +906,7 @@ La @fig-cor-monotona muestra por qué conviene calcular más de uno. Los puntos 
 
 ```{r}
 #| label: fig-cor-monotona
-#| fig-cap: "Relación monótona no lineal y sus tres coeficientes."
+#| fig-cap: "Relación creciente no lineal."
 #| fig-alt: "Puntos que suben rápido al inicio y luego se aplanan, con los valores de Pearson, Spearman y Kendall anotados"
 #| echo: false
 
@@ -958,7 +958,7 @@ La @fig-cor-confusion simula el caso de la cuenca. Los deslizamientos y el cauda
 
 ```{r}
 #| label: fig-cor-confusion
-#| fig-cap: "Deslizamientos y caudal según la lluvia del mes."
+#| fig-cap: "Deslizamientos, caudal y lluvia mensual."
 #| fig-alt: "Puntos que suben de izquierda a derecha; los de la izquierda son azules (poca lluvia) y los de la derecha amarillos (mucha lluvia)"
 #| echo: false
 

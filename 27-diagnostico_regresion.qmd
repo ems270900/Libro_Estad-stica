@@ -31,7 +31,7 @@ No todos los supuestos pesan igual. El @tbl-diag-supuestos resume qué pasa cuan
 
 ```{r}
 #| label: tbl-diag-supuestos
-#| tbl-cap: "Consecuencias de la falla de cada supuesto y cómo se revisa."
+#| tbl-cap: "Supuestos de la regresión y su revisión."
 #| echo: false
 
 data.frame(
@@ -197,7 +197,7 @@ La función `plot()` aplicada a un modelo de `lm()` dibuja cuatro gráficos de d
 
 ```{r}
 #| label: fig-diag-plot-base
-#| fig-cap: "Gráficos de diagnóstico de `plot()` para el modelo de velocidad y densidad."
+#| fig-cap: "Gráficos de diagnóstico de `plot()`."
 #| fig-alt: "Cuatro gráficos de diagnóstico con pocos puntos y sin patrones claros"
 #| fig-width: 8
 #| fig-height: 7
@@ -251,7 +251,7 @@ summary(con_log)$coefficients
 
 ```{r}
 #| label: fig-diag-cilindros
-#| fig-cap: "Residuos con edad lineal y logarítmica."
+#| fig-cap: "Residuos contra la edad en dos escalas."
 #| fig-alt: "A la izquierda, los residuos de 7 días están arriba de cero y los de 3 días abajo; a la derecha, los tres grupos están centrados en cero"
 #| fig-width: 8
 #| fig-height: 3.8
@@ -503,7 +503,7 @@ donde $r_i$ es el residuo estandarizado (@eq-diag-estandarizado), $h_{ii}$ el ap
 
 ```{r}
 #| label: tbl-diag-influencia
-#| tbl-cap: "Apalancamiento, residuos estandarizados y distancia de Cook de los diez periodos."
+#| tbl-cap: "Diagnóstico de los diez periodos."
 #| echo: false
 
 data.frame(i = 1:10, x = sprintf("%d", tramo$densidad_veh_km), e = sprintf("%.3f", residuals(mod_tramo)),
@@ -614,7 +614,7 @@ Con los dos controles se mueve un periodo adicional (en naranja) que se agrega a
 </script>
 ```
 
-Efecto de un punto movible sobre la recta.
+Efecto de un periodo adicional sobre la recta.
 
 :::
 

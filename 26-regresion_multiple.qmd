@@ -187,7 +187,7 @@ Con dos predictores, la ecuación $\hat{y} = b_0 + b_1 x_1 + b_2 x_2$ es un plan
 
 ```{r}
 #| label: fig-rlm-plano
-#| fig-cap: "Asentamiento según altura y espesor de arcilla."
+#| fig-cap: "Asentamiento según la altura del relleno."
 #| fig-alt: "Tres rectas paralelas que suben; la de 7 m de arcilla está arriba, la de 3 m abajo; los nueve puntos caen cerca de su recta"
 #| echo: false
 
@@ -243,7 +243,7 @@ ver_datos("datos/asentamiento_relleno_hipotetico.csv", filas = 9,
 
 ```{r}
 #| label: tbl-rlm-sumas
-#| tbl-cap: "Cuadro de trabajo para las sumas de las ecuaciones normales."
+#| tbl-cap: "Sumas para las ecuaciones normales."
 #| echo: false
 
 r <- relleno
@@ -687,7 +687,7 @@ donde $\beta_3$ es el coeficiente de la interacción. Con este modelo, la pendie
 </script>
 ```
 
-Interacción entre la relación agua/cemento y el aditivo.
+Interacción entre relación agua/cemento y aditivo.
 
 :::
 

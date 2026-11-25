@@ -235,7 +235,7 @@ La @fig-una-calculadora sirve para repetir la prueba $t$ con cualquier resumen d
 </script>
 ```
 
-Calculadora de la prueba $t$ para una media a partir de $\bar{x}$, $s$ y $n$. Viene cargada con el ejemplo de la carpeta asfáltica.
+Calculadora de la prueba $t$ para una media.
 
 :::
 
@@ -310,17 +310,17 @@ $$ {#eq-una-binomial}
 
 donde $x$ es el número de éxitos observado [@montgomery2014applied]. Para la cola izquierda se suma de 0 a $x$. Esta prueba se llama exacta porque no usa ninguna aproximación.
 
-::: {.callout-note title="Ejemplo: bloques de concreto defectuosos"}
+::: {.callout-note title="Ejemplo: muestras de un efluente sobre el límite de coliformes"}
 
-**Planteamiento.** Un fabricante de bloques de concreto afirma que no más del 20 % de su producción tiene defectos de acabado. Se inspeccionaron 10 bloques y 4 tenían defectos. Con $\alpha = 0.05$, ¿hay evidencia de que la proporción de defectuosos supera el 20 %?
+**Planteamiento.** El operador de una planta de tratamiento de aguas residuales afirma que no más del 20 % de las muestras de su efluente supera el límite de coliformes fecales del permiso de vertido. La entidad que fiscaliza tomó 10 muestras en días escogidos al azar y 4 superaron el límite. Los datos son hipotéticos. Con $\alpha = 0.05$, ¿hay evidencia de que la proporción de muestras sobre el límite supera el 20 %?
 
 **Solución:**
 
 1. Hipótesis: $H_0: p \le 0.20$ y $H_1: p > 0.20$.
 2. Condiciones: $np_0 = 10 \times 0.20 = 2 < 5$. La aproximación normal no sirve; se usa la binomial con $n = 10$ y $p_0 = 0.20$.
-3. Valor $p$: es la probabilidad de encontrar 4 o más defectuosos si $p = 0.20$. Con la @eq-una-binomial, o restando del total: $P(X \ge 4) = 1 - P(X \le 3)$. Las probabilidades individuales están en el @tbl-una-binomial. $P(X \le 3) = 0.1074 + 0.2684 + 0.3020 + 0.2013 = 0.8791$, así que $P(X \ge 4) = 1 - 0.8791 = 0.1209$.
+3. Valor $p$: es la probabilidad de encontrar 4 o más muestras sobre el límite si $p = 0.20$. Con la @eq-una-binomial, o restando del total: $P(X \ge 4) = 1 - P(X \le 3)$. Las probabilidades individuales están en el @tbl-una-binomial. $P(X \le 3) = 0.1074 + 0.2684 + 0.3020 + 0.2013 = 0.8791$, así que $P(X \ge 4) = 1 - 0.8791 = 0.1209$.
 4. Decisión: como $p = 0.121 > 0.05$, no se rechaza $H_0$.
-5. Conclusión: con 10 bloques no hay evidencia suficiente para afirmar que más del 20 % de la producción tiene defectos.
+5. Conclusión: con 10 muestras no hay evidencia suficiente para afirmar que más del 20 % de las muestras del efluente supera el límite.
 
 **Pseudocódigo**
 
@@ -359,7 +359,7 @@ tibble(k = 0:n, prob = prob, acum = pbinom(0:n, n, p0), cola = 1 - pbinom(-1:(n 
   row_spec(5, bold = TRUE)
 ```
 
-**Interpretación.** Encontrar 4 defectuosos de 10 no es tan raro si la proporción real fuera 20 %: pasaría en 12 de cada 100 inspecciones. La muestra es demasiado pequeña para contradecir al fabricante. El intervalo de Clopper-Pearson de `binom.test()` indica que $p$ podría ser desde 0.15 hasta 1, así que con diez bloques tampoco se puede afirmar que el fabricante cumpla. Para una decisión de compra haría falta inspeccionar muchos más bloques.
+**Interpretación.** Encontrar 4 muestras sobre el límite de 10 no es tan raro si la proporción real fuera 20 %: pasaría en 12 de cada 100 campañas de muestreo. La muestra es demasiado pequeña para contradecir al operador. El intervalo de Clopper-Pearson de `binom.test()` indica que $p$ podría ser desde 0.15 hasta 1, así que con diez muestras tampoco se puede afirmar que la planta cumpla. Para una decisión de fiscalización haría falta un muestreo mucho más largo.
 
 :::
 
