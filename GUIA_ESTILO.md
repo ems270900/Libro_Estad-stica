@@ -324,6 +324,8 @@ En los métodos iterativos o densos (máxima verosimilitud numérica, Newton-Rap
 
 Donde ayudan a entender (cómo cambia una distribución o un intervalo de confianza al mover un parámetro), se agregan interactivos escritos en HTML y JavaScript propios, sin bibliotecas externas, para que funcionen sin internet y en el HTML de un solo archivo. El modelo está en `_plantillas/plantilla_capitulo.qmd` y los estilos en la clase `.interactivo` de `assets/css/styles.css`. OJS y Shiny no se usan: OJS descarga sus bibliotecas de internet y Shiny necesita un servidor.
 
+En el libro los interactivos son figuras como las demás y no se anuncian como interactivos (decisión del autor, 25 de noviembre de 2026). Los títulos no llevan "Interactivo:", la leyenda es concisa como la de cualquier figura y el texto se refiere a ellos como figuras ("En la @fig-…, mueva el control…"), no como "el interactivo".
+
 ### Ejercicios
 
 Cada capítulo termina con ejercicios propuestos, sin solucionario.

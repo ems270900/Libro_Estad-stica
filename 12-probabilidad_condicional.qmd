@@ -325,9 +325,9 @@ La independencia aparece sola cuando los experimentos no se afectan entre sí: d
 Mutuamente excluyentes no es lo mismo que independientes. Si $A$ y $B$ son mutuamente excluyentes y los dos tienen probabilidad positiva, saber que ocurrió $A$ dice que $B$ no ocurrió: $P(B \mid A) = 0$, que es distinto de $P(B)$. Por lo tanto, dos eventos mutuamente excluyentes con probabilidad positiva nunca son independientes. Tampoco es cierto que dos eventos sean dependientes solo porque $P(A \cap B) > 0$: la prueba es siempre la comparación de la @eq-condicional-indep.
 :::
 
-### Interactivo: cuándo dos eventos son independientes
+### Cuándo dos eventos son independientes
 
-En el interactivo de la @fig-condicional-int-indep se fijan $P(A)$ y las dos probabilidades condicionales de $B$: dado que ocurrió $A$ y dado que no ocurrió. Se puede pensar en $A$ = "el día llueve" y $B$ = "la obra se atrasa". El mosaico dibuja las cuatro probabilidades conjuntas como áreas. Los eventos son independientes solo cuando las dos alturas coinciden, es decir, cuando saber si llovió no cambia la probabilidad de atraso; en ese caso $P(A \cap B)$ es igual a $P(A)\,P(B)$.
+En la @fig-condicional-int-indep se fijan $P(A)$ y las dos probabilidades condicionales de $B$: dado que ocurrió $A$ y dado que no ocurrió. Se puede pensar en $A$ = "el día llueve" y $B$ = "la obra se atrasa". El mosaico dibuja las cuatro probabilidades conjuntas como áreas. Los eventos son independientes solo cuando las dos alturas coinciden, es decir, cuando saber si llovió no cambia la probabilidad de atraso; en ese caso $P(A \cap B)$ es igual a $P(A)\,P(B)$.
 
 ::: {#fig-condicional-int-indep}
 
@@ -566,9 +566,9 @@ ggplot(curvas, aes(n, R, color = T_r)) +
 
 :::
 
-### Interactivo: riesgo durante la vida útil
+### Riesgo durante la vida útil
 
-En el interactivo de la @fig-condicional-int-riesgo se escogen el periodo de retorno y la vida útil. La curva muestra el riesgo para vidas útiles de 1 a 100 años y el punto marca la vida útil escogida.
+En la @fig-condicional-int-riesgo se escogen el periodo de retorno y la vida útil. La curva muestra el riesgo para vidas útiles de 1 a 100 años y el punto marca la vida útil escogida.
 
 ::: {#fig-condicional-int-riesgo}
 
@@ -708,7 +708,7 @@ En palabras, el teorema dice que la probabilidad a posteriori de una causa es pr
 Una manera intuitiva de leer el teorema es como una regla para actualizar lo que se cree. Antes del dato hay una opinión inicial, la probabilidad a priori. El dato llega y se pregunta qué tan bien lo explica cada causa: esa es la verosimilitud. La opinión final, la probabilidad a posteriori, favorece a las causas que explican mejor el dato, pero sin olvidar cuán probables eran desde el principio. Un dato muy fuerte puede vencer a una probabilidad a priori baja; un dato débil apenas la mueve.
 
 ::: {.callout-tip title="En la práctica"}
-Los cálculos con el teorema de Bayes son más fáciles de entender, y se cometen menos errores, si se escriben con frecuencias en vez de probabilidades: "de 1000 elementos, 50 tienen el defecto y la prueba detecta 45" se sigue mejor que "$P(D) = 0.05$ y $P(+ \mid D) = 0.90$". Así lo encontraron @gigerenzer1995improve en experimentos con personas sin formación en estadística. Por eso los ejemplos de esta sección dan las dos versiones, y el interactivo de la @fig-condicional-int-bayes usa una población de 1000 elementos.
+Los cálculos con el teorema de Bayes son más fáciles de entender, y se cometen menos errores, si se escriben con frecuencias en vez de probabilidades: "de 1000 elementos, 50 tienen el defecto y la prueba detecta 45" se sigue mejor que "$P(D) = 0.05$ y $P(+ \mid D) = 0.90$". Así lo encontraron @gigerenzer1995improve en experimentos con personas sin formación en estadística. Por eso los ejemplos de esta sección dan las dos versiones, y la @fig-condicional-int-bayes usa una población de 1000 elementos.
 :::
 
 
@@ -864,9 +864,9 @@ En la simulación, `defecto[positivo]` se queda solo con los pilotes que dieron 
 
 :::
 
-### Interactivo: el teorema de Bayes con 1000 elementos
+### El teorema de Bayes con 1000 elementos
 
-En el interactivo de la @fig-condicional-int-bayes se cambian la prevalencia, la sensibilidad y la tasa de falsos positivos, y se ve el resultado en una población de 1000 elementos. Cada cuadro es un elemento: los oscuros tienen el problema y los claros no; los que tienen borde grueso dieron positivo. La probabilidad que se busca es la proporción de cuadros oscuros entre los que tienen borde grueso. Conviene probar con una prevalencia muy baja (1 %) para ver por qué, en ese caso, la mayoría de los positivos son falsas alarmas.
+En la @fig-condicional-int-bayes se cambian la prevalencia, la sensibilidad y la tasa de falsos positivos, y se ve el resultado en una población de 1000 elementos. Cada cuadro es un elemento: los oscuros tienen el problema y los claros no; los que tienen borde grueso dieron positivo. La probabilidad que se busca es la proporción de cuadros oscuros entre los que tienen borde grueso. Conviene probar con una prevalencia muy baja (1 %) para ver por qué, en ese caso, la mayoría de los positivos son falsas alarmas.
 
 ::: {#fig-condicional-int-bayes}
 
@@ -962,15 +962,15 @@ El @tbl-condicional-formulas reúne las reglas del capítulo.
 6. En el ejemplo de las vigas, ¿cuántas vigas habría que revisar (sin reemplazo) para que la probabilidad de no encontrar ninguna defectuosa sea menor que 0.10? Escriba un ciclo `for` o use `choose()` para probar con 2, 3, 4, … vigas.
 7. Un puente tiene dos apoyos que deben funcionar los dos (serie). Cada apoyo tiene dos aisladores en paralelo, cada uno con confiabilidad 0.95. Suponiendo independencia, calcule la confiabilidad del sistema a mano y con una simulación en R.
 8. Tres cuadrillas, A, B y C, hacen el 50 %, el 30 % y el 20 % de las soldaduras de una estructura. La proporción de soldaduras rechazadas es 0.02 para A, 0.04 para B y 0.07 para C. (a) ¿Qué proporción de soldaduras se rechaza? (b) Si una soldadura fue rechazada, ¿cuál es la probabilidad de que la haya hecho cada cuadrilla? Arme el cuadro con `dplyr` como en el ejemplo de las tormentas.
-9. Un sensor de humedad para detectar fugas en una tubería da alarma el 95 % de las veces cuando hay fuga y el 3 % de las veces cuando no la hay. En un tramo dado, la probabilidad de fuga es 0.02. (a) Si suena la alarma, ¿cuál es la probabilidad de que haya fuga? (b) Si no suena, ¿cuál es la probabilidad de que haya fuga? (c) Compruebe los resultados con una simulación y con el interactivo de la @fig-condicional-int-bayes.
+9. Un sensor de humedad para detectar fugas en una tubería da alarma el 95 % de las veces cuando hay fuga y el 3 % de las veces cuando no la hay. En un tramo dado, la probabilidad de fuga es 0.02. (a) Si suena la alarma, ¿cuál es la probabilidad de que haya fuga? (b) Si no suena, ¿cuál es la probabilidad de que haya fuga? (c) Compruebe los resultados con una simulación y con la @fig-condicional-int-bayes.
 10. Demuestre que si $A$ y $B$ son independientes, también lo son $A$ y $B^c$. Sugerencia: escriba $P(A) = P(A \cap B) + P(A \cap B^c)$.
 11. Explique con un ejemplo de ingeniería civil por qué dos eventos mutuamente excluyentes con probabilidad positiva no pueden ser independientes.
 12. En el ejemplo de los pilotes, ¿cuántos ensayos positivos seguidos e independientes hacen falta para que la probabilidad de defecto pase de 0.99? Use la función `prob_si_positivo()` dentro de un ciclo.
 
 13. Una planta potabilizadora tiene dos filtros en paralelo, cada uno con confiabilidad mensual 0.92, seguidos de un sistema de cloración con confiabilidad 0.97. (a) Dibuje el diagrama de bloques y calcule la confiabilidad del sistema, suponiendo independencia. (b) ¿Cuánto mejora si se instala un segundo clorador en paralelo con el primero? (c) Compruebe los dos resultados con una simulación.
-14. Una alcantarilla se diseña para la crecida de 25 años y tiene una vida útil de 30 años. (a) Calcule el riesgo de que la crecida de diseño se supere al menos una vez. (b) ¿Qué periodo de retorno haría falta para un riesgo de 20 %? (c) Compruebe los resultados con el interactivo de la @fig-condicional-int-riesgo.
+14. Una alcantarilla se diseña para la crecida de 25 años y tiene una vida útil de 30 años. (a) Calcule el riesgo de que la crecida de diseño se supere al menos una vez. (b) ¿Qué periodo de retorno haría falta para un riesgo de 20 %? (c) Compruebe los resultados con la @fig-condicional-int-riesgo.
 15. Con los datos del ejemplo del talud, suponga que en la próxima temporada el talud se deslizó. ¿Cuál es la probabilidad de que la temporada haya sido de lluvia alta? Arme el cuadro con `dplyr` como en el ejemplo del teorema de Bayes y explique por qué el resultado es mucho mayor que 0.10.
-16. En una avenida hay dos semáforos seguidos. Cada uno está en verde el 60 % del tiempo. (a) Si funcionan independientemente, ¿cuál es la probabilidad de encontrar los dos en verde? (b) Si están coordinados y $P(\text{verde en el segundo} \mid \text{verde en el primero}) = 0.90$, ¿cuál es esa probabilidad? (c) Si en el caso (b) el segundo semáforo sigue en verde el 60 % del tiempo, calcule la probabilidad de verde en el segundo dado que el primero está en rojo. (d) Represente los casos (a) y (b) en el interactivo de la @fig-condicional-int-indep, con $A$ = "verde en el primero", y explique qué cambia en el mosaico.
+16. En una avenida hay dos semáforos seguidos. Cada uno está en verde el 60 % del tiempo. (a) Si funcionan independientemente, ¿cuál es la probabilidad de encontrar los dos en verde? (b) Si están coordinados y $P(\text{verde en el segundo} \mid \text{verde en el primero}) = 0.90$, ¿cuál es esa probabilidad? (c) Si en el caso (b) el segundo semáforo sigue en verde el 60 % del tiempo, calcule la probabilidad de verde en el segundo dado que el primero está en rojo. (d) Represente los casos (a) y (b) en la @fig-condicional-int-indep, con $A$ = "verde en el primero", y explique qué cambia en el mosaico.
 
 ## Lecturas recomendadas
 

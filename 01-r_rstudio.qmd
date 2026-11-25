@@ -161,7 +161,7 @@ A veces, después de presionar Enter, la consola no responde con un resultado si
 [1] 12
 ```
 
-### Interactivo: una consola para practicar
+### Una consola para practicar
 
 La @fig-r-consola-int es una consola simplificada que funciona en el navegador, sin instalar nada. Entiende las operaciones y funciones de esta sección, la asignación con `<-` (que se explica en el capítulo siguiente) y responde con los mismos mensajes que R. Vale la pena probar `2 + 3 * 4`, `(2 + 3) * 4`, `-2^2`, `1e6`, `sqrt(-1)`, `10 / 0`, una instrucción incompleta como `sqrt(144` (aparece el `+`; se completa con `)` o se cancela con Esc), un objeto que no existe, como `y + 1`, y las flechas arriba y abajo, que recuperan las instrucciones anteriores igual que en RStudio.
 
@@ -465,7 +465,7 @@ Una ruta es la dirección de un archivo dentro de la computadora. Hay dos formas
 
 En las rutas de R las carpetas se separan con una barra inclinada hacia adelante, `/`, también en Windows. La barra invertida `\`, que es la que muestra el Explorador de Windows, tiene otro significado dentro de un texto de R y produce un error. Si se copia una ruta del Explorador, se cambian las barras: `C:\Users\estudiante` se escribe `"C:/Users/estudiante"`. Para subir una carpeta se usa `..`: desde la carpeta `datos`, la ruta `"../informe.Rmd"` apunta a un archivo de la carpeta del proyecto.
 
-En el interactivo de la @fig-r-rutas, al elegir un archivo del proyecto se muestran su ruta relativa y su ruta absoluta, y la instrucción para leerlo. Cambie la carpeta de trabajo para ver cómo cambia la ruta relativa.
+En la @fig-r-rutas, al elegir un archivo del proyecto se muestran su ruta relativa y su ruta absoluta, y la instrucción para leerlo. Cambie la carpeta de trabajo para ver cómo cambia la ruta relativa.
 
 ::: {#fig-r-rutas}
 
@@ -626,7 +626,7 @@ Casi todo análisis de datos sigue los mismos pasos (@fig-r-flujo): se importan 
 8. Cambie las opciones de RStudio que recomienda la sección de configuración. Cierre RStudio, ábralo de nuevo y compruebe que el panel de entorno empieza vacío.
 9. Calcule con R: la raíz cuadrada de 2, el logaritmo natural de 10, el logaritmo en base 10 de 1000 y el área de un círculo de 15 cm de diámetro. ¿Qué número da `1.5e3`?
 10. Divida un script en tres secciones (Datos, Cálculos y Resultados) con comentarios que terminen en cuatro guiones. Compruebe que aparecen en el índice del script.
-11. En el interactivo de la @fig-r-rutas, escriba la ruta relativa de `sondeo_1.csv` cuando la carpeta de trabajo es la del proyecto y cuando es la carpeta `datos`. Explique por qué cambia.
+11. En la @fig-r-rutas, escriba la ruta relativa de `sondeo_1.csv` cuando la carpeta de trabajo es la del proyecto y cuando es la carpeta `datos`. Explique por qué cambia.
 12. Escriba a propósito `Mean(c(1, 2, 3))`, con M mayúscula. Lea el mensaje y busque en el @tbl-r-errores su causa.
 
 ## Lecturas recomendadas

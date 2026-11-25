@@ -240,9 +240,9 @@ resumen %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-### Interactivo: operaciones en el diagrama de Venn
+### Operaciones en el diagrama de Venn
 
-En el interactivo de la @fig-eventos-int-venn se elige una operación y se colorea su región. Los números del 1 al 6 están ubicados en la zona del diagrama que les corresponde con los eventos del ejemplo del dado. Debajo del gráfico aparece también el conjunto que resulta y su probabilidad si el dado es justo.
+En la @fig-eventos-int-venn se elige una operación y se colorea su región. Los números del 1 al 6 están ubicados en la zona del diagrama que les corresponde con los eventos del ejemplo del dado. Debajo del gráfico aparece también el conjunto que resulta y su probabilidad si el dado es justo.
 
 ::: {#fig-eventos-int-venn}
 
@@ -465,9 +465,9 @@ all(c(p_b, p_union, p_ninguno) >= 0 & c(p_b, p_union, p_ninguno) <= 1)
 :::
 
 
-### Interactivo: regla de la suma
+### Regla de la suma
 
-En el interactivo de la @fig-eventos-int-suma se fijan $P(A)$, $P(B)$ y $P(A \cap B)$, y la probabilidad se dibuja como longitud sobre una barra que mide 1, el espacio muestral completo. La barra se parte en las cuatro regiones del diagrama de Venn: solo $A$, los dos, solo $B$ y ninguno. Así se ve por qué la intersección se resta una vez: si se sumaran sin más las llaves de $A$ y de $B$, el tramo del centro quedaría contado dos veces. Si los valores escogidos son imposibles, el interactivo dice qué regla violan.
+En la @fig-eventos-int-suma se fijan $P(A)$, $P(B)$ y $P(A \cap B)$, y la probabilidad se dibuja como longitud sobre una barra que mide 1, el espacio muestral completo. La barra se parte en las cuatro regiones del diagrama de Venn: solo $A$, los dos, solo $B$ y ninguno. Así se ve por qué la intersección se resta una vez: si se sumaran sin más las llaves de $A$ y de $B$, el tramo del centro quedaría contado dos veces. Si los valores escogidos son imposibles, la figura indica qué regla violan.
 
 ::: {#fig-eventos-int-suma}
 
@@ -961,9 +961,9 @@ ggplot(historias, aes(n, f, group = historia)) +
 La forma del embudo explica por qué un registro corto engaña. Con 20 años de datos de lluvia, la frecuencia de un evento de probabilidad anual 0.1 puede salir cualquier valor entre 0 y 0.25 sin que haya nada raro en la estación. Por eso las estimaciones de eventos poco frecuentes, como las crecidas de diseño, se acompañan de una medida de su incertidumbre, que se estudia en la Parte V.
 :::
 
-### Interactivo: la frecuencia relativa se estabiliza
+### La frecuencia relativa se estabiliza
 
-En el interactivo de la @fig-eventos-int-lgn se elige el experimento y el número de repeticiones. Cada vez que se presiona el botón se hace una simulación nueva. Conviene repetirla varias veces con 20 repeticiones y luego con 5000: con pocas, cada curva termina en un lugar distinto; con muchas, todas terminan muy cerca de la línea punteada.
+En la @fig-eventos-int-lgn se elige el experimento y el número de repeticiones. Cada vez que se presiona el botón se hace una simulación nueva. Conviene repetirla varias veces con 20 repeticiones y luego con 5000: con pocas, cada curva termina en un lugar distinto; con muchas, todas terminan muy cerca de la línea punteada.
 
 ::: {#fig-eventos-int-lgn}
 
@@ -1077,9 +1077,9 @@ El @tbl-eventos-formulas reúne las reglas del capítulo.
 9. Con los datos de atrasos de obra, estime la probabilidad de que un día haya atraso por lluvia pero no por falla de equipo. Hágalo con `mean()` en base R y con `summarise()` de `dplyr`, y compruebe que coincide con $P(L) - P(L \cap F)$.
 10. Modifique el código de la @fig-eventos-lgn para simular 10 000 lanzamientos de una moneda y graficar la frecuencia relativa de escudos. Cambie la semilla tres veces. ¿En qué se parecen y en qué se diferencian las curvas?
 11. Explique con sus palabras por qué la probabilidad clásica no sirve para calcular la probabilidad de que un pilote alcance el estrato resistente a menos de 12 m de profundidad. ¿Qué tipo de probabilidad usaría y de dónde sacaría los datos?
-12. En el interactivo de la @fig-eventos-int-venn, la operación $A - B$ da $\{2\}$. Escriba con sus palabras qué significa ese evento en el lanzamiento del dado y compruebe su probabilidad con la @eq-eventos-clasica.
+12. En la @fig-eventos-int-venn, la operación $A - B$ da $\{2\}$. Escriba con sus palabras qué significa ese evento en el lanzamiento del dado y compruebe su probabilidad con la @eq-eventos-clasica.
 
-13. En una planta de tratamiento de aguas residuales se clasifica cada día según si el efluente incumple el límite de demanda bioquímica de oxígeno (DBO) ($A$) o el de sólidos suspendidos ($B$). Con un registro hipotético, $P(A) = 0.10$, $P(B) = 0.15$ y $P(A \cup B) = 0.20$. (a) Calcule $P(A \cap B)$. (b) Calcule la probabilidad de que un día incumpla exactamente uno de los dos límites. (c) Reproduzca los valores en el interactivo de la @fig-eventos-int-suma y describa la barra que se obtiene.
+13. En una planta de tratamiento de aguas residuales se clasifica cada día según si el efluente incumple el límite de demanda bioquímica de oxígeno (DBO) ($A$) o el de sólidos suspendidos ($B$). Con un registro hipotético, $P(A) = 0.10$, $P(B) = 0.15$ y $P(A \cup B) = 0.20$. (a) Calcule $P(A \cap B)$. (b) Calcule la probabilidad de que un día incumpla exactamente uno de los dos límites. (c) Reproduzca los valores en la @fig-eventos-int-suma y describa la barra que se obtiene.
 14. En un aforo hipotético de 500 vehículos en una carretera se contaron 60 vehículos pesados, 35 vehículos que excedían el límite de velocidad y 12 que eran pesados y excedían el límite. Estime con frecuencias relativas la probabilidad de que un vehículo: (a) sea pesado o exceda el límite; (b) no sea pesado ni exceda el límite; (c) exceda el límite sin ser pesado. Arme en R un data frame con los conteos y haga los cálculos con base R y con `dplyr`.
 15. Con la @eq-eventos-retorno, calcule la probabilidad anual de excedencia y de no excedencia de las crecidas de 20 y de 200 años. Escriba en una oración qué significa cada número para un puente.
 16. Con los datos del ejemplo de las muestras de agua, calcule la probabilidad de que una muestra incumpla exactamente dos parámetros. Compruebe el resultado con la simulación del ejemplo.

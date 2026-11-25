@@ -635,9 +635,9 @@ ggplot(empirico, aes(y, q)) +
 Un caudal de 100 años calculado con 53 datos es una extrapolación, y su incertidumbre es grande. Con otro periodo de registro, o con otra distribución de extremos (log-normal, log-Pearson tipo III, valores extremos generalizada), el resultado puede cambiar varios cientos de metros cúbicos por segundo. Esos resultados no se promedian. Se elige el modelo con criterio físico, pruebas de ajuste y, cuando existe, la norma del país, y se informa el intervalo de confianza del cuantil, que se ve en el capítulo 19.
 :::
 
-## Interactivo: explorar las distribuciones continuas {#sec-cont-interactivo}
+## Explorar las distribuciones continuas {#sec-cont-interactivo}
 
-En el interactivo de la @fig-cont-interactivo se elige una distribución, se mueven sus parámetros y se escoge un valor $x_0$. El área sombreada es $P(X \le x_0)$, que se calcula por integración numérica de la densidad. Conviene probar la Weibull con forma 1 y compararla con la exponencial, o la gamma con forma creciente para ver cómo se vuelve casi simétrica.
+En la @fig-cont-interactivo se elige una distribución, se mueven sus parámetros y se escoge un valor $x_0$. El área sombreada es $P(X \le x_0)$, que se calcula por integración numérica de la densidad. Conviene probar la Weibull con forma 1 y compararla con la exponencial, o la gamma con forma creciente para ver cómo se vuelve casi simétrica.
 
 ::: {#fig-cont-interactivo}
 
@@ -761,9 +761,9 @@ Distribuciones continuas.
 
 :::
 
-### Interactivo: el proceso de Poisson
+### El proceso de Poisson
 
-El interactivo de la @fig-cont-int-poisson simula un proceso de Poisson con la tasa $\lambda$ que se elija. Arriba se ven los eventos de las primeras 24 horas y cuántos cayeron en cada bloque de 4 horas (conteos de Poisson con media $4\lambda$). Abajo, el histograma de 2000 tiempos entre eventos con la densidad exponencial encima. Conviene apretar el botón varias veces con la misma tasa para ver cuánto cambian los conteos de un bloque a otro, aunque la tasa sea constante.
+La @fig-cont-int-poisson simula un proceso de Poisson con la tasa $\lambda$ que se elija. Arriba se ven los eventos de las primeras 24 horas y cuántos cayeron en cada bloque de 4 horas (conteos de Poisson con media $4\lambda$). Abajo, el histograma de 2000 tiempos entre eventos con la densidad exponencial encima. Conviene apretar el botón varias veces con la misma tasa para ver cuánto cambian los conteos de un bloque a otro, aunque la tasa sea constante.
 
 ::: {#fig-cont-int-poisson}
 
@@ -893,11 +893,11 @@ Si varias distribuciones se ajustan razonablemente bien a los mismos datos, sus 
 6. El contenido de vacíos de una mezcla asfáltica, como fracción, se modela con una beta con $\alpha = 8$ y $\beta = 92$ (hipotético). Calcule su media, su desviación estándar y la probabilidad de que quede fuera del intervalo de 3 % a 5 %.
 7. La conductividad hidráulica de un suelo es log-normal con $\mu = -11$ y $\sigma = 0.8$ ($\ln$ de m/s). Calcule la mediana, la media y la probabilidad de que supere $10^{-4}$ m/s.
 8. Los cables de un sistema de anclajes tienen una vida útil Weibull con $\alpha = 3$ y $\beta = 40$ años. Calcule la vida media, la probabilidad de que un cable falle antes de 20 años y la edad a la que ha fallado el 10 % de los cables (`qweibull()`).
-9. Use el interactivo con la Weibull y $\beta = 10$: describa cómo cambia la forma de la densidad al pasar $\alpha$ de 0.8 a 1 y a 3, y relacione cada caso con el tipo de falla que representa.
+9. Use la @fig-cont-interactivo con la Weibull y $\beta = 10$: describa cómo cambia la forma de la densidad al pasar $\alpha$ de 0.8 a 1 y a 3, y relacione cada caso con el tipo de falla que representa.
 10. La concentración de un contaminante en las muestras de un río tiene media 12 mg/L y coeficiente de variación de 0.6, y se modela como log-normal. Calcule los parámetros $\mu$ y $\sigma$ con la @eq-cont-lognormal-cv y la probabilidad de que una muestra supere el límite de 25 mg/L.
 11. Con los 53 caudales máximos anuales, ajuste una distribución log-normal (estime $\mu$ y $\sigma$ con la media y la desviación estándar de `log(caudal)`) y calcule el caudal de 100 años con `qlnorm(0.99, ...)`. Compárelo con el de la Gumbel del ejemplo y explique por qué no se deben promediar.
 12. Las bombas de una estación tienen vida Weibull con $\alpha = 0.7$ y $\beta = 8$ años. Calcule la tasa de falla a los 0.5, 2 y 8 años con la @eq-cont-weibull-riesgo. ¿Conviene un programa de reemplazo preventivo por edad? Justifique.
-13. Use el interactivo del proceso de Poisson con $\lambda = 0.5$ eventos por hora. Anote los seis conteos por bloque de 4 horas en cinco simulaciones y calcule su media y su varianza. ¿Se parecen, como predice la Poisson?
+13. Use la @fig-cont-int-poisson con $\lambda = 0.5$ eventos por hora. Anote los seis conteos por bloque de 4 horas en cinco simulaciones y calcule su media y su varianza. ¿Se parecen, como predice la Poisson?
 
 ## Lecturas recomendadas
 

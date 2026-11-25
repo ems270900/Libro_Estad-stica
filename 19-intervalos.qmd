@@ -1024,9 +1024,9 @@ El @tbl-ic-resumen reúne los intervalos del capítulo.
 4. Para los tiempos de falla de las bombas del capítulo anterior, construya un intervalo de confianza del 95 % para el tiempo medio usando `t.test()`. ¿Es razonable el supuesto de normalidad para esos datos? Haga un histograma.
 5. Con los diez esfuerzos de fluencia de las varillas, calcule un intervalo de predicción del 95 % para la próxima varilla y un intervalo de tolerancia que contenga el 95 % de las varillas con 95 % de confianza.
 6. Se quiere estimar la proporción de viviendas de un cantón que tienen conexión al alcantarillado, con un margen de 3 % y 95 % de confianza. ¿Cuántas viviendas hay que visitar?
-7. En el interactivo de la @fig-ic-interactivo, fije el nivel de confianza en 80 % y tome diez tandas de 50 muestras. Anote cuántos intervalos fallan en cada tanda y compare el promedio con el valor esperado.
+7. En la @fig-ic-interactivo, fije el nivel de confianza en 80 % y tome diez tandas de 50 muestras. Anote cuántos intervalos fallan en cada tanda y compare el promedio con el valor esperado.
 8. Una inspección de 50 conexiones de agua potable no encontró ninguna con fugas. Calcule el límite superior de confianza del 95 % para la proporción de conexiones con fuga con la regla del tres y con `binom.test()`. ¿Por qué el intervalo de Wald no sirve aquí?
-9. En el interactivo de la @fig-ic-int-cobertura, busque para $n = 50$ un valor de $p$ en el que la cobertura del intervalo de Wald baje de 0.90. Compruebe en R el resultado simulando 10 000 muestras binomiales con esos $n$ y $p$.
+9. En la @fig-ic-int-cobertura, busque para $n = 50$ un valor de $p$ en el que la cobertura del intervalo de Wald baje de 0.90. Compruebe en R el resultado simulando 10 000 muestras binomiales con esos $n$ y $p$.
 10. La concentración de sólidos suspendidos en diez muestras de la salida de una laguna de estabilización fue de 62, 75, 58, 81, 69, 72, 66, 90, 64 y 71 mg/L. Calcule un límite superior de confianza del 95 % para la concentración media. Si el permiso de vertido fija un máximo de 80 mg/L para la media, ¿qué concluye?
 11. Los tiempos entre fallas (días) de un semáforo fueron 12, 45, 3, 28, 61, 9, 17 y 33. Suponga que son exponenciales y construya un intervalo de confianza del 95 % para el tiempo medio entre fallas con la @eq-ic-exponencial.
 

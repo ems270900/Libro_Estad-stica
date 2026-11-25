@@ -473,9 +473,9 @@ La matriz `excede` tiene una fila por cada vida útil simulada y una columna por
 
 :::
 
-### Interactivo: riesgo de excedencia
+### Riesgo de excedencia
 
-En el interactivo de la @fig-disc-int-riesgo se eligen el periodo de retorno $T$ y la vida útil $n$. A la izquierda se ve la curva del riesgo contra la vida útil, con el valor elegido marcado. A la derecha, la distribución binomial del número de excedencias en esa vida útil. Conviene buscar qué periodo de retorno hace falta para que el riesgo en 50 años baje del 10 %, y comprobar que con $n = T$ el riesgo siempre ronda el 63 %.
+En la @fig-disc-int-riesgo se eligen el periodo de retorno $T$ y la vida útil $n$. A la izquierda se ve la curva del riesgo contra la vida útil, con el valor elegido marcado. A la derecha, la distribución binomial del número de excedencias en esa vida útil. Conviene buscar qué periodo de retorno hace falta para que el riesgo en 50 años baje del 10 %, y comprobar que con $n = T$ el riesgo siempre ronda el 63 %.
 
 ::: {#fig-disc-int-riesgo}
 
@@ -857,9 +857,9 @@ tibble(x = 0:6, binom = dbinom(x, 400, 0.005), pois = dpois(x, 2),
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-## Interactivo: explorar las distribuciones discretas {#sec-disc-interactivo}
+## Explorar las distribuciones discretas {#sec-disc-interactivo}
 
-En el interactivo de la @fig-disc-interactivo se elige una distribución y se mueven sus parámetros. Las barras en azul oscuro suman la probabilidad acumulada $P(X \le k)$, y debajo del gráfico se actualizan esa probabilidad, la media y la varianza. Conviene probar, por ejemplo, una binomial con $n = 40$ y $p = 0.05$ y luego una Poisson con $\lambda = 2$, para ver la aproximación de la sección anterior.
+En la @fig-disc-interactivo se elige una distribución y se mueven sus parámetros. Las barras en azul oscuro suman la probabilidad acumulada $P(X \le k)$, y debajo del gráfico se actualizan esa probabilidad, la media y la varianza. Conviene probar, por ejemplo, una binomial con $n = 40$ y $p = 0.05$ y luego una Poisson con $\lambda = 2$, para ver la aproximación de la sección anterior.
 
 ::: {#fig-disc-interactivo}
 
@@ -1049,7 +1049,7 @@ local({
 6. Con los datos del ejemplo de las barras de refuerzo ($N = 20$, $K = 4$), encuentre el menor tamaño de muestra $n$ para que la probabilidad de no detectar ninguna barra defectuosa sea menor que 0.05. Use un ciclo `for` o `sapply()` en R.
 7. En un tramo de carretera de 12 km ocurren, en promedio, 0.4 accidentes por kilómetro por año (dato hipotético). Calcule la probabilidad de que en un año haya menos de 3 accidentes en el tramo, y la de que en un trimestre no haya ninguno.
 8. Simule en R 1000 valores de una Poisson con $\lambda = 2.975$ con `rpois()` y compare su histograma con los datos de los camiones del ejemplo. Repita con $\lambda = 5$ y describa la diferencia.
-9. Use el interactivo para encontrar, con $n = 30$, qué valor de $p$ hace que $P(X \le 2)$ sea aproximadamente 0.5. Compruébelo con `pbinom()`.
+9. Use la @fig-disc-interactivo para encontrar, con $n = 30$, qué valor de $p$ hace que $P(X \le 2)$ sea aproximadamente 0.5. Compruébelo con `pbinom()`.
 10. Un muro de contención en la costa se diseña para el oleaje de 50 años de periodo de retorno, con una vida útil de 40 años. Calcule el riesgo de excedencia, la probabilidad de dos o más excedencias y el periodo de retorno que habría que usar para que el riesgo baje al 10 %.
 11. En una planta de tratamiento se analizan 15 muestras de agua tratada por semana. Cada muestra incumple el límite de turbiedad con probabilidad 0.04 (dato hipotético). Calcule la probabilidad de que en una semana incumplan 2 o más muestras. Si en 52 semanas se observa que la varianza del número semanal de incumplimientos es tres veces la que predice la binomial, ¿qué supuesto se pone en duda?
 12. En un tramo de autopista ocurren en promedio 1.5 accidentes por mes, pero los datos de 36 meses tienen media 1.5 y varianza 4.2. Explique por qué la Poisson no es adecuada y calcule $P(X \ge 5)$ con la Poisson y con la binomial negativa con la misma media y `size = 1` (`dnbinom(x, size = 1, mu = 1.5)`). Compare los resultados.

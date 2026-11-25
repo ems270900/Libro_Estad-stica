@@ -691,7 +691,7 @@ Interacción entre relación agua/cemento y aditivo.
 
 :::
 
-En el interactivo de la @fig-rlm-interactivo, con $b_3 = 0$ las rectas son paralelas y el aditivo suma lo mismo a cualquier relación. Con $b_3$ positivo, la recta con aditivo baja más despacio: el aditivo ayuda más cuanto más agua tiene la mezcla.
+En la @fig-rlm-interactivo, con $b_3 = 0$ las rectas son paralelas y el aditivo suma lo mismo a cualquier relación. Con $b_3$ positivo, la recta con aditivo baja más despacio: el aditivo ayuda más cuanto más agua tiene la mezcla.
 
 Con los cilindros hipotéticos se puede probar si esa interacción existe:
 
@@ -770,9 +770,9 @@ El paquete car [@fox2019companion] es el único paquete nuevo de este capítulo.
 La multicolinealidad es un problema entre predictores; no tiene que ver con la independencia de los errores, que es un supuesto sobre las observaciones (capítulo 27). Tampoco afecta a las predicciones dentro del rango de los datos: un modelo con predictores redundantes puede predecir bien. Lo que se pierde es la posibilidad de interpretar cada coeficiente por separado.
 :::
 
-### Interactivo: qué hace la multicolinealidad con los coeficientes
+### Qué hace la multicolinealidad con los coeficientes
 
-El interactivo simula 200 muestras de 30 observaciones de un modelo conocido, $Y = 2 + 1\,x_1 + 1\,x_2 + \varepsilon$, y ajusta en cada una la regresión múltiple. A la izquierda se ven los predictores de una de las muestras; a la derecha, los 200 pares de coeficientes estimados $(b_1, b_2)$. Con el control se cambia la correlación entre $x_1$ y $x_2$.
+La @fig-rlm-interactivo-vif simula 200 muestras de 30 observaciones de un modelo conocido, $Y = 2 + 1\,x_1 + 1\,x_2 + \varepsilon$, y ajusta en cada una la regresión múltiple. A la izquierda se ven los predictores de una de las muestras; a la derecha, los 200 pares de coeficientes estimados $(b_1, b_2)$. Con el control se cambia la correlación entre $x_1$ y $x_2$.
 
 ::: {#fig-rlm-interactivo-vif}
 
@@ -954,7 +954,7 @@ El último error del cuadro merece un ejemplo. En los tramos de pavimento, el tr
 8. Con `mtcars`, un conjunto de datos que trae R, ajuste el consumo `mpg` en función de `disp`, `hp` y `wt`. Calcule los VIF y proponga un modelo más simple.
 9. Con `ahuellamiento_tramos_hipotetico.csv`, ajuste la regresión del ahuellamiento contra el tránsito solo y compare su pendiente con el coeficiente del tránsito en el modelo con los dos predictores. ¿Por qué la pendiente simple es menor?
 10. Con los mismos datos, dibuje el diagrama de dispersión del espesor contra el tránsito y marque el punto (10, 5). Explique por qué predecir el ahuellamiento de ese tramo es una extrapolación.
-11. Use el interactivo de la @fig-rlm-interactivo-vif para encontrar la correlación entre predictores con la que la desviación estándar de $b_1$ se duplica respecto de $r_{12} = 0$. Compare con el valor de $r_{12}$ que da $VIF = 4$.
+11. Use la @fig-rlm-interactivo-vif para encontrar la correlación entre predictores con la que la desviación estándar de $b_1$ se duplica respecto de $r_{12} = 0$. Compare con el valor de $r_{12}$ que da $VIF = 4$.
 12. Un modelo de costo de puentes tiene como predictores la luz (m), el ancho (m) y el tipo de superestructura (losa, vigas de concreto presforzado, vigas de acero). Escriba la ecuación con las indicadoras necesarias e interprete el coeficiente de una de ellas.
 
 ## Lecturas recomendadas

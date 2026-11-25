@@ -802,7 +802,7 @@ Errores tipo I y II y potencia.
 
 :::
 
-Del interactivo salen las tres reglas de la potencia. Para un mismo $\alpha$, la potencia aumenta con el tamaño del efecto y con $n$, y disminuye con la variabilidad. Para un mismo $n$, bajar $\alpha$ reduce la potencia: no se pueden reducir los dos errores a la vez sin más datos.
+De la @fig-ph-interactivo salen las tres reglas de la potencia. Para un mismo $\alpha$, la potencia aumenta con el tamaño del efecto y con $n$, y disminuye con la variabilidad. Para un mismo $n$, bajar $\alpha$ reduce la potencia: no se pueden reducir los dos errores a la vez sin más datos.
 
 ::: {.callout-note title="Ejemplo: potencia del control de varillas"}
 
@@ -975,7 +975,7 @@ Valor $p$ e intervalo del efecto según el tamaño de muestra.
 
 :::
 
-Con un efecto de 0.3 y 20 datos, el valor $p$ es 0.18 y el intervalo para $d$ va de −0.14 a 0.74: incluye el cero, pero también efectos grandes. La conclusión correcta no es "no hay efecto", sino "con 20 datos no se sabe". Con el mismo efecto y 200 datos, el valor $p$ baja a 0.00002 y el intervalo, de 0.16 a 0.44, ya excluye el cero. El efecto no cambió; cambió la precisión. Por eso el intervalo de confianza informa más que el valor $p$: muestra a la vez el tamaño del efecto y la incertidumbre que lo rodea. El interactivo usa la aproximación normal con $\sigma$ conocida, para que las cuentas se vean más claras.
+Con un efecto de 0.3 y 20 datos, el valor $p$ es 0.18 y el intervalo para $d$ va de −0.14 a 0.74: incluye el cero, pero también efectos grandes. La conclusión correcta no es "no hay efecto", sino "con 20 datos no se sabe". Con el mismo efecto y 200 datos, el valor $p$ baja a 0.00002 y el intervalo, de 0.16 a 0.44, ya excluye el cero. El efecto no cambió; cambió la precisión. Por eso el intervalo de confianza informa más que el valor $p$: muestra a la vez el tamaño del efecto y la incertidumbre que lo rodea. La @fig-ph-int-efecto-n usa la aproximación normal con $\sigma$ conocida, para que las cuentas se vean más claras.
 
 ### Cómo reportar una prueba
 
@@ -1059,11 +1059,11 @@ Los errores de interpretación de las pruebas de hipótesis son tan frecuentes q
 1. Para cada caso, plantee $H_0$ y $H_1$ e indique si la prueba es bilateral o unilateral: a) un proveedor afirma que sus sacos de cemento pesan en promedio 50 kg y se sospecha que pesan menos; b) se quiere saber si una nueva mezcla asfáltica cambia el contenido de vacíos de 4 %; c) se quiere demostrar que un tratamiento reduce la permeabilidad de un suelo.
 2. En el ejemplo de las varillas, ¿qué conclusión se obtiene con $\alpha = 0.01$? ¿Y con $\alpha = 0.001$? Explique qué relación tiene esto con el valor $p$.
 3. Describa en palabras qué serían el error tipo I y el error tipo II en una prueba cuya hipótesis nula es "la presa no tiene filtraciones mayores que las de diseño". ¿Cuál de los dos errores es más grave? ¿Cómo afectaría eso la elección de $\alpha$?
-4. Con el interactivo de la @fig-ph-interactivo, encuentre el $n$ mínimo para tener potencia de 0.80 con $\delta/\sigma = 0.5$ y $\alpha = 0.05$. Compruebe el resultado con la @eq-ph-n-potencia y con `power.t.test()`.
+4. Con la @fig-ph-interactivo, encuentre el $n$ mínimo para tener potencia de 0.80 con $\delta/\sigma = 0.5$ y $\alpha = 0.05$. Compruebe el resultado con la @eq-ph-n-potencia y con `power.t.test()`.
 5. Simule en R 5000 muestras de diez varillas de una población normal con $\mu = 300$ y $\sigma = 3.3$, y aplique a cada una `t.test(x, mu = 300)`. ¿Qué fracción de las pruebas rechaza $H_0$ con $\alpha = 0.05$? ¿Qué error es ese?
 6. Repita la simulación del ejercicio anterior con $\mu = 297$. ¿Qué fracción rechaza ahora? Compare con la potencia del ejemplo.
 7. Para cada caso, escriba cuál sería el error tipo I, cuál el tipo II y cuál considera más grave: a) $H_0$: el puente soporta la carga de diseño; b) $H_0$: la tasa de accidentes de una intersección no cambió después de instalar un semáforo; c) $H_0$: el contenido de humedad de los agregados es el especificado.
-8. En el interactivo de la @fig-ph-int-valor-p, fije $t = 2.0$ y compare el valor $p$ bilateral con 3, 10 y 60 grados de libertad. Explique por qué cambia.
+8. En la @fig-ph-int-valor-p, fije $t = 2.0$ y compare el valor $p$ bilateral con 3, 10 y 60 grados de libertad. Explique por qué cambia.
 9. Repita el ejemplo del ruido con la mitad de las mediciones (las seis primeras). ¿Qué pasa con el estadístico y con la decisión? ¿Qué tipo de error podría estar cometiéndose?
 10. Con el simulador de la @fig-ph-int-simulador, fije la media real en 298 MPa y busque el número de varillas por control con el que cerca de 80 de cada 100 controles rechazan $H_0$. Compare con la @eq-ph-n-potencia.
 

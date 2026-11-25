@@ -649,9 +649,9 @@ El error baja a medida que crece $\lambda$: con $\lambda = 2$ llega a 0.04 y con
 Las aproximaciones normales funcionan bien cerca del centro de la distribución y peor en las colas lejanas. Con $\lambda = 100$ vehículos por hora, la probabilidad de 130 o más es 0.0023 con la Poisson y 0.0016 con la normal: un error del 30 % justo en el valor que decide la capacidad de una vía. Cuando la pregunta es sobre eventos raros, se calcula con la distribución exacta (`ppois()`, `pbinom()`).
 :::
 
-## Interactivos {#sec-normal-interactivos}
+## Áreas normales y aproximación a la binomial {#sec-normal-interactivos}
 
-En el interactivo de la @fig-normal-int-area se mueven la media, la desviación estándar y los límites $a$ y $b$. El área sombreada es $P(a \le X \le b)$; debajo se muestran los valores $z$ de cada límite, que son los que se buscarían en la tabla. Conviene comprobar la regla empírica poniendo $a = \mu - \sigma$ y $b = \mu + \sigma$ para varias combinaciones de parámetros.
+En la @fig-normal-int-area se mueven la media, la desviación estándar y los límites $a$ y $b$. El área sombreada es $P(a \le X \le b)$; debajo se muestran los valores $z$ de cada límite, que son los que se buscarían en la tabla. Conviene comprobar la regla empírica poniendo $a = \mu - \sigma$ y $b = \mu + \sigma$ para varias combinaciones de parámetros.
 
 ::: {#fig-normal-int-area}
 
@@ -721,7 +721,7 @@ En el interactivo de la @fig-normal-int-area se mueven la media, la desviación 
 
 :::
 
-El interactivo de la @fig-normal-int-binomial compara la binomial con su aproximación normal. Las barras en azul oscuro forman $P(X \le k)$. Debajo aparecen el valor exacto y las dos aproximaciones. Conviene ver qué pasa con $n = 20$ y $p = 0.05$, donde $np = 1$ no cumple la condición, y luego subir $n$.
+La @fig-normal-int-binomial compara la binomial con su aproximación normal. Las barras en azul oscuro forman $P(X \le k)$. Debajo aparecen el valor exacto y las dos aproximaciones. Conviene ver qué pasa con $n = 20$ y $p = 0.05$, donde $np = 1$ no cumple la condición, y luego subir $n$.
 
 ::: {#fig-normal-int-binomial}
 
@@ -802,9 +802,9 @@ Binomial y aproximación normal.
 
 :::
 
-## Interactivo: confiabilidad de un elemento {#sec-normal-int-confiabilidad}
+## Confiabilidad de un elemento {#sec-normal-int-confiabilidad}
 
-En el interactivo de la @fig-normal-int-confiabilidad se mueven la media y el coeficiente de variación de la resistencia y de la solicitación. Arriba se ven las dos densidades; abajo, la densidad del margen $M = R - S$ con el área de falla ($M < 0$) sombreada. Conviene fijar el factor de seguridad central en 1.6 y ver cómo cambian $\beta$ y $P_f$ al mover solo los coeficientes de variación.
+En la @fig-normal-int-confiabilidad se mueven la media y el coeficiente de variación de la resistencia y de la solicitación. Arriba se ven las dos densidades; abajo, la densidad del margen $M = R - S$ con el área de falla ($M < 0$) sombreada. Conviene fijar el factor de seguridad central en 1.6 y ver cómo cambian $\beta$ y $P_f$ al mover solo los coeficientes de variación.
 
 ::: {#fig-normal-int-confiabilidad}
 
@@ -1074,7 +1074,7 @@ Los tres casos siguientes muestran el razonamiento completo, de la lectura del e
 Los errores de elección más frecuentes son cuatro. Usar la binomial cuando no hay un número fijo de ensayos (si se ensaya "hasta que", es geométrica o binomial negativa). Usar la Poisson para un número de éxitos en $n$ ensayos con $p$ grande (es binomial). Usar la normal para un tiempo de espera o un máximo anual (son asimétricos). Y confundir la Poisson con la exponencial: la primera cuenta eventos en un intervalo fijo; la segunda mide el tiempo entre eventos.
 :::
 
-### Interactivo: ¿qué distribución es?
+### ¿Qué distribución es?
 
 El cuestionario de la @fig-guia-cuestionario presenta enunciados mezclados de todas las ramas de la ingeniería civil. Para cada uno se elige la distribución y se pulsa "Revisar"; el programa dice si la respuesta es correcta y explica por qué, siguiendo las preguntas del diagrama. El botón "Siguiente" pasa a otro enunciado, en orden aleatorio, y el marcador lleva la cuenta de aciertos.
 
@@ -1153,11 +1153,11 @@ Cuestionario para practicar la elección de la distribución.
 6. La longitud de una viga prefabricada es normal con media 6.000 m y desviación estándar 4 mm, y el espacio entre apoyos donde se coloca es normal con media 6.010 m y desviación estándar 3 mm, independiente. Calcule la probabilidad de que la viga no quepa (que sea más larga que el espacio). Sugerencia: estudie la diferencia entre las dos variables con la @eq-normal-combinacion.
 7. En una auditoría se revisan 200 facturas de una obra, y cada una tiene un error con probabilidad 0.08. Calcule la probabilidad de encontrar más de 20 facturas con error con la binomial exacta y con la aproximación normal con corrección por continuidad.
 8. A una intersección llegan, en promedio, 36 vehículos por minuto en hora pico. Con la aproximación normal a la Poisson, calcule la probabilidad de que en un minuto lleguen más de 45. Compare con `ppois()`.
-9. Use el interactivo de la binomial para encontrar, con $p = 0.10$, a partir de qué $n$ la diferencia entre la probabilidad exacta y la aproximada con corrección es menor que 0.01 para $k$ igual a la media redondeada.
+9. Use la @fig-normal-int-binomial para encontrar, con $p = 0.10$, a partir de qué $n$ la diferencia entre la probabilidad exacta y la aproximada con corrección es menor que 0.01 para $k$ igual a la media redondeada.
 10. La capacidad de carga de un pilote es normal con media 900 kN y CV de 15 %, y la carga que recibe es normal con media 500 kN y CV de 20 %, independientes. Calcule el factor de seguridad central, el índice de confiabilidad y la probabilidad de falla. ¿Qué media debería tener la capacidad para que $\beta = 3$?
 11. El error de cierre de una nivelación es la suma de los errores de 25 cambios de estación, cada uno con media 0 y desviación estándar 1.2 mm. Calcule la desviación estándar del error de cierre y la tolerancia que solo se excede el 5 % de las veces (en valor absoluto). ¿Por qué es razonable usar la normal aunque no se conozca la distribución de cada error?
 12. Simule 200 datos de una exponencial con `rexp()` y dibuje su gráfico Q-Q con `qqnorm()`. Repita con 200 datos de una $t$ con 3 grados de libertad (`rt()`). Describa el patrón de cada uno y compárelo con la @fig-normal-qq-patrones.
-13. Use el interactivo de confiabilidad para encontrar dos combinaciones de parámetros con el mismo factor de seguridad central de 2.0 y probabilidades de falla que difieran en más de diez veces.
+13. Use la @fig-normal-int-confiabilidad para encontrar dos combinaciones de parámetros con el mismo factor de seguridad central de 2.0 y probabilidades de falla que difieran en más de diez veces.
 
 ### ¿Qué distribución es?
 

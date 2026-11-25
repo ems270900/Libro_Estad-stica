@@ -111,7 +111,7 @@ Para practicar con histogramas de otras formas, R trae decenas de conjuntos de d
 
 #### Número de clases
 
-`hist()` elige el número de clases con la regla de @sturges1926choice, y el argumento `breaks` lo cambia: `breaks = 15` pide unas 15 clases (R las ajusta a límites redondos), y `breaks = seq(10, 45, by = 5)` fija los límites exactos. Con `right = FALSE` cada clase incluye su límite inferior y excluye el superior. Las funciones `nclass.Sturges()`, `nclass.scott()` y `nclass.FD()` calculan el número de clases de tres reglas distintas. La @sec-pres-cuantitativa explica cómo se eligen las clases, y el interactivo de la @sec-graf-interactivo muestra el efecto de cambiarlas.
+`hist()` elige el número de clases con la regla de @sturges1926choice, y el argumento `breaks` lo cambia: `breaks = 15` pide unas 15 clases (R las ajusta a límites redondos), y `breaks = seq(10, 45, by = 5)` fija los límites exactos. Con `right = FALSE` cada clase incluye su límite inferior y excluye el superior. Las funciones `nclass.Sturges()`, `nclass.scott()` y `nclass.FD()` calculan el número de clases de tres reglas distintas. La @sec-pres-cuantitativa explica cómo se eligen las clases, y la @fig-graf-interactivo muestra el efecto de cambiarlas.
 
 #### Frecuencia o densidad
 
@@ -279,7 +279,7 @@ stripchart(resistencia_mpa ~ proyecto, data = e28, vertical = TRUE,
 `boxplot()` de R base y `geom_boxplot()` de ggplot2 no calculan los cuartiles igual. R base usa las bisagras de Tukey (la mediana de cada mitad de los datos, función `fivenum()`) y ggplot2 usa `quantile()`, que por defecto aplica la regla de la posición $1 + (n - 1)\,p$. Con algunos tamaños de muestra las cajas difieren un poco. No es un error: hay al menos nueve definiciones de cuartil en uso [@hyndman1996sample]. Lo importante es decir cuál se usó cuando se informan los números.
 :::
 
-Los interactivos de la @fig-med-int-caja y de la @fig-med-calculadora, en el capítulo 9, dibujan la caja con los datos que se escriban y muestran cómo cambian los límites y los atípicos.
+La @fig-med-int-caja y la @fig-med-calculadora, en el capítulo 9, dibujan la caja con los datos que se escriban y muestran cómo cambian los límites y los atípicos.
 
 ### Dispersión {#sec-graf-dispersion}
 
@@ -563,9 +563,9 @@ ggsave("resistencia_por_proyecto.png", width = 16, height = 10, units = "cm", dp
 
 Con R base se abre un archivo con `png()`, se hace el gráfico y se cierra con `dev.off()`. También se puede usar el botón Export de la pestaña Plots de RStudio.
 
-## Interactivo: un gráfico capa por capa {#sec-graf-capas}
+## Un gráfico capa por capa {#sec-graf-capas}
 
-En ggplot2 un gráfico se construye sumando capas. En el interactivo de la @fig-graf-capas-int, cada casilla agrega o quita una capa del gráfico de la resistencia a 28 días por proyecto, y debajo se ve el código que produciría ese mismo gráfico. Empiece con solo los puntos y vaya agregando capas una por una.
+En ggplot2 un gráfico se construye sumando capas. En la @fig-graf-capas-int, cada casilla agrega o quita una capa del gráfico de la resistencia a 28 días por proyecto, y debajo se ve el código que produciría ese mismo gráfico. Empiece con solo los puntos y vaya agregando capas una por una.
 
 ::: {#fig-graf-capas-int}
 
@@ -652,7 +652,7 @@ Gráfico de ggplot2 capa por capa.
 
 El color por mezcla se pone en el `aes()` de los puntos y no en el de `ggplot()`: si se pusiera en `ggplot()`, valdría para todas las capas y ggplot2 dibujaría dos cajas por proyecto, una por mezcla. Fíjese también en dos detalles más. Sin `theme_minimal()`, ggplot2 dibuja el fondo gris que trae por defecto. Y sin `labs()`, los ejes muestran los nombres de las columnas tal como están en los datos, con guiones bajos y sin unidades: casi nunca es lo que se quiere en un informe.
 
-## Interactivo: el número de clases de un histograma {#sec-graf-interactivo}
+## El número de clases de un histograma {#sec-graf-interactivo}
 
 La forma de un histograma depende del ancho de las clases. Con clases muy anchas los datos se aplastan en dos o tres barras; con clases muy angostas el gráfico se llena de huecos. Mueva el control de la @fig-graf-interactivo para ver cómo cambia el histograma de las 60 resistencias, y fíjese en qué ancho empiezan a verse los dos grupos de edades.
 
@@ -819,13 +819,13 @@ La función `tapply()` de R base aplica una función (aquí `sum`) a un vector s
 3. Dibuje un diagrama de caja del asentamiento por proyecto. ¿Qué proyecto tiene el asentamiento más bajo? ¿Por qué cree que es así en un pavimento?
 4. Haga un diagrama de dispersión de asentamiento contra resistencia a 28 días, coloreado por proyecto. ¿Se ve alguna relación entre las dos variables dentro de cada proyecto?
 5. Repita el histograma del ejemplo con clases de 4 MPa. ¿Se siguen viendo las dos zonas altas?
-6. En el interactivo de la @fig-graf-interactivo, ¿con qué ancho de clase se pierden los dos grupos de edades? ¿Qué ancho le parece el más adecuado para estos datos y por qué?
+6. En la @fig-graf-interactivo, ¿con qué ancho de clase se pierden los dos grupos de edades? ¿Qué ancho le parece el más adecuado para estos datos y por qué?
 7. Guarde el gráfico del ejercicio 4 en un archivo PNG de 16 cm por 10 cm con `ggsave()`.
 8. Haga con R base el gráfico de líneas de los dos tipos de día, con leyenda y una línea horizontal en la media del día laboral (`abline(h = mean(...))`).
 9. Repita la @fig-graf-escalas con la paleta viridis (`scale_fill_viridis_d()`) y con `theme_bw()`. ¿Cuál se lee mejor?
 10. Dibuje con `geom_col()` el total de vehículos de cada tipo de día y escriba el valor sobre cada barra.
 11. Con los datos de humedad del suelo del capítulo 3, dibuje la humedad contra la profundidad, un color por sondeo, con `geom_line()` y `geom_point()`. ¿Cómo cambia la humedad con la profundidad?
-12. En el interactivo de la @fig-graf-capas-int, arme el gráfico con cajas, puntos coloreados por mezcla, línea de referencia, etiquetas y tema. Copie el código que aparece, ejecútelo en R y compare.
+12. En la @fig-graf-capas-int, arme el gráfico con cajas, puntos coloreados por mezcla, línea de referencia, etiquetas y tema. Copie el código que aparece, ejecútelo en R y compare.
 
 ## Lecturas recomendadas
 

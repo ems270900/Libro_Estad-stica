@@ -378,9 +378,9 @@ which(resistencia >= 28)   # posiciones de los cilindros que cumplen
 which.min(resistencia)     # posición del cilindro más débil
 ```
 
-### Interactivo: seleccionar elementos de un vector
+### Seleccionar elementos de un vector
 
-En el interactivo de la @fig-obj-seleccion se escribe lo que va dentro de los corchetes de `resistencia[ ]` y se ve qué elementos elige R. Acepta posiciones (`3`, `2:5`, `c(1, 8)`, `-1`) y condiciones (`resistencia >= 28`, `resistencia > 27 & resistencia < 29`). Los botones cargan algunos ejemplos.
+En la @fig-obj-seleccion se escribe lo que va dentro de los corchetes de `resistencia[ ]` y se ve qué elementos elige R. Acepta posiciones (`3`, `2:5`, `c(1, 8)`, `-1`) y condiciones (`resistencia >= 28`, `resistencia > 27 & resistencia < 29`). Los botones cargan algunos ejemplos.
 
 ::: {#fig-obj-seleccion}
 
@@ -470,7 +470,7 @@ Selección de elementos de un vector.
 
 ### Calculadora de operadores
 
-El interactivo de la @fig-obj-calculadora muestra el resultado de cada operador con dos números. Cambie los valores de $a$ y $b$ y observe, por ejemplo, qué pasa con `%%` y `%/%` cuando $b$ divide exactamente a $a$.
+La @fig-obj-calculadora muestra el resultado de cada operador con dos números. Cambie los valores de $a$ y $b$ y observe, por ejemplo, qué pasa con `%%` y `%/%` cuando $b$ divide exactamente a $a$.
 
 ::: {#fig-obj-calculadora}
 
@@ -793,7 +793,7 @@ round(r_edad[, "7 d"] / r_edad[, "28 d"], 3)
 7. Los conteos horarios de una estación son `c(320, 415, NA, 510, 488, NA, 402)`. Calcule el promedio con los datos disponibles y diga cuántas horas faltan.
 8. En la calculadora de la @fig-obj-calculadora, busque dos valores de $a$ y $b$ para los que `a %% b` dé 0. ¿Qué significa ese resultado?
 9. Con el vector `resistencia`, use `which()` para encontrar las posiciones de los cilindros con menos de 27 MPa. Cambie el valor del cilindro más débil por 25.8 y vuelva a calcular la media.
-10. En el interactivo de la @fig-obj-seleccion, escriba la condición que elige los cilindros con resistencia mayor que 29 MPa. Luego escriba la que elige todos menos el primero y el último. Compruebe las dos en R.
+10. En la @fig-obj-seleccion, escriba la condición que elige los cilindros con resistencia mayor que 29 MPa. Luego escriba la que elige todos menos el primero y el último. Compruebe las dos en R.
 11. Redondee 28.4567 a dos decimales, a tres cifras significativas, hacia arriba y hacia abajo. ¿Qué da `round(0.5)`? ¿Y `round(1.5)`?
 12. Compruebe que `0.3 - 0.1 == 0.2` da `FALSE`. Escriba una comparación que dé `TRUE` para esos mismos números.
 13. Cree con `paste0()` los códigos de 12 muestras de suelo, de `"S01"` a `"S12"`. Pista: `sprintf("S%02d", 1:12)` escribe los números con dos cifras.

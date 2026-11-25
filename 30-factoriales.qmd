@@ -272,7 +272,7 @@ Gráfico de interacción de un diseño 2 × 2.
 
 :::
 
-La media general del interactivo es 50. Su texto muestra la definición de la interacción en un diseño con dos niveles: es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo. La @sec-fac-2k desarrolla esa definición.
+La media general de la @fig-fac-int-interaccion es 50. El texto bajo el gráfico muestra la definición de la interacción en un diseño con dos niveles: es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo. La @sec-fac-2k desarrolla esa definición.
 
 ::: {.callout-warning title="Cuidado"}
 Si hay interacción, el efecto principal de A es un promedio de efectos distintos y puede engañar. En el caso extremo, A sube la respuesta 10 unidades con B bajo y la baja 10 con B alto: el efecto principal de A es cero, aunque A importa mucho. Por eso la interacción se revisa primero, y si es significativa, se estudia el efecto de A dentro de cada nivel de B.
@@ -768,7 +768,7 @@ $$
 \text{Efecto} = \frac{C}{r\,2^{k-1}} \qquad SC_{\text{efecto}} = \frac{C^2}{r\,2^{k}}
 $$ {#eq-fac-efecto}
 
-donde $C$ es el contraste del efecto, $r$ es el número de repeticiones por combinación y $k$ es el número de factores. El efecto de A es la diferencia entre la media de las observaciones con A alto y la media de las que tienen A bajo. El de AB es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo, la misma definición del interactivo de la @fig-fac-int-interaccion. Cada efecto tiene un grado de libertad.
+donde $C$ es el contraste del efecto, $r$ es el número de repeticiones por combinación y $k$ es el número de factores. El efecto de A es la diferencia entre la media de las observaciones con A alto y la media de las que tienen A bajo. El de AB es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo, la misma definición de la @fig-fac-int-interaccion. Cada efecto tiene un grado de libertad.
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
 La fórmula de la suma de cuadrados sale de la del factorial general. Un factor de dos niveles divide las $N = r\,2^k$ observaciones en dos mitades, cuyas medias se apartan de la media general en $+\text{Efecto}/2$ y $-\text{Efecto}/2$. Por la @eq-fac-sc-principales,

@@ -162,9 +162,9 @@ b_1 = \frac{n \sum x_i y_i - \left(\sum x_i\right)\left(\sum y_i\right)}{n \sum 
 $$
 :::
 
-### Interactivo: ajustar una recta a ojo
+### Ajustar una recta a ojo {#sec-rls-recta-movible}
 
-Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueven el intercepto y la pendiente de una recta sobre los diez periodos. Los segmentos son los residuos y debajo aparece la suma de sus cuadrados. El objetivo es lograr el $SSE$ más pequeño posible.
+Antes de hacer la cuenta, conviene probar a mano. En la @fig-rls-interactivo-mco, con los dos controles se mueven el intercepto y la pendiente de una recta sobre los diez periodos. Los segmentos son los residuos y debajo aparece la suma de sus cuadrados. El objetivo es lograr el $SSE$ más pequeño posible.
 
 ::: {#fig-rls-interactivo-mco}
 
@@ -243,6 +243,20 @@ Recta movible y suma de cuadrados.
 :::
 
 Al probar se nota que el intercepto y la pendiente están amarrados: si se cambia la pendiente, hay que mover el intercepto para que la recta siga pasando por el centro de la nube, que es el punto $(\bar{x}, \bar{y})$. Es la propiedad 1 de la lista anterior.
+
+### Qué se ve en los residuos {#sec-rls-residuos-intuicion}
+
+Cada línea punteada de la @fig-rls-interactivo-mco es un residuo de la @eq-rls-residuo, $e_i = y_i - \hat{y}_i$, dibujado tal como se define: la distancia vertical entre el punto observado y la recta. Si el punto queda arriba de la recta, el residuo es positivo; si queda abajo, negativo. La distancia se mide en vertical, y no perpendicular a la recta, porque lo que se quiere predecir es $y$: el residuo es lo que se equivocaría la recta al estimar la velocidad de ese periodo, y por eso tiene las unidades de $Y$ (aquí, km/h).
+
+Los residuos no son una propiedad de los datos solos, sino de los datos y de una recta. Cada posición de la recta da otros diez residuos y otra $SSE$. La figura deja ver cómo delatan una recta mal puesta:
+
+- **Recta demasiado alta o demasiado baja.** Con $b_0 = 100$ y $b_1 = -0.85$, los diez puntos quedan debajo de la recta y todos los residuos son negativos, de −5.3 a −13.3 km/h.
+- **Pendiente equivocada.** Con la posición inicial, $b_0 = 80$ y $b_1 = -0.60$, la recta es menos inclinada que la nube: los residuos son positivos en las densidades bajas y negativos en las altas, hasta −7.3 km/h en el último periodo.
+- **Recta de mínimos cuadrados.** Al pulsar el botón, las líneas de arriba compensan las de abajo (los residuos suman cero, propiedad 2) y los signos se alternan sin orden a lo largo del eje. El mayor, en valor absoluto, es de 3.61 km/h.
+
+Como el error $\varepsilon_i$ no se observa, los residuos son la mejor aproximación que se tiene de él. Si el modelo es correcto, deberían verse como ruido sin estructura: centrados en cero, con la misma dispersión en todo el rango de $x$ y sin patrones. Un patrón como los dos primeros de la lista, que aquí se produjo a propósito al mover la recta, aparece también con la recta de mínimos cuadrados cuando la forma del modelo no es la adecuada (por ejemplo, cuando la relación es curva). Revisar los residuos para encontrar esos patrones es el diagnóstico del capítulo 27 (@sec-diag-graficos).
+
+Los residuos de la figura son residuos crudos: están en km/h, y su tamaño solo se puede juzgar al compararlo con la dispersión típica alrededor de la recta. Un residuo de 3 km/h es grande si los demás rondan 1 km/h y pequeño si rondan 10 km/h. Esa dispersión típica es el error estándar de la estimación, $s$ (@sec-rls-ajuste). Al dividir cada residuo entre una medida de ese tipo se obtienen los residuos estandarizados, que se usan en el diagnóstico (@sec-diag-residuos).
 
 ::: {.callout-note title="Ejemplo: recta de regresión de la velocidad contra la densidad del tránsito"}
 
@@ -588,9 +602,9 @@ confint(modelo, level = 0.95)
 
 :::
 
-### Interactivo: la pendiente cambia de una muestra a otra
+### La pendiente cambia de una muestra a otra
 
-Cada vez que se repite un ensayo se obtiene otra muestra y, con ella, otra recta. El interactivo simula ese proceso con un modelo conocido: la deflexión de una viga hipotética con $\beta_0 = 0.5$ mm, $\beta_1 = 0.08$ mm/kN y errores normales. Cada vez que se pulsa el botón se toman 30 muestras nuevas y se dibuja la recta de mínimos cuadrados de cada una. Con los controles se cambian el número de ensayos por muestra, el rango de cargas y la dispersión de los errores.
+Cada vez que se repite un ensayo se obtiene otra muestra y, con ella, otra recta. La @fig-rls-interactivo-muestreo simula ese proceso con un modelo conocido: la deflexión de una viga hipotética con $\beta_0 = 0.5$ mm, $\beta_1 = 0.08$ mm/kN y errores normales. Cada vez que se pulsa el botón se toman 30 muestras nuevas y se dibuja la recta de mínimos cuadrados de cada una. Con los controles se cambian el número de ensayos por muestra, el rango de cargas y la dispersión de los errores.
 
 ::: {#fig-rls-interactivo-muestreo}
 
@@ -965,9 +979,9 @@ ggplot(rejilla, aes(densidad_veh_km)) +
   theme(legend.position = "bottom")
 ```
 
-### Interactivo: los dos intervalos
+### Los dos intervalos
 
-Con el control se elige la densidad $x_0$. El interactivo calcula $\hat{y}_0$ y los dos intervalos del 95 % con las fórmulas de esta sección, y marca en gris la zona fuera del rango de los datos.
+Con el control se elige la densidad $x_0$. La @fig-rls-interactivo-bandas calcula $\hat{y}_0$ y los dos intervalos del 95 % con las fórmulas de esta sección, y marca en gris la zona fuera del rango de los datos.
 
 ::: {#fig-rls-interactivo-bandas}
 
@@ -1192,13 +1206,13 @@ data.frame(
 5. En una regresión simple con $n = 10$ se sabe que $SST = 250$ y $R^2 = 0.84$. Calcule $SSR$, $SSE$, $MSE$, $s$ y $F$.
 6. Con el modelo de velocidad y densidad, calcule con `predict()` los intervalos del 95 % para $x_0 = 12$, $42$ y $76$ veh/km/carril. ¿Dónde es más angosto el intervalo para la media? Explique con la @eq-rls-se-media por qué.
 7. Repita el ajuste de velocidad y densidad expresando la velocidad en m/s (divida entre 3.6). ¿Qué pasa con $b_0$, $b_1$, $R^2$ y el valor $p$? Explique.
-8. Use el interactivo de la @fig-rls-interactivo-bandas para encontrar la densidad con la que el límite inferior del intervalo de predicción es 30 km/h. Compruebe el resultado con `predict()`.
+8. Use la @fig-rls-interactivo-bandas para encontrar la densidad con la que el límite inferior del intervalo de predicción es 30 km/h. Compruebe el resultado con `predict()`.
 9. En el modelo de Greenshields, el flujo es $q = k\,v$ (veh/h/carril), con $k$ la densidad y $v$ la velocidad. Con la recta del ejemplo, escriba $q$ como función de $k$, encuentre la densidad que da el flujo máximo y calcule ese flujo, que es la capacidad que estima el modelo. ¿Está esa densidad dentro del rango de los datos?
 10. Diez probetas hipotéticas de una misma mezcla de concreto con relaciones agua/cemento de 0.40 a 0.70 dieron estas resistencias a 28 días (MPa): (0.40, 44.1), (0.45, 41.5), (0.48, 37.2), (0.50, 38.0), (0.55, 33.9), (0.58, 33.5), (0.60, 30.2), (0.65, 28.4), (0.68, 25.0) y (0.70, 26.1). Ajuste la recta a mano y con `lm()`, interprete la pendiente por cada 0.01 de relación y explique por qué aquí el intercepto no tiene sentido físico.
 11. Con las ocho muestras de `turbiedad_sst_hipotetica.csv`, ajuste a mano la recta de los SST contra la turbiedad y compruebe los coeficientes de la @sec-rls-summary. Estime los SST de una muestra con 20 NTU con su intervalo de predicción del 95 %.
 12. Con los mismos datos, ajuste la recta de la turbiedad contra los SST y despeje los SST. Compare esa recta con la del ejercicio 11 y explique por qué no coinciden.
 13. Con la parcela de `escorrentia_parcela_hipotetica.csv`, estime el caudal pico para un aguacero de 40 mm/h con la recta por el origen y con la recta con intercepto. ¿Cuánto difieren? ¿Cuál usaría para diseñar un tragante?
-14. Use el interactivo de la @fig-rls-interactivo-muestreo con $\sigma = 0.4$ mm. ¿Qué reduce más la variación de la pendiente: pasar de 8 a 32 ensayos con el rango de 20 a 60 kN, o mantener 8 ensayos y ampliar el rango de 5 a 75 kN? Compruebe con la @eq-rls-se-b1.
+14. Use la @fig-rls-interactivo-muestreo con $\sigma = 0.4$ mm. ¿Qué reduce más la variación de la pendiente: pasar de 8 a 32 ensayos con el rango de 20 a 60 kN, o mantener 8 ensayos y ampliar el rango de 5 a 75 kN? Compruebe con la @eq-rls-se-b1.
 
 ## Lecturas recomendadas
 

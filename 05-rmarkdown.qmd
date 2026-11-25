@@ -196,7 +196,7 @@ output:
 
 Dos de estas opciones cambian mucho el aspecto de una tarea. Con `toc_float: true` el índice deja de estar arriba y pasa a una columna a la izquierda que siempre está a la vista, algo cómodo en documentos largos. Con `df_print: paged`, un data frame de 500 filas no llena diez pantallas: se ve en un cuadro con páginas de 10 filas, como los cuadros de datos de este libro.
 
-### Interactivo: armar un encabezado
+### Armar un encabezado
 
 En el @fig-rmd-yaml-int se arma un encabezado marcando opciones. A la izquierda aparece el YAML que hay que copiar en el archivo, con la sangría correcta, y a la derecha una vista aproximada de cómo se verá el documento. Los colores de los temas son aproximados: el resultado exacto se ve al compilar.
 
@@ -485,7 +485,7 @@ ggplot(e28, aes(proyecto, resistencia_mpa)) + geom_boxplot()
 
 ### Pruebe Markdown
 
-En el interactivo de la @fig-rmd-interactivo se puede practicar: lo que se escribe en el recuadro de la izquierda aparece con formato a la derecha. Reconoce los títulos, la cursiva, la negrita, el código y las listas. Pruebe a borrar una línea en blanco antes de la lista y vea qué pasa.
+En la @fig-rmd-interactivo se puede practicar: lo que se escribe en el recuadro de la izquierda aparece con formato a la derecha. Reconoce los títulos, la cursiva, la negrita, el código y las listas. Pruebe a borrar una línea en blanco antes de la lista y vea qué pasa.
 
 ::: {#fig-rmd-interactivo}
 
@@ -657,9 +657,9 @@ El @tbl-rmd-opciones resume el efecto de las cinco opciones que más se combinan
 `warning = FALSE` y `message = FALSE` no arreglan nada: solo esconden el aviso. Antes de ocultar una advertencia hay que leerla y entenderla. Una advertencia como `NAs introduced by coercion` dice que algunos datos no se pudieron leer como números, y si se oculta, los cálculos siguientes salen mal sin que nadie se entere.
 :::
 
-### Interactivo: cómo cambia el documento con cada opción
+### Cómo cambia el documento con cada opción
 
-El interactivo de la @fig-rmd-opciones-int simula la compilación de un bloque con caudales mensuales de un río (datos hipotéticos). El bloque carga dplyr, que escribe un mensaje al cargarse; calcula la media; saca la raíz cuadrada de un número negativo, que produce una advertencia, y calcula el máximo. Al marcar la casilla de la última fila se agrega una línea con un error: un objeto que no existe. Conviene probar `include` sin marcar con la línea del error activa: el bloque no muestra nada, pero el error igual detiene la compilación, porque el código sí se ejecuta.
+La @fig-rmd-opciones-int simula la compilación de un bloque con caudales mensuales de un río (datos hipotéticos). El bloque carga dplyr, que escribe un mensaje al cargarse; calcula la media; saca la raíz cuadrada de un número negativo, que produce una advertencia, y calcula el máximo. Al marcar la casilla de la última fila se agrega una línea con un error: un objeto que no existe. Conviene probar `include` sin marcar con la línea del error activa: el bloque no muestra nada, pero el error igual detiene la compilación, porque el código sí se ejecuta.
 
 ::: {#fig-rmd-opciones-int}
 
@@ -1314,7 +1314,7 @@ Un buen hábito es crear un proyecto de RStudio por cada informe o tarea (@sec-r
 8. Descargue la plantilla de la @sec-rmd-plantilla, compílela y cámbiela para que el informe sea del proyecto Puente, con resistencia de diseño de 35 MPa.
 9. Borre a propósito la línea que lee los datos de la plantilla y compílela. Lea el mensaje de error y busque en el @tbl-rmd-errores su causa y su solución.
 10. Compile la plantilla a Word con la flecha del botón Knit. ¿Qué elementos se conservan y cuáles cambian?
-11. Escriba un encabezado con dos autores, la fecha automática en formato día/mes/año, índice fijo a la izquierda con títulos hasta el nivel 2, el tema `cosmo` y código oculto detrás de un botón. Compruébelo en el interactivo de la @fig-rmd-yaml-int y luego compílelo.
+11. Escriba un encabezado con dos autores, la fecha automática en formato día/mes/año, índice fijo a la izquierda con títulos hasta el nivel 2, el tema `cosmo` y código oculto detrás de un botón. Compruébelo en la @fig-rmd-yaml-int y luego compílelo.
 12. Copie el encabezado con errores de la @fig-rmd-yaml-reglas, compílelo y anote el mensaje de cada error. Corríjalos uno por uno.
 13. Con el conjunto `mtcars` de R, haga un bloque que calcule el consumo medio (`mpg`) según el número de cilindros (`cyl`). Compílelo con `results = "hold"`, luego con `collapse = TRUE` y luego con `comment = ""`, y describa qué cambia.
 14. Dibuje el mismo gráfico con `fig.width = 4` y con `fig.width = 10`, los dos con `out.width = "60%"`. Explique por qué cambia el tamaño de las letras.

@@ -238,7 +238,7 @@ data.frame(
   kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
 ```
 
-#### Interactivo: un dato que se aleja {#sec-med-interactivo-centro}
+#### Un dato que se aleja {#sec-med-interactivo-centro}
 
 En la @fig-med-interactivo-centro están los doce cilindros. Mueva el control para cambiar el valor del cilindro 8, el de menor resistencia (23.7 MPa), como si hubiera un error de transcripción o un cilindro mal ensayado. Observe cuánto se mueven la media y la mediana.
 
@@ -431,9 +431,9 @@ ggplot(vel, aes(x = velocidad_kmh)) +
 
 :::
 
-#### Interactivo: cómo se interpola un percentil
+#### Cómo se interpola un percentil
 
-En la @fig-med-int-percentil están las 40 velocidades ordenadas, una por columna. Mueva el control para elegir el orden $p$ del percentil. El interactivo calcula la posición $L = p\,(n+1)$, marca los dos datos vecinos y muestra la interpolación.
+En la @fig-med-int-percentil están las 40 velocidades ordenadas, una por columna. Mueva el control para elegir el orden $p$ del percentil. La figura calcula la posición $L = p\,(n+1)$, marca los dos datos vecinos y muestra la interpolación.
 
 ::: {#fig-med-int-percentil}
 
@@ -633,7 +633,7 @@ donde $k$ es el número de desviaciones estándar (adimensional). Con $k = 2$ qu
 
 Con la lluvia máxima diaria ($\bar{x} = 75.72$ mm, $s = 21.16$ mm), el intervalo $\bar{x} \pm s$ va de 54.56 a 96.88 mm y contiene 47 de los 65 años (72.3 %). El intervalo $\bar{x} \pm 2s$ va de 33.40 a 118.04 mm y contiene 63 años (96.9 %), y $\bar{x} \pm 3s$ contiene 64 años (98.5 %), todos menos el de 151.0 mm. Los porcentajes se parecen a los de la regla empírica aunque la serie es asimétrica, y todos superan el mínimo de Chebyshev.
 
-#### Interactivo: cuántos datos quedan cerca de la media
+#### Cuántos datos quedan cerca de la media
 
 En la @fig-med-int-chebyshev, los 65 años de lluvia máxima están dibujados como puntos. Mueva el control para cambiar $k$. La banda sombreada es $\bar{x} \pm k\,s$, y el texto compara el porcentaje real de datos dentro de la banda con el que predice la regla empírica (si los datos fueran normales) y con el mínimo de Chebyshev.
 
@@ -1215,7 +1215,7 @@ ggplot(caudal, aes(x = periodo, y = caudal_m3s)) +
 
 :::
 
-### Interactivo: arme su propio diagrama de caja {#sec-med-int-caja}
+### Arme su propio diagrama de caja {#sec-med-int-caja}
 
 En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 días por una misma ruta (datos hipotéticos). Agregue días con el control y el botón, por ejemplo un día con un atasco de 95 minutos, y observe cómo cambian la caja, los bigotes y los límites. Puede cambiar el factor de los límites entre 1.5 (límites internos) y 3 (externos), y mostrar u ocultar los datos individuales.
 
@@ -1295,7 +1295,7 @@ En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 d�
 </script>
 ```
 
-Diagrama de caja interactivo.
+Diagrama de caja de los tiempos de viaje.
 
 :::
 
@@ -1465,13 +1465,13 @@ Errores frecuentes al calcular y reportar medidas descriptivas:
 5. El tránsito promedio diario de una carretera fue 8200, 8650, 9300, 9500 y 10 200 vehículos en cinco años. Calcule la tasa de crecimiento anual promedio con la media geométrica y proyecte el tránsito para dentro de diez años. ¿Qué tasa se obtiene con la media aritmética de los factores? ¿Por qué aquí casi no hay diferencia, y en el ejemplo del acero sí?
 6. Dos lotes de bloques de concreto tienen resistencias medias de 8.2 y 12.5 MPa y desviaciones estándar de 1.1 y 1.3 MPa. ¿Cuál lote es más homogéneo? Justifique con el coeficiente de variación.
 7. Con el inventario de puentes, calcule por material (con `group_by()` y `summarise()`) la media, la mediana y la desviación estándar de la longitud. ¿En qué material difieren más la media y la mediana? Relaciónelo con la @fig-med-cajas-material.
-8. En el interactivo de la @fig-med-interactivo-centro, busque el valor del cilindro 8 para el que la media se hace igual a 32 MPa. Compruebe el resultado despejando $x_8$ de la @eq-med-media. ¿Cuánto vale la mediana en ese caso?
+8. En la @fig-med-interactivo-centro, busque el valor del cilindro 8 para el que la media se hace igual a 32 MPa. Compruebe el resultado despejando $x_8$ de la @eq-med-media. ¿Cuánto vale la mediana en ese caso?
 9. Demuestre, con la definición de la media, que la suma de las desviaciones $\sum (x_i - \bar{x})$ es siempre cero. Compruébelo en R con los datos de los cilindros.
 10. Con las 40 velocidades de punto, calcule a mano y con R el percentil 10, el percentil 90 y el rango intercuartílico. ¿Qué porcentaje de los vehículos excedería un límite de 65 km/h?
 11. Calcule para las 40 velocidades la fracción de datos dentro de $\bar{x} \pm s$, $\bar{x} \pm 2s$ y $\bar{x} \pm 3s$. Compárelas con la regla empírica y con el mínimo de Chebyshev de la @eq-med-chebyshev.
 12. Las concentraciones de sólidos suspendidos (mg/L) en 15 muestras de un efluente fueron 22, 25, 19, 31, 27, 24, 88, 26, 23, 29, 21, 28, 25, 30 y 24 (datos hipotéticos). Calcule la media, la mediana, la desviación estándar y la desviación absoluta mediana con `mad(x, constant = 1)`. Repita sin el dato de 88 mg/L. ¿Qué medidas cambiaron más?
 13. Dibuje con ggplot2 los caudales máximos por periodo con las cuatro variantes de la @fig-med-caja-variantes y además con `varwidth = TRUE`. ¿Qué variante elegiría para un informe técnico y por qué?
-14. En el interactivo de la @fig-med-int-caja, agregue días de 70 min uno por uno. ¿Con cuántos días de 70 min deja ese valor de aparecer como atípico con límites a 1.5 RIC? Explique por qué.
+14. En la @fig-med-int-caja, agregue días de 70 min uno por uno. ¿Con cuántos días de 70 min deja ese valor de aparecer como atípico con límites a 1.5 RIC? Explique por qué.
 15. Use R para calcular la media, la desviación estándar y la mediana de $y$ en cada conjunto del cuarteto de Anscombe (`anscombe`). ¿Qué medida sí distingue un poco a los cuatro conjuntos?
 
 ## Lecturas recomendadas

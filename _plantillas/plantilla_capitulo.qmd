@@ -38,9 +38,9 @@ Criterios de uso, normas aplicables o valores típicos en ingeniería, con su ci
 El error más común al aplicar el método y cómo evitarlo. Cuando se presentan varias fórmulas alternativas o empíricas para lo mismo: sus resultados no se promedian, porque cada una tiene sus propios supuestos y rango de validez.
 :::
 
-## Interactivo {#sec-tema-interactivo}
+## Cómo cambia la normal con su desviación estándar {#sec-tema-interactivo}
 
-Los interactivos se escriben en HTML y JavaScript propios, sin bibliotecas externas, para que funcionen sin internet y dentro del HTML de un solo archivo (OJS y Shiny necesitan conexión o servidor). Cada interactivo lleva un identificador único (aquí `int-normal`) y su leyenda en un `div` de figura.
+Los interactivos se escriben en HTML y JavaScript propios, sin bibliotecas externas, para que funcionen sin internet y dentro del HTML de un solo archivo (OJS y Shiny necesitan conexión o servidor). Cada interactivo lleva un identificador único (aquí `int-normal`) y su leyenda en un `div` de figura. En el libro no se anuncian como interactivos: el título de la sección dice el tema, el texto explica qué mover y la leyenda es la de cualquier figura (sin "Interactivo:" ni instrucciones).
 
 ::: {#fig-tema-interactivo}
 
@@ -78,7 +78,7 @@ Los interactivos se escriben en HTML y JavaScript propios, sin bibliotecas exter
 </script>
 ```
 
-Densidad normal con media 0. Mueva el control para cambiar $\sigma$.
+Densidad normal con media 0.
 
 :::
 

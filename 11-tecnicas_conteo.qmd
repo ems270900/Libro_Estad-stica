@@ -594,9 +594,9 @@ dg_decision(
 Las palabras del enunciado engañan. En el lenguaje común se dice "la combinación del candado", pero en un candado el orden de los dígitos sí importa (1-2-3 no abre si la clave es 3-2-1), así que es una permutación con repetición. En el sentido técnico de este capítulo, "combinación" se reserva para las selecciones en las que el orden no importa.
 :::
 
-### Interactivo: calculadora de conteo
+### Calculadora de conteo
 
-En el interactivo de la @fig-conteo-int-calculadora se escogen $n$ y $k$, y se actualizan al instante los seis conteos del @tbl-conteo-formulas (para las permutaciones con elementos repetidos se toma un caso con dos tipos: $k$ elementos de un tipo y $n - k$ del otro). Cuando los números son pequeños, también aparece la lista de arreglos con las letras A, B, C, …, para ver cuáles se cuentan en cada caso.
+En la @fig-conteo-int-calculadora se escogen $n$ y $k$, y se actualizan al instante los seis conteos del @tbl-conteo-formulas (para las permutaciones con elementos repetidos se toma un caso con dos tipos: $k$ elementos de un tipo y $n - k$ del otro). Cuando los números son pequeños, también aparece la lista de arreglos con las letras A, B, C, …, para ver cuáles se cuentan en cada caso.
 
 ::: {#fig-conteo-int-calculadora}
 
@@ -737,7 +737,7 @@ mean(defectuosos >= 1)    # al menos uno
 
 :::
 
-### Interactivo: ¿cuántos elementos inspeccionar?
+### ¿Cuántos elementos inspeccionar?
 
 El ejemplo de los pernos responde una pregunta de planificación: con una muestra de 3, ¿qué tan probable es detectar que el lote tiene defectos? El mismo cálculo sirve para cualquier lote de $N$ elementos con $D$ defectuosos del que se inspeccionan $n$ al azar y sin reemplazo. La probabilidad de que la muestra tenga exactamente $x$ defectuosos se cuenta igual que en el ejemplo: se escogen $x$ de los $D$ defectuosos y $n - x$ de los $N - D$ buenos, y se divide entre todas las muestras posibles,
 
@@ -747,7 +747,7 @@ $$ {#eq-conteo-inspeccion}
 
 donde $N$ es el tamaño del lote, $D$ el número de defectuosos, $n$ el tamaño de la muestra y $x$ el número de defectuosos en la muestra. Esta es la fórmula de la distribución hipergeométrica, que se estudia en el capítulo 14 [@bertsekas2008introduction, sec. 1.6].
 
-En el interactivo de la @fig-conteo-int-inspeccion se mueven $N$, $D$ y $n$. Las barras dan la probabilidad de cada número de defectuosos en la muestra, y la barra de cero (en ámbar) es la probabilidad de que la inspección no detecte nada. Debajo aparece el tamaño de muestra mínimo para detectar al menos un defectuoso con probabilidad 0.90. Conviene probar con un lote grande y pocos defectuosos (por ejemplo, $N = 60$ y $D = 2$) para ver cuántos elementos hacen falta.
+En la @fig-conteo-int-inspeccion se mueven $N$, $D$ y $n$. Las barras dan la probabilidad de cada número de defectuosos en la muestra, y la barra de cero (en ámbar) es la probabilidad de que la inspección no detecte nada. Debajo aparece el tamaño de muestra mínimo para detectar al menos un defectuoso con probabilidad 0.90. Conviene probar con un lote grande y pocos defectuosos (por ejemplo, $N = 60$ y $D = 2$) para ver cuántos elementos hacen falta.
 
 ::: {#fig-conteo-int-inspeccion}
 
@@ -842,11 +842,11 @@ Estos son los errores que más aparecen en los problemas de conteo [@laneintrodu
 9. Para cada situación, diga si importa el orden y si hay repetición, y escoja la fórmula del @tbl-conteo-formulas: (a) la clave de 6 dígitos de una caja fuerte; (b) los 5 cilindros de un lote de 30 que se ensayan; (c) el orden en que se vacían 4 losas distintas; (d) las 3 bolas de helado de un cono, con 10 sabores disponibles.
 10. Un lote de 20 vigas prefabricadas tiene 3 con fisuras. Se escogen 4 vigas al azar para una prueba de carga. Calcule a mano la probabilidad de que ninguna tenga fisuras y la de que exactamente una tenga fisuras. Compruebe con una simulación de 20 000 muestras.
 11. En un grupo de $m$ personas, la probabilidad de que al menos dos cumplan años el mismo día (sin contar el 29 de febrero y suponiendo los 365 días igual de probables) es $1 - P(365, m)/365^m$. Escriba una función de R que la calcule para cualquier $m$ y encuentre el menor $m$ con el que la probabilidad pasa de 0.5. Sugerencia: para evitar números enormes, calcule $P(365, m)/365^m$ como `prod((365 - m + 1):365 / 365)`.
-12. Con el interactivo de la @fig-conteo-int-calculadora, tome $n = 4$ y $k = 3$ y compare la lista de permutaciones con la de combinaciones. ¿Cuántas permutaciones le corresponden a cada combinación? ¿Qué número de la fórmula de la @eq-conteo-combinaciones explica esa relación?
+12. Con la @fig-conteo-int-calculadora, tome $n = 4$ y $k = 3$ y compare la lista de permutaciones con la de combinaciones. ¿Cuántas permutaciones le corresponden a cada combinación? ¿Qué número de la fórmula de la @eq-conteo-combinaciones explica esa relación?
 
-13. Una red de monitoreo de aguas subterráneas tiene 10 pozos, 3 de ellos cerca de un relleno sanitario. Para un muestreo adicional se escogen 4 pozos al azar. Calcule la probabilidad de que la muestra incluya al menos uno de los 3 pozos cercanos al relleno, por casos y por complemento. Compruebe el resultado con `combn()` y con el interactivo de la @fig-conteo-int-inspeccion (piense qué papel hacen los pozos cercanos al relleno).
+13. Una red de monitoreo de aguas subterráneas tiene 10 pozos, 3 de ellos cerca de un relleno sanitario. Para un muestreo adicional se escogen 4 pozos al azar. Calcule la probabilidad de que la muestra incluya al menos uno de los 3 pozos cercanos al relleno, por casos y por complemento. Compruebe el resultado con `combn()` y con la @fig-conteo-int-inspeccion (piense qué papel hacen los pozos cercanos al relleno).
 14. Un estudio geotécnico tiene 8 puntos posibles de perforación y el presupuesto alcanza para 3 sondeos. (a) ¿Cuántos planes de perforación distintos hay? (b) Si 2 puntos son obligatorios porque ahí irán las pilas del puente, ¿cuántos planes quedan? (c) Si además importa el orden en que se perforan, porque la máquina se traslada de un punto al siguiente, ¿cuántos planes hay en (a)?
-15. En el interactivo de la @fig-conteo-int-inspeccion, tome un lote de $N = 40$ elementos con $D = 2$ defectuosos. ¿Cuántos elementos hay que inspeccionar para detectar al menos uno con probabilidad 0.90? Compruebe el resultado con `choose()` en un ciclo `for`.
+15. En la @fig-conteo-int-inspeccion, tome un lote de $N = 40$ elementos con $D = 2$ defectuosos. ¿Cuántos elementos hay que inspeccionar para detectar al menos uno con probabilidad 0.90? Compruebe el resultado con `choose()` en un ciclo `for`.
 16. Explique con sus palabras por qué el cálculo $4 \times C(9, 2) = 144$ del tercer error frecuente cuenta de más. Escriba una comisión concreta que se cuente tres veces con ese razonamiento.
 
 ## Lecturas recomendadas
