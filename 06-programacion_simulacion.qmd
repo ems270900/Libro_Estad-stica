@@ -186,15 +186,15 @@ for (i in 1:3) {
 
 En la primera vuelta `i` vale 1, en la segunda 2 y en la tercera 3. El uso más frecuente de un ciclo es llenar un vector de resultados que se crea vacío antes de empezar. Para recorrer las posiciones de un vector se usa `seq_along(x)`, que da `1, 2, ..., length(x)`.
 
-::: {.callout-note title="Ejemplo: media acumulada de un lote"}
+::: {.callout-note title="Ejemplo: media acumulada de la humedad de un suelo"}
 
-**Planteamiento.** Los cinco primeros cilindros de un lote dieron 27.4, 29.1, 26.8, 30.2 y 28.5 MPa. Calcule la media acumulada, es decir, la media de los dos primeros, de los tres primeros, y así hasta los cinco, primero a mano y luego con un ciclo `for` en R.
+**Planteamiento.** Las cinco primeras muestras de una arcilla tomadas en una excavación dieron contenidos de humedad de 27.4, 29.1, 26.8, 30.2 y 28.5 % (datos hipotéticos). Calcule la media acumulada, es decir, la media de los dos primeros, de los tres primeros, y así hasta los cinco, primero a mano y luego con un ciclo `for` en R.
 
 **Solución:**
 
 En cada paso se suma el nuevo dato a la suma anterior y se divide entre el número de datos acumulados. El @tbl-prog-iteraciones muestra las cinco vueltas.
 
-| Vuelta $i$ | Dato $x_i$ (MPa) | Suma acumulada (MPa) | Media acumulada (MPa) |
+| Vuelta $i$ | Dato $x_i$ (%) | Suma acumulada (%) | Media acumulada (%) |
 |:-:|:-:|:-:|:-:|
 | 1 | 27.4 | 27.4 | 27.4 / 1 = 27.40 |
 | 2 | 29.1 | 27.4 + 29.1 = 56.5 | 56.5 / 2 = 28.25 |
@@ -204,7 +204,7 @@ En cada paso se suma el nuevo dato a la suma anterior y se divide entre el núme
 
 : Cálculo de la media acumulada vuelta por vuelta. {#tbl-prog-iteraciones}
 
-La media del lote completo es 28.40 MPa. Con un dato la media es poco confiable; a medida que se suman datos cambia cada vez menos.
+La media de las cinco muestras es 28.40 %. Con un dato la media es poco confiable; a medida que se suman datos cambia cada vez menos.
 
 **Pseudocódigo**
 
@@ -597,54 +597,54 @@ mean(lote_ok)    # proporción de lotes en que los tres cilindros superan 28 MPa
 
 La función `all()` devuelve `TRUE` solo si todos los valores son `TRUE`. Escrito con un ciclo `for`, el mismo cálculo ocuparía seis o siete líneas.
 
-::: {.callout-note title="Ejemplo: probabilidad de que un cilindro no alcance la resistencia de diseño"}
+::: {.callout-note title="Ejemplo: ángulo de fricción menor que el de diseño"}
 
-**Planteamiento.** Suponga que la resistencia a 28 días de los cilindros de una mezcla sigue una distribución normal con media de 32 MPa y desviación estándar de 3 MPa (valores hipotéticos). Estime la probabilidad de que un cilindro dé menos que la resistencia de diseño de 28 MPa, con la tabla de la normal y con una simulación de 10 000 cilindros.
+**Planteamiento.** En el diseño de un muro de contención se supuso para el relleno un ángulo de fricción interna de 28°. Los ensayos de corte directo de un banco de préstamo indican que el ángulo real sigue una distribución normal con media de 32° y desviación estándar de 3° (valores hipotéticos). Estime la probabilidad de que el relleno colocado tenga un ángulo menor que el de diseño, con la tabla de la normal y con una simulación de 10 000 valores.
 
 **Solución:**
 
-1. Se calcula cuántas desviaciones estándar está 28 MPa por debajo de la media: $z = (28 - 32) / 3 = -1.33$.
+1. Se calcula cuántas desviaciones estándar está 28° por debajo de la media: $z = (28 - 32) / 3 = -1.33$.
 2. En la tabla de la distribución normal estándar del apéndice A (@tbl-apa-z-neg), la fila $-1.3$ y la columna $0.03$ dan $P(Z \le -1.33) = 0.0918$.
-3. Se espera, entonces, que alrededor del 9 % de los cilindros no alcance 28 MPa: unos 9 de cada 100.
+3. Se espera, entonces, que alrededor del 9 % de las veces el ángulo real quede por debajo de 28°: unas 9 de cada 100.
 
 **Pseudocódigo**
 
 1. Fijar la semilla.
-2. Simular 10 000 resistencias con `rnorm()`.
-3. Calcular la proporción de resistencias menores que 28 MPa.
+2. Simular 10 000 ángulos de fricción con `rnorm()`.
+3. Calcular la proporción de ángulos menores que 28°.
 4. Comparar con el valor exacto de `pnorm()` y con el de la tabla.
 
 ```{r}
 # 1) Semilla
 set.seed(2026)
 
-# 2) Resistencias simuladas
-f <- rnorm(10000, mean = 32, sd = 3)
+# 2) Ángulos de fricción simulados (grados)
+phi <- rnorm(10000, mean = 32, sd = 3)
 
-# 3) Proporción menor que 28 MPa
-mean(f < 28)
+# 3) Proporción menor que 28°
+mean(phi < 28)
 
 # 4) Valor exacto con la función de la distribución normal
 pnorm(28, mean = 32, sd = 3)
 ```
 
-**Interpretación.** La simulación dio `r round(mean(f < 28), 4)`, la función `pnorm()` da 0.0912 y la tabla, 0.0918; la pequeña diferencia con la tabla se debe a que $z$ se redondeó a dos decimales. Los tres coinciden en que cerca de 9 de cada 100 cilindros de esta mezcla quedarían por debajo de 28 MPa. La simulación no necesitó ninguna fórmula: bastó con imitar muchos cilindros y contar.
+**Interpretación.** La simulación dio `r round(mean(phi < 28), 4)`, la función `pnorm()` da 0.0912 y la tabla, 0.0918; la pequeña diferencia con la tabla se debe a que $z$ se redondeó a dos decimales. Los tres coinciden en que hay cerca de un 9 % de probabilidad de que el relleno sea más débil de lo supuesto en el diseño. El factor de seguridad del muro existe, en parte, para cubrir ese caso. La simulación no necesitó ninguna fórmula: bastó con imitar muchos valores y contar.
 
 :::
 
 ### Interactivo: cómo se acerca la simulación al valor exacto
 
-En el interactivo de la @fig-prog-convergencia se simulan cilindros de la mezcla del ejemplo y se dibuja la proporción de cilindros bajo 28 MPa a medida que se suman ensayos. La línea discontinua es el valor exacto, 0.0912. La curva empieza en el décimo cilindro. Con pocos cilindros la proporción salta mucho; con miles se queda pegada a la línea. Presione el botón varias veces para ver simulaciones distintas.
+En el interactivo de la @fig-prog-convergencia se simulan ángulos de fricción del ejemplo y se dibuja la proporción de valores bajo 28° a medida que se suman simulaciones. La línea discontinua es el valor exacto, 0.0912. La curva empieza en el décimo valor. Con pocos valores la proporción salta mucho; con miles se queda pegada a la línea. Presione el botón varias veces para ver simulaciones distintas.
 
 ::: {#fig-prog-convergencia}
 
 ```{=html}
 <div class="interactivo" id="int-convergencia">
-  <label><span>Número de cilindros simulados:</span> <output>1 000</output>
+  <label><span>Número de valores simulados:</span> <output>1 000</output>
     <input type="range" min="1.5" max="4.3" step="0.05" value="3"></label>
   <button type="button">Simular de nuevo</button>
   <p class="resultado" aria-live="polite"></p>
-  <svg viewBox="0 0 640 280" role="img" aria-label="Proporción acumulada de cilindros bajo 28 MPa contra el número de cilindros simulados"></svg>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Proporción acumulada de ángulos bajo 28 grados contra el número de valores simulados"></svg>
 </div>
 <script>
 (function () {
@@ -674,10 +674,10 @@ En el interactivo de la @fig-prog-convergencia se simulan cilindros de la mezcla
     s += '<line x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(exacto) + '" y2="' + sy(exacto) + '" style="stroke:#C0392B; stroke-width:1.5; stroke-dasharray:6 4"/>' +
          '<polyline points="' + pts.join(" ") + '" class="curva"/>' +
          '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
-         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Cilindros simulados (escala logarítmica)</text>' +
-         '<text class="eje-texto" x="12" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((mt + h - mb) / 2) + ')">Proporción bajo 28 MPa</text>';
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Valores simulados (escala logarítmica)</text>' +
+         '<text class="eje-texto" x="12" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((mt + h - mb) / 2) + ')">Proporción bajo 28°</text>';
     svg.innerHTML = s;
-    texto.textContent = "Proporción final: " + (bajo / n).toFixed(4) + " (" + miles(bajo) + " de " + miles(n) + " cilindros). Valor exacto: 0.0912";
+    texto.textContent = "Proporción final: " + (bajo / n).toFixed(4) + " (" + miles(bajo) + " de " + miles(n) + " valores). Valor exacto: 0.0912";
   }
   control.addEventListener("input", dibujar);
   boton.addEventListener("click", dibujar);
@@ -733,7 +733,7 @@ Cuando una función da un error, `traceback()`, ejecutado justo después, muestr
 11. Un tanque de 18 m³ se llena con una bomba de 0.75 m³ por minuto. Con un ciclo `while`, calcule cuántos minutos completos hacen falta para llenarlo. Compruebe el resultado a mano.
 12. Use `sapply()` para calcular la resistencia de cilindros de 150 mm que fallaron con 480, 520, 575 y 610 kN.
 13. Simule 10 000 resistencias de una mezcla con media 30 MPa y desviación estándar 2.5 MPa. ¿Qué proporción queda por debajo de 28 MPa? Compare con `pnorm(28, 30, 2.5)`.
-14. Con `replicate()`, estime la probabilidad de que en un lote de 5 cilindros de la mezcla del ejemplo (media 32 MPa, desviación estándar 3 MPa) al menos uno dé menos de 28 MPa.
+14. Con `replicate()`, estime la probabilidad de que en un lote de 5 cilindros de la mezcla de la @fig-prog-rnorm (media 32 MPa, desviación estándar 3 MPa) al menos uno dé menos de 28 MPa.
 15. El código `x <- c(25, 30, "35"); mean(x)` no da la media esperada. Ejecútelo, lea el mensaje y explique qué pasó y cómo se corrige.
 
 ## Lecturas recomendadas
