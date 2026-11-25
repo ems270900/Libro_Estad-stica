@@ -1,0 +1,389 @@
+---
+title: "R como calculadora: objetos, tipos de datos y operadores"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"Para entender los cálculos en R, ayudan dos lemas: todo lo que existe es un objeto; todo lo que ocurre es una llamada a una función."\
+— *John M. Chambers, creador del lenguaje S, del que proviene R [@chambers2014object]. Traducción propia.*
+:::
+
+En el capítulo anterior R se usó como una calculadora: se escribía una operación y R devolvía el resultado. Eso sirve para un cálculo aislado, pero en ingeniería casi nunca se trabaja con un solo número. Un lote de cilindros de concreto tiene diez, veinte o cien resultados; una estación de conteo vehicular registra un valor por hora durante semanas. Para trabajar con esos datos hace falta guardarlos con un nombre, saber de qué tipo son y operar con todos a la vez. Este capítulo presenta los objetos, los vectores, los tipos de datos y los operadores de R, que son la base de todo lo que sigue en el libro.
+
+## Objetos y asignación {#sec-obj-asignacion}
+
+Un objeto es un nombre al que se le asigna un valor. Se crea con el operador de asignación `<-`, que se lee "recibe": la instrucción `b <- 30` se lee "b recibe 30".
+
+```{r}
+b <- 30    # base de la sección (cm)
+h <- 45    # altura de la sección (cm)
+```
+
+Al ejecutar esas líneas, R no muestra nada en la consola, pero los objetos `b` y `h` aparecen en el panel de entorno. Para ver el valor de un objeto se escribe su nombre:
+
+```{r}
+b
+```
+
+Desde ese momento, los objetos se usan en los cálculos como si fueran números:
+
+```{r}
+area <- b * h    # área de la sección (cm²)
+area
+```
+
+Si después se cambia el valor de `b` y se vuelve a ejecutar la línea del área, el resultado se actualiza. Esa es la ventaja de trabajar con objetos: el cálculo queda escrito una vez y se repite con valores nuevos.
+
+El atajo de teclado para escribir `<-` en RStudio es Alt + guion (`Alt -`). También se puede asignar con `=`, pero en este libro se usa `<-`, que es la convención más extendida en R.
+
+### Reglas para los nombres
+
+- Un nombre puede tener letras, números, puntos y guiones bajos, pero no puede empezar con un número: `fc28` sirve; `28fc` no.
+- R distingue mayúsculas de minúsculas: `Area`, `area` y `AREA` son tres objetos distintos.
+- No se usan espacios. Para nombres de varias palabras se usa el guion bajo: `resistencia_mpa`, `caudal_max`.
+- En este libro los nombres van sin tildes ni eñes (`anio`, no `año`), porque algunos sistemas no los leen bien.
+- Conviene evitar los nombres de funciones que ya existen en R, como `c`, `t`, `mean` o `sum`.
+
+::: {.callout-tip title="En la práctica"}
+Un buen nombre dice qué contiene el objeto y, si tiene unidades, en qué unidades está: `carga_kn`, `luz_m`, `asentamiento_mm`. Meses después, al abrir el script, se entiende sin tener que adivinar.
+:::
+
+## Vectores {#sec-obj-vectores}
+
+Un vector es un conjunto de valores del mismo tipo guardados en un solo objeto. Se crea con la función `c()`, de *combinar*:
+
+```{r}
+# Resistencia a compresión de 8 cilindros (MPa), datos hipotéticos
+resistencia <- c(27.4, 29.1, 26.8, 30.2, 28.5, 27.9, 29.6, 25.3)
+resistencia
+```
+
+Hay otras formas de crear vectores que se usan con frecuencia:
+
+```{r}
+1:10                          # enteros del 1 al 10
+seq(0, 100, by = 25)          # de 0 a 100, de 25 en 25
+seq(0, 1, length.out = 5)     # 5 valores igualmente espaciados entre 0 y 1
+rep(28, times = 4)            # el 28 repetido 4 veces
+```
+
+Ahora se entiende el `[1]` que R escribe antes de cada resultado: es la posición del primer valor de la línea. Si un vector es largo y ocupa varias líneas de la consola, cada línea empieza con la posición de su primer valor.
+
+### Operaciones con vectores
+
+Las operaciones aritméticas se aplican a cada elemento del vector, una por una. A esto se le llama operación vectorizada:
+
+```{r}
+resistencia * 1000 / 6.895    # de MPa a psi (1 psi = 6.895 kPa)
+```
+
+Si se operan dos vectores del mismo largo, R opera el primer elemento con el primero, el segundo con el segundo, y así sucesivamente:
+
+```{r}
+base_cm   <- c(30, 30, 35, 40)
+altura_cm <- c(45, 50, 50, 60)
+base_cm * altura_cm           # área de cada sección (cm²)
+```
+
+::: {.callout-warning title="Cuidado"}
+Si los vectores tienen largos distintos, R repite el más corto hasta completar el largo del más largo. Cuando el largo mayor no es múltiplo del menor, R da una advertencia (`longer object length is not a multiple of shorter object length`). Casi siempre es señal de que falta o sobra un dato.
+:::
+
+### Seleccionar elementos
+
+Para tomar elementos de un vector se escribe su posición entre corchetes:
+
+```{r}
+resistencia[1]          # el primero
+resistencia[c(2, 5)]    # el segundo y el quinto
+resistencia[3:5]        # del tercero al quinto
+resistencia[-1]         # todos menos el primero
+```
+
+También se puede seleccionar con una condición, como se verá en la @sec-obj-operadores.
+
+## Tipos de datos {#sec-obj-tipos}
+
+Cada valor en R tiene un tipo. Los cuatro tipos que se usan en este libro están en el @tbl-obj-tipos.
+
+```{r}
+#| label: tbl-obj-tipos
+#| tbl-cap: "Tipos de datos básicos de R."
+#| echo: false
+
+library(kableExtra)
+data.frame(
+  tipo = c("Numérico (numeric)", "Entero (integer)", "Carácter (character)", "Lógico (logical)"),
+  ejemplo = c("27.4, -3, 1.5e3", "28L, 1:10", "\"Puente\", \"A\"", "TRUE, FALSE"),
+  uso = c("Mediciones: resistencias, cargas, caudales",
+          "Conteos: vehículos, cilindros fallados",
+          "Nombres y categorías: proyecto, tipo de mezcla",
+          "Respuestas a una condición: ¿cumple?, ¿falló?")
+) %>%
+  kbl(col.names = c("Tipo", "Ejemplos", "Uso típico"), align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+La función `class()` dice de qué tipo es un objeto:
+
+```{r}
+class(resistencia)
+class("Puente")
+class(TRUE)
+```
+
+Los textos van siempre entre comillas. Sin comillas, R cree que se trata del nombre de un objeto y lo busca:
+
+```{r}
+proyecto <- c("Puente", "Edificio", "Pavimento")
+proyecto
+```
+
+Un vector solo puede tener un tipo. Si se mezclan números y textos, R convierte todo a texto, y los números dejan de servir para calcular:
+
+```{r}
+mezcla <- c(27.4, "29.1", 26.8)
+mezcla
+class(mezcla)
+```
+
+Para convertir de un tipo a otro se usan las funciones `as.numeric()`, `as.character()` y `as.logical()`:
+
+```{r}
+as.numeric(mezcla)
+```
+
+### Factores
+
+Un factor es un vector de categorías, como el tipo de mezcla o el proyecto. Se parece a un vector de texto, pero R guarda además la lista de categorías posibles, llamadas niveles. Los factores se usan mucho en los gráficos y en los modelos de las partes VI y VII.
+
+```{r}
+mezcla_tipo <- factor(c("A", "B", "A", "A", "B"))
+mezcla_tipo
+levels(mezcla_tipo)
+table(mezcla_tipo)     # cuántos hay de cada categoría
+```
+
+## Operadores {#sec-obj-operadores}
+
+Un operador es un símbolo que hace una operación con uno o dos valores. R tiene tres grupos: aritméticos, relacionales y lógicos (@tbl-obj-operadores).
+
+```{r}
+#| label: tbl-obj-operadores
+#| tbl-cap: "Operadores de R."
+#| echo: false
+
+data.frame(
+  grupo = c("Aritméticos", "", "", "", "", "", "",
+            "Relacionales", "", "", "", "", "",
+            "Lógicos", "", "", ""),
+  op = c("+", "-", "*", "/", "^", "%%", "%/%",
+         "==", "!=", "<", ">", "<=", ">=",
+         "&", "|", "!", "%in%"),
+  significado = c("Suma", "Resta", "Multiplicación", "División", "Potencia",
+                  "Residuo de la división", "División entera",
+                  "Igual a", "Distinto de", "Menor que", "Mayor que",
+                  "Menor o igual que", "Mayor o igual que",
+                  "Y (las dos condiciones)", "O (al menos una condición)",
+                  "No (niega la condición)", "Pertenece a un conjunto"),
+  ejemplo = c("7 + 2 → 9", "7 - 2 → 5", "7 * 2 → 14", "7 / 2 → 3.5", "7 ^ 2 → 49",
+              "7 %% 2 → 1", "7 %/% 2 → 3",
+              "7 == 2 → FALSE", "7 != 2 → TRUE", "7 < 2 → FALSE", "7 > 2 → TRUE",
+              "7 <= 7 → TRUE", "7 >= 8 → FALSE",
+              "TRUE & FALSE → FALSE", "TRUE | FALSE → TRUE", "!TRUE → FALSE",
+              "\"B\" %in% c(\"A\", \"B\") → TRUE")
+) %>%
+  kbl(col.names = c("Grupo", "Operador", "Significado", "Ejemplo"), align = "lcll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Los operadores relacionales comparan dos valores y responden `TRUE` (verdadero) o `FALSE` (falso). Con un vector, comparan cada elemento:
+
+```{r}
+resistencia >= 28      # ¿cada cilindro alcanza 28 MPa?
+```
+
+Ese vector de respuestas lógicas sirve para seleccionar elementos. Entre corchetes, R conserva solo los que tienen `TRUE`:
+
+```{r}
+resistencia[resistencia >= 28]    # solo los que cumplen
+```
+
+Hay un detalle que se aprovecha mucho: al sumar valores lógicos, R cuenta cada `TRUE` como 1 y cada `FALSE` como 0. Por eso `sum()` cuenta cuántos cumplen la condición y `mean()` da la proporción:
+
+```{r}
+sum(resistencia >= 28)     # cuántos cumplen
+mean(resistencia >= 28)    # qué proporción cumple
+```
+
+Los operadores lógicos combinan condiciones. Con `&` se piden las dos; con `|`, al menos una:
+
+```{r}
+resistencia >= 27 & resistencia <= 29    # entre 27 y 29 MPa
+```
+
+::: {.callout-warning title="Cuidado"}
+Para comparar se escriben dos signos de igual (`==`). Un solo signo (`=`) asigna un valor, como `<-`. Escribir `resistencia = 28` en vez de `resistencia == 28` borra los datos y los cambia por el número 28.
+:::
+
+### Calculadora de operadores
+
+El interactivo de la @fig-obj-calculadora muestra el resultado de cada operador con dos números. Cambie los valores de $a$ y $b$ y observe, por ejemplo, qué pasa con `%%` y `%/%` cuando $b$ divide exactamente a $a$.
+
+::: {#fig-obj-calculadora}
+
+```{=html}
+<div class="interactivo" id="int-operadores">
+  <label><span><i>a</i> =</span> <input type="number" value="7" step="any" data-var="a" style="width:7rem"></label>
+  <label><span><i>b</i> =</span> <input type="number" value="2" step="any" data-var="b" style="width:7rem"></label>
+  <table class="table table-sm" style="margin-top:0.6rem;font-size:0.92rem">
+    <thead><tr><th>Instrucción en R</th><th>Resultado</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-operadores");
+  var ent = raiz.querySelectorAll("input"), cuerpo = raiz.querySelector("tbody");
+  function fmt(v) {
+    if (typeof v === "boolean") return v ? "TRUE" : "FALSE";
+    if (!isFinite(v)) return isNaN(v) ? "NaN" : (v > 0 ? "Inf" : "-Inf");
+    return String(Math.round(v * 1e6) / 1e6);
+  }
+  function calcular() {
+    var a = parseFloat(ent[0].value), b = parseFloat(ent[1].value);
+    if (isNaN(a) || isNaN(b)) { cuerpo.innerHTML = "<tr><td colspan='2'>Escriba dos números.</td></tr>"; return; }
+    var mod = b === 0 ? NaN : a - b * Math.floor(a / b);
+    var filas = [
+      ["a + b", a + b], ["a - b", a - b], ["a * b", a * b], ["a / b", a / b],
+      ["a ^ b", Math.pow(a, b)], ["a %% b", mod], ["a %/% b", b === 0 ? a / b : Math.floor(a / b)],
+      ["a == b", a === b], ["a != b", a !== b], ["a > b", a > b], ["a <= b", a <= b],
+      ["a > 0 & b > 0", a > 0 && b > 0], ["a > 0 | b > 0", a > 0 || b > 0]
+    ];
+    cuerpo.innerHTML = filas.map(function (f) {
+      return "<tr><td><code>" + f[0] + "</code></td><td><code>" + fmt(f[1]) + "</code></td></tr>";
+    }).join("");
+  }
+  ent.forEach(function (e) { e.addEventListener("input", calcular); });
+  calcular();
+})();
+</script>
+```
+
+Resultado de los operadores de R para dos números. Los valores se actualizan al escribir.
+
+:::
+
+## Funciones {#sec-obj-funciones}
+
+Una función recibe uno o más valores, hace un cálculo y devuelve un resultado. Se escribe con su nombre y, entre paréntesis, los valores que recibe, llamados argumentos. Ya se usaron varias: `c()`, `seq()`, `class()`. El @tbl-obj-funciones resume las que más se usan para resumir un vector numérico.
+
+```{r}
+#| label: tbl-obj-funciones
+#| tbl-cap: "Funciones básicas para vectores numéricos."
+#| echo: false
+
+data.frame(
+  f = c("length(x)", "sum(x)", "mean(x)", "median(x)", "min(x), max(x)", "range(x)",
+        "sd(x)", "sort(x)", "round(x, 1)", "sqrt(x)", "abs(x)", "summary(x)"),
+  hace = c("Número de elementos", "Suma", "Promedio", "Mediana", "Mínimo y máximo",
+           "Mínimo y máximo juntos", "Desviación estándar", "Ordena de menor a mayor",
+           "Redondea a 1 decimal", "Raíz cuadrada", "Valor absoluto",
+           "Resumen: mínimo, cuartiles, media y máximo")
+) %>%
+  kbl(col.names = c("Función", "Qué hace"), align = "ll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Los argumentos pueden ir en orden o con su nombre. Las dos líneas siguientes hacen lo mismo, pero la segunda se entiende mejor:
+
+```{r}
+round(28.4567, 2)
+round(x = 28.4567, digits = 2)
+```
+
+Las funciones se pueden anidar: el resultado de una entra como argumento de otra. R resuelve de adentro hacia afuera.
+
+```{r}
+round(mean(resistencia), 1)
+```
+
+::: {.callout-note title="Ejemplo: resumen de un lote de cilindros"}
+
+**Planteamiento.** Los ocho cilindros del vector `resistencia` (datos hipotéticos) pertenecen a un lote de concreto con resistencia especificada de 28 MPa. Calcule la resistencia promedio, la mínima, la máxima y cuántos cilindros alcanzan 28 MPa.
+
+**Solución:**
+
+1. Suma: $27.4 + 29.1 + 26.8 + 30.2 + 28.5 + 27.9 + 29.6 + 25.3 = 224.8$ MPa.
+2. Promedio: $\bar{x} = 224.8 / 8 = 28.1$ MPa.
+3. Mínimo y máximo: al ordenar los datos (25.3, 26.8, 27.4, 27.9, 28.5, 29.1, 29.6, 30.2), el mínimo es 25.3 MPa y el máximo 30.2 MPa.
+4. Cilindros con 28 MPa o más: 28.5, 29.1, 29.6 y 30.2, es decir, 4 de 8 (50 %).
+
+**Pseudocódigo**
+
+1. Guardar las resistencias en un vector.
+2. Calcular la suma, el número de datos y el promedio.
+3. Obtener el mínimo y el máximo.
+4. Comparar cada dato con 28 MPa y contar los que cumplen.
+
+```{r}
+# 1) Datos (MPa)
+resistencia <- c(27.4, 29.1, 26.8, 30.2, 28.5, 27.9, 29.6, 25.3)
+
+# 2) Promedio "a mano" y con la función mean()
+suma <- sum(resistencia)
+n <- length(resistencia)
+suma / n
+mean(resistencia)
+
+# 3) Mínimo y máximo
+min(resistencia)
+max(resistencia)
+sort(resistencia)
+
+# 4) Cilindros que alcanzan 28 MPa
+sum(resistencia >= 28)
+mean(resistencia >= 28)
+```
+
+**Interpretación.** El promedio del lote (28.1 MPa) apenas supera la resistencia especificada, pero la mitad de los cilindros queda por debajo de ella. Un promedio por sí solo no dice si el concreto cumple: los criterios de aceptación de concreto miran también los valores individuales, y la Parte II vuelve sobre esa idea con las medidas de variabilidad.
+
+:::
+
+## Valores faltantes {#sec-obj-na}
+
+En los datos reales falta información con frecuencia: un cilindro se dañó antes del ensayo, un contador de vehículos dejó de registrar una hora. R marca un dato faltante con `NA` (del inglés *not available*), sin comillas.
+
+```{r}
+asentamiento <- c(110, 95, NA, 120, 105)   # mm; falta el tercero
+mean(asentamiento)
+```
+
+El promedio da `NA` porque R no puede saber cuánto vale el dato que falta. Para calcular con los datos disponibles se agrega el argumento `na.rm = TRUE` (*NA remove*, quitar los faltantes):
+
+```{r}
+mean(asentamiento, na.rm = TRUE)
+is.na(asentamiento)          # ¿cuál falta?
+sum(is.na(asentamiento))     # ¿cuántos faltan?
+```
+
+::: {.callout-warning title="Cuidado"}
+Quitar los faltantes no es gratis: el promedio se calcula con menos datos. Antes de usar `na.rm = TRUE` conviene saber cuántos datos faltan y por qué. Si faltan muchos, o faltan justo los valores altos o bajos, el resultado puede quedar sesgado.
+:::
+
+## Ejercicios propuestos
+
+1. Cree los objetos `luz_m <- 6.5` y `carga_knm <- 18` (carga uniforme en kN/m). Calcule el momento máximo de una viga simplemente apoyada, $M = w L^2 / 8$, en kN·m.
+2. Los espesores (mm) de seis probetas de una mezcla asfáltica son 63.1, 62.8, 64.0, 63.5, 62.2 y 63.9. Guárdelos en un vector y calcule el promedio a mano y con `mean()`. Verifique que coinciden.
+3. Con el vector del ejercicio 2, ¿cuántas probetas tienen un espesor entre 62.5 y 63.5 mm? Use operadores relacionales y lógicos.
+4. Cree con `seq()` un vector de cargas de 0 a 200 kN cada 25 kN. Calcule el esfuerzo (MPa) que producen sobre un área de 22 500 mm².
+5. Explique por qué `c(1, "2", 3) * 2` produce un error y corríjalo con `as.numeric()`.
+6. El vector `c("A", "B", "B", "C", "A", "B")` indica el tipo de suelo de seis perforaciones. Conviértalo en factor y cuente cuántas perforaciones hay de cada tipo.
+7. Los conteos horarios de una estación son `c(320, 415, NA, 510, 488, NA, 402)`. Calcule el promedio con los datos disponibles y diga cuántas horas faltan.
+8. En la calculadora de la @fig-obj-calculadora, busque dos valores de $a$ y $b$ para los que `a %% b` dé 0. ¿Qué significa ese resultado?
+
+## Lecturas recomendadas
+
+- @grolemund2014hopr, capítulos 2 a 5: objetos, tipos de datos y selección de elementos, explicados con ejemplos de juegos de azar.
+- @long2019cookbook, capítulo 2: recetas cortas para crear vectores, seleccionar elementos y usar las funciones básicas.

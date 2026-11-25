@@ -1,6 +1,6 @@
 # Instrucciones para trabajar en este repositorio
 
-Libro *Estadística Aplicada a la Ingeniería* (Edwin Matarrita Segura). Es un libro de Quarto con ejemplos en R, con la misma forma, estructura y estética que *Hidrología Aplicada a la Ingeniería Civil* (github.com/ems270900/libro_hidrologia). Lectores: estudiantes que aprenden el tema y profesionales que lo consultan como referencia; no es un libro de curso.
+Libro *Probabilidad e Inferencia Estadística Aplicada a la Ingeniería Civil* (Edwin Matarrita Segura). Es un libro de Quarto con ejemplos en R, con la misma forma, estructura y estética que *Hidrología Aplicada a la Ingeniería Civil* (github.com/ems270900/libro_hidrologia). Lectores: estudiantes que aprenden el tema y profesionales que lo consultan como referencia; no es un libro de curso.
 
 ## Reglas
 
@@ -23,7 +23,7 @@ Libro *Estadística Aplicada a la Ingeniería* (Edwin Matarrita Segura). Es un l
 - `references.bib`: bibliografía en orden alfabético. Estilo APA 7 en `assets/csl/apa.csl`.
 - `datos/`: CSV de los ejemplos, descritos en `datos/LEEME.md`. `R/ver_datos.R` los muestra con descarga.
 - `assets/img/capNN/`: imágenes. `assets/css/styles.css`: estilos. `assets/js/`: accesibilidad y navegación del HTML de un archivo.
-- `herramientas/`: `publicar.R` (HTML de un solo archivo), `revisar_estilo.sh`, `partir_html.py`, `figura_portada.R`.
+- `herramientas/`: `publicar.R` (HTML de un solo archivo), `revisar_estilo.sh`, `partir_html.py`.
 - `_plantillas/`: plantilla de capítulo (Quarto no la renderiza por empezar con `_`).
 
 ## Renderizar
