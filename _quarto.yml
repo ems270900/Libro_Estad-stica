@@ -16,7 +16,7 @@ crossref:
   eq-prefix: "Ecuación"
 
 book:
-  title: "Estadística Aplicada a la Ingeniería"
+  title: "Probabilidad e Inferencia Estadística Aplicada a la Ingeniería Civil"
   subtitle: "Fundamentos, métodos y aplicaciones con R"
   author:
     - name: "Ing. Edwin Matarrita Segura, M.Sc."
