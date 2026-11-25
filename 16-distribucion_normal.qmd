@@ -572,7 +572,7 @@ El interactivo de la @fig-normal-int-binomial compara la binomial con su aproxim
     var sy = function (y) { return h - mb - y / (fmax * 1.08) * (h - mb - ms); };
     var anc = (w - mi - md) / (hi - lo + 1), s2 = "";
     for (var i = lo; i <= hi; i++) {
-      s2 += '<rect class="barra' + (i <= k ? ' barra-sel' : '') + '" x="' + (sx(i) - anc / 2).toFixed(1) + '" y="' + sy(ps[i]).toFixed(1) +
+      s2 += '<rect class="barra-p4' + (i <= k ? ' barra-sel' : '') + '" x="' + (sx(i) - anc / 2).toFixed(1) + '" y="' + sy(ps[i]).toFixed(1) +
             '" width="' + anc.toFixed(1) + '" height="' + (sy(0) - sy(ps[i])).toFixed(1) + '"/>';
     }
     var d = "";

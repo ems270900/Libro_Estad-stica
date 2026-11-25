@@ -613,7 +613,7 @@ En el interactivo de la @fig-disc-interactivo se elige una distribución y se mu
     var paso = Math.ceil(nb / 15);
     for (var i = 0; i < nb; i++) {
       var xv = x0 + i, cx = mi + i * ancho;
-      s += '<rect class="barra' + (xv <= k ? ' barra-sel' : '') + '" x="' + (cx + ancho * 0.15).toFixed(1) +
+      s += '<rect class="barra-p4' + (xv <= k ? ' barra-sel' : '') + '" x="' + (cx + ancho * 0.15).toFixed(1) +
            '" y="' + sy(ps[i]).toFixed(1) + '" width="' + (ancho * 0.7).toFixed(1) + '" height="' + (h - mb - sy(ps[i])).toFixed(1) + '"/>';
       if (i % paso === 0) s += '<text class="eje-texto" x="' + (cx + ancho / 2).toFixed(1) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + xv + '</text>';
     }

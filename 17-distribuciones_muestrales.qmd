@@ -285,7 +285,7 @@ En el interactivo de la @fig-muestreo-interactivo se elige una población y un t
     var sy = function (y) { return h - mb - Math.min(y, ymax) / (ymax * 1.08) * (h - mb - ms); };
     var s2 = "";
     for (var k = 0; k < nb; k++) {
-      s2 += '<rect class="barra" x="' + sx(x0 + k * ancho).toFixed(1) + '" y="' + sy(dens[k]).toFixed(1) +
+      s2 += '<rect class="barra-p4" x="' + sx(x0 + k * ancho).toFixed(1) + '" y="' + sy(dens[k]).toFixed(1) +
             '" width="' + (sx(x0 + ancho) - sx(x0)).toFixed(1) + '" height="' + (sy(0) - sy(dens[k])).toFixed(1) + '"/>';
     }
     var d = "";
