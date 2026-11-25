@@ -65,7 +65,7 @@
 ## Prefacio, introducción y palabras finales
 
 - Revisión del autor de los tres textos. El prefacio y las palabras finales van en primera persona, como en el libro de hidrología.
-- Agradecimientos y firma (Cartago, Costa Rica): se adaptaron del libro de hidrología; el autor puede cambiarlos.
+- Se quitaron los agradecimientos por pedido del autor (2026-11-25). La firma (Cartago, Costa Rica) queda al final del prefacio.
 - El prefacio dice que el texto nació del material de un curso de la Escuela de Ingeniería Civil de la UCR, sin nombrar el código del curso. Confirmar la redacción.
 - La introducción menciona R 4.6 y RStudio 2026.11 (versiones de las capturas). Actualizar si se repiten las capturas.
 - Ya se agregaron car, lmtest y tolerance a las instrucciones de instalación de la introducción.
