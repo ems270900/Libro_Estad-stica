@@ -35,3 +35,4 @@ El texto se publica con CC BY-NC-SA 4.0 y el código con MIT. Esas licencias no 
 | 1 | `assets/img/cap01/cran_inicio.png` | Captura de <https://cran.r-project.org> (2026-11-25) | Página web de CRAN (R Foundation) | Mantener con cita |
 | 1 | `assets/img/cap01/cran_windows.png` | Captura de <https://cran.r-project.org/bin/windows/> (2026-11-25) | Página web de CRAN (R Foundation) | Mantener con cita |
 | 1 | `assets/img/cap01/posit_descarga.png` | Captura de <https://docs.posit.co/ide/user/download.html> (2026-11-25); la dirección posit.co/download/rstudio-desktop/ redirige ahora a la guía de usuario | Página web de Posit Software, PBC | Mantener con cita |
+| 7 | `fig-est-metodo` (generada en R) | Con base en Montgomery y Runger (2014), fig. 1-1 | Propia (redibujada) | Mantener con cita "con base en" |
