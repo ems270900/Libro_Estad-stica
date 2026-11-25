@@ -79,5 +79,14 @@
 
 ## Diversificación de ejemplos entre ramas (2026-11-25)
 
-- Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Parte V lista (DBO, tránsito, compactación y medidores en el 19; coliformes en el 21; plantas de tratamiento y obras en el 22; deslizamientos en el 23). Faltan las Partes I a IV.
+- Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Parte V lista (DBO, tránsito, compactación y medidores en el 19; coliformes en el 21; plantas de tratamiento y obras en el 22; deslizamientos en el 23). Partes III y IV listas (alcantarillado en el 11, tormentas en el 12, pozos de monitoreo en el 14, presión en una red en el 16). El capítulo 9 conserva los doce cilindros como conjunto guía, porque todo el capítulo y su interactivo dependen de ellos; la Parte II ya agregó ejemplos de otras ramas. Faltan los capítulos 2 y 6 (Parte I).
 - La prueba de jarras usa dosis "recomendadas por el proveedor" sin dar valores en mg/L; si el autor quiere dosis típicas, hay que citarlas de un manual de potabilización.
+
+## Ampliación de la Parte II (2026-11-25)
+
+- Capítulo 9: falta la cita del manual de ingeniería de tránsito para el uso del percentil 85 de la velocidad (marcada con CITA PENDIENTE). El autor puede indicar cuál prefiere.
+- Capítulo 9: la cita del ACI 214R-11 se usa solo para decir que la desviación estándar y el CV juzgan la uniformidad del concreto; si el autor quiere los valores de las clases de control, hay que copiarlos de la guía.
+
+## Diagramas (2026-11-25)
+
+- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_paneles`) para mantener el estilo común.

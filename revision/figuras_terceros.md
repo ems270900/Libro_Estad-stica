@@ -19,8 +19,8 @@ El texto se publica con CC BY-NC-SA 4.0 y el código con MIT. Esas licencias no 
 | Portada | `assets/img/logoucr.png`, `assets/img/logoeic.png` | UCR, Escuela de Ingeniería Civil | Uso institucional | Confirmar uso si cambia la institución |
 | Portada | `assets/img/by-nc-sa.png` | Creative Commons | CC BY 4.0 | Mantener |
 | Portada | `assets/img/portada.png` | Propia, generada con `herramientas/portada.js` (propuesta E2, curvas calculadas) | CC BY-NC-SA 4.0, como el texto | No es de terceros; se anota para que conste el origen |
-| 1 | `assets/img/cap01/paneles_rstudio.png` | Esquema propio de la ventana de RStudio | Propia | Mantener |
-| 1 | `assets/img/cap01/flujo_analisis.png` | Con base en Wickham y Grolemund (2017) | Propia (redibujada) | Mantener con cita "con base en" |
+| 1 | `fig-r-paneles` (SVG, `R/diagramas.R`) | Esquema propio de la ventana de RStudio | Propia | Mantener |
+| 1 | `fig-r-flujo` (SVG, `R/diagramas.R`) | Con base en Wickham y Grolemund (2017) | Propia (redibujada) | Mantener con cita "con base en" |
 | 1 | `assets/img/cap01/rstudio_inicio.png` | Captura de RStudio Server 2026.11.1 con R 4.6.2 (Posit Software, PBC), tomada para el libro el 2026-11-25; RStudio recién abierto | Software RStudio, AGPL v3; interfaz de Posit | Mantener con cita |
 | 1 | `assets/img/cap01/rstudio_nuevo_script.png` | Captura de RStudio Server 2026.11.1 con R 4.6.2 (Posit Software, PBC), tomada para el libro el 2026-11-25; menú File > New File > R Script | Software RStudio, AGPL v3; interfaz de Posit | Mantener con cita |
 | 1 | `assets/img/cap01/rstudio_cuatro_paneles.png` | Captura de RStudio Server 2026.11.1 con R 4.6.2 (Posit Software, PBC), tomada para el libro el 2026-11-25; script de tres líneas con datos hipotéticos | Software RStudio, AGPL v3; interfaz de Posit | Mantener con cita |

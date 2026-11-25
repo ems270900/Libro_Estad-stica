@@ -16,11 +16,99 @@ Si la resistencia promedio de doce cilindros es 31 MPa, ¿se puede asegurar que 
 
 La respuesta corta es no. El promedio describe a los doce cilindros, pero la losa tiene miles de metros cúbicos que no se ensayaron. Para hablar de la losa hace falta saber cuánto varían los cilindros entre sí y cuántos se ensayaron. Esa diferencia entre describir lo que se midió y concluir sobre lo que no se midió separa las dos ramas de la estadística.
 
+### Por qué varían los datos {#sec-est-variabilidad}
+
+Si se mide diez veces la misma cosa, casi nunca se obtiene diez veces el mismo número. La @fig-est-variabilidad lo muestra con cuatro magnitudes de ramas distintas de la ingeniería civil. Son el tiempo que tarda un bus en recorrer la misma ruta, el asentamiento de zapatas iguales sobre el mismo terreno, la demanda bioquímica de oxígeno (DBO) del efluente de una planta de tratamiento y el caudal de una quebrada medido a la misma hora. En las cuatro, los puntos forman una nube y no una sola marca.
+
+```{r}
+#| label: fig-est-variabilidad
+#| fig-cap: "Mediciones repetidas de cuatro magnitudes (datos hipotéticos)."
+#| fig-alt: "Cuatro paneles con treinta puntos cada uno sobre una recta horizontal: tiempo de viaje en bus entre 39 y 57 minutos con una cola hacia los valores altos, asentamiento de zapatas entre 13 y 27 mm, DBO del efluente entre 16 y 35 mg/L y caudal de una quebrada entre 1.4 y 3.0 metros cúbicos por segundo; en cada panel una línea vertical marca el promedio"
+#| fig-width: 9
+#| fig-height: 3.6
+#| out-width: "90%"
+#| echo: false
+
+library(ggplot2)
+set.seed(7)
+repetidas <- data.frame(
+  magnitud = rep(c("Tiempo de viaje en bus (min)", "Asentamiento de zapatas (mm)",
+                   "DBO del efluente (mg/L)", "Caudal de una quebrada (m³/s)"), each = 30),
+  valor = c(round(38 + 6 * rgamma(30, 2, 2), 1), round(rnorm(30, 20, 4), 1),
+            round(rnorm(30, 24, 4.5), 1), round(exp(rnorm(30, log(2), 0.25)), 2))
+)
+repetidas$magnitud <- factor(repetidas$magnitud, levels = unique(repetidas$magnitud))
+promedios <- aggregate(valor ~ magnitud, data = repetidas, FUN = mean)
+ggplot(repetidas, aes(x = valor, y = 0)) +
+  geom_jitter(width = 0, height = 0.25, color = "#1C6BA0", alpha = 0.7, size = 2) +
+  geom_vline(data = promedios, aes(xintercept = valor), color = "grey30", linetype = "dashed") +
+  facet_wrap(~ magnitud, scales = "free_x", ncol = 2) +
+  scale_y_continuous(limits = c(-0.6, 0.6), breaks = NULL) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal()
+```
+
+Esa variación tiene varias causas, y conviene separarlas porque cada una se trata distinto [@ang2007probability; @montgomery2014applied]:
+
+- **Variación natural del material o del fenómeno.** Dos paladas del mismo suelo no tienen exactamente la misma humedad, y dos años nunca tienen la misma lluvia. Esta variación existe aunque se mida con instrumentos perfectos.
+- **Variación del ensayo o del instrumento.** Una balanza, un nivel o un medidor de flujo tienen una precisión limitada, y la persona que mide también introduce diferencias: cómo cura un cilindro, cómo lee una regla, cuánto tarda en tapar una muestra de agua.
+- **Variación por muestreo.** Solo se observa una parte de la población, y otra parte habría dado otros números. El interactivo de la @fig-est-interactivo muestra este efecto.
+- **Falta de conocimiento.** A veces la variación es aparente: el asentamiento cambia porque el espesor de la arcilla cambia bajo cada zapata, pero no se conoce el espesor exacto en cada punto.
+
+@ang2007probability llaman aleatoria a la incertidumbre que viene de la variación natural y epistémica a la que viene de la falta de conocimiento. La primera no se puede eliminar, solo describir y tener en cuenta en el diseño. La segunda se reduce con más ensayos, mejores instrumentos o mejores modelos. La estadística trata las dos con los mismos métodos: describir cuánto varían los datos y decir cuánta incertidumbre queda en una conclusión.
+
+Una analogía ayuda a entender el papel de la estadística. Quien escucha una radio mal sintonizada oye la voz del locutor (la señal) mezclada con un zumbido (el ruido). En los datos, la señal es lo que interesa (la resistencia típica del concreto, el efecto de un aditivo, la tendencia de una serie de caudales) y el ruido es la variación que la tapa. Gran parte de los métodos de este libro sirve para separar una cosa de la otra y para decidir si lo que se ve es señal o puede ser solo ruido.
+
 ### Estadística descriptiva e inferencial
 
 La estadística descriptiva resume los datos que se tienen con cuadros, gráficos y números como el promedio o la desviación estándar. No pretende ir más allá de esos datos. La estadística inferencial usa una parte de los datos (una muestra) para sacar conclusiones sobre el todo (la población), y acompaña cada conclusión con una medida de su incertidumbre, como un intervalo de confianza o un valor $p$ [@lanesfintroduction].
 
 En el ejemplo de la losa, decir que los doce cilindros promedian 31 MPa y que el más débil dio 23.7 MPa es descriptivo. Decir que, con 95 % de confianza, la resistencia media del concreto de la losa está entre 28.6 y 33.3 MPa es inferencial. La Parte II de este libro trata la estadística descriptiva. La probabilidad (partes III y IV) es el puente que lleva a la inferencia (partes V a VII).
+
+La @fig-est-inferencia resume el recorrido completo. De la población se toma una muestra, y con la muestra se calculan estadísticos (la parte descriptiva). Con los estadísticos, más un modelo de probabilidad, se vuelve a la población para decir algo de sus parámetros, con un margen de error (la parte inferencial). La flecha de regreso es la que necesita la probabilidad: sin ella no se puede decir cuánto puede equivocarse una muestra.
+
+```{r}
+#| label: fig-est-inferencia
+#| fig-cap: "Población, muestra e inferencia."
+#| fig-alt: "A la izquierda, un óvalo grande llamado población con muchos puntos grises y el parámetro mu; a la derecha, un óvalo pequeño llamado muestra con pocos puntos azules y el estadístico x barra; una flecha superior va de la población a la muestra con el rótulo muestreo; una flecha inferior regresa de la muestra a la población con el rótulo inferencia, con probabilidad; debajo de la muestra se lee estadística descriptiva"
+#| fig-width: 9
+#| fig-height: 3.8
+#| out-width: "85%"
+#| echo: false
+
+set.seed(11)
+ang <- seq(0, 2 * pi, length.out = 200)
+pob_borde <- data.frame(x = 2.6 * cos(ang), y = 1.6 * sin(ang))
+mue_borde <- data.frame(x = 7.4 + 1.2 * cos(ang), y = 0.85 * sin(ang))
+r <- sqrt(runif(260)); t <- runif(260, 0, 2 * pi)
+pob_pts <- data.frame(x = 2.3 * r * cos(t), y = 1.35 * r * sin(t))
+elegidos <- sample(nrow(pob_pts), 12)
+r2 <- sqrt(runif(12)); t2 <- runif(12, 0, 2 * pi)
+mue_pts <- data.frame(x = 7.4 + 0.95 * r2 * cos(t2), y = 0.6 * r2 * sin(t2))
+ggplot() +
+  geom_path(data = pob_borde, aes(x, y), color = "grey40") +
+  geom_path(data = mue_borde, aes(x, y), color = "#1C6BA0", linewidth = 0.9) +
+  geom_point(data = pob_pts, aes(x, y), color = "grey60", size = 1.2) +
+  geom_point(data = pob_pts[elegidos, ], aes(x, y), color = "#1C6BA0", size = 1.8) +
+  geom_point(data = mue_pts, aes(x, y), color = "#1C6BA0", size = 2.4) +
+  annotate("text", x = 0, y = 2.0, label = "Población (N unidades)", size = 4.2) +
+  annotate("text", x = 0, y = -2.0, label = "parámetros: μ, σ, p (desconocidos)", size = 3.6, color = "grey30") +
+  annotate("text", x = 7.4, y = 1.25, label = "Muestra (n unidades)", size = 4.2) +
+  annotate("text", x = 7.4, y = -1.25, label = "estadísticos: x̄, s, p̂", size = 3.6, color = "#1C6BA0") +
+  annotate("text", x = 7.4, y = -1.75, label = "estadística descriptiva", size = 3.6, fontface = "italic") +
+  annotate("curve", x = 2.8, xend = 6.1, y = 0.9, yend = 0.6, curvature = -0.3,
+           arrow = arrow(length = unit(0.2, "cm")), color = "grey30") +
+  annotate("text", x = 4.5, y = 1.55, label = "muestreo", size = 3.8) +
+  annotate("curve", x = 6.1, xend = 2.8, y = -0.6, yend = -0.9, curvature = -0.3,
+           arrow = arrow(length = unit(0.2, "cm")), color = "#1C6BA0", linewidth = 0.9) +
+  annotate("text", x = 4.5, y = -1.5, label = "inferencia (con probabilidad)", size = 3.8, color = "#1C6BA0") +
+  coord_equal(xlim = c(-2.8, 9), ylim = c(-2.2, 2.2)) +
+  theme_void()
+```
+
+::: {.callout-tip title="En la práctica"}
+Un informe de laboratorio que dice "la resistencia media de los cilindros fue 31.0 MPa" describe. Uno que dice "el concreto del elemento cumple con la resistencia especificada" infiere, aunque no lo diga con esas palabras, porque habla del concreto que no se ensayó. Al leer un informe técnico conviene preguntarse en cuál de los dos casos se está y, si es el segundo, con qué margen de error se hizo la afirmación.
+:::
 
 ## La estadística dentro del método de la ingeniería {#sec-est-metodo}
 
@@ -30,35 +118,20 @@ Resolver un problema de ingeniería sigue casi siempre los mismos pasos: describ
 #| label: fig-est-metodo
 #| fig-cap: "Pasos del método de la ingeniería. Fuente: con base en @montgomery2014applied."
 #| fig-alt: "Siete cajas unidas por flechas de izquierda a derecha: describir el problema, identificar los factores, proponer o ajustar el modelo, hacer experimentos, manipular el modelo, confirmar la solución y concluir; las cajas de factores, modelo y experimentos están dentro de un recuadro discontinuo, con flechas de regreso que forman un ciclo"
-#| fig-width: 9
-#| fig-height: 2.4
-#| out-width: "95%"
 #| echo: false
 
 library(ggplot2)
-cajas <- data.frame(
-  x = c(1, 2.7, 4.4, 6.1, 7.9, 9.6, 11.3),
-  y = 0,
-  texto = c("Describir\nel problema", "Identificar\nlos factores", "Proponer o\najustar el modelo",
-            "Hacer\nexperimentos", "Manipular\nel modelo", "Confirmar\nla solución",
-            "Conclusiones y\nrecomendaciones")
-)
-ida <- data.frame(x = c(1.7, 3.4, 5.1, 6.85, 8.6, 10.3),
-                  xend = c(2.0, 3.7, 5.4, 7.2, 8.9, 10.6))
-ggplot() +
-  annotate("rect", xmin = 1.9, xmax = 6.9, ymin = -0.55, ymax = 0.95,
-           fill = NA, color = "grey50", linetype = "dashed") +
-  geom_tile(data = cajas, aes(x, y), width = 1.4, height = 0.7,
-            fill = "#1C6BA0", alpha = 0.12, color = "#1C6BA0") +
-  geom_text(data = cajas, aes(x, y, label = texto), size = 2.9, lineheight = 0.9) +
-  geom_segment(data = ida, aes(x = x, xend = xend, y = 0, yend = 0),
-               arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
-  annotate("curve", x = 6.1, xend = 4.4, y = 0.38, yend = 0.38, curvature = 0.45,
-           arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
-  annotate("curve", x = 4.4, xend = 2.7, y = 0.38, yend = 0.38, curvature = 0.45,
-           arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
-  coord_cartesian(xlim = c(0.2, 12.1), ylim = c(-0.6, 1.1)) +
-  theme_void()
+source("R/diagramas.R")
+dg_flujo(
+  list(list(c("Describir", "t1"), c("el problema", "t1")),
+       list(c("Identificar", "t1"), c("los factores", "t1")),
+       list(c("Proponer o", "t1"), c("ajustar el modelo", "t1")),
+       list(c("Hacer", "t1"), c("experimentos", "t1")),
+       list(c("Manipular", "t1"), c("el modelo", "t1")),
+       list(c("Confirmar", "t1"), c("la solución", "t1")),
+       list(c("Conclusiones y", "t1"), c("recomendaciones", "t1"))),
+  grupo = c(2, 4), regreso = list(c(4, 3), c(3, 2)), por_fila = 4,
+  titulo = "Pasos del método de la ingeniería")
 ```
 
 Un ejemplo concreto: para diseñar el puente de una ruta nacional se necesita el caudal que el río alcanza, en promedio, una vez cada 100 años. Primero se describe el problema (la obra y su vida útil) y se identifican los factores (lluvia, área y forma de la cuenca, uso del suelo). Luego se propone un modelo de la lluvia máxima anual y se compara con los registros de una estación. Al final se calcula el caudal de diseño y se verifica que la solución sea razonable. La estadística aparece en casi todos esos pasos.
@@ -118,7 +191,43 @@ data.frame(
   kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
 ```
 
-Los datos se ordenan casi siempre en un cuadro con una fila por unidad y una columna por variable. Es la misma forma de un data frame de R y de una hoja de Excel bien armada.
+Los datos se ordenan casi siempre en un cuadro con una fila por unidad y una columna por variable. Es la misma forma de un data frame de R y de una hoja de Excel bien armada. @wickham2014tidy llama ordenados (*tidy*) a los datos que cumplen tres reglas: cada variable tiene su propia columna, cada observación (cada unidad) tiene su propia fila y cada valor ocupa su propia celda. La @fig-est-matriz muestra esa estructura con cuatro puentes del inventario que se usa en este capítulo.
+
+```{r}
+#| label: fig-est-matriz
+#| fig-cap: "Estructura de los datos ordenados."
+#| fig-alt: "Cuadrícula de cinco filas y cuatro columnas; la fila de arriba tiene los nombres de las variables material, estado, carriles y longitud; cada fila siguiente es un puente; una fila está resaltada con el rótulo unidad estadística, una columna con el rótulo variable y una celda con el rótulo observación"
+#| fig-width: 9
+#| fig-height: 3.4
+#| out-width: "80%"
+#| echo: false
+
+celdas <- expand.grid(col = 1:4, fila = 1:4)
+valores <- c("Concreto", "Regular", "2", "48.3",
+             "Acero", "Bueno", "2", "61.0",
+             "Madera", "Malo", "1", "22.5",
+             "Mixto", "Regular", "4", "35.8")
+celdas$texto <- valores
+celdas$tipo <- ifelse(celdas$fila == 2, "fila", ifelse(celdas$col == 4, "columna", "otra"))
+celdas$tipo[celdas$fila == 2 & celdas$col == 4] <- "celda"
+encabezado <- data.frame(col = 1:4, fila = 0, texto = c("material", "estado", "carriles", "longitud (m)"))
+ids <- data.frame(col = 0, fila = 1:4, texto = c("P01", "P02", "P03", "P04"))
+ggplot() +
+  geom_tile(data = celdas, aes(col, -fila, fill = tipo), color = "white", linewidth = 1.2,
+            width = 0.98, height = 0.9) +
+  scale_fill_manual(values = c(fila = "#9ECAE1", columna = "#C6DBEF", celda = "#E69F00", otra = "grey92"),
+                    guide = "none") +
+  geom_text(data = celdas, aes(col, -fila, label = texto), size = 3.8) +
+  geom_text(data = encabezado, aes(col, -fila, label = texto), size = 3.8, fontface = "bold") +
+  geom_text(data = ids, aes(col, -fila, label = texto), size = 3.6, color = "grey40") +
+  annotate("text", x = 5.1, y = -2, label = "← unidad estadística\n(una fila por puente)", hjust = 0, size = 3.6) +
+  annotate("text", x = 4, y = -4.85, label = "↑ variable (una columna)", size = 3.6) +
+  annotate("text", x = 5.1, y = -0.4, label = "observación: el valor de una\nvariable en una unidad (celda naranja)", hjust = 0, size = 3.6) +
+  coord_cartesian(xlim = c(-0.4, 7.6), ylim = c(-5.1, 0.4)) +
+  theme_void()
+```
+
+Muchos problemas de análisis empiezan con datos desordenados: una hoja con un año por columna, celdas combinadas, totales mezclados con los datos o dos valores en una celda ("12.5 / 13.1"). Antes de calcular nada conviene llevar los datos a la forma de la @fig-est-matriz. El capítulo 3 muestra cómo hacerlo en R.
 
 ### Interactivo: una muestra no es la población
 
@@ -217,6 +326,30 @@ En un estudio observacional se mide lo que ocurre sin intervenir: se registra el
 
 La diferencia importa porque solo un experimento bien diseñado muestra causa y efecto. Si un estudio observacional encuentra que los puentes más viejos están en peor estado, la edad puede ser la causa. Pero también puede ser que los puentes viejos se construyeron con otras normas o que están en rutas con más carga pesada. En un experimento, el factor que se cambia es el único que se deja variar a propósito, y lo demás se controla o se reparte al azar. La Parte VII trata el diseño de experimentos.
 
+A la variable que no se midió y que mueve a las dos que se comparan se le llama variable de confusión [@freedman2007statistics]. Un caso clásico en transportes: los cruces con semáforo pueden registrar más accidentes que los cruces sin semáforo. No es que el semáforo cause accidentes, sino que se instalan semáforos justo en los cruces con más tránsito, y el tránsito es la variable de confusión. Comparar accidentes por cada millón de vehículos que entran al cruce, y no accidentes totales, es una forma de tenerla en cuenta.
+
+El @tbl-est-estudios compara los dos tipos de estudio.
+
+```{r}
+#| label: tbl-est-estudios
+#| tbl-cap: "Estudio observacional y experimento."
+#| echo: false
+
+library(kableExtra)
+data.frame(
+  aspecto = c("Quién fija los factores", "Ejemplo en ingeniería civil", "Muestra causa y efecto",
+              "Ventaja", "Limitación"),
+  obs = c("Nadie: se mide lo que ocurre", "Caudales de un río, conteos de tránsito, inspección de taludes",
+          "No; muestra asociación", "Estudia lo que no se puede manipular (lluvia, sismos) y en condiciones reales",
+          "Variables de confusión"),
+  exp = c("Quien investiga", "Mezclas con distinta relación agua/cemento, coagulantes en una prueba de jarras",
+          "Sí, si se aleatoriza y se controla lo demás", "Aísla el efecto del factor",
+          "Costo; condiciones de laboratorio que pueden diferir de la obra")
+) %>%
+  kbl(col.names = c("Aspecto", "Estudio observacional", "Experimento"), align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
 ### Métodos de muestreo
 
 Para que una muestra represente a la población, la forma de elegirla tiene que darle a cada unidad una oportunidad conocida de quedar elegida. Los métodos más usados son estos [@illowsky2013introductory]:
@@ -226,9 +359,166 @@ Para que una muestra represente a la población, la forma de elegirla tiene que 
 - **Muestreo sistemático.** Se elige al azar un punto de partida y luego se toma una unidad cada $k$: un núcleo de pavimento cada 200 m o un cilindro cada 10 m³ colados.
 - **Muestreo por conglomerados.** La población se divide en grupos (conglomerados), se sortean algunos grupos completos y se miden todas las unidades de esos grupos, como todos los puentes de tres cantones elegidos al azar.
 
+Los cuatro métodos son válidos, pero cada uno conviene en una situación distinta. El @tbl-est-muestreo resume cuándo usar cada uno y qué cuidar [@lohr2019sampling].
+
+```{r}
+#| label: tbl-est-muestreo
+#| tbl-cap: "Cuándo conviene cada método de muestreo."
+#| echo: false
+
+data.frame(
+  metodo = c("Aleatorio simple", "Estratificado", "Sistemático", "Por conglomerados"),
+  cuando = c("Hay una lista completa de la población y las unidades son parecidas entre sí",
+             "La población tiene grupos que se comportan distinto y cada grupo interesa por separado",
+             "Las unidades vienen en una secuencia: a lo largo de una vía, de un colado o del tiempo",
+             "Las unidades están dispersas y visitar cada una sale caro; no hay lista completa"),
+  ejemplo = c("Sortear 5 de los 40 puentes de un inventario",
+              "Muestrear pozos de agua por acuífero, o puentes por material",
+              "Un núcleo de pavimento cada 400 m; una muestra de agua cada 2 h",
+              "Medir todas las alcantarillas de los distritos sorteados"),
+  cuidado = c("Por azar puede dejar fuera un grupo pequeño",
+              "Hay que conocer el estrato de cada unidad antes de sortear",
+              "Si la población tiene un patrón que se repite cada k unidades, la muestra queda sesgada",
+              "Las unidades de un mismo grupo se parecen: da menos información que el mismo n al azar")
+) %>%
+  kbl(col.names = c("Método", "Cuándo conviene", "Ejemplo", "Qué cuidar"), align = "llll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Interactivo: cuatro formas de elegir una muestra
+
+En la @fig-est-int-metodos hay 48 alcantarillas hipotéticas de una red vial, repartidas en seis distritos (las filas). Hay alcantarillas de tubo (gris), de cajón (petróleo) y de bóveda (ámbar). Elija un método y pulse el botón: las alcantarillas elegidas se marcan con un anillo, y el texto cuenta cuántas de cada tipo quedaron en la muestra. Compare cuántas veces la muestra aleatoria simple deja fuera las de bóveda, que son pocas, con lo que pasa en la estratificada.
+
+::: {#fig-est-int-metodos}
+
+```{=html}
+<div class="interactivo" id="int-metodos-muestreo">
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
+    <label><input type="radio" name="int-mm" value="simple" checked> Aleatorio simple</label>
+    <label><input type="radio" name="int-mm" value="estrato"> Estratificado</label>
+    <label><input type="radio" name="int-mm" value="sistema"> Sistemático</label>
+    <label><input type="radio" name="int-mm" value="conglo"> Por conglomerados</label>
+  </div>
+  <button type="button">Sortear otra muestra</button>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Cuadrícula de 48 alcantarillas en seis filas; las elegidas en la muestra tienen un anillo oscuro"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-metodos-muestreo");
+  var boton = raiz.querySelector("button"), texto = raiz.querySelector(".resultado");
+  var svg = raiz.querySelector("svg"), radios = raiz.querySelectorAll("input[type=radio]");
+  // Tipo de cada alcantarilla: 0 tubo (24), 1 cajón (16), 2 bóveda (8), en un orden fijo
+  var tipos = [0,0,1,0,0,1,0,0, 0,1,0,2,0,1,0,1, 1,0,2,0,1,0,2,1, 0,0,1,0,2,0,1,0,
+               1,2,0,1,1,0,2,1, 0,1,2,0,0,2,1,0];
+  var nombres = ["tubo", "cajón", "bóveda"], colores = ["#9aa3ad", "#1b7f8c", "#E69F00"];
+  var N = 48, n = 8, sel = [];
+  function sortear(lista, k) {
+    var a = lista.slice(), r = [];
+    for (var i = 0; i < k; i++) { var j = Math.floor(Math.random() * a.length); r.push(a[j]); a.splice(j, 1); }
+    return r;
+  }
+  function todos() { var a = []; for (var i = 0; i < N; i++) a.push(i); return a; }
+  function metodo() { for (var i = 0; i < radios.length; i++) if (radios[i].checked) return radios[i].value; }
+  function muestrear() {
+    var m = metodo(), nota = "";
+    if (m === "simple") { sel = sortear(todos(), n); nota = "8 alcantarillas sorteadas entre las 48."; }
+    if (m === "estrato") {
+      // Asignación proporcional: 24/48, 16/48 y 8/48 de 8 dan 4, 3 (redondeado) y 1
+      var cupo = [4, 3, 1]; sel = [];
+      for (var t = 0; t < 3; t++) {
+        var grupo = todos().filter(function (i) { return tipos[i] === t; });
+        sel = sel.concat(sortear(grupo, cupo[t]));
+      }
+      nota = "4 de tubo, 3 de cajón y 1 de bóveda, sorteadas dentro de cada tipo.";
+    }
+    if (m === "sistema") {
+      var inicio = Math.floor(Math.random() * 6); sel = [];
+      for (var i = inicio; i < N; i += 6) sel.push(i);
+      nota = "Arranque al azar en la alcantarilla " + (inicio + 1) + " y luego una de cada k = 48/8 = 6.";
+    }
+    if (m === "conglo") {
+      var d = Math.floor(Math.random() * 6); sel = [];
+      for (var c = 0; c < 8; c++) sel.push(d * 8 + c);
+      nota = "Se sorteó el distrito " + (d + 1) + " y se miden sus 8 alcantarillas.";
+    }
+    dibujar(nota);
+  }
+  function dibujar(nota) {
+    var s = "", cuenta = [0, 0, 0];
+    for (var i = 0; i < N; i++) {
+      var fila = Math.floor(i / 8), col = i % 8;
+      var x = 150 + col * 60, y = 30 + fila * 44, elegida = sel.indexOf(i) >= 0;
+      if (elegida) cuenta[tipos[i]]++;
+      s += '<rect x="' + (x - 16) + '" y="' + (y - 12) + '" width="32" height="24" rx="5" fill="' + colores[tipos[i]] +
+        '" fill-opacity="' + (elegida ? 1 : 0.35) + '"' + (elegida ? ' stroke="#212529" stroke-width="3"' : '') + '/>';
+    }
+    for (var f = 0; f < 6; f++) s += '<text class="eje-texto" x="20" y="' + (34 + f * 44) + '">Distrito ' + (f + 1) + '</text>';
+    for (var t = 0; t < 3; t++) {
+      s += '<rect x="' + (150 + t * 150) + '" y="276" width="18" height="14" rx="3" fill="' + colores[t] + '"/>' +
+        '<text class="eje-texto" x="' + (174 + t * 150) + '" y="288">' + nombres[t] + '</text>';
+    }
+    svg.innerHTML = s;
+    texto.textContent = nota + "  En la muestra: " + cuenta[0] + " de tubo, " + cuenta[1] + " de cajón y " +
+      cuenta[2] + " de bóveda" + (cuenta[2] === 0 ? " (ninguna de bóveda)." : ".");
+  }
+  boton.addEventListener("click", muestrear);
+  for (var i = 0; i < radios.length; i++) radios[i].addEventListener("change", muestrear);
+  muestrear();
+})();
+</script>
+```
+
+Cuatro métodos de muestreo sobre 48 alcantarillas hipotéticas.
+
+:::
+
+Con el muestreo aleatorio simple, las alcantarillas de bóveda (8 de 48) no aparecen en una de cada cinco muestras, más o menos. La probabilidad de que ninguna quede entre las 8 sorteadas es $\binom{40}{8} / \binom{48}{8} = 0.204$ (el capítulo 11 explica este cálculo). El estratificado garantiza al menos una de cada tipo. El de conglomerados es el más barato, porque solo se visita un distrito. Pero su resultado depende mucho de qué distrito salió: en el distrito 1 no hay ninguna de bóveda y en los distritos 3, 5 y 6 hay dos.
+
 ::: {.callout-warning title="Cuidado"}
 Una muestra de conveniencia, formada con lo que está más a mano, no representa a la población. Inspeccionar solo los puentes junto a la carretera principal, o tomar cilindros solo del primer camión de la mañana, deja fuera justo las unidades que podrían comportarse distinto. A ese error sistemático se le llama sesgo, y tomar más datos del mismo modo no lo corrige.
 :::
+
+### Sesgo y precisión
+
+La analogía del tiro al blanco separa dos defectos que se confunden a menudo. El centro de la diana es el valor verdadero (el parámetro) y cada disparo es el resultado de una muestra o de una medición. La @fig-est-diana muestra las cuatro combinaciones posibles.
+
+```{r}
+#| label: fig-est-diana
+#| fig-cap: "Sesgo y precisión."
+#| fig-alt: "Cuatro dianas en una cuadrícula de dos por dos; arriba a la izquierda, disparos agrupados en el centro (sin sesgo y preciso); arriba a la derecha, disparos agrupados lejos del centro (con sesgo y preciso); abajo a la izquierda, disparos dispersos alrededor del centro (sin sesgo e impreciso); abajo a la derecha, disparos dispersos y corridos (con sesgo e impreciso)"
+#| fig-width: 7
+#| fig-height: 6.4
+#| out-width: "65%"
+#| echo: false
+
+set.seed(21)
+anillos <- expand.grid(r = c(1, 2, 3, 4), t = seq(0, 2 * pi, length.out = 120))
+casos <- data.frame(
+  caso = c("Sin sesgo y preciso", "Con sesgo y preciso", "Sin sesgo e impreciso", "Con sesgo e impreciso"),
+  dx = c(0, 1.9, 0, 1.6), dy = c(0, 1.5, 0, -1.4), sd = c(0.35, 0.35, 1.3, 1.3)
+)
+disparos <- do.call(rbind, lapply(seq_len(nrow(casos)), function(i) {
+  data.frame(caso = casos$caso[i], x = rnorm(12, casos$dx[i], casos$sd[i]),
+             y = rnorm(12, casos$dy[i], casos$sd[i]))
+}))
+dianas <- merge(casos["caso"], data.frame(r = anillos$r, x = anillos$r * cos(anillos$t),
+                                          y = anillos$r * sin(anillos$t)))
+disparos$caso <- factor(disparos$caso, levels = casos$caso)
+dianas$caso <- factor(dianas$caso, levels = casos$caso)
+ggplot() +
+  geom_path(data = dianas, aes(x, y, group = r), color = "grey60") +
+  annotate("point", x = 0, y = 0, shape = 3, size = 4, color = "grey30") +
+  geom_point(data = disparos, aes(x, y), color = "#1C6BA0", size = 2.2, alpha = 0.85) +
+  facet_wrap(~ caso, ncol = 2) +
+  coord_equal(xlim = c(-4.2, 4.2), ylim = c(-4.2, 4.2)) +
+  theme_void() +
+  theme(strip.text = element_text(size = 11, margin = margin(b = 4)))
+```
+
+El sesgo es la distancia entre el centro de la nube de disparos y el centro de la diana: un error que empuja todos los resultados hacia el mismo lado. La precisión es qué tan juntos quedan los disparos entre sí. Una balanza descalibrada que marca siempre 0.5 kg de más es precisa pero sesgada; una cinta métrica de tela que se estira distinto cada vez no tiene sesgo, pero es imprecisa. La exactitud que se busca en ingeniería necesita las dos cosas.
+
+La diferencia práctica es que la imprecisión baja tomando más datos, porque los errores hacia un lado se compensan con los errores hacia el otro. El sesgo no baja: mil cilindros tomados todos del primer camión siguen describiendo al primer camión. Por eso el diseño del muestreo y la calibración de los instrumentos se cuidan antes de medir, no se arreglan después con estadística. El capítulo 18 vuelve sobre el sesgo de un estimador con fórmulas.
 
 ::: {.callout-note title="Ejemplo: muestra aleatoria simple de puentes para inspección"}
 
@@ -280,6 +570,58 @@ puentes %>% slice_sample(n = 5)
 
 :::
 
+::: {.callout-note title="Ejemplo: muestreo sistemático de núcleos en un pavimento"}
+
+**Planteamiento.** Para verificar el espesor de la carpeta asfáltica de un tramo nuevo de 12 km, el contrato pide extraer 30 núcleos repartidos a lo largo del tramo (caso hipotético). Defina el intervalo de muestreo, sortee el punto de partida y dé el estacionamiento (cadenamiento) de cada núcleo en la forma km + m que se usa en los planos de carreteras.
+
+**Solución:**
+
+1. Longitud del tramo: 12 km = 12 000 m. Con 30 núcleos, el intervalo es $k = 12\,000/30 = 400$ m.
+2. Se sortea el punto de partida entre 0 y 399 m, con la misma probabilidad para cada metro. Con papeles numerados sería tedioso; en R, con la semilla 2026, sale 220 m.
+3. Los núcleos quedan en 220, 620, 1020, 1420 m, y así sucesivamente, sumando 400 m cada vez. El último es $220 + 29 \times 400 = 11\,820$ m.
+4. En cadenamiento: 0+220, 0+620, 1+020, 1+420… 11+820.
+
+Una vez sorteado el arranque, todo lo demás queda fijo. Por eso cada metro del tramo tiene la misma probabilidad de recibir un núcleo, $1/400$, aunque la muestra no sea un aleatorio simple.
+
+**Pseudocódigo**
+
+1. Calcular el intervalo $k$ dividiendo la longitud entre el número de núcleos.
+2. Fijar una semilla y sortear el arranque entre 0 y $k - 1$.
+3. Generar las posiciones del arranque en adelante, cada $k$ metros.
+4. Escribir cada posición en la forma km + m, con R base y con dplyr.
+
+```{r}
+# 1) Intervalo de muestreo
+longitud_m <- 12000
+n_nucleos <- 30
+k <- longitud_m / n_nucleos
+k
+
+# 2) Arranque al azar entre 0 y k - 1
+set.seed(2026)
+arranque <- sample(0:(k - 1), size = 1)
+arranque
+
+# 3) Posiciones cada k metros
+posicion_m <- seq(from = arranque, by = k, length.out = n_nucleos)
+head(posicion_m)
+tail(posicion_m, 2)
+
+# 4) Cadenamiento km + m con R base: %/% es la división entera y %% el residuo
+cadenamiento <- paste0(posicion_m %/% 1000, "+", sprintf("%03d", posicion_m %% 1000))
+head(cadenamiento)
+
+# 4) Lo mismo con dplyr
+library(dplyr)
+nucleos <- tibble(nucleo = 1:n_nucleos, posicion_m = posicion_m) %>%
+  mutate(cadenamiento = paste0(posicion_m %/% 1000, "+", sprintf("%03d", posicion_m %% 1000)))
+nucleos
+```
+
+**Interpretación.** Con la semilla 2026 el arranque cae en 220 m, y los 30 núcleos quedan repartidos parejo a lo largo de los 12 km, sin tramos largos sin revisar, algo que un muestreo aleatorio simple no garantiza. El riesgo del método es la periodicidad. Si el pavimento se colocó en jornadas de 400 m y el arranque cae siempre cerca de una junta de construcción, todos los núcleos estarían en el mismo tipo de punto y la muestra quedaría sesgada. Cuando se sospecha un patrón así, se cambia el intervalo o se sortea un arranque nuevo en cada kilómetro.
+
+:::
+
 ## Tipos de variables {#sec-est-variables}
 
 Antes de hacer un cuadro, un gráfico o un cálculo hay que saber de qué tipo es cada variable, porque de eso depende qué se puede hacer con ella. Sacar el promedio del material de un puente no tiene sentido; sacar el promedio de su longitud sí. La @fig-est-tipos resume la clasificación.
@@ -288,29 +630,18 @@ Antes de hacer un cuadro, un gráfico o un cálculo hay que saber de qué tipo e
 #| label: fig-est-tipos
 #| fig-cap: "Clasificación de las variables."
 #| fig-alt: "Diagrama de árbol: las variables se dividen en cualitativas y cuantitativas; las cualitativas en nominales y ordinales, y las cuantitativas en discretas y continuas, cada una con un ejemplo"
-#| fig-width: 9
-#| fig-height: 3.6
-#| out-width: "85%"
 #| echo: false
 
-nodos <- data.frame(
-  x = c(5, 2.5, 7.5, 1.25, 3.75, 6.25, 8.75),
-  y = c(3, 2, 2, 0.8, 0.8, 0.8, 0.8),
-  texto = c("Variable", "Cualitativa\n(categórica)", "Cuantitativa\n(numérica)",
-            "Nominal\nmaterial del puente", "Ordinal\nestado: bueno, regular, malo",
-            "Discreta\nnúmero de carriles", "Continua\nlongitud (m)"),
-  nivel = c(1, 2, 2, 3, 3, 3, 3)
-)
-aristas <- data.frame(x = c(5, 5, 2.5, 2.5, 7.5, 7.5), y = c(2.75, 2.75, 1.75, 1.75, 1.75, 1.75),
-                      xend = c(2.5, 7.5, 1.25, 3.75, 6.25, 8.75), yend = c(2.3, 2.3, 1.15, 1.15, 1.15, 1.15))
-ggplot() +
-  geom_segment(data = aristas, aes(x = x, y = y, xend = xend, yend = yend), color = "grey40") +
-  geom_tile(data = nodos, aes(x, y, alpha = factor(nivel)), width = 2.2, height = 0.6,
-            fill = "#1C6BA0", color = "#1C6BA0") +
-  geom_text(data = nodos, aes(x, y, label = texto), size = 3.8, lineheight = 0.9) +
-  scale_alpha_manual(values = c(0.35, 0.2, 0.08), guide = "none") +
-  coord_cartesian(xlim = c(0, 10), ylim = c(0.4, 3.3)) +
-  theme_void()
+dg_jerarquia(
+  raiz = list(c("Variable", "t0")),
+  ramas = list(
+    list(caja = list(c("Cualitativa", "t1"), c("(categórica)", "t2")),
+         hojas = list(list(c("Nominal", "t1"), c("material del puente", "te")),
+                      list(c("Ordinal", "t1"), c("estado: bueno, regular, malo", "te")))),
+    list(caja = list(c("Cuantitativa", "t1"), c("(numérica)", "t2")),
+         hojas = list(list(c("Discreta", "t1"), c("número de carriles", "te")),
+                      list(c("Continua", "t1"), c("longitud (m)", "te"))))),
+  titulo = "Clasificación de las variables")
 ```
 
 ### Variables cualitativas
@@ -356,6 +687,104 @@ La diferencia entre intervalo y razón está en el cero. Un puente de 0 m no exi
 ::: {.callout-tip title="En la práctica"}
 Un código numérico no convierte a una variable en cuantitativa. Si las provincias se codifican del 1 al 7 o el estado de un puente como 1, 2 y 3, R los leerá como números y calculará su promedio sin protestar, pero "provincia promedio 3.4" no significa nada. Por eso, en R, las variables cualitativas se guardan como factores, como se hace en el ejemplo siguiente.
 :::
+
+### Qué se puede hacer con cada tipo de variable
+
+El tipo de variable decide qué resumen y qué gráfico tienen sentido. El @tbl-est-tipo-uso adelanta lo que se desarrolla en los capítulos 8 y 9.
+
+```{r}
+#| label: tbl-est-tipo-uso
+#| tbl-cap: "Resúmenes y gráficos por tipo de variable."
+#| echo: false
+
+data.frame(
+  tipo = c("Cualitativa nominal", "Cualitativa ordinal", "Cuantitativa discreta", "Cuantitativa continua"),
+  centro = c("Moda", "Moda y mediana", "Media, mediana y moda", "Media y mediana"),
+  dispersion = c("Número de categorías, proporciones", "Rango de categorías, cuartiles",
+                 "Desviación estándar, RIC", "Desviación estándar, RIC, coeficiente de variación"),
+  grafico = c("Barras ordenadas por frecuencia", "Barras en el orden natural de las categorías",
+              "Barras (pocos valores) o histograma (muchos)", "Histograma, diagrama de caja, ojiva"),
+  ejemplo = c("Material del puente", "Estado del puente", "Número de carriles", "Longitud del puente")
+) %>%
+  kbl(col.names = c("Tipo", "Centro", "Dispersión", "Gráfico", "Ejemplo"), align = "lllll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+La mediana tiene sentido para una variable ordinal porque basta con ordenar los datos. Si de 40 puentes 6 están en estado malo y 18 en regular, el puente número 20 de la lista ordenada está en estado regular, y esa es la mediana. La media no tiene sentido, porque exige sumar distancias entre categorías que no están definidas.
+
+### Interactivo: clasifique la variable
+
+El interactivo de la @fig-est-int-clasificar presenta variables de las distintas ramas de la ingeniería civil. Para cada una, elija el tipo que le corresponde; el interactivo dice si acertó y por qué. Las preguntas aparecen en orden al azar.
+
+::: {#fig-est-int-clasificar}
+
+```{=html}
+<div class="interactivo" id="int-clasificar">
+  <p class="resultado" style="font-weight:600;"></p>
+  <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+    <button type="button" data-tipo="nominal">Cualitativa nominal</button>
+    <button type="button" data-tipo="ordinal">Cualitativa ordinal</button>
+    <button type="button" data-tipo="discreta">Cuantitativa discreta</button>
+    <button type="button" data-tipo="continua">Cuantitativa continua</button>
+  </div>
+  <p class="explicacion" aria-live="polite"></p>
+  <button type="button" class="siguiente">Siguiente variable</button>
+  <p class="marcador"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-clasificar");
+  var pregunta = raiz.querySelector(".resultado"), explicacion = raiz.querySelector(".explicacion");
+  var marcador = raiz.querySelector(".marcador"), siguiente = raiz.querySelector(".siguiente");
+  var opciones = raiz.querySelectorAll("button[data-tipo]");
+  var lista = [
+    ["Tipo de suelo según el Sistema Unificado (CL, ML, SP, GW…)", "nominal", "Son clases de suelo sin un orden natural entre ellas."],
+    ["Nivel de servicio de una vía (A, B, C, D, E, F)", "ordinal", "A es mejor que B y B mejor que C, pero la distancia entre niveles no está definida."],
+    ["Número de ejes de un camión", "discreta", "Se cuenta: 2, 3, 4 o 5 ejes; no hay camiones de 2.5 ejes."],
+    ["Demanda bioquímica de oxígeno de un efluente (mg/L)", "continua", "Es una concentración: puede tomar cualquier valor dentro de un intervalo."],
+    ["Daño de una edificación después de un sismo (leve, moderado, severo, colapso)", "ordinal", "Las categorías tienen un orden de gravedad, pero no son cantidades."],
+    ["Número de días con lluvia en un mes", "discreta", "Se cuenta de 0 a 31; solo toma valores enteros."],
+    ["Asentamiento de una zapata (mm)", "continua", "Es una longitud medida; solo la precisión del instrumento limita los decimales."],
+    ["Sistema constructivo de un muro (mampostería, concreto colado, prefabricado)", "nominal", "Son tipos distintos sin orden entre ellos."],
+    ["Número de accidentes por mes en una intersección", "discreta", "Es un conteo de eventos."],
+    ["Velocidad de un vehículo medida con radar (km/h)", "continua", "Es una magnitud física medida en una escala continua."],
+    ["Resultado de un ensayo de compactación: cumple o no cumple", "nominal", "Tiene dos categorías sin cantidad detrás; es una variable dicotómica."],
+    ["Clasificación de la calidad de una roca por el índice RQD (muy mala, mala, regular, buena, excelente)", "ordinal", "Son clases ordenadas, aunque se definan a partir de un número."],
+    ["Caudal de un río (m³/s)", "continua", "Es un volumen por unidad de tiempo; puede tomar cualquier valor positivo."],
+    ["Número de pilotes de una cimentación", "discreta", "Se cuentan los pilotes uno por uno."],
+    ["Provincia donde se ubica el proyecto", "nominal", "Es una etiqueta geográfica; un código del 1 al 7 no la vuelve cuantitativa."],
+    ["Porcentaje de humedad de una muestra de suelo (%)", "continua", "Es una razón entre masas que puede tomar cualquier valor en un intervalo."]
+  ];
+  var nombres = { nominal: "cualitativa nominal", ordinal: "cualitativa ordinal", discreta: "cuantitativa discreta", continua: "cuantitativa continua" };
+  var orden = lista.map(function (_, i) { return i; }).sort(function () { return Math.random() - 0.5; });
+  var actual = 0, aciertos = 0, intentos = 0, respondida = false;
+  function mostrar() {
+    var q = lista[orden[actual % lista.length]];
+    pregunta.textContent = "Variable " + (actual % lista.length + 1) + " de " + lista.length + ": " + q[0];
+    explicacion.textContent = "";
+    respondida = false;
+  }
+  for (var i = 0; i < opciones.length; i++) {
+    opciones[i].addEventListener("click", function () {
+      if (respondida) return;
+      var q = lista[orden[actual % lista.length]], elegido = this.getAttribute("data-tipo");
+      respondida = true; intentos++;
+      if (elegido === q[1]) { aciertos++; explicacion.textContent = "Correcto. " + q[2]; }
+      else { explicacion.textContent = "No: es " + nombres[q[1]] + ". " + q[2]; }
+      marcador.textContent = "Aciertos: " + aciertos + " de " + intentos;
+    });
+  }
+  siguiente.addEventListener("click", function () { actual++; mostrar(); });
+  mostrar();
+})();
+</script>
+```
+
+Clasificador de variables.
+
+:::
+
+Las dudas más comunes aparecen en los bordes de la clasificación. Una variable continua redondeada (la edad en años cumplidos, la lluvia registrada al milímetro) sigue siendo continua aunque solo tome enteros, porque el redondeo es del instrumento y no de la magnitud. Una variable discreta con muchísimos valores posibles (el número de vehículos que pasan por una carretera en un día) se trata en la práctica como continua, porque contar valor por valor no resume nada. Y una cualitativa con dos categorías (cumple o no cumple) se llama dicotómica o binaria: es el punto de partida de la distribución binomial del capítulo 14.
 
 ### Los tipos de variables en R
 
@@ -411,6 +840,16 @@ glimpse(puentes2)
 
 **Interpretación.** Después de la conversión, R sabe que el estado es ordinal: en `glimpse()` aparece como `<ord>` y en `str()` como `Ord.factor`, con el orden Malo < Regular < Bueno. Eso hace que los cuadros y gráficos de los capítulos siguientes muestren las categorías en ese orden y no en orden alfabético. El año quedó como número entero y la edad, que es la variable que conviene usar en un análisis de deterioro, ya está en escala de razón.
 
+:::
+
+::: {.callout-warning title="Cuidado"}
+Errores frecuentes al empezar un análisis:
+
+1. **Confundir el parámetro con el estadístico.** "La resistencia del concreto es 31 MPa" mezcla las dos cosas: 31 MPa es la media de los cilindros ensayados, no la del concreto colado.
+2. **Promediar categorías codificadas con números.** Un estado de mantenimiento promedio de 2.3 no tiene unidades ni interpretación.
+3. **Concluir causa a partir de un estudio observacional.** Que dos variables cambien juntas no prueba que una mueva a la otra; puede haber una variable de confusión.
+4. **Creer que más datos corrigen una mala muestra.** Más datos reducen la imprecisión, pero no el sesgo (@fig-est-diana).
+5. **Mirar solo los datos que sobrevivieron.** Si se estudian los puentes antiguos que siguen en servicio para concluir que los puentes antiguos eran muy durables, se olvidan los que ya colapsaron o se demolieron. A este error se le llama sesgo de supervivencia.
 :::
 
 ## Aplicaciones en la ingeniería civil {#sec-est-aplicaciones}
@@ -514,6 +953,11 @@ ggplot(lluvia, aes(x = anio, y = precipitacion_mm)) +
 6. Con los datos de inspección de puentes y una semilla de su elección, tome en R una muestra aleatoria simple de 8 puentes con `sample()` y otra con `slice_sample()`. ¿Cuántos puentes de cada material quedaron en cada muestra? ¿Quedó algún material sin representar?
 7. Con los mismos datos, convierta la variable `carriles` en factor y compare lo que devuelven `summary(puentes$carriles)` antes y después de la conversión. ¿Cuál de los dos resultados tiene más sentido para describir el inventario?
 8. En el interactivo de la @fig-est-interactivo, tome 10 muestras con $n = 5$ y anote la media de cada una. Repita con $n = 50$. Compare la menor y la mayor media que obtuvo en cada caso. ¿Qué concluye sobre el efecto del tamaño de la muestra?
+9. Una planta potabilizadora mide el cloro residual en la red de distribución. Proponga un muestreo estratificado por zona de presión y uno sistemático en el tiempo (una muestra cada cierto número de horas). ¿Qué sesgo podría aparecer si todas las muestras se toman a las 8 de la mañana?
+10. En el interactivo de la @fig-est-int-metodos, sortee 20 muestras con el método aleatorio simple y cuente en cuántas no quedó ninguna alcantarilla de bóveda. Compare su resultado con la probabilidad de 0.204 que da el texto.
+11. Para cada caso de la @fig-est-diana, describa una situación de laboratorio de suelos que produzca ese patrón (por ejemplo, un horno de secado con el termostato descalibrado).
+12. Repita en R el ejemplo de muestreo sistemático para un tramo de 8.5 km con 25 núcleos. ¿Cuál es el intervalo $k$? ¿En qué cadenamiento queda el último núcleo con la semilla 2026?
+13. Un estudio encuentra que las zonas de una ciudad con más hidrantes tienen más incendios. Identifique la variable de confusión y explique cómo cambiaría la comparación para tenerla en cuenta.
 
 ## Lecturas recomendadas
 
@@ -521,3 +965,6 @@ ggplot(lluvia, aes(x = anio, y = precipitacion_mm)) +
 - @lanesfintroduction, capítulo 1: diferencia entre estadística descriptiva e inferencial, variables y escalas de medición, explicadas con muchos ejemplos cortos. De dominio público.
 - @montgomery2014applied, capítulo 1: el papel de la estadística en el método de la ingeniería y los distintos tipos de estudios, con ejemplos de ingeniería.
 - @navidi2006estadistica, capítulo 1: muestreo y tipos de experimentos en español, con ejercicios de ingeniería.
+- @freedman2007statistics, capítulos 1 y 2: experimentos controlados, estudios observacionales y variables de confusión, con casos históricos explicados sin fórmulas.
+- @lohr2019sampling, capítulos 1 a 5: los métodos de muestreo con todo detalle, para quien deba diseñar un muestreo real.
+- @ang2007probability, capítulo 1: el papel de la incertidumbre en la ingeniería civil y ambiental, y la diferencia entre incertidumbre aleatoria y epistémica.
