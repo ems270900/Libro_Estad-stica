@@ -99,6 +99,33 @@ plot(lab$hora, lab$vehiculos, type = "o", pch = 19, col = "#1C6BA0",
      xlab = "Hora del día", ylab = "Vehículos por hora")
 ```
 
+### Agregar detalles a un gráfico de R base
+
+Después de dibujar un gráfico con R base se le pueden agregar elementos con otras funciones, que dibujan encima del gráfico abierto:
+
+- `abline(h = 800)` traza una línea horizontal en 800, y `abline(v = 12)`, una vertical en 12. Con `lty = 2` la línea es discontinua.
+- `points()` y `lines()` agregan puntos o líneas de otra serie.
+- `legend()` agrega la leyenda, con la posición ("topleft", "topright"...) y los nombres de las series.
+- `text(x, y, "texto")` escribe un texto en una posición.
+
+El argumento `pch` elige la forma de los puntos (19 es un círculo relleno) y `lty`, el tipo de línea. La @fig-graf-base-detalles junta todo en un solo gráfico.
+
+```{r}
+#| label: fig-graf-base-detalles
+#| fig-cap: "Vehículos por hora en los dos tipos de día, con una línea de referencia en 800 vehículos por hora."
+#| fig-alt: "Dos líneas de vehículos por hora; la del día laboral pasa sobre la línea discontinua de 800 en la mañana y en la tarde, la del fin de semana queda siempre por debajo"
+
+fds <- transito[transito$dia == "Fin de semana", ]
+plot(lab$hora, lab$vehiculos, type = "o", pch = 19, col = "#1C6BA0",
+     ylim = c(0, 1200), xlab = "Hora del día", ylab = "Vehículos por hora")
+lines(fds$hora, fds$vehiculos, type = "o", pch = 17, col = "#E69F00")
+abline(h = 800, lty = 2, col = "gray40")
+legend("topleft", legend = c("Laboral", "Fin de semana"),
+       col = c("#1C6BA0", "#E69F00"), pch = c(19, 17), lty = 1, bty = "n")
+```
+
+Para poner dos gráficos lado a lado se divide la ventana con `par(mfrow = c(1, 2))`, que significa una fila y dos columnas. Al terminar se vuelve a un solo gráfico con `par(mfrow = c(1, 1))`.
+
 ## Gráficos con ggplot2 {#sec-graf-ggplot}
 
 El paquete ggplot2 construye los gráficos por capas, a partir de una idea llamada gramática de gráficos [@wickham2016ggplot2]. Todo gráfico se describe con tres piezas:
@@ -195,6 +222,116 @@ Los gráficos de este libro siguen unas pocas reglas, que sirven también para l
 - Se usa un color para una sola serie y una paleta distinguible para varias, evitando el rojo contra el verde, que muchas personas no distinguen.
 - El fondo se deja limpio (`theme_minimal()`), sin cuadrículas gruesas ni efectos tridimensionales.
 
+### Colores, escalas y temas
+
+Cada parte del aspecto de un gráfico de ggplot2 se controla con una capa más. Las tres familias que más se usan son las escalas, las etiquetas y los temas:
+
+- Las escalas (`scale_...()`) controlan cómo se traducen los datos a posiciones y colores. `scale_y_continuous(limits = c(0, 45), breaks = seq(0, 45, 5))` fija el rango del eje $y$ y dónde van sus marcas. `scale_fill_manual(values = c("A" = "#1C6BA0", "B" = "#E69F00"))` elige a mano el color de cada grupo, y `scale_color_viridis_d()` usa la paleta viridis, que se distingue bien incluso en blanco y negro y con daltonismo.
+- Las etiquetas (`labs()`) cambian el nombre de los ejes y de las leyendas.
+- Los temas (`theme_...()`) cambian el aspecto general: `theme_minimal()` deja el fondo blanco con líneas guía suaves y `theme_bw()` agrega un marco. Con `theme()` se ajustan detalles, como `theme(legend.position = "bottom")`, que pone la leyenda debajo del gráfico.
+
+```{r}
+#| label: fig-graf-escalas
+#| fig-cap: "Resistencia a 28 días por proyecto y mezcla, con colores, escala y tema ajustados."
+#| fig-alt: "Cajas de resistencia por proyecto, dos por proyecto, en azul para la mezcla A y en naranja para la B, con el eje vertical de 25 a 45 MPa"
+
+ggplot(e28, aes(x = proyecto, y = resistencia_mpa, fill = mezcla)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("A" = "#1C6BA0", "B" = "#E69F00")) +
+  scale_y_continuous(limits = c(25, 45), breaks = seq(25, 45, 5)) +
+  labs(x = "Proyecto", y = "Resistencia a 28 días (MPa)", fill = "Mezcla") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+El argumento `base_size` de los temas fija el tamaño de letra de todo el gráfico. Para un informe impreso o una presentación conviene subirlo a 13 o 14.
+
+### Líneas de referencia y textos
+
+En ingeniería casi siempre hay un valor contra el que se compara: la resistencia de diseño, un límite de una norma, la capacidad de una vía. `geom_hline()` y `geom_vline()` trazan líneas horizontales y verticales, y `annotate()` escribe un texto en una posición dada. En la @fig-graf-referencia, cada proyecto tiene su propia resistencia de diseño, así que la línea se dibuja con un panel por proyecto y una tabla pequeña con el valor de cada uno.
+
+```{r}
+#| label: fig-graf-referencia
+#| fig-cap: "Resistencia a 28 días de cada cilindro y resistencia de diseño de su proyecto (línea discontinua)."
+#| fig-alt: "Tres paneles de puntos, uno por proyecto, cada uno con una línea horizontal discontinua en su resistencia de diseño; solo un punto del edificio queda debajo de su línea"
+#| fig-width: 9
+#| fig-height: 3.5
+#| out-width: "85%"
+
+disenos <- data.frame(proyecto = c("Edificio", "Pavimento", "Puente"),
+                      fc = c(28, 30, 35))
+
+ggplot(e28, aes(x = mezcla, y = resistencia_mpa)) +
+  geom_point(position = position_jitter(width = 0.1, seed = 1),
+             color = "#1C6BA0", size = 2) +
+  geom_hline(data = disenos, aes(yintercept = fc), linetype = "dashed") +
+  facet_wrap(~ proyecto) +
+  labs(x = "Mezcla", y = "Resistencia a 28 días (MPa)") +
+  theme_minimal()
+```
+
+Con la línea de referencia, la pregunta "¿algún cilindro quedó por debajo?" se responde de un vistazo: solo uno del edificio, de la mezcla A.
+
+### Barras con valores ya calculados
+
+`geom_bar()` cuenta filas. Cuando la altura de cada barra ya está calculada, como una media por grupo, se usa `geom_col()`. Con `position = "dodge"` las barras de cada grupo quedan lado a lado en vez de apiladas, y `geom_text()` escribe el valor sobre cada barra:
+
+```{r}
+#| label: fig-graf-col
+#| fig-cap: "Resistencia media por proyecto y edad del ensayo."
+#| fig-alt: "Barras agrupadas por proyecto, una para 7 días y otra más alta para 28 días, con el valor de la media escrito sobre cada barra"
+
+library(dplyr)
+medias <- ensayos %>%
+  group_by(proyecto, edad_dias) %>%
+  summarise(media = mean(resistencia_mpa), .groups = "drop")
+
+ggplot(medias, aes(x = proyecto, y = media, fill = factor(edad_dias))) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = round(media, 1)), position = position_dodge(width = 0.9),
+            vjust = -0.4, size = 3.5) +
+  scale_fill_manual(values = c("7" = "#9ecae1", "28" = "#1C6BA0")) +
+  labs(x = "Proyecto", y = "Resistencia media (MPa)", fill = "Edad (días)") +
+  theme_minimal()
+```
+
+En el código, `dplyr` calcula las medias y `ggplot2` las dibuja: es la forma usual de trabajar, primero se resumen los datos y después se grafica el resumen.
+
+### Tendencias con geom_smooth
+
+En un diagrama de dispersión, `geom_smooth(method = "lm")` agrega la recta que mejor se ajusta a los puntos, con una banda gris que indica su incertidumbre. Con `se = FALSE` se dibuja solo la recta. La Parte VI explica cómo se calcula esa recta; por ahora sirve para ver si hay una tendencia.
+
+```{r}
+#| label: fig-graf-smooth
+#| fig-cap: "Asentamiento y resistencia a 28 días, con una recta de tendencia por proyecto."
+#| fig-alt: "Puntos de tres colores, uno por proyecto, cada grupo con su recta de tendencia; las rectas son casi horizontales"
+
+ggplot(e28, aes(x = asentamiento_mm, y = resistencia_mpa, color = proyecto)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_viridis_d(end = 0.85) +
+  labs(x = "Asentamiento (mm)", y = "Resistencia a 28 días (MPa)", color = "Proyecto") +
+  theme_minimal()
+```
+
+Las rectas son casi horizontales: en estos datos, el asentamiento no dice mucho sobre la resistencia dentro de cada proyecto. Lo que separa a los puntos es el proyecto, es decir, la resistencia de diseño de cada concreto. Un dato faltante de asentamiento hace que ggplot2 avise que quitó una fila; es normal.
+
+### Errores frecuentes con ggplot2
+
+El @tbl-graf-errores reúne los errores más comunes al empezar con ggplot2.
+
+| Síntoma | Causa | Solución |
+|:--|:--|:--|
+| `could not find function "ggplot"` | Falta cargar el paquete | `library(ggplot2)` |
+| Una capa no aparece o da error de sintaxis | El `+` quedó al inicio de la línea siguiente | Poner el `+` al final de cada línea |
+| Todos los puntos salen de un color fijo aunque se pidió por grupo | El color se escribió fuera de `aes()` | `aes(color = mezcla)` para que dependa de los datos |
+| Todo sale del mismo color "rojo" aunque se pidió azul | El color fijo se escribió dentro de `aes()` | `geom_point(color = "#1C6BA0")`, fuera de `aes()` |
+| La edad sale como una escala continua de colores | La variable es numérica | `factor(edad_dias)` |
+| Las barras salen negras por dentro | Se usó `color` en vez de `fill` | `color` es el borde; `fill`, el relleno |
+| `object 'resistencia' not found` | El nombre de la columna está mal escrito | Revisar con `names(datos)` |
+
+: Errores frecuentes con ggplot2 y su solución. {#tbl-graf-errores}
+
 ### Guardar un gráfico
 
 `ggsave()` guarda el último gráfico en un archivo. La extensión define el formato, y `width`, `height` y `dpi` el tamaño y la resolución:
@@ -205,6 +342,95 @@ ggsave("resistencia_por_proyecto.png", width = 16, height = 10, units = "cm", dp
 ```
 
 Con R base se abre un archivo con `png()`, se hace el gráfico y se cierra con `dev.off()`. También se puede usar el botón Export de la pestaña Plots de RStudio.
+
+## Interactivo: un gráfico capa por capa {#sec-graf-capas}
+
+En ggplot2 un gráfico se construye sumando capas. En el interactivo de la @fig-graf-capas-int, cada casilla agrega o quita una capa del gráfico de la resistencia a 28 días por proyecto, y debajo se ve el código que produciría ese mismo gráfico. Empiece con solo los puntos y vaya agregando capas una por una.
+
+::: {#fig-graf-capas-int}
+
+```{=html}
+<div class="interactivo" id="int-capas">
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
+    <label><input type="checkbox" data-capa="puntos" checked> geom_jitter() (puntos)</label>
+    <label><input type="checkbox" data-capa="caja"> geom_boxplot()</label>
+    <label><input type="checkbox" data-capa="color"> aes(color = mezcla) en los puntos</label>
+    <label><input type="checkbox" data-capa="linea"> geom_hline(28 MPa)</label>
+    <label><input type="checkbox" data-capa="labs"> labs()</label>
+    <label><input type="checkbox" data-capa="tema"> theme_minimal()</label>
+  </div>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Gráfico de la resistencia a 28 días por proyecto que cambia según las capas elegidas"></svg>
+  <pre class="codigo-capas" style="text-align:left; margin:0.4rem 0 0; padding:0.5rem 0.7rem; font-size:0.85rem; border-radius:4px; white-space:pre-wrap;"></pre>
+</div>
+<script>
+(function () {
+  var todos = [["M01","Puente","A",7,22.7,35],["M02","Puente","A",28,37.7,35],["M03","Puente","A",7,28,35],["M04","Puente","A",28,36.3,35],["M05","Puente","A",7,18.7,35],["M06","Puente","A",28,37.8,35],["M07","Puente","A",7,23.4,35],["M08","Puente","A",28,39.4,35],["M09","Puente","A",7,23.7,35],["M10","Puente","A",28,37.2,35],["M11","Puente","B",7,22.6,35],["M12","Puente","B",28,37.1,35],["M13","Puente","B",7,23.8,35],["M14","Puente","B",28,40.2,35],["M15","Puente","B",7,26.9,35],["M16","Puente","B",28,37.1,35],["M17","Puente","B",7,25.6,35],["M18","Puente","B",28,39.6,35],["M19","Puente","B",7,27.6,35],["M20","Puente","B",28,39,35],["M21","Edificio","A",7,19.8,28],["M22","Edificio","A",28,27.6,28],["M23","Edificio","A",7,19.3,28],["M24","Edificio","A",28,30.9,28],["M25","Edificio","A",7,18.1,28],["M26","Edificio","A",28,30.1,28],["M27","Edificio","A",7,17.4,28],["M28","Edificio","A",28,28.3,28],["M29","Edificio","A",7,16.9,28],["M30","Edificio","A",28,31.3,28],["M31","Edificio","B",7,23.1,28],["M32","Edificio","B",28,32.3,28],["M33","Edificio","B",7,24.3,28],["M34","Edificio","B",28,31.1,28],["M35","Edificio","B",7,17.2,28],["M36","Edificio","B",28,33.4,28],["M37","Edificio","B",7,19.4,28],["M38","Edificio","B",28,33.2,28],["M39","Edificio","B",7,19,28],["M40","Edificio","B",28,32.8,28],["M41","Pavimento","A",7,25.4,30],["M42","Pavimento","A",28,32.7,30],["M43","Pavimento","A",7,21.3,30],["M44","Pavimento","A",28,36,30],["M45","Pavimento","A",7,19.2,30],["M46","Pavimento","A",28,31.2,30],["M47","Pavimento","A",7,18,30],["M48","Pavimento","A",28,31.7,30],["M49","Pavimento","A",7,22.3,30],["M50","Pavimento","A",28,35.8,30],["M51","Pavimento","B",7,22.3,30],["M52","Pavimento","B",28,33.2,30],["M53","Pavimento","B",7,19.7,30],["M54","Pavimento","B",28,33.7,30],["M55","Pavimento","B",7,20.3,30],["M56","Pavimento","B",28,37.2,30],["M57","Pavimento","B",7,22.5,30],["M58","Pavimento","B",28,34.3,30],["M59","Pavimento","B",7,24.3,30],["M60","Pavimento","B",28,39.7,30]];
+  var datos = todos.filter(function (d) { return d[3] === 28; });
+  var raiz = document.getElementById("int-capas"), svg = raiz.querySelector("svg"), pre = raiz.querySelector("pre");
+  var grupos = ["Edificio", "Pavimento", "Puente"];
+  var w = 640, h = 300, ml = 56, mr = 90, mt = 14, mb = 46, y0 = 26, y1 = 42;
+  function on(c) { return raiz.querySelector('input[data-capa="' + c + '"]').checked; }
+  function sx(i) { return ml + (i + 0.5) * (w - ml - mr) / 3; }
+  function sy(y) { return h - mb - (y - y0) / (y1 - y0) * (h - mt - mb); }
+  function cuantil(v, p) { var s = v.slice().sort(function (a, b) { return a - b; }), k = (s.length - 1) * p, f = Math.floor(k); return s[f] + (s[Math.min(f + 1, s.length - 1)] - s[f]) * (k - f); }
+  function dibujar() {
+    var tema = on("tema"), s = "", colorA = "#1C6BA0", colorB = "#E69F00";
+    var gris = tema ? "transparent" : "#ebebeb", lineaGuia = tema ? "#dddddd" : "#ffffff";
+    s += '<rect x="' + ml + '" y="' + mt + '" width="' + (w - ml - mr) + '" height="' + (h - mt - mb) + '" style="fill:' + gris + '"/>';
+    for (var y = 26; y <= 42; y += 4) {
+      s += '<line x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" style="stroke:' + lineaGuia + '; stroke-width:1"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(y) + 4) + '" text-anchor="end">' + y + '</text>';
+    }
+    grupos.forEach(function (g, i) {
+      var v = datos.filter(function (d) { return d[1] === g; });
+      var r = v.map(function (d) { return d[4]; });
+      if (on("caja")) {
+        var q1 = cuantil(r, 0.25), q2 = cuantil(r, 0.5), q3 = cuantil(r, 0.75), iqr = q3 - q1;
+        var bajo = Math.min.apply(null, r.filter(function (x) { return x >= q1 - 1.5 * iqr; }));
+        var alto = Math.max.apply(null, r.filter(function (x) { return x <= q3 + 1.5 * iqr; }));
+        var x = sx(i), a = 45;
+        s += '<line x1="' + x + '" x2="' + x + '" y1="' + sy(alto) + '" y2="' + sy(q3) + '" style="stroke:#333"/>' +
+             '<line x1="' + x + '" x2="' + x + '" y1="' + sy(q1) + '" y2="' + sy(bajo) + '" style="stroke:#333"/>' +
+             '<rect x="' + (x - a) + '" y="' + sy(q3) + '" width="' + (2 * a) + '" height="' + (sy(q1) - sy(q3)) + '" style="fill:#ffffff; stroke:#333"/>' +
+             '<line x1="' + (x - a) + '" x2="' + (x + a) + '" y1="' + sy(q2) + '" y2="' + sy(q2) + '" style="stroke:#333; stroke-width:2.5"/>';
+      }
+      if (on("puntos")) {
+        v.forEach(function (d, k) {
+          var dx = ((k * 37) % 11 - 5) * 4, col = on("color") ? (d[2] === "A" ? colorA : colorB) : "#222222";
+          s += '<circle cx="' + (sx(i) + dx) + '" cy="' + sy(d[4]) + '" r="4" style="fill:' + col + '; fill-opacity:0.85"/>';
+        });
+      }
+      s += '<text class="eje-texto" x="' + sx(i) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + g + '</text>';
+    });
+    if (on("linea")) s += '<line x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(28) + '" y2="' + sy(28) + '" style="stroke:#C0392B; stroke-width:1.5; stroke-dasharray:6 4"/>';
+    if (on("color") && on("puntos")) {
+      s += '<text class="eje-texto" x="' + (w - mr + 14) + '" y="' + (mt + 40) + '">' + (on("labs") ? "Mezcla" : "mezcla") + '</text>' +
+           '<circle cx="' + (w - mr + 20) + '" cy="' + (mt + 58) + '" r="4" style="fill:' + colorA + '"/><text class="eje-texto" x="' + (w - mr + 30) + '" y="' + (mt + 62) + '">A</text>' +
+           '<circle cx="' + (w - mr + 20) + '" cy="' + (mt + 78) + '" r="4" style="fill:' + colorB + '"/><text class="eje-texto" x="' + (w - mr + 30) + '" y="' + (mt + 82) + '">B</text>';
+    }
+    var tx = on("labs") ? "Proyecto" : "proyecto", ty = on("labs") ? "Resistencia a 28 días (MPa)" : "resistencia_mpa";
+    s += '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 8) + '" text-anchor="middle">' + tx + '</text>' +
+         '<text class="eje-texto" x="14" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 14 ' + ((mt + h - mb) / 2) + ')">' + ty + '</text>';
+    svg.innerHTML = s;
+    var c = ["ggplot(e28, aes(x = proyecto, y = resistencia_mpa))"];
+    if (on("caja")) c.push("geom_boxplot()");
+    if (on("puntos")) c.push(on("color") ? "geom_jitter(aes(color = mezcla), width = 0.15)" : "geom_jitter(width = 0.15)");
+    if (on("linea")) c.push('geom_hline(yintercept = 28, linetype = "dashed", color = "red")');
+    if (on("labs")) c.push('labs(x = "Proyecto", y = "Resistencia a 28 días (MPa)"' + (on("color") ? ', color = "Mezcla"' : "") + ")");
+    if (on("tema")) c.push("theme_minimal()");
+    pre.textContent = c.join(" +\n  ");
+  }
+  raiz.addEventListener("change", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Gráfico de la resistencia a 28 días construido capa por capa, con el código de ggplot2 correspondiente.
+
+:::
+
+El color por mezcla se pone en el `aes()` de los puntos y no en el de `ggplot()`: si se pusiera en `ggplot()`, valdría para todas las capas y ggplot2 dibujaría dos cajas por proyecto, una por mezcla. Fíjese también en dos detalles más. Sin `theme_minimal()`, ggplot2 dibuja el fondo gris que trae por defecto. Y sin `labs()`, los ejes muestran los nombres de las columnas tal como están en los datos, con guiones bajos y sin unidades: casi nunca es lo que se quiere en un informe.
 
 ## Interactivo: el número de clases de un histograma {#sec-graf-interactivo}
 
@@ -294,7 +520,7 @@ r28 <- ensayos$resistencia_mpa[ensayos$edad_dias == 28]
 # 2) Límites de las clases
 limites <- seq(26, 42, by = 2)
 
-# 3) Tabla de frecuencias (right = FALSE: [a, b))
+# 3) Cuadro de frecuencias (right = FALSE: [a, b))
 table(cut(r28, breaks = limites, right = FALSE))
 
 # 4) Histograma en R base (el de ggplot2 va en el bloque siguiente)
@@ -316,6 +542,56 @@ ggplot(data.frame(r28), aes(x = r28)) +
 
 :::
 
+::: {.callout-note title="Ejemplo: horas en que el tránsito supera un umbral"}
+
+**Planteamiento.** Con el conteo vehicular por hora (datos hipotéticos, capítulo 3), dibuje los vehículos por hora de los dos tipos de día con una línea de referencia en 800 vehículos por hora, y cuente en cuántas horas de cada tipo de día se supera ese valor. Suponga que 800 vehículos por hora es el volumen a partir del cual la intersección empieza a formar colas largas (valor hipotético, para el ejercicio).
+
+**Solución:**
+
+1. Día laboral: los conteos mayores que 800 son 999 (7 h), 830 (8 h), 827 (16 h), 1145 (17 h) y 1067 (18 h). Son 5 horas.
+2. Fin de semana: el mayor conteo del día es de 719 vehículos, a las 17 h, así que no hay ninguna hora sobre 800.
+3. En el gráfico, los puntos que quedan sobre la línea de 800 deben ser exactamente esas 5 horas del día laboral.
+
+**Pseudocódigo**
+
+1. Leer los datos de tránsito.
+2. Contar, por tipo de día, las horas con más de 800 vehículos.
+3. Dibujar una línea por tipo de día y una línea horizontal en 800.
+4. Comprobar que los puntos sobre la línea coinciden con el conteo.
+
+```{r}
+#| label: fig-graf-umbral
+#| fig-cap: "Vehículos por hora en los dos tipos de día y umbral de 800 vehículos por hora."
+#| fig-alt: "Dos líneas con puntos; la del día laboral cruza la línea discontinua de 800 en la punta de la mañana y en la de la tarde, la del fin de semana queda debajo todo el día"
+
+# 1) Datos
+transito <- read.csv("datos/transito_horario_hipotetico.csv")
+
+# 2) Conteo con R base y con dplyr
+tapply(transito$vehiculos > 800, transito$dia, sum)
+transito %>%
+  group_by(dia) %>%
+  summarise(horas_sobre_800 = sum(vehiculos > 800))
+
+# 3) Gráfico
+ggplot(transito, aes(x = hora, y = vehiculos, color = dia)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.8) +
+  geom_hline(yintercept = 800, linetype = "dashed") +
+  annotate("text", x = 0, y = 840, label = "800 veh/h", hjust = 0, size = 3.5) +
+  scale_x_continuous(breaks = seq(0, 23, 3)) +
+  scale_color_manual(values = c("Laboral" = "#1C6BA0", "Fin de semana" = "#E69F00")) +
+  labs(x = "Hora del día", y = "Vehículos por hora", color = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+La función `tapply()` de R base aplica una función (aquí `sum`) a un vector separado por grupos; es la forma corta de R base para lo que hace `group_by()` con `summarise()`.
+
+**Interpretación.** El día laboral supera el umbral en 5 horas, repartidas en la punta de la mañana (7 y 8 h) y en la de la tarde (16 a 18 h); el fin de semana no lo supera nunca. Si hubiera que programar un semáforo con dos planes de tiempos, este gráfico ya sugiere cuándo aplicar cada uno.
+
+:::
+
 ## Ejercicios propuestos
 
 1. Haga un gráfico de barras del número de cilindros por tipo de mezcla, con R base y con ggplot2.
@@ -325,6 +601,11 @@ ggplot(data.frame(r28), aes(x = r28)) +
 5. Repita el histograma del ejemplo con clases de 4 MPa. ¿Se siguen viendo las dos zonas altas?
 6. En el interactivo de la @fig-graf-interactivo, ¿con qué ancho de clase se pierden los dos grupos de edades? ¿Qué ancho le parece el más adecuado para estos datos y por qué?
 7. Guarde el gráfico del ejercicio 4 en un archivo PNG de 16 cm por 10 cm con `ggsave()`.
+8. Haga con R base el gráfico de líneas de los dos tipos de día, con leyenda y una línea horizontal en la media del día laboral (`abline(h = mean(...))`).
+9. Repita la @fig-graf-escalas con la paleta viridis (`scale_fill_viridis_d()`) y con `theme_bw()`. ¿Cuál se lee mejor?
+10. Dibuje con `geom_col()` el total de vehículos de cada tipo de día y escriba el valor sobre cada barra.
+11. Con los datos de humedad del suelo del capítulo 3, dibuje la humedad contra la profundidad, un color por sondeo, con `geom_line()` y `geom_point()`. ¿Cómo cambia la humedad con la profundidad?
+12. En el interactivo de la @fig-graf-capas-int, arme el gráfico con cajas, puntos coloreados por mezcla, línea de referencia, etiquetas y tema. Copie el código que aparece, ejecútelo en R y compare.
 
 ## Lecturas recomendadas
 
