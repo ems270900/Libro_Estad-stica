@@ -54,6 +54,12 @@ book:
         - 05-rmarkdown.qmd
         - 06-programacion_simulacion.qmd
 
+    - part: "Estadística descriptiva"
+      chapters:
+        - 07-estadistica_ingenieria.qmd
+        - 08-presentacion_datos.qmd
+        - 09-medidas_descriptivas.qmd
+
     - part: "Probabilidad"
       chapters:
         - 10-experimentos_eventos.qmd

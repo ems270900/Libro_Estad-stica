@@ -1,0 +1,606 @@
+---
+title: "Presentación de datos: cuadros y gráficos"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"El mayor valor de una imagen es cuando nos obliga a notar lo que nunca esperábamos ver."\
+— *John W. Tukey [-@tukey1977exploratory, p. vi]. Traducción propia.*
+:::
+
+Un archivo con 65 lluvias máximas anuales o con el inventario de 40 puentes es una lista de números y palabras que nadie puede leer de un vistazo. Antes de calcular cualquier medida, los datos se ordenan en cuadros de frecuencia y se dibujan. Un buen cuadro dice cuántos datos hay de cada tipo o en cada intervalo. Un buen gráfico muestra la forma de los datos: dónde se concentran, si hay valores muy alejados o si la variable cambia con el tiempo. El capítulo 4 enseñó a hacer gráficos en R; este capítulo explica cómo construir cuadros de frecuencia a mano y con R, qué gráfico corresponde a cada tipo de variable y qué errores de presentación conviene evitar.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(ggplot2)
+library(kableExtra)
+```
+
+## Formas de presentar los datos {#sec-pres-formas}
+
+Los datos se presentan de tres formas, según cuántos sean y qué se quiera mostrar:
+
+- **En el texto.** Sirve cuando hay pocas cifras: "de los 40 puentes inspeccionados, 16 son de concreto y 6 están en mal estado". Con más de cuatro o cinco números el párrafo se vuelve difícil de seguir.
+- **En un cuadro.** Ordena los números en filas y columnas, de modo que se pueden leer los valores exactos y compararlos. Es la forma de presentar resultados que otra persona va a usar en un cálculo.
+- **En un gráfico.** Muestra formas, tendencias y valores raros que en un cuadro pasarían inadvertidos. Se pierde la cifra exacta, pero se gana la vista del conjunto [@wilke2019fundamentals].
+
+Lo usual en un informe de ingeniería es combinar las tres: el cuadro con las cifras, el gráfico con la forma y una o dos oraciones en el texto que digan qué debe mirar quien lee.
+
+## Cuadros de frecuencia de una variable cualitativa {#sec-pres-cualitativa}
+
+La frecuencia absoluta $f_i$ de una categoría es el número de datos que caen en ella. La frecuencia relativa $h_i$ es la fracción del total que representa esa categoría:
+
+$$
+h_i = \frac{f_i}{n}
+$$ {#eq-pres-relativa}
+
+donde $f_i$ es la frecuencia absoluta de la categoría $i$ y $n$ es el número total de datos. Las frecuencias relativas suman 1, y multiplicadas por 100 dan el porcentaje de cada categoría [@illowsky2013introductory].
+
+Si la variable es ordinal, también tiene sentido acumular: la frecuencia acumulada $F_i$ de una categoría es la suma de las frecuencias de esa categoría y de todas las anteriores. En una variable nominal no se acumula, porque el orden de las categorías es arbitrario.
+
+En R, `table()` cuenta cuántas veces aparece cada valor de un vector, y `prop.table()` convierte esos conteos en proporciones. Con dplyr, `count()` hace el mismo conteo dentro de un data frame.
+
+::: {.callout-note title="Ejemplo: cuadro de frecuencias del material y del estado de los puentes"}
+
+**Planteamiento.** Con el inventario de 40 puentes (datos hipotéticos) presentado en el capítulo 7, construya el cuadro de frecuencias del material de los puentes y el de su estado de mantenimiento. Para el estado, que es ordinal, agregue la frecuencia acumulada. Represente el material con un gráfico de barras.
+
+```{r}
+#| echo: false
+ver_datos("datos/inspeccion_puentes_hipotetica.csv",
+          nombres = c("Puente", "Material", "Estado", "Carriles", "Longitud (m)", "Año de construcción"))
+```
+
+**Solución:**
+
+1. Se cuentan los puentes de cada material recorriendo la columna: acero 13, concreto 16, madera 4 y mixto 7. La suma da $13 + 16 + 4 + 7 = 40$, que es el total.
+2. Frecuencias relativas con la @eq-pres-relativa: acero $13/40 = 0.325$, concreto $16/40 = 0.400$, madera $4/40 = 0.100$ y mixto $7/40 = 0.175$. Suman 1.
+3. Para el estado se cuentan malo 6, regular 18 y bueno 16. Las categorías se ordenan de peor a mejor y se acumulan: $F_1 = 6$, $F_2 = 6 + 18 = 24$ y $F_3 = 24 + 16 = 40$. En porcentaje acumulado: 15 %, 60 % y 100 %.
+4. El gráfico de barras lleva una barra por material con altura igual a su frecuencia. Conviene ordenar las barras de mayor a menor para que la comparación sea inmediata.
+
+**Pseudocódigo**
+
+1. Leer los datos.
+2. Contar los puentes de cada material y calcular las frecuencias relativas.
+3. Convertir el estado en factor ordenado, contar y acumular.
+4. Dibujar el gráfico de barras del material, ordenado de mayor a menor.
+5. Repetir los pasos 2 y 4 con dplyr y ggplot2.
+
+```{r}
+# 1) Datos
+puentes <- read.csv("datos/inspeccion_puentes_hipotetica.csv")
+
+# 2) Material: frecuencia absoluta y relativa con R base
+f_material <- table(puentes$material)
+f_material
+prop.table(f_material)
+
+# 3) Estado: factor ordenado, frecuencia y frecuencia acumulada
+estado <- factor(puentes$estado, levels = c("Malo", "Regular", "Bueno"), ordered = TRUE)
+f_estado <- table(estado)
+data.frame(estado = names(f_estado),
+           f = as.vector(f_estado),
+           h = as.vector(prop.table(f_estado)),
+           F_acum = cumsum(as.vector(f_estado)))
+```
+
+```{r}
+#| label: fig-pres-barras-base
+#| fig-cap: "Número de puentes por material, con R base."
+#| fig-alt: "Cuatro barras verticales ordenadas de mayor a menor: concreto 16, acero 13, mixto 7 y madera 4"
+
+# 4) Barras ordenadas de mayor a menor con R base
+barplot(sort(f_material, decreasing = TRUE), col = "#1C6BA0",
+        xlab = "Material", ylab = "Número de puentes")
+```
+
+```{r}
+# 5) Con dplyr: count() cuenta y mutate() agrega las frecuencias relativas
+library(dplyr)
+cuadro_material <- puentes %>%
+  count(material) %>%
+  mutate(h = n / sum(n), porcentaje = 100 * h)
+cuadro_material
+```
+
+```{r}
+#| label: fig-pres-barras-gg
+#| fig-cap: "Número de puentes por material, con ggplot2."
+#| fig-alt: "Cuatro barras horizontales ordenadas: concreto 16, acero 13, mixto 7 y madera 4, con el porcentaje junto a cada barra"
+
+# 5) Con ggplot2
+library(ggplot2)
+ggplot(cuadro_material, aes(x = n, y = reorder(material, n))) +
+  geom_col(fill = "#1C6BA0") +
+  geom_text(aes(label = paste0(porcentaje, " %")), hjust = -0.15) +
+  labs(x = "Número de puentes", y = "Material") +
+  xlim(0, 18) +
+  theme_minimal()
+```
+
+**Interpretación.** El concreto es el material más común (40 % de los puentes) y la madera el menos común (10 %). En cuanto al estado, el 60 % de los puentes está en estado regular o malo, una cifra que se lee directo en la frecuencia acumulada y que sirve para dimensionar un programa de mantenimiento. En ggplot2, `geom_col()` dibuja barras con la altura que ya trae la columna `n`, a diferencia de `geom_bar()` (capítulo 4), que cuenta las filas por sí mismo; `reorder(material, n)` ordena las categorías según su frecuencia.
+
+:::
+
+### El gráfico circular
+
+El gráfico circular (o de pastel) divide un círculo en sectores proporcionales a la frecuencia relativa de cada categoría. Solo tiene sentido cuando las categorías son partes de un todo que suma 100 %. El ojo compara mal los ángulos y las áreas, así que con más de tres o cuatro categorías, o con categorías de tamaño parecido, el gráfico de barras se lee mejor [@wilke2019fundamentals; @healy2018dataviz]. La @fig-pres-circular compara las dos formas con los mismos datos.
+
+```{r}
+#| label: fig-pres-circular
+#| fig-cap: "Material de los 40 puentes en gráfico circular y en barras."
+#| fig-alt: "A la izquierda, un círculo con cuatro sectores; a la derecha, las mismas cuatro categorías como barras horizontales ordenadas, donde es más fácil ver que acero y concreto difieren en solo tres puentes"
+#| fig-width: 9
+#| fig-height: 3.6
+#| out-width: "85%"
+#| echo: false
+
+puentes <- read.csv("datos/inspeccion_puentes_hipotetica.csv")
+f_material <- sort(table(puentes$material), decreasing = TRUE)
+op <- par(mfrow = c(1, 2), mar = c(2, 5, 1, 1))
+pie(f_material, col = c("#1C6BA0", "#6BAED6", "#C6DBEF", "#9E9E9E"), border = "white",
+    labels = names(f_material))
+barplot(rev(f_material), horiz = TRUE, las = 1, col = "#1C6BA0", xlab = "Número de puentes")
+par(op)
+```
+
+En el círculo cuesta decidir si hay más puentes de acero o de concreto. En las barras se ve en el acto que hay 16 de concreto y 13 de acero.
+
+## Cuadros de frecuencia de una variable cuantitativa {#sec-pres-cuantitativa}
+
+Una variable discreta con pocos valores distintos, como el número de carriles (1, 2 o 4), se resume igual que una cualitativa: se cuenta cuántas veces aparece cada valor. Una variable continua, como la lluvia máxima diaria, casi nunca repite valores, así que contar cada valor no resume nada. En ese caso los datos se agrupan en intervalos llamados clases, y se cuenta cuántos datos caen en cada clase. El resultado es un cuadro de frecuencias agrupadas, y su gráfico es el histograma que se presentó en el capítulo 4.
+
+### Cuántas clases y de qué ancho
+
+No hay un número correcto de clases. Con muy pocas, los datos se aplastan en dos o tres barras y se pierde la forma; con demasiadas, aparecen huecos y barras sueltas que son solo ruido (el interactivo de la @sec-graf-interactivo muestra este efecto). Una guía muy usada es la regla de @sturges1926choice:
+
+$$
+k = 1 + \log_2 n = 1 + 3.322 \log_{10} n
+$$ {#eq-pres-sturges}
+
+donde $k$ es el número de clases y $n$ es el número de datos. Con $n = 65$ da $k \approx 7$, y con $n = 1000$ da $k \approx 11$. La regla funciona bien con datos en forma de campana y unos cientos de datos como máximo; con miles de datos o con distribuciones muy asimétricas suele dar pocas clases, y conviene probar con más.
+
+Con el número de clases se calcula el ancho de clase $c$, dividiendo el rango de los datos entre $k$:
+
+$$
+c = \frac{x_{\max} - x_{\min}}{k}
+$$ {#eq-pres-ancho}
+
+donde $x_{\max}$ y $x_{\min}$ son el mayor y el menor dato. El ancho se redondea hacia arriba a un número cómodo, para que las clases cubran todos los datos y sus límites sean fáciles de leer.
+
+### Partes de un cuadro de frecuencias agrupadas
+
+Cada fila del cuadro es una clase, y sus columnas son:
+
+- **Límites de la clase.** Se usan intervalos cerrados a la izquierda y abiertos a la derecha, $[a, b)$: un dato igual al límite $b$ se cuenta en la clase siguiente. Así ningún dato se cuenta dos veces.
+- **Marca de clase** $x_i$: el punto medio del intervalo, $(a + b)/2$. Representa a todos los datos de la clase.
+- **Frecuencia absoluta** $f_i$ y **frecuencia relativa** $h_i = f_i / n$.
+- **Frecuencia acumulada** $F_i$: número de datos menores que el límite superior $b$ de la clase. Su versión relativa $H_i = F_i / n$ dice qué fracción de los datos queda por debajo de $b$.
+
+### Histograma, polígono de frecuencias y ojiva
+
+Con el cuadro se dibujan tres gráficos. El histograma pone una barra por clase, con altura igual a la frecuencia y sin espacio entre barras, porque la variable es continua. El polígono de frecuencias une con líneas los puntos (marca de clase, frecuencia); sirve para comparar dos distribuciones en un mismo gráfico, donde dos histogramas se taparían. La ojiva es el gráfico de la frecuencia acumulada relativa contra el límite superior de cada clase: empieza en 0 en el límite inferior de la primera clase y termina en 1 (o 100 %) en el último límite [@illowsky2013introductory; @lanesfintroduction].
+
+::: {.callout-note title="Ejemplo: cuadro de frecuencias de la lluvia máxima diaria"}
+
+**Planteamiento.** Con la serie de 65 precipitaciones máximas diarias anuales (1956–2020) de una estación de Costa Rica, presentada en el capítulo 7, construya el cuadro de frecuencias agrupadas con la regla de Sturges y dibuje el histograma, el polígono de frecuencias y la ojiva. Responda: ¿en qué porcentaje de los años la lluvia máxima fue menor que 92 mm?
+
+```{r}
+#| echo: false
+ver_datos("datos/precipitacion_maxima_diaria.csv",
+          nombres = c("Año", "Precipitación máxima diaria (mm)"))
+```
+
+**Solución:**
+
+1. Número de clases con la @eq-pres-sturges: $k = 1 + 3.322 \log_{10} 65 = 1 + 3.322 \times 1.813 = 7.02$. Se usan $k = 7$ clases.
+2. Rango y ancho con la @eq-pres-ancho: el menor dato es 44.8 mm y el mayor 151.0 mm, así que $c = (151.0 - 44.8)/7 = 106.2/7 = 15.2$ mm. Se redondea hacia arriba a $c = 16$ mm.
+3. Límites: se empieza en 44 mm, un poco por debajo del menor dato, y se suman 16 mm cada vez: 44, 60, 76, 92, 108, 124, 140 y 156 mm. El último límite (156) supera al mayor dato (151.0), así que todos los datos quedan cubiertos.
+4. Se cuentan los datos de cada clase. Con los datos ordenados de menor a mayor es más fácil: los primeros 14 valores (de 44.8 a 58.4 mm) están en [44, 60), los 26 siguientes en [60, 76), y así sucesivamente.
+5. Se completan las columnas del @tbl-pres-lluvia. Por ejemplo, para la tercera clase: marca $x_3 = (76 + 92)/2 = 84$ mm, $h_3 = 14/65 = 0.215$, $F_3 = 14 + 26 + 14 = 54$ y $H_3 = 54/65 = 0.831$.
+
+```{r}
+#| label: tbl-pres-lluvia
+#| tbl-cap: "Frecuencias de la precipitación máxima diaria anual, 1956–2020."
+#| echo: false
+
+lluvia <- read.csv("datos/precipitacion_maxima_diaria.csv")
+limites <- seq(44, 156, by = 16)
+f <- as.vector(table(cut(lluvia$precipitacion_mm, breaks = limites, right = FALSE)))
+n <- sum(f)
+cuadro <- data.frame(
+  clase = paste0("[", head(limites, -1), ", ", limites[-1], ")"),
+  marca = (head(limites, -1) + limites[-1]) / 2,
+  f = f,
+  h = sprintf("%.3f", f / n),
+  F_ac = cumsum(f),
+  H_ac = sprintf("%.3f", cumsum(f) / n)
+)
+cuadro <- rbind(cuadro, data.frame(clase = "Total", marca = NA, f = n, h = "1.000", F_ac = NA, H_ac = ""))
+options(knitr.kable.NA = "")
+cuadro %>%
+  kbl(col.names = c("Clase (mm)", "<i>x<sub>i</sub></i> (mm)", "<i>f<sub>i</sub></i>",
+                    "<i>h<sub>i</sub></i>", "<i>F<sub>i</sub></i>", "<i>H<sub>i</sub></i>"),
+      escape = FALSE, align = "lccccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(nrow(cuadro), bold = TRUE)
+```
+
+6. Para responder la pregunta se lee la columna $H_i$: el límite superior de la tercera clase es 92 mm y $H_3 = 0.831$. En el 83.1 % de los años (54 de 65) la lluvia máxima fue menor que 92 mm.
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular $n$, el mínimo y el máximo.
+2. Calcular el número de clases y el ancho con las ecuaciones de Sturges y del ancho.
+3. Definir los límites y contar los datos de cada clase.
+4. Calcular marcas de clase, frecuencias relativas y acumuladas.
+5. Dibujar el histograma, el polígono y la ojiva con R base y con ggplot2.
+
+```{r}
+# 1) Datos
+lluvia <- read.csv("datos/precipitacion_maxima_diaria.csv")
+x <- lluvia$precipitacion_mm
+n <- length(x)
+c(n = n, minimo = min(x), maximo = max(x))
+
+# 2) Número de clases (Sturges) y ancho
+k <- 1 + 3.322 * log10(n)
+k
+ancho <- (max(x) - min(x)) / 7
+ancho
+
+# 3) Límites de las clases y frecuencias
+limites <- seq(44, 156, by = 16)
+clases <- cut(x, breaks = limites, right = FALSE)
+f <- as.vector(table(clases))
+
+# 4) Cuadro de frecuencias
+cuadro <- data.frame(
+  clase = levels(clases),
+  marca = (head(limites, -1) + limites[-1]) / 2,
+  f = f,
+  h = round(f / n, 3),
+  F_acum = cumsum(f),
+  H_acum = round(cumsum(f) / n, 3)
+)
+cuadro
+```
+
+En el código, `head(limites, -1)` da todos los límites menos el último (los límites inferiores) y `limites[-1]` todos menos el primero (los superiores). Su promedio es la marca de clase.
+
+```{r}
+#| label: fig-pres-lluvia-base
+#| fig-cap: "Histograma con polígono de frecuencias y ojiva de la lluvia máxima diaria, con R base."
+#| fig-alt: "A la izquierda, un histograma de siete clases con la clase de 60 a 76 mm como la más alta y una línea que une los centros de las barras; a la derecha, una curva creciente en forma de S que va de 0 a 1"
+#| fig-width: 9
+#| fig-height: 3.8
+#| out-width: "90%"
+
+# 5) Gráficos con R base: dos paneles lado a lado
+par(mfrow = c(1, 2))
+hist(x, breaks = limites, right = FALSE, col = "#C6DBEF", border = "white",
+     main = "", xlab = "Precipitación máxima diaria (mm)", ylab = "Frecuencia")
+lines(cuadro$marca, cuadro$f, type = "o", pch = 19, col = "#1C6BA0")
+plot(limites, c(0, cuadro$H_acum), type = "o", pch = 19, col = "#1C6BA0",
+     xlab = "Precipitación máxima diaria (mm)", ylab = "Frecuencia acumulada relativa")
+abline(v = 92, h = 0.831, lty = 2, col = "grey50")
+par(mfrow = c(1, 1))
+```
+
+```{r}
+#| label: fig-pres-lluvia-gg
+#| fig-cap: "Histograma y ojiva de la lluvia máxima diaria, con ggplot2."
+#| fig-alt: "Dos gráficos de ggplot2: histograma de siete clases con su polígono de frecuencias y la ojiva con una línea punteada que marca 92 mm y 0.831"
+#| fig-width: 9
+#| fig-height: 3.8
+#| out-width: "90%"
+
+# 5) Con ggplot2
+library(ggplot2)
+g1 <- ggplot(lluvia, aes(x = precipitacion_mm)) +
+  geom_histogram(breaks = limites, closed = "left", fill = "#C6DBEF", color = "white") +
+  geom_line(data = cuadro, aes(x = marca, y = f), color = "#1C6BA0") +
+  geom_point(data = cuadro, aes(x = marca, y = f), color = "#1C6BA0") +
+  labs(x = "Precipitación máxima diaria (mm)", y = "Frecuencia") +
+  theme_minimal()
+
+ojiva <- data.frame(limite = limites, H = c(0, cuadro$H_acum))
+g2 <- ggplot(ojiva, aes(x = limite, y = H)) +
+  geom_line(color = "#1C6BA0") +
+  geom_point(color = "#1C6BA0") +
+  geom_vline(xintercept = 92, linetype = "dashed", color = "grey50") +
+  geom_hline(yintercept = 0.831, linetype = "dashed", color = "grey50") +
+  labs(x = "Precipitación máxima diaria (mm)", y = "Frecuencia acumulada relativa") +
+  theme_minimal()
+
+# Dos gráficos de ggplot2 lado a lado con el paquete patchwork
+library(patchwork)
+g1 + g2
+```
+
+**Interpretación.** La clase con más años es la de 60 a 76 mm (40 % de los años). La distribución tiene una cola larga hacia la derecha: pocos años con lluvias de más de 100 mm y uno solo por encima de 140 mm. La clase [124, 140) quedó vacía, lo que es normal en la cola de una serie de máximos. Esa forma asimétrica es típica de las lluvias y los caudales máximos, y es la razón por la que en hidrología no se usa la distribución normal para diseñar, sino distribuciones de valores extremos (Parte IV). La regla de Sturges con la función `nclass.Sturges()` de R da 8 clases y no 7, porque R redondea hacia arriba; las dos opciones son razonables.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Un histograma no es un gráfico de barras. En el histograma la variable es continua, el eje horizontal es una escala numérica y las barras van pegadas. En el gráfico de barras la variable es categórica (o discreta con pocos valores), las barras van separadas y su orden se puede cambiar. Si las clases de un histograma tienen anchos distintos, la altura de cada barra debe ser la densidad ($h_i$ dividido entre el ancho) y no la frecuencia, o las clases anchas se verán más importantes de lo que son.
+:::
+
+### Interactivo: leer una ojiva
+
+La ojiva responde preguntas del tipo "¿en qué fracción de los años la lluvia fue menor que tal valor?". En la @fig-pres-interactivo, mueva el control para elegir un valor de lluvia. La línea muestra la ojiva del @tbl-pres-lluvia, y el texto da la respuesta exacta contando los 65 datos.
+
+::: {#fig-pres-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-ojiva">
+  <label><span>Precipitación <i>x</i> (mm):</span> <output>92</output>
+    <input type="range" min="44" max="156" step="1" value="92"></label>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Ojiva de la lluvia máxima diaria con una línea vertical en el valor elegido"></svg>
+</div>
+<script>
+(function () {
+  var datos = [60,70.6,47.4,51.4,105.1,109.3,67.3,86.2,60.2,64.2,54.8,56.6,90.5,112.3,64.5,82.1,65.5,87.4,66.4,73.5,65.7,74.8,76.2,119,56.3,86.5,82.6,77,87.6,75.9,83.8,89.2,57.5,74.1,57,102.3,58.4,73.6,62.6,111.1,89,61.5,107.5,63.6,50.4,52.3,61.1,66.6,113.2,68.7,67.7,74.7,116.6,52.8,151,80.2,67.7,69.1,65.7,62.6,44.8,98.1,46.3,57.8,86.4];
+  var limites = [44, 60, 76, 92, 108, 124, 140, 156], H = [0];
+  var n = datos.length;
+  for (var k = 1; k < limites.length; k++) {
+    var cuenta = datos.filter(function (v) { return v < limites[k]; }).length;
+    H.push(cuenta / n);
+  }
+  var raiz = document.getElementById("int-ojiva");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 280, ml = 50, mr = 16, mt = 14, mb = 40;
+  function sx(x) { return ml + (x - 40) / (160 - 40) * (w - ml - mr); }
+  function sy(y) { return h - mb - y * (h - mt - mb); }
+  function dibujar() {
+    var x = parseFloat(control.value);
+    salida.textContent = x.toFixed(0);
+    var menores = datos.filter(function (v) { return v < x; }).length;
+    // Lectura en la ojiva por interpolación lineal entre límites
+    var y = 1;
+    for (var k = 1; k < limites.length; k++) {
+      if (x <= limites[k]) { y = H[k - 1] + (H[k] - H[k - 1]) * (x - limites[k - 1]) / (limites[k] - limites[k - 1]); break; }
+    }
+    var s = "";
+    for (var t = 0; t <= 1.0001; t += 0.2) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(t) + '" y2="' + sy(t) + '" stroke-opacity="0.25"/>' +
+        '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t.toFixed(1) + '</text>';
+    }
+    for (var u = 40; u <= 160; u += 20) {
+      s += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + u + '</text>';
+    }
+    var d = "";
+    limites.forEach(function (L, i) { d += (i ? "L" : "M") + sx(L).toFixed(1) + "," + sy(H[i]).toFixed(1); });
+    s += '<path class="curva" d="' + d + '"/>';
+    limites.forEach(function (L, i) { s += '<circle cx="' + sx(L) + '" cy="' + sy(H[i]) + '" r="3.5" fill="#1C6BA0"/>'; });
+    s += '<line x1="' + sx(x) + '" x2="' + sx(x) + '" y1="' + sy(0) + '" y2="' + sy(y) + '" stroke="#6c757d" stroke-dasharray="5 4" stroke-width="1.5"/>' +
+      '<line x1="' + ml + '" x2="' + sx(x) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" stroke="#6c757d" stroke-dasharray="5 4" stroke-width="1.5"/>' +
+      '<circle cx="' + sx(x) + '" cy="' + sy(y) + '" r="5" fill="none" stroke="#1C6BA0" stroke-width="2"/>';
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+      '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Precipitación máxima diaria (mm)</text>' +
+      '<text class="eje-texto" x="12" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((mt + h - mb) / 2) + ')">Frecuencia acumulada relativa</text>';
+    svg.innerHTML = s;
+    texto.textContent = "Lectura en la ojiva: " + y.toFixed(3) + ".  Conteo exacto: " + menores + " de " + n +
+      " años (" + (100 * menores / n).toFixed(1) + " %) tuvieron una lluvia máxima menor que " + x.toFixed(0) + " mm.";
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Ojiva de la precipitación máxima diaria anual. Mueva el control para elegir el valor de lluvia que se quiere leer.
+
+:::
+
+En los límites de clase (60, 76, 92 mm…) la lectura de la ojiva y el conteo exacto coinciden. Entre dos límites, la ojiva supone que los datos se reparten uniformemente dentro de la clase, y la lectura puede diferir un poco del conteo. Con 92 mm las dos dan 0.831; con 100 mm la ojiva da 0.862 y el conteo da 55 de 65, es decir 0.846.
+
+## Cuadros de contingencia {#sec-pres-contingencia}
+
+Cuando interesa la relación entre dos variables cualitativas, los datos se cruzan en un cuadro de contingencia (o de doble entrada). Cada fila es una categoría de una variable, cada columna una categoría de la otra, y cada celda cuenta las unidades que tienen esa combinación. Los totales de las filas y de las columnas se llaman marginales.
+
+Para comparar grupos de distinto tamaño no sirven los conteos, sino los porcentajes por fila: qué porcentaje de los puentes de cada material está en cada estado. Si los porcentajes son parecidos en todas las filas, el estado no parece depender del material. La prueba formal de esa idea es la prueba chi-cuadrado de independencia del capítulo 23.
+
+::: {.callout-note title="Ejemplo: material y estado de los puentes"}
+
+**Planteamiento.** Con el inventario de 40 puentes (datos hipotéticos), construya el cuadro de contingencia del material contra el estado, con sus totales. Calcule el porcentaje de puentes en estado malo dentro de cada material y represente el cruce con un gráfico de barras.
+
+**Solución:**
+
+1. Se cuenta cada combinación de material y estado. Por ejemplo, de los 16 puentes de concreto, 3 están en estado malo, 8 en regular y 5 en bueno.
+2. Se suman las filas (total por material) y las columnas (total por estado). La suma de todos los totales de fila, igual que la de los totales de columna, debe dar 40. Resultado:
+
+| Material | Malo | Regular | Bueno | Total |
+|:--|:-:|:-:|:-:|:-:|
+| Acero | 1 | 6 | 6 | 13 |
+| Concreto | 3 | 8 | 5 | 16 |
+| Madera | 0 | 2 | 2 | 4 |
+| Mixto | 2 | 2 | 3 | 7 |
+| Total | 6 | 18 | 16 | 40 |
+
+3. Porcentaje en estado malo dentro de cada material (cada celda entre el total de su fila): acero $1/13 = 7.7$ %, concreto $3/16 = 18.8$ %, madera $0/4 = 0$ % y mixto $2/7 = 28.6$ %.
+
+**Pseudocódigo**
+
+1. Leer los datos y ordenar las categorías del estado.
+2. Cruzar material y estado, y agregar los totales.
+3. Calcular los porcentajes por fila.
+4. Dibujar barras apiladas al 100 % por material.
+
+```{r}
+# 1) Datos con el estado como factor ordenado
+puentes <- read.csv("datos/inspeccion_puentes_hipotetica.csv")
+puentes$estado <- factor(puentes$estado, levels = c("Malo", "Regular", "Bueno"))
+
+# 2) Cuadro de contingencia con totales (addmargins agrega la fila y la columna "Sum")
+cruce <- table(puentes$material, puentes$estado)
+addmargins(cruce)
+
+# 3) Porcentajes por fila (margin = 1: cada fila suma 100)
+round(100 * prop.table(cruce, margin = 1), 1)
+```
+
+```{r}
+#| label: fig-pres-contingencia
+#| fig-cap: "Estado de los puentes según su material."
+#| fig-alt: "Cuatro barras horizontales de igual largo, una por material, divididas en tres colores según el porcentaje de puentes en estado malo, regular y bueno; mixto tiene la mayor parte en malo y madera ninguna"
+
+# 4) Barras apiladas al 100 % con ggplot2 (position = "fill")
+library(ggplot2)
+ggplot(puentes, aes(y = material, fill = estado)) +
+  geom_bar(position = "fill") +
+  scale_x_continuous(labels = function(p) paste0(100 * p, " %")) +
+  scale_fill_manual(values = c(Malo = "#9E9E9E", Regular = "#6BAED6", Bueno = "#1C6BA0")) +
+  labs(x = "Porcentaje de puentes", y = "Material", fill = "Estado") +
+  theme_minimal()
+```
+
+**Interpretación.** Los puentes mixtos tienen la mayor proporción en estado malo (28.6 %) y los de acero la menor entre los grupos grandes (7.7 %). Sin embargo, los grupos son pequeños: con 7 puentes mixtos, un solo puente cambia el porcentaje en más de 14 puntos, y con 4 de madera el 0 % no garantiza nada. Antes de concluir que el material influye en el estado habría que aplicar la prueba del capítulo 23, y aun así recordar que un estudio observacional no prueba causa (capítulo 7).
+
+:::
+
+## Gráficos de dos variables cuantitativas {#sec-pres-dos-variables}
+
+### Diagrama de dispersión
+
+El diagrama de dispersión dibuja un punto por unidad, con una variable en cada eje. Muestra si las dos variables se mueven juntas, en qué dirección y si la relación es una recta o una curva. Por convención, la variable que se controla o que se supone causa va en el eje horizontal, y la respuesta en el vertical [@lanesfintroduction]. La @fig-pres-dispersion muestra la relación entre la relación agua/cemento y la resistencia de 25 mezclas hipotéticas.
+
+```{r}
+#| echo: false
+ver_datos("datos/relacion_ac_resistencia_hipotetica.csv",
+          nombres = c("Mezcla", "Relación agua/cemento", "Resistencia (MPa)"))
+```
+
+```{r}
+#| label: fig-pres-dispersion
+#| fig-cap: "Resistencia a compresión contra relación agua/cemento de 25 mezclas hipotéticas."
+#| fig-alt: "Nube de puntos que baja de izquierda a derecha, de unos 44 MPa con relación 0.41 a unos 25 MPa con relación 0.69"
+#| echo: false
+
+mezclas <- read.csv("datos/relacion_ac_resistencia_hipotetica.csv")
+ggplot(mezclas, aes(x = relacion_ac, y = resistencia_mpa)) +
+  geom_point(color = "#1C6BA0", size = 2.5) +
+  labs(x = "Relación agua/cemento", y = "Resistencia a compresión (MPa)") +
+  theme_minimal()
+```
+
+Los puntos bajan de izquierda a derecha: a más agua por unidad de cemento, menos resistencia. La nube es angosta, así que la relación es fuerte, y se curva un poco, con una caída más rápida en las relaciones bajas. Con R base el mismo gráfico se hace con `plot(mezclas$relacion_ac, mezclas$resistencia_mpa)`. Los capítulos 24 y 25 miden esta relación con el coeficiente de correlación y la describen con una recta de regresión.
+
+### Series de tiempo
+
+Cuando la variable horizontal es el tiempo, los puntos se unen con líneas para que se vea la secuencia. La @fig-pres-serie muestra el caudal máximo anual de un río de Costa Rica entre 1966 y 2018 (datos reales, sin identificar la estación).
+
+<!-- CITA PENDIENTE: fuente de la serie de caudales máximos anuales (estación, institución) y permiso para identificarla. -->
+
+```{r}
+#| echo: false
+ver_datos("datos/caudal_maximo_anual.csv", nombres = c("Año", "Caudal máximo (m³/s)"))
+```
+
+```{r}
+#| label: fig-pres-serie
+#| fig-cap: "Caudal máximo anual de una estación fluviométrica, 1966–2018."
+#| fig-alt: "Serie de tiempo con un punto por año unido por líneas; los caudales oscilan entre 99 y 1496 metros cúbicos por segundo y los valores más altos se concentran después de 2005"
+#| echo: false
+
+caudal <- read.csv("datos/caudal_maximo_anual.csv")
+ggplot(caudal, aes(x = anio, y = caudal_m3s)) +
+  geom_line(color = "grey50") +
+  geom_point(color = "#1C6BA0", size = 2) +
+  scale_y_continuous(limits = c(0, 1600), breaks = seq(0, 1600, by = 200)) +
+  labs(x = "Año", y = "Caudal máximo (m³/s)") +
+  theme_minimal()
+```
+
+En una serie de tiempo se buscan tres cosas: tendencia (si la variable sube o baja con los años), cambios bruscos de nivel y valores aislados muy distintos. En esta serie, el promedio de 1966–1992 es 543 m³/s y el de 1993–2018 es 735 m³/s, y los seis caudales mayores ocurrieron después de 2006. Antes de usar la serie para diseñar habría que averiguar si el cambio es real (más lluvia o cambios en la cuenca) o si se debe a un cambio en la estación o en el método de medición.
+
+::: {.callout-tip title="En la práctica"}
+El análisis de frecuencia de caudales y lluvias supone que todos los años del registro vienen de la misma población. Por eso, antes de ajustar una distribución, se grafica la serie en el tiempo y se revisa que no tenga tendencias ni saltos. @helsel2020statistical dedican un capítulo completo a las pruebas de tendencia en series hidrológicas.
+:::
+
+## Qué gráfico usar y cuál evitar {#sec-pres-elegir}
+
+El @tbl-pres-elegir resume qué gráfico corresponde a cada pregunta. Amplía el cuadro del capítulo 4 con los gráficos de este capítulo.
+
+```{r}
+#| label: tbl-pres-elegir
+#| tbl-cap: "Gráfico recomendado según los datos y la pregunta."
+#| echo: false
+
+data.frame(
+  datos = c("Una cualitativa", "Una cualitativa (partes de un todo, pocas categorías)",
+            "Una cuantitativa", "Una cuantitativa, valores acumulados",
+            "Una cuantitativa en varios grupos", "Dos cualitativas",
+            "Dos cuantitativas", "Una cuantitativa en el tiempo"),
+  grafico = c("Barras", "Circular o barras", "Histograma, caja", "Ojiva",
+              "Cajas lado a lado, polígonos de frecuencia", "Barras agrupadas o apiladas al 100 %",
+              "Dispersión", "Serie de tiempo (líneas)"),
+  r_base = c("barplot()", "pie()", "hist(), boxplot()", "plot(..., type = \"o\")",
+             "boxplot(y ~ grupo)", "barplot(table(a, b))", "plot(x, y)", "plot(x, y, type = \"l\")"),
+  ggplot = c("geom_bar(), geom_col()", "geom_col() + coord_polar()", "geom_histogram(), geom_boxplot()",
+             "geom_line() + geom_point()", "geom_boxplot(), geom_freqpoly()",
+             "geom_bar(position = \"fill\")", "geom_point()", "geom_line()")
+) %>%
+  kbl(col.names = c("Datos", "Gráfico", "R base", "ggplot2"), align = "llll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed")) %>%
+  column_spec(3:4, monospace = TRUE)
+```
+
+Hay errores de presentación que se repiten en informes técnicos y que distorsionan lo que muestran los datos [@wilke2019fundamentals; @healy2018dataviz]:
+
+- **Barras con el eje que no empieza en cero.** La longitud de la barra representa la cantidad. Si el eje empieza en 25, una barra de 30 se ve el doble de larga que una de 27.5, aunque la diferencia sea del 9 %. En los gráficos de puntos y de líneas el eje sí puede empezar en otro valor, porque ahí se compara la posición y no la longitud. La @fig-pres-eje muestra el efecto.
+- **Efectos tridimensionales.** Las barras o los pasteles en 3D deforman las proporciones y no agregan información.
+- **Pasteles con muchas categorías.** Con más de cuatro o cinco sectores se vuelven ilegibles. Las barras ordenadas los reemplazan.
+- **Dos ejes verticales con escalas distintas.** Según cómo se elijan las escalas, dos series pueden parecer que se cruzan o que van juntas. Es mejor dos gráficos, uno encima del otro, con el mismo eje horizontal.
+- **Demasiados colores.** Se usa un color para una sola serie y una paleta distinguible para varias, evitando el rojo contra el verde.
+
+```{r}
+#| label: fig-pres-eje
+#| fig-cap: "Las mismas tres resistencias medias con el eje desde 25 MPa y desde 0 MPa."
+#| fig-alt: "Dos gráficos de barras con las mismas tres resistencias de 27.5, 28.4 y 30.0 MPa; a la izquierda el eje empieza en 25 y las barras parecen muy distintas; a la derecha empieza en 0 y las barras son casi iguales"
+#| fig-width: 9
+#| fig-height: 3.4
+#| out-width: "85%"
+#| echo: false
+
+medias <- data.frame(planta = c("Planta A", "Planta B", "Planta C"), fc = c(27.5, 28.4, 30.0))
+p1 <- ggplot(medias, aes(planta, fc)) +
+  geom_col(fill = "#9E9E9E", width = 0.6) +
+  coord_cartesian(ylim = c(25, 30.5)) +
+  labs(x = NULL, y = "Resistencia media (MPa)", subtitle = "Eje desde 25 MPa: exagera") +
+  theme_minimal()
+p2 <- ggplot(medias, aes(planta, fc)) +
+  geom_col(fill = "#1C6BA0", width = 0.6) +
+  labs(x = NULL, y = "Resistencia media (MPa)", subtitle = "Eje desde 0 MPa: proporción real") +
+  theme_minimal()
+library(patchwork)
+p1 + p2
+```
+
+::: {.callout-tip title="En la práctica"}
+Antes de entregar un gráfico conviene revisar que los ejes tengan nombre y unidad, que se lea sin necesidad del texto, que la leyenda diga qué muestra en una oración y que no tenga título dentro del gráfico si ya lleva leyenda numerada. Son las mismas reglas con que están hechas las figuras de este libro.
+:::
+
+## Ejercicios propuestos
+
+Los ejercicios 1 a 4 usan el inventario de puentes (hipotético) y los ejercicios 5 a 8 la serie de caudales máximos anuales.
+
+1. Construya a mano y con R el cuadro de frecuencias del número de carriles (frecuencia absoluta, relativa y acumulada). ¿Qué porcentaje de los puentes tiene dos carriles o menos?
+2. Haga el gráfico de barras del estado de los puentes, con las categorías en el orden malo, regular, bueno. ¿Por qué no conviene ordenar estas barras de mayor a menor, como se hizo con el material?
+3. Agrupe la longitud de los puentes en clases con la regla de Sturges. Construya el cuadro de frecuencias a mano, compruébelo con `cut()` y `table()`, y dibuje el histograma. ¿Qué forma tiene la distribución?
+4. Construya el cuadro de contingencia del número de carriles contra el estado. Calcule los porcentajes por fila y comente si los puentes de un carril parecen estar en peor estado.
+5. Con los 53 caudales máximos anuales, construya el cuadro de frecuencias agrupadas con la regla de Sturges, incluyendo marcas de clase y frecuencias acumuladas. Muestre los cálculos del número de clases y del ancho.
+6. Dibuje el histograma, el polígono de frecuencias y la ojiva de los caudales con R base y con ggplot2. Con la ojiva, estime en qué porcentaje de los años el caudal máximo superó 1000 m³/s y compruebe el resultado contando los datos con `sum(caudal$caudal_m3s > 1000)`.
+7. Separe los caudales en dos periodos (1966–1992 y 1993–2018) y dibuje en un mismo gráfico los polígonos de frecuencias relativas de ambos. ¿Se ven distintas las dos distribuciones?
+8. Busque en un periódico, un informe técnico o una página web un gráfico que tenga alguno de los errores de la @sec-pres-elegir. Descríbalo, explique qué distorsiona y rehágalo en R con datos aproximados.
+
+## Lecturas recomendadas
+
+- @wilke2019fundamentals, capítulos 6 a 10 y 17: cómo elegir un gráfico según los datos (cantidades, distribuciones, proporciones) y el principio de que las barras empiezan en cero. Está en línea y es gratuito.
+- @illowsky2013introductory, capítulo 2: cuadros de frecuencia, histogramas, polígonos de frecuencias y ojivas, con ejercicios resueltos.
+- @lanesfintroduction, capítulo 2: gráficos para variables cualitativas y cuantitativas, con ejemplos de gráficos engañosos.
+- @healy2018dataviz, capítulo 1: por qué algunos gráficos funcionan y otros no, con ejemplos de percepción visual.
+- @chang2018graphics: recetas de ggplot2 para cada tipo de gráfico de este capítulo.
