@@ -9,7 +9,8 @@
 ## Parte I (R y RStudio)
 
 - Capturas de pantalla de RStudio, CRAN y Posit: integradas en los capítulos 1, 3 y 5 (RStudio 2026.11.1, R 4.6.2), con la dirección de descarga vigente de RStudio. Si cambia la versión que se usa en el curso, conviene repetirlas.
-- Revisión del autor de los capítulos 1 a 6.
+- Revisión del autor de los capítulos 1 a 6, ampliados el 2026-11-25 (más contenido, cinco interactivos nuevos y ejemplos resueltos).
+- Los interactivos usan HTML y JavaScript propios; conviene probarlos en el navegador del autor y en modo oscuro.
 
 ## Parte II (estadística descriptiva)
 

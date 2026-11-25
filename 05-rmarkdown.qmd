@@ -593,7 +593,7 @@ El mismo archivo `.Rmd` se puede compilar a otros formatos. El botón Knit tiene
 
 - Word (`output: word_document`): útil cuando el informe se debe entregar en .docx o lo van a corregir otras personas con control de cambios. Necesita tener instalado Word o LibreOffice para abrir el resultado. Los gráficos y cuadros se convierten bien; los estilos se ajustan después en Word.
 - PDF (`output: pdf_document`): necesita una instalación de LaTeX. La más sencilla se instala desde R con `install.packages("tinytex")` y luego `tinytex::install_tinytex()`, que descarga unos 250 MB.
-- HTML (`output: html_document`): es el formato recomendado para empezar, porque no necesita nada adicional y permite cuadros paginados e interactivos. Es el formato de este libro.
+- HTML (`output: html_document`): es el formato recomendado para empezar, porque no necesita nada adicional y admite cuadros paginados e interactivos. Es el formato de este libro.
 
 ## Errores frecuentes al compilar {#sec-rmd-errores}
 
@@ -612,7 +612,7 @@ Cuando la compilación falla, RStudio muestra el error en la pestaña Render, ju
 : Errores frecuentes al compilar un documento de R Markdown. {#tbl-rmd-errores}
 
 ::: {.callout-tip title="En la práctica"}
-Si un documento largo no compila y el error no es claro, se ejecutan los bloques uno por uno desde el inicio con el botón del triángulo verde, después de reiniciar R (Session > Restart R). El primer bloque que falla es el que tiene el problema. Reiniciar R antes es importante: así R está en la misma situación que al compilar, sin los objetos de la consola.
+Si un documento largo no compila y el error no es claro, se ejecutan los bloques uno por uno desde el inicio con el botón del triángulo verde, después de reiniciar R (Session > Restart R). El primer bloque que falla es el que tiene el problema. Se reinicia R antes porque así queda en la misma situación que al compilar, sin los objetos de la consola.
 :::
 
 ## Quarto {#sec-rmd-quarto}
