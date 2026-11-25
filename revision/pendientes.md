@@ -86,3 +86,7 @@
 
 - Capítulo 9: falta la cita del manual de ingeniería de tránsito para el uso del percentil 85 de la velocidad (marcada con CITA PENDIENTE). El autor puede indicar cuál prefiere.
 - Capítulo 9: la cita del ACI 214R-11 se usa solo para decir que la desviación estándar y el CV juzgan la uniformidad del concreto; si el autor quiere los valores de las clases de control, hay que copiarlos de la guía.
+
+## Diagramas (2026-11-25)
+
+- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_paneles`) para mantener el estilo común.
