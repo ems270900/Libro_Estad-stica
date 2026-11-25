@@ -45,12 +45,14 @@ book:
     - welcome.qmd
     - intro.qmd
 
-    # Las partes y los capítulos se agregan cuando el autor defina el contenido.
-    # Formato:
-    # - part: "Nombre de la parte"
-    #   chapters:
-    #     - 01-tema_corto.qmd
-    #     - 02-otro_tema.qmd
+    - part: "Primeros pasos con R y RStudio"
+      chapters:
+        - 01-r_rstudio.qmd
+        - 02-objetos_operadores.qmd
+        - 03-datos_dataframes.qmd
+        - 04-graficos.qmd
+        - 05-rmarkdown.qmd
+        - 06-programacion_simulacion.qmd
 
     - epilogo.qmd
     - 99-Referencias.qmd

@@ -19,3 +19,5 @@ El texto se publica con CC BY-NC-SA 4.0 y el código con MIT. Esas licencias no 
 | Portada | `assets/img/logoucr.png`, `assets/img/logoeic.png` | UCR, Escuela de Ingeniería Civil | Uso institucional | Confirmar uso si cambia la institución |
 | Portada | `assets/img/by-nc-sa.png` | Creative Commons | CC BY 4.0 | Mantener |
 | Portada | `assets/img/ciclo_h.png` | USGS, igual que el libro de hidrología | Dominio público | Mantener con cita; provisional, el autor ajustará la estética |
+| 1 | `assets/img/cap01/paneles_rstudio.png` | Esquema propio de la ventana de RStudio | Propia | Mantener |
+| 1 | `assets/img/cap01/flujo_analisis.png` | Con base en Wickham y Grolemund (2017) | Propia (redibujada) | Mantener con cita "con base en" |
