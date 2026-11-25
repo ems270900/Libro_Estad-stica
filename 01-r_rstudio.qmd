@@ -155,8 +155,7 @@ Todo lo que va después del símbolo `#` es un comentario: R no lo ejecuta. Los 
 
 A veces, después de presionar Enter, la consola no responde con un resultado sino con un signo `+` al inicio de la línea. Significa que R considera que la instrucción no ha terminado y espera el resto. Pasa casi siempre por una de tres razones: falta cerrar un paréntesis, falta cerrar unas comillas o la línea termina en un operador, como `2 +`. Hay dos salidas: escribir lo que falta (por ejemplo, el paréntesis) y presionar Enter, o presionar la tecla Esc para cancelar la instrucción y volver al `>`.
 
-```{r}
-#| eval: false
+```{.r}
 > sqrt(144          # falta el paréntesis de cierre
 + )                 # R espera; al escribir ")" termina la instrucción
 [1] 12
