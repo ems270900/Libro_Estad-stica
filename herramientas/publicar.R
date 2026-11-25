@@ -92,7 +92,40 @@ leer_capitulos <- function(cfg) {
       }
     }
   }
+  # Apéndices (A, B, C...): van al final, en su propia parte
+  for (ap in cfg$book$appendices) {
+    out[[length(out) + 1]] <- list(archivo = ap, parte = "Apéndices", apendice = TRUE)
+  }
   out
+}
+
+# En un documento de un solo archivo, Quarto numera los apéndices como si fueran
+# capítulos (31, 32...). Esta función cambia esos números por letras (A, B...)
+# en los títulos, el índice y las referencias a cuadros, figuras y ecuaciones,
+# para que coincidan con el libro de varias páginas.
+letras_apendices <- function(html, n_apendices) {
+  if (n_apendices == 0) return(invisible(FALSE))
+  txt <- paste(readLines(html, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  nums <- as.integer(regmatches(txt, gregexpr('(?<=<h1 data-number=")[0-9]+(?=")', txt, perl = TRUE))[[1]])
+  nums <- unique(nums)
+  if (length(nums) < n_apendices) return(invisible(FALSE))
+  capitulos <- tail(nums, n_apendices)
+  for (k in seq_along(capitulos)) {
+    n <- capitulos[k]; L <- LETTERS[k]
+    txt <- gsub(sprintf('data-number="%d(\\.|")', n), sprintf('data-number="%s\\1', L), txt, perl = TRUE)
+    txt <- gsub(sprintf('header-section-number">%d<', n), sprintf('header-section-number">%s<', L), txt, fixed = TRUE)
+    # En el título del apéndice (no en el índice) se escribe "Apéndice A —"
+    txt <- gsub(sprintf('(<h1 data-number="%s"[^>]*>\\s*<span class="header-section-number">)%s<', L, L),
+                sprintf('\\1Apéndice %s —<', L), txt, perl = TRUE)
+    txt <- gsub(sprintf('header-section-number">%d.', n), sprintf('header-section-number">%s.', L), txt, fixed = TRUE)
+    # Entre la palabra y el número Quarto pone un espacio duro (U+00A0)
+    txt <- gsub(sprintf('(Cuadro|Figura|Ecuación|Sección)(&nbsp;|\\s|\u00a0)%d\\.([0-9])', n),
+                sprintf('\\1\\2%s.\\3', L), txt, perl = TRUE)
+    txt <- gsub(sprintf('<mn>%d\\.([0-9]+)</mn>', n), sprintf('<mn>%s.\\1</mn>', L), txt, perl = TRUE)
+    txt <- gsub(sprintf('\\(%d\\.([0-9]+)\\)', n), sprintf('(%s.\\1)', L), txt, perl = TRUE)
+  }
+  writeLines(enc2utf8(txt), html, useBytes = TRUE)
+  invisible(TRUE)
 }
 
 # Separa el encabezado YAML del cuerpo de un .qmd
@@ -337,7 +370,9 @@ libro_un_archivo <- function(preparar = TRUE, limpiar = FALSE) {
 
   dir.create(SALIDAS_DIR, showWarnings = FALSE)
   destino <- file.path(SALIDAS_DIR, NOMBRE_HTML)
-  file.copy(file.path(PUB_DIR, sub("\\.qmd$", ".html", qmd)), destino, overwrite = TRUE)
+  html_pub <- file.path(PUB_DIR, sub("\\.qmd$", ".html", qmd))
+  letras_apendices(html_pub, length(cfg$book$appendices))
+  file.copy(html_pub, destino, overwrite = TRUE)
   message(sprintf("Listo: %s (%.1f MB). Ábralo con doble clic.",
                   destino, file.size(destino) / 1024^2))
   invisible(destino)

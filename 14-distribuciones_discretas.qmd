@@ -83,7 +83,7 @@ $$ {#eq-disc-bernoulli-momentos}
 
 Por ejemplo, si una soldadura de un puente metálico resulta defectuosa con probabilidad 0.03 y se toma "defectuosa" como éxito, entonces $E(X) = 0.03$ y $\operatorname{Var}(X) = 0.03 \cdot 0.97 = 0.0291$. La varianza es máxima cuando $p = 0.5$, porque es cuando más difícil resulta adivinar el resultado.
 
-Una serie de ensayos de Bernoulli forma un proceso de Bernoulli si cumple tres condiciones [@illowsky2013introductory, cap. 4]:
+Una serie de ensayos de Bernoulli forma un proceso de Bernoulli si cumple tres condiciones [@illowsky2018introductory, cap. 4]:
 
 1. Cada ensayo tiene solo dos resultados posibles.
 2. La probabilidad de éxito $p$ es la misma en todos los ensayos.
@@ -103,7 +103,7 @@ $$
 \binom{n}{x} = \frac{n!}{x!\,(n - x)!}
 $$ {#eq-disc-coef-binomial}
 
-Al multiplicar el número de secuencias por la probabilidad de cada una se obtiene la función de probabilidad binomial [@illowsky2013introductory, cap. 4]:
+Al multiplicar el número de secuencias por la probabilidad de cada una se obtiene la función de probabilidad binomial [@illowsky2018introductory, cap. 4]:
 
 $$
 P(X = x) = \binom{n}{x}\, p^x\, (1 - p)^{n - x}, \qquad x = 0, 1, \ldots, n
@@ -219,7 +219,7 @@ $$
 P(X > k) = (1 - p)^k
 $$ {#eq-disc-geometrica-cola}
 
-La media y la varianza son [@illowsky2013introductory, cap. 4]
+La media y la varianza son [@illowsky2018introductory, cap. 4]
 
 $$
 E(X) = \frac{1}{p}, \qquad \operatorname{Var}(X) = \frac{1 - p}{p^2}
@@ -391,7 +391,7 @@ En `dhyper()` los nombres de los argumentos confunden: `m` es el número de elem
 Si en promedio llegan 3 camiones cada 10 minutos a una planta de concreto, ¿qué tan probable es que lleguen 6 o más y se forme fila?
 :::
 
-La distribución de Poisson cuenta cuántos eventos ocurren en un intervalo de tiempo, de longitud o de área, cuando los eventos ocurren al azar y a una tasa promedio constante. Ejemplos de ingeniería: llegadas de vehículos a una intersección, roturas de tubería por kilómetro de red, fisuras por metro cuadrado de losa, sismos fuertes por año en una región. Para que el modelo sea razonable se piden tres condiciones [@illowsky2013introductory, cap. 4]:
+La distribución de Poisson cuenta cuántos eventos ocurren en un intervalo de tiempo, de longitud o de área, cuando los eventos ocurren al azar y a una tasa promedio constante. Ejemplos de ingeniería: llegadas de vehículos a una intersección, roturas de tubería por kilómetro de red, fisuras por metro cuadrado de losa, sismos fuertes por año en una región. Para que el modelo sea razonable se piden tres condiciones [@illowsky2018introductory, cap. 4]:
 
 1. Los eventos ocurren de uno en uno (no hay dos exactamente al mismo tiempo).
 2. La tasa promedio de ocurrencia es constante en el intervalo estudiado.
@@ -509,7 +509,7 @@ comparacion %>%
 
 ### Aproximación de Poisson a la binomial {#sec-disc-aprox-poisson}
 
-Cuando el número de ensayos $n$ es grande y la probabilidad de éxito $p$ es pequeña, la binomial se parece mucho a una Poisson con $\lambda = np$. Una regla usual es aplicarla cuando $n \ge 20$ y $p \le 0.05$ [@illowsky2013introductory, cap. 4]. Antes de las computadoras era un atajo valioso, porque $\binom{n}{x}$ con $n$ grande es difícil de calcular a mano. Hoy sirve sobre todo para entender por qué la Poisson describe eventos raros: cada uno de muchos "intentos" tiene una probabilidad pequeña de producir el evento.
+Cuando el número de ensayos $n$ es grande y la probabilidad de éxito $p$ es pequeña, la binomial se parece mucho a una Poisson con $\lambda = np$. Una regla usual es aplicarla cuando $n \ge 20$ y $p \le 0.05$ [@illowsky2018introductory, cap. 4]. Antes de las computadoras era un atajo valioso, porque $\binom{n}{x}$ con $n$ grande es difícil de calcular a mano. Hoy sirve sobre todo para entender por qué la Poisson describe eventos raros: cada uno de muchos "intentos" tiene una probabilidad pequeña de producir el evento.
 
 Por ejemplo, en un puente con 400 soldaduras, cada una defectuosa con probabilidad 0.005, el número de soldaduras defectuosas es $\text{Bin}(400, 0.005)$, y la aproximación es una Poisson con $\lambda = 400 \cdot 0.005 = 2$. El @tbl-disc-aprox-poisson muestra que las dos dan casi lo mismo.
 
@@ -689,6 +689,6 @@ Tres preguntas ordenan casi todos los casos. ¿El número de ensayos está fijo 
 
 ## Lecturas recomendadas
 
-- @illowsky2013introductory, capítulo 4: binomial, geométrica, hipergeométrica y Poisson con muchos ejemplos resueltos.
+- @illowsky2018introductory, capítulo 4: binomial, geométrica, hipergeométrica y Poisson con muchos ejemplos resueltos.
 - @ayala2026estadistica: distribuciones discretas en español, con código de R.
 - @wasserman2004all, capítulo 2: definiciones formales de las distribuciones discretas más comunes.

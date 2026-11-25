@@ -19,7 +19,7 @@ Si se ensayan cien cilindros de una misma mezcla de concreto, sus resistencias n
 
 ## La curva normal {#sec-normal-curva}
 
-Una variable $X$ sigue una distribución normal con media $\mu$ y desviación estándar $\sigma$, lo que se escribe $X \sim N(\mu, \sigma)$, si su densidad es [@illowsky2013introductory, cap. 6]
+Una variable $X$ sigue una distribución normal con media $\mu$ y desviación estándar $\sigma$, lo que se escribe $X \sim N(\mu, \sigma)$, si su densidad es [@illowsky2018introductory, cap. 6]
 
 $$
 f_X(x) = \frac{1}{\sigma \sqrt{2\pi}} \exp\left[-\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2\right], \qquad -\infty < x < \infty
@@ -64,7 +64,7 @@ La normal admite valores negativos y valores tan grandes como se quiera, aunque 
 
 ## La regla empírica {#sec-normal-regla}
 
-Para cualquier normal, sin importar $\mu$ ni $\sigma$, la proporción de valores que cae a cierta distancia de la media, medida en desviaciones estándar, es siempre la misma. La regla empírica resume los tres casos más usados [@illowsky2013introductory, cap. 6]:
+Para cualquier normal, sin importar $\mu$ ni $\sigma$, la proporción de valores que cae a cierta distancia de la media, medida en desviaciones estándar, es siempre la misma. La regla empírica resume los tres casos más usados [@illowsky2018introductory, cap. 6]:
 
 - Cerca del 68 % de los valores cae entre $\mu - \sigma$ y $\mu + \sigma$.
 - Cerca del 95 % cae entre $\mu - 2\sigma$ y $\mu + 2\sigma$.
@@ -342,7 +342,7 @@ $$
 \mu = np, \qquad \sigma = \sqrt{np(1 - p)}
 $$ {#eq-normal-aprox-binomial}
 
-Una regla usual dice que la aproximación es aceptable si $np > 5$ y $n(1 - p) > 5$, y mejor si los dos valores pasan de 10 [@illowsky2013introductory, cap. 6]. Con $p$ muy pequeña o muy grande la binomial es asimétrica y hace falta un $n$ mucho mayor.
+Una regla usual dice que la aproximación es aceptable si $np > 5$ y $n(1 - p) > 5$, y mejor si los dos valores pasan de 10 [@illowsky2018introductory, cap. 6]. Con $p$ muy pequeña o muy grande la binomial es asimétrica y hace falta un $n$ mucho mayor.
 
 Hay un detalle que mejora mucho la aproximación. La binomial solo toma valores enteros, y en un histograma cada valor $k$ ocupa el intervalo de $k - 0.5$ a $k + 0.5$. Para pasar a la normal, que es continua, se usa ese intervalo completo. Esto se llama corrección por continuidad:
 
@@ -614,6 +614,6 @@ Binomial y aproximación normal. Mueva $n$, $p$ y el umbral $k$.
 
 ## Lecturas recomendadas
 
-- @illowsky2013introductory, capítulo 6: la normal, la estandarización y la aproximación a la binomial, con ejercicios graduados.
+- @illowsky2018introductory, capítulo 6: la normal, la estandarización y la aproximación a la binomial, con ejercicios graduados.
 - @ayala2026estadistica: distribución normal y gráficos de normalidad con R, en español.
 - @wasserman2004all, capítulo 2: propiedades de la normal y de sus combinaciones lineales.

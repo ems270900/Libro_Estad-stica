@@ -50,7 +50,7 @@ $$
 F_X(x) = \frac{x - a}{b - a}, \qquad a \le x \le b
 $$ {#eq-cont-uniforme-fda}
 
-donde $a$ y $b$ son los extremos del intervalo, en las unidades de la variable. Su media está en el centro del intervalo y su varianza depende solo del ancho [@illowsky2013introductory, cap. 5]:
+donde $a$ y $b$ son los extremos del intervalo, en las unidades de la variable. Su media está en el centro del intervalo y su varianza depende solo del ancho [@illowsky2018introductory, cap. 5]:
 
 $$
 E(X) = \frac{a + b}{2}, \qquad \operatorname{Var}(X) = \frac{(b - a)^2}{12}
@@ -70,7 +70,7 @@ $$
 F_T(t) = 1 - e^{-\lambda t}, \qquad f_T(t) = \lambda\, e^{-\lambda t}, \qquad t \ge 0
 $$ {#eq-cont-exponencial}
 
-donde $\lambda$ es la tasa de ocurrencia (eventos por unidad de tiempo) y $t$ es el tiempo de espera. La media y la varianza son [@illowsky2013introductory, cap. 5]
+donde $\lambda$ es la tasa de ocurrencia (eventos por unidad de tiempo) y $t$ es el tiempo de espera. La media y la varianza son [@illowsky2018introductory, cap. 5]
 
 $$
 E(T) = \frac{1}{\lambda}, \qquad \operatorname{Var}(T) = \frac{1}{\lambda^2}
@@ -539,6 +539,6 @@ Si varias distribuciones se ajustan razonablemente bien a los mismos datos, sus 
 
 ## Lecturas recomendadas
 
-- @illowsky2013introductory, capítulo 5: uniforme y exponencial con muchos ejemplos resueltos, incluida la falta de memoria.
+- @illowsky2018introductory, capítulo 5: uniforme y exponencial con muchos ejemplos resueltos, incluida la falta de memoria.
 - @ayala2026estadistica: distribuciones continuas en español, con código de R.
 - @wasserman2004all, capítulo 2: densidades de la gamma, la beta y otras distribuciones, con la notación formal.

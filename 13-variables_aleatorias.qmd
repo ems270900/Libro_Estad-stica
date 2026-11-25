@@ -529,6 +529,6 @@ tibble(
 
 ## Lecturas recomendadas
 
-- @illowsky2013introductory, capítulo 4: variables aleatorias discretas con muchos ejemplos resueltos paso a paso, en un nivel muy accesible.
+- @illowsky2018introductory, capítulo 4: variables aleatorias discretas con muchos ejemplos resueltos paso a paso, en un nivel muy accesible.
 - @ayala2026estadistica: texto en español con ejemplos en R.
 - @wasserman2004all, capítulos 2 y 3: definiciones formales de variable aleatoria, FDA y esperanza, para quien quiera ver la teoría con más rigor.

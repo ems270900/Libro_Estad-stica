@@ -80,7 +80,7 @@ bind_rows(tibble(valor = pob, panel = "Población (tiempos de viaje)"),
   tema_libro
 ```
 
-La comparación entre los dos paneles muestra tres hechos, que valen en general [@illowsky2013introductory, cap. 7]:
+La comparación entre los dos paneles muestra tres hechos, que valen en general [@illowsky2018introductory, cap. 7]:
 
 1. Las medias muestrales se centran en la media de la población: el promedio de los 5000 promedios es 20.24 min, contra $\mu = 20.21$ min.
 2. Las medias varían mucho menos que los datos individuales: su desviación estándar es 2.37 min, contra 14.41 min de los viajes.
@@ -110,7 +110,7 @@ Con $N = 2000$ y $n = 36$ el factor vale 0.991 y casi no cambia nada. Se vuelve 
 
 ## Teorema del límite central {#sec-muestreo-tlc}
 
-El tercer hecho de la sección anterior, la forma de campana, es el más sorprendente y tiene nombre propio. El teorema del límite central dice que, si se toman muestras aleatorias de tamaño $n$ de una población cualquiera con media $\mu$ y desviación estándar $\sigma$ finita, la distribución de la media muestral se acerca a una normal a medida que $n$ crece [@illowsky2013introductory, cap. 7; @wasserman2004all, cap. 5]:
+El tercer hecho de la sección anterior, la forma de campana, es el más sorprendente y tiene nombre propio. El teorema del límite central dice que, si se toman muestras aleatorias de tamaño $n$ de una población cualquiera con media $\mu$ y desviación estándar $\sigma$ finita, la distribución de la media muestral se acerca a una normal a medida que $n$ crece [@illowsky2018introductory, cap. 7; @wasserman2004all, cap. 5]:
 
 $$
 \bar{X} \approx N\left(\mu, \frac{\sigma}{\sqrt{n}}\right) \quad \text{para } n \text{ grande}
@@ -124,7 +124,7 @@ $$ {#eq-muestreo-tlc-z}
 
 El teorema no pide nada sobre la forma de la población: puede ser asimétrica, discreta, bimodal. Solo pide que las observaciones sean independientes y que $\sigma$ exista. Si la población ya es normal, la media es normal para cualquier $n$, por la @eq-normal-combinacion del capítulo 16.
 
-¿Qué tan grande debe ser $n$? Depende de cuánto se aleja la población de la normal. Una regla usual es $n \ge 30$ [@illowsky2013introductory, cap. 7], pero para poblaciones casi simétricas bastan 5 o 10 observaciones, y para poblaciones muy asimétricas pueden hacer falta más de 30. La @fig-muestreo-tlc lo muestra con tres poblaciones: uniforme (simétrica), exponencial (asimétrica) y una población discreta muy asimétrica, con un 90 % de ceros y un 10 % de unos, como la proporción de elementos defectuosos.
+¿Qué tan grande debe ser $n$? Depende de cuánto se aleja la población de la normal. Una regla usual es $n \ge 30$ [@illowsky2018introductory, cap. 7], pero para poblaciones casi simétricas bastan 5 o 10 observaciones, y para poblaciones muy asimétricas pueden hacer falta más de 30. La @fig-muestreo-tlc lo muestra con tres poblaciones: uniforme (simétrica), exponencial (asimétrica) y una población discreta muy asimétrica, con un 90 % de ceros y un 10 % de unos, como la proporción de elementos defectuosos.
 
 ```{r}
 #| label: fig-muestreo-tlc
@@ -207,7 +207,7 @@ La función `replicate()` repite una instrucción tantas veces como se le pida y
 
 ### El teorema para sumas
 
-Como la suma de las observaciones es $n$ veces la media, el teorema también vale para totales [@illowsky2013introductory, cap. 7]. Si $S = X_1 + \cdots + X_n$,
+Como la suma de las observaciones es $n$ veces la media, el teorema también vale para totales [@illowsky2018introductory, cap. 7]. Si $S = X_1 + \cdots + X_n$,
 
 $$
 S \approx N\left(n\mu,\ \sqrt{n}\,\sigma\right) \quad \text{para } n \text{ grande}
@@ -496,6 +496,6 @@ El teorema del límite central habla de la media, no de los datos. Que la media 
 
 ## Lecturas recomendadas
 
-- @illowsky2013introductory, capítulo 7: el teorema del límite central para medias y para sumas, con muchos ejemplos numéricos.
+- @illowsky2018introductory, capítulo 7: el teorema del límite central para medias y para sumas, con muchos ejemplos numéricos.
 - @ayala2026estadistica: muestreo y distribuciones muestrales en español, con simulaciones en R.
 - @wasserman2004all, capítulo 5: enunciado formal del teorema del límite central y de la ley de los grandes números.

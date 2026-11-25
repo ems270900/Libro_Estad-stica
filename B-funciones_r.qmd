@@ -1,0 +1,317 @@
+---
+title: "Funciones de R usadas en el libro"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+Este apéndice reúne en cuadros las funciones de R que aparecen en el libro, agrupadas por tema. Cada fila dice qué hace la función, da un ejemplo corto y el capítulo donde se explica con detalle. Sirve para recordar el nombre de una función o cómo se escribe, no para aprenderla desde cero: para eso está el capítulo indicado.
+
+Las funciones vienen de R base, que se instala con R, o de un paquete. Cuando son de un paquete, el nombre del paquete aparece entre corchetes en la columna "Qué hace", y antes de usarlas hay que cargarlo con `library()` (@sec-r-paquetes).
+
+## Cómo leer una función {#sec-apb-leer}
+
+Una función se escribe con su nombre y, entre paréntesis, sus argumentos separados por comas: `round(28.456, digits = 1)`. Los argumentos pueden ir en orden o con su nombre, y algunos tienen un valor por defecto que se puede omitir. En los ejemplos de los cuadros, `x` e `y` son vectores numéricos, `datos` es un data frame y `modelo` es el resultado de `lm()` o `aov()`.
+
+Para ver la ayuda completa de cualquier función, con todos sus argumentos y ejemplos, se escribe en la consola un signo de pregunta antes del nombre: `?round`. Si no se recuerda el nombre exacto, `??redondear` no sirve, porque la ayuda de R está en inglés; `??round` sí busca en todas las páginas de ayuda.
+
+## Buscar una función {#sec-apb-buscar}
+
+Escriba parte del nombre de una función o de lo que hace, como `media` o `csv`. Los cuadros de este apéndice muestran solo las filas que coinciden.
+
+```{=html}
+<div class="interactivo buscador" id="buscar-funciones">
+  <label><span>Buscar:</span>
+    <input type="search" placeholder="Por ejemplo: promedio, gráfico, pnorm" aria-label="Buscar una función en los cuadros"></label>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+```
+
+
+## Trabajar con R y RStudio {#sec-apb-rstudio}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `install.packages()` | Instala un paquete desde internet. Se hace una sola vez | `install.packages("dplyr")` | 1 |
+| `library()` | Carga un paquete ya instalado. Se hace en cada sesión | `library(dplyr)` | 1 |
+| `help()`, `?` | Abre la ayuda de una función | `?mean` | 1 |
+| `getwd()` | Muestra la carpeta de trabajo | `getwd()` | 1 |
+
+: Funciones para trabajar con R y RStudio. {#tbl-apb-rstudio}
+
+## Objetos, vectores y tipos de datos {#sec-apb-objetos}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `<-` | Guarda un valor en un objeto (asignación) | `area <- 25 * 40` | 1 |
+| `c()` | Une valores en un vector | `x <- c(27.4, 29.1, 26.8)` | 2 |
+| `seq()` | Crea una secuencia de números | `seq(0, 100, by = 10)` | 2 |
+| `rep()` | Repite un valor o un vector | `rep("A", 3)` | 2 |
+| `length()` | Número de elementos de un vector | `length(x)` | 2 |
+| `class()` | Tipo de un objeto | `class(x)` | 2 |
+| `as.numeric()` | Convierte a número | `as.numeric("29.1")` | 2 |
+| `as.character()` | Convierte a texto | `as.character(28)` | 2 |
+| `as.logical()` | Convierte a lógico (`TRUE` o `FALSE`) | `as.logical("TRUE")` | 2 |
+| `factor()` | Convierte un vector en categorías (factor) | `factor(mezcla)` | 2 |
+| `levels()` | Muestra las categorías de un factor | `levels(factor(mezcla))` | 2 |
+| `is.na()` | Indica qué valores faltan (`NA`) | `is.na(x)` | 2 |
+| `sort()` | Ordena un vector de menor a mayor | `sort(x)` | 2 |
+
+: Funciones para crear y revisar objetos y vectores. {#tbl-apb-objetos}
+
+## Cálculos y resúmenes numéricos {#sec-apb-calculos}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `sum()` | Suma | `sum(x)` | 2 |
+| `mean()` | Promedio (media aritmética) | `mean(x, na.rm = TRUE)` | 2 |
+| `median()` | Mediana | `median(x)` | 2 |
+| `min()`, `max()` | Mínimo y máximo | `max(x)` | 2 |
+| `range()` | Mínimo y máximo juntos | `range(x)` | 2 |
+| `sd()` | Desviación estándar muestral | `sd(x)` | 2 |
+| `var()` | Varianza muestral | `var(x)` | 9 |
+| `quantile()` | Cuantiles (percentiles, cuartiles) | `quantile(x, 0.90)` | 9 |
+| `IQR()` | Rango intercuartílico | `IQR(x)` | 9 |
+| `weighted.mean()` | Media ponderada | `weighted.mean(x, w = longitud)` | 9 |
+| `prod()` | Producto de todos los valores | `prod(x)` | 9 |
+| `round()` | Redondea a cierto número de decimales | `round(28.456, 1)` | 2 |
+| `sqrt()` | Raíz cuadrada | `sqrt(16)` | 1 |
+| `abs()` | Valor absoluto | `abs(-2.5)` | 2 |
+| `cumsum()` | Suma acumulada | `cumsum(c(1, 2, 3))` | 6 |
+| `summary()` | Resumen: mínimo, cuartiles, media y máximo | `summary(x)` | 2 |
+| `table()` | Cuenta cuántas veces aparece cada valor | `table(mezcla)` | 2 |
+| `prop.table()` | Convierte conteos en proporciones | `prop.table(table(material))` | 8 |
+| `addmargins()` | Agrega totales a un cuadro de contingencia | `addmargins(table(a, b))` | 8 |
+| `cut()` | Agrupa números en intervalos (clases) | `cut(x, breaks = 4)` | 4 |
+| `ifelse()` | Elige entre dos valores según una condición | `ifelse(x >= 28, "Cumple", "No cumple")` | 3 |
+
+: Funciones para calcular y resumir datos numéricos. {#tbl-apb-calculos}
+
+## Data frames: leer, revisar y guardar {#sec-apb-dataframes}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `data.frame()` | Crea un data frame con columnas | `data.frame(id = 1:3, mpa = c(27, 29, 31))` | 3 |
+| `read.csv()` | Lee un CSV separado por comas | `read.csv("datos/ensayos.csv")` | 3 |
+| `read.csv2()` | Lee un CSV separado por punto y coma, con coma decimal | `read.csv2("datos/ensayos.csv")` | 3 |
+| `read_csv()` | Lee un CSV [readr] | `read_csv("datos/ensayos.csv")` | 3 |
+| `read_csv2()` | Lee un CSV con punto y coma [readr] | `read_csv2("datos/ensayos.csv")` | 3 |
+| `read_excel()` | Lee una hoja de Excel [readxl] | `read_excel("datos/ensayos.xlsx")` | 3 |
+| `write.csv()` | Guarda un data frame en un CSV | `write.csv(datos, "resumen.csv", row.names = FALSE)` | 3 |
+| `head()` | Muestra las primeras filas | `head(datos)` | 3 |
+| `str()` | Muestra la estructura: columnas y tipos | `str(datos)` | 3 |
+| `dim()` | Número de filas y de columnas | `dim(datos)` | 3 |
+| `nrow()` | Número de filas | `nrow(datos)` | 3 |
+| `names()` | Nombres de las columnas | `names(datos)` | 3 |
+| `View()` | Abre los datos en una pestaña, como una hoja de cálculo | `View(datos)` | 3 |
+| `$` | Extrae una columna | `datos$resistencia_mpa` | 3 |
+| `[ , ]` | Elige filas y columnas: `datos[filas, columnas]` | `datos[datos$edad_dias == 28, ]` | 3 |
+| `order()` | Posiciones para ordenar filas | `datos[order(datos$resistencia_mpa), ]` | 3 |
+| `aggregate()` | Resume una columna por grupos | `aggregate(resistencia_mpa ~ proyecto, data = datos, FUN = mean)` | 3 |
+
+: Funciones para leer, revisar y guardar data frames. {#tbl-apb-dataframes}
+
+## Manipular datos con dplyr {#sec-apb-dplyr}
+
+Todas las funciones de este cuadro son del paquete dplyr y se encadenan con el pipe `%>%`, que se lee "y luego" (@sec-datos-pipe).
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `%>%` | Pasa el resultado de la izquierda a la función de la derecha (pipe) | `x %>% mean()` | 3 |
+| `filter()` | Elige filas que cumplen una condición | `datos %>% filter(edad_dias == 28)` | 3 |
+| `select()` | Elige columnas | `datos %>% select(proyecto, resistencia_mpa)` | 3 |
+| `mutate()` | Crea o cambia columnas | `datos %>% mutate(kn = mpa * 0.0785)` | 3 |
+| `arrange()` | Ordena filas | `datos %>% arrange(resistencia_mpa)` | 3 |
+| `desc()` | Orden de mayor a menor, dentro de `arrange()` | `datos %>% arrange(desc(resistencia_mpa))` | 3 |
+| `group_by()` | Agrupa para resumir por grupo | `datos %>% group_by(proyecto)` | 3 |
+| `summarise()` | Resume cada grupo en una fila | `summarise(media = mean(resistencia_mpa))` | 3 |
+| `n()` | Número de filas de cada grupo, dentro de `summarise()` | `summarise(cantidad = n())` | 3 |
+| `count()` | Cuenta filas por grupo | `datos %>% count(proyecto)` | 3 |
+| `slice_sample()` | Elige filas al azar | `datos %>% slice_sample(n = 5)` | 7 |
+| `glimpse()` | Muestra las columnas y su tipo | `glimpse(datos)` | 7 |
+
+: Funciones del paquete dplyr. {#tbl-apb-dplyr}
+
+## Gráficos con R base {#sec-apb-graficos-base}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `plot()` | Diagrama de dispersión o de líneas | `plot(x, y)` | 4 |
+| `hist()` | Histograma | `hist(x)` | 4 |
+| `boxplot()` | Diagrama de caja y bigotes | `boxplot(mpa ~ proyecto, data = datos)` | 4 |
+| `barplot()` | Gráfico de barras | `barplot(table(mezcla))` | 4 |
+| `legend()` | Agrega una leyenda a un gráfico | `legend("topright", legend = c("A", "B"))` | 6 |
+| `png()`, `dev.off()` | Guardan el gráfico en un archivo PNG | `png("figura.png")` ... `dev.off()` | 4 |
+
+: Funciones de gráficos de R base. {#tbl-apb-graficos-base}
+
+## Gráficos con ggplot2 {#sec-apb-ggplot2}
+
+Un gráfico de ggplot2 se arma por capas que se suman con `+` [@wickham2016ggplot2].
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `ggplot()` | Inicia el gráfico con los datos | `ggplot(datos, aes(x = edad_dias, y = mpa))` | 4 |
+| `aes()` | Dice qué columna va en cada eje, color o forma | `aes(x = proyecto, y = mpa)` | 4 |
+| `geom_point()` | Capa de puntos | `+ geom_point()` | 4 |
+| `geom_histogram()` | Capa de histograma | `+ geom_histogram(bins = 10)` | 4 |
+| `geom_boxplot()` | Capa de cajas y bigotes | `+ geom_boxplot()` | 4 |
+| `geom_col()` | Barras con la altura que trae una columna | `+ geom_col()` | 8 |
+| `position_jitter()` | Separa un poco los puntos que se tapan | `geom_point(position = position_jitter(width = 0.1))` | 4 |
+| `facet_wrap()` | Un panel por cada grupo | `+ facet_wrap(~ proyecto)` | 4 |
+| `labs()` | Títulos de los ejes y de la leyenda | `+ labs(x = "Edad (días)", y = "Resistencia (MPa)")` | 4 |
+| `theme_minimal()` | Aspecto limpio, con fondo blanco | `+ theme_minimal()` | 4 |
+| `ggsave()` | Guarda el último gráfico en un archivo | `ggsave("figura.png", width = 7, height = 4)` | 4 |
+
+: Funciones del paquete ggplot2. {#tbl-apb-ggplot2}
+
+## Documentos con R Markdown {#sec-apb-rmarkdown}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `kable()` | Convierte un data frame en un cuadro con formato [knitr] | `kable(resumen, digits = 1)` | 5 |
+| `kable_styling()` | Da estilo al cuadro de `kable()` [kableExtra] | `kable(resumen) %>% kable_styling()` | 5 |
+
+: Funciones para cuadros en documentos de R Markdown. {#tbl-apb-rmarkdown}
+
+## Programación y simulación {#sec-apb-programacion}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `function()` | Crea una función propia | `area <- function(d) pi * d^2 / 4` | 6 |
+| `return()` | Devuelve el resultado de una función | `return(area)` | 6 |
+| `if`, `else` | Ejecuta un bloque solo si se cumple una condición | `if (x >= 28) "Cumple" else "No cumple"` | 6 |
+| `for` | Repite un bloque para cada elemento | `for (i in 1:10) print(i)` | 6 |
+| `seq_along()` | Posiciones 1, 2, 3, … de un vector, para usar en un `for` | `for (i in seq_along(x))` | 6 |
+| `numeric()` | Crea un vector de ceros para ir llenándolo | `resultado <- numeric(100)` | 6 |
+| `print()` | Muestra un valor en la consola | `print(mean(x))` | 6 |
+| `sample()` | Elige valores al azar | `sample(1:6, size = 10, replace = TRUE)` | 6 |
+| `set.seed()` | Fija la semilla para que el azar se repita igual | `set.seed(123)` | 6 |
+
+: Funciones para programar y simular. {#tbl-apb-programacion}
+
+## Probabilidad y distribuciones {#sec-apb-distribuciones}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `factorial()` | Factorial $n!$ | `factorial(5)` | 11 |
+| `choose()` | Combinaciones de $n$ en grupos de $k$ | `choose(10, 3)` | 11 |
+| `pnorm()` | Área a la izquierda en la normal | `pnorm(25, mean = 30, sd = 3)` | 16 |
+| `qnorm()` | Valor de la normal para un área a la izquierda | `qnorm(0.975)` | 16 |
+| `dbinom()` | Probabilidad de exactamente $x$ éxitos | `dbinom(2, size = 20, prob = 0.1)` | 14 |
+| `pbinom()` | Probabilidad de a lo sumo $x$ éxitos | `pbinom(2, size = 20, prob = 0.1)` | 14 |
+| `pt()`, `qt()` | Área y valor crítico de la $t$ de Student | `qt(0.975, df = 9)` | 17 |
+| `pchisq()`, `qchisq()` | Área y valor crítico de la chi-cuadrado | `qchisq(0.95, df = 4)` | 17 |
+| `pf()`, `qf()` | Área y valor crítico de la $F$ | `qf(0.95, df1 = 3, df2 = 12)` | 17 |
+
+: Funciones de probabilidad y distribuciones. {#tbl-apb-distribuciones}
+
+### Las cuatro letras de las distribuciones {#sec-apb-dpqr}
+
+En R, cada distribución tiene cuatro funciones que comparten el nombre y cambian solo en la primera letra. Basta con aprender la regla del @tbl-apb-dpqr-letras y los nombres del @tbl-apb-dpqr para usar cualquier distribución.
+
+| Letra | Qué devuelve | Ejemplo con la normal |
+|:-:|:--|:--|
+| `d` | Densidad (continuas) o probabilidad de un valor exacto (discretas) | `dnorm(0)` da 0.399 |
+| `p` | Probabilidad acumulada, el área a la izquierda: $P(X \le x)$ | `pnorm(1.96)` da 0.975 |
+| `q` | El valor $x$ que deja un área dada a la izquierda (cuantil) | `qnorm(0.975)` da 1.960 |
+| `r` | Números al azar de esa distribución | `rnorm(5, mean = 30, sd = 3)` da 5 valores |
+
+: Significado de la primera letra en las funciones de distribuciones. {#tbl-apb-dpqr-letras}
+
+| Distribución | Nombre en R | Parámetros | Funciones |
+|:--|:--|:--|:--|
+| Binomial | `binom` | `size` ($n$), `prob` ($p$) | `dbinom()`, `pbinom()`, `qbinom()`, `rbinom()` |
+| Poisson | `pois` | `lambda` ($\lambda$) | `dpois()`, `ppois()`, `qpois()`, `rpois()` |
+| Geométrica | `geom` | `prob` ($p$) | `dgeom()`, `pgeom()`, `qgeom()`, `rgeom()` |
+| Hipergeométrica | `hyper` | `m`, `n`, `k` | `dhyper()`, `phyper()`, `qhyper()`, `rhyper()` |
+| Binomial negativa | `nbinom` | `size`, `prob` | `dnbinom()`, `pnbinom()`, `qnbinom()`, `rnbinom()` |
+| Uniforme | `unif` | `min`, `max` | `dunif()`, `punif()`, `qunif()`, `runif()` |
+| Normal | `norm` | `mean` ($\mu$), `sd` ($\sigma$) | `dnorm()`, `pnorm()`, `qnorm()`, `rnorm()` |
+| Exponencial | `exp` | `rate` ($\lambda$) | `dexp()`, `pexp()`, `qexp()`, `rexp()` |
+| Gamma | `gamma` | `shape`, `rate` | `dgamma()`, `pgamma()`, `qgamma()`, `rgamma()` |
+| Beta | `beta` | `shape1`, `shape2` | `dbeta()`, `pbeta()`, `qbeta()`, `rbeta()` |
+| Log-normal | `lnorm` | `meanlog`, `sdlog` | `dlnorm()`, `plnorm()`, `qlnorm()`, `rlnorm()` |
+| Weibull | `weibull` | `shape`, `scale` | `dweibull()`, `pweibull()`, `qweibull()`, `rweibull()` |
+| $t$ de Student | `t` | `df` ($\nu$) | `dt()`, `pt()`, `qt()`, `rt()` |
+| Chi-cuadrado | `chisq` | `df` ($\nu$) | `dchisq()`, `pchisq()`, `qchisq()`, `rchisq()` |
+| $F$ de Fisher | `f` | `df1` ($\nu_1$), `df2` ($\nu_2$) | `df()`, `pf()`, `qf()`, `rf()` |
+
+: Distribuciones de R y sus parámetros. {#tbl-apb-dpqr}
+
+::: {.callout-warning title="Cuidado"}
+Las funciones `p` dan siempre el área a la izquierda. Para el área a la derecha se resta de 1, `1 - pnorm(1.96)`, o se agrega el argumento `lower.tail = FALSE`. En las distribuciones discretas, $P(X \ge 3)$ no es `1 - pbinom(3, ...)` sino `1 - pbinom(2, ...)`, porque el 3 sí se incluye.
+:::
+
+
+## Inferencia estadística {#sec-apb-inferencia}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `t.test()` | Prueba $t$ e intervalo de confianza para una media o dos medias | `t.test(x, mu = 28)` | 21 |
+| `prop.test()` | Prueba e intervalo para una o dos proporciones | `prop.test(12, 40, p = 0.5)` | 21 |
+| `binom.test()` | Prueba exacta para una proporción (muestras pequeñas) | `binom.test(3, 20, p = 0.1)` | 21 |
+| `var.test()` | Prueba $F$ para comparar dos varianzas | `var.test(x, y)` | 22 |
+| `chisq.test()` | Prueba chi-cuadrado de bondad de ajuste o de independencia | `chisq.test(cuadro)` | 23 |
+| `shapiro.test()` | Prueba de normalidad de Shapiro-Wilk | `shapiro.test(x)` | 27 |
+
+: Funciones de intervalos de confianza y pruebas de hipótesis. {#tbl-apb-inferencia}
+
+## Correlación y regresión {#sec-apb-regresion}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `cor()` | Coeficiente de correlación | `cor(x, y)` | 24 |
+| `cor.test()` | Prueba de significancia de la correlación | `cor.test(x, y, method = "spearman")` | 24 |
+| `lm()` | Ajusta un modelo de regresión lineal | `modelo <- lm(y ~ x, data = datos)` | 25 |
+| `summary()` | Coeficientes, errores estándar, valores $p$ y $R^2$ del modelo | `summary(modelo)` | 25 |
+| `coef()` | Coeficientes del modelo | `coef(modelo)` | 25 |
+| `confint()` | Intervalos de confianza de los coeficientes | `confint(modelo)` | 25 |
+| `predict()` | Predicción con intervalo de confianza o de predicción | `predict(modelo, nuevos, interval = "prediction")` | 25 |
+| `anova()` | Cuadro de análisis de varianza del modelo | `anova(modelo)` | 25 |
+| `residuals()`, `fitted()` | Residuos y valores ajustados | `residuals(modelo)` | 27 |
+| `plot()` | Gráficos de diagnóstico de un modelo | `plot(modelo)` | 27 |
+
+: Funciones de correlación y regresión. {#tbl-apb-regresion}
+
+## Diseño de experimentos {#sec-apb-experimentos}
+
+| Función | Qué hace | Ejemplo | Cap. |
+|:--|:--|:--|:-:|
+| `aov()` | Ajusta un análisis de varianza (ANOVA) | `modelo <- aov(mpa ~ mezcla, data = datos)` | 28 |
+| `summary()` | Cuadro del ANOVA | `summary(modelo)` | 28 |
+| `TukeyHSD()` | Comparaciones múltiples de Tukey | `TukeyHSD(modelo)` | 29 |
+| `interaction.plot()` | Gráfico de interacción entre dos factores | `interaction.plot(datos$a, datos$b, datos$y)` | 30 |
+
+: Funciones de diseño de experimentos. {#tbl-apb-experimentos}
+
+```{=html}
+<script>
+(function () {
+  var caja = document.getElementById("buscar-funciones");
+  if (!caja) return;
+  var entrada = caja.querySelector("input"), aviso = caja.querySelector(".resultado");
+  // Filas de los cuadros de este apéndice (sus etiquetas empiezan con tbl-apb-)
+  var filas = Array.prototype.slice.call(document.querySelectorAll('[id^="tbl-apb-"] tbody tr'));
+  // Quita tildes y mayúsculas para comparar
+  function limpiar(t) { return t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  var textos = filas.map(function (tr) { return limpiar(tr.textContent); });
+  entrada.addEventListener("input", function () {
+    var q = limpiar(entrada.value.trim()), n = 0;
+    filas.forEach(function (tr, i) {
+      var ok = !q || textos[i].indexOf(q) >= 0;
+      tr.style.display = ok ? "" : "none";
+      if (ok) n++;
+    });
+    aviso.textContent = !q ? "" : n === 0 ? "Ninguna función coincide. Pruebe con otra palabra." :
+      n === 1 ? "Una fila coincide." : n + " filas coinciden.";
+  });
+})();
+</script>
+```
+
+## Ejercicios propuestos
+
+1. Sin mirar el capítulo 3, use el @tbl-apb-dataframes para escribir las instrucciones que leen un archivo CSV, muestran sus primeras filas y dicen cuántas filas tiene.
+2. Con el @tbl-apb-dpqr, escriba la función de R que da la probabilidad de que una variable Poisson con $\lambda = 4$ valga exactamente 2, y la que da 10 números al azar de una exponencial con tasa 0.5.
+3. Use `?quantile` para averiguar qué hace el argumento `probs` y calcule los cuartiles de `x <- c(27.4, 29.1, 26.8, 30.2, 28.5, 27.9, 29.6, 25.3)`.
+4. Busque en este apéndice tres funciones que sirvan para ver cómo es un data frame antes de analizarlo y explique en qué se diferencian.

@@ -54,6 +54,18 @@ book:
         - 05-rmarkdown.qmd
         - 06-programacion_simulacion.qmd
 
+    - part: "Estadística descriptiva"
+      chapters:
+        - 07-estadistica_ingenieria.qmd
+        - 08-presentacion_datos.qmd
+        - 09-medidas_descriptivas.qmd
+
+    - part: "Probabilidad"
+      chapters:
+        - 10-experimentos_eventos.qmd
+        - 11-tecnicas_conteo.qmd
+        - 12-probabilidad_condicional.qmd
+
     - part: "Variables aleatorias y distribuciones"
       chapters:
         - 13-variables_aleatorias.qmd
@@ -64,6 +76,11 @@ book:
 
     - epilogo.qmd
     - 99-Referencias.qmd
+
+  appendices:
+    - A-tablas_estadisticas.qmd
+    - B-funciones_r.qmd
+    - C-glosario.qmd
 
 format:
   html:
