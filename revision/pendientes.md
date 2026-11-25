@@ -93,7 +93,7 @@
 
 ## Ampliación de la Parte II (2026-11-25)
 
-- Capítulo 9: falta la cita del manual de ingeniería de tránsito para el uso del percentil 85 de la velocidad (marcada con CITA PENDIENTE). El autor puede indicar cuál prefiere.
+- Resuelto (2026-11-25): el percentil 85 se cita con el MUTCD 2009, sección 2B.13, y la amenaza sísmica del capítulo 7 con el Código Sísmico de Costa Rica 2010 (revisión 2014) y ASCE/SEI 7-22, como pidió el autor (normas reconocidas).
 - Capítulo 9: la cita del ACI 214R-11 se usa solo para decir que la desviación estándar y el CV juzgan la uniformidad del concreto; si el autor quiere los valores de las clases de control, hay que copiarlos de la guía.
 
 ## Diagramas (2026-11-25)
@@ -102,6 +102,5 @@
 
 ## Ampliación de la Parte V (2026-11-25)
 
-- Capítulo 19: falta citar un libro para el intervalo de la media de una exponencial con la chi-cuadrado de 2n grados de libertad (comentario CITA PENDIENTE). La derivación está en el texto y se comprobó por simulación.
 - Capítulo 23: el ejemplo de velocidades en una ruta rural usa datos hipotéticos generados con semilla; si el autor tiene mediciones reales anonimizadas, se pueden sustituir.
 - Capítulo 20: la escala de lectura del valor p sigue a Wasserman (2004); el autor puede preferir otra redacción.

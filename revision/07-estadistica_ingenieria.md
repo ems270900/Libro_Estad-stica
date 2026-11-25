@@ -8,7 +8,7 @@ Fecha: 2026-11-25. Estado: borrador.
 - Interactivo: población de 500 cilindros y muestras al azar de tamaño n (`#fig-est-interactivo`).
 - Ejemplos: muestra aleatoria simple de 5 puentes (`sample()` y `slice_sample()`); tipos de variables del inventario de puentes (`factor()`, `glimpse()`); registro de lluvia máxima diaria (población, muestra, gráfico en R base y ggplot2).
 - Fuentes: Illowsky y Dean (2013), Lane (s.f.), Montgomery y Runger (2014), Stevens (1946), Navidi (2006).
-- Pendiente: cita del Código Sísmico de Costa Rica (marcada con CITA PENDIENTE). La serie de lluvia es real y va anonimizada (decisión del autor).
+- Código Sísmico de Costa Rica citado (2026-11-25), junto con ASCE/SEI 7-22 para las combinaciones de carga. La serie de lluvia es real y va anonimizada (decisión del autor).
 
 ## Ampliación (2026-11-25)
 
