@@ -201,7 +201,7 @@ li > p {
 /* Bloque de cita estilo R4DS */
 .quote-block {
   border-left: 4px solid var(--acento);   /* color elegante */
-  background: #f9fbfd;
+  background: color-mix(in srgb, var(--acento) 4%, #ffffff);
   padding: 1.2em 1.5em;
   margin: 1.5em 0;
   border-radius: 4px;
@@ -314,8 +314,8 @@ li > p {
 }
 
 .inst-card {
-  background: #f5faff;
-  border: 1px solid #c8d7e8;
+  background: color-mix(in srgb, var(--acento) 4%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--acento) 25%, #ffffff);
   border-radius: 10px;
   padding: 1rem 1.2rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
@@ -353,8 +353,8 @@ li > p {
 
 /* Colores por categoría */
 .cr-card.cr-public {
-  background-color: #e3f2fd;           /* azul muy claro */
-  border-left: 4px solid #1976d2;
+  background-color: color-mix(in srgb, var(--acento) 8%, #ffffff);
+  border-left: 4px solid var(--acento);
 }
 
 .cr-card.cr-academic {
@@ -564,10 +564,10 @@ main table.table:not(.table-sm) > tbody > tr:nth-of-type(odd) > * {
    filas alternas (striped), para que no se pierda. Cubre los cuadros de
    kableExtra/Bootstrap, los de datos de ejemplo (DT) y los paginados. */
 :root {
-  --hover-cuadro: color-mix(in srgb, var(--acento) 14%, #ffffff);
+  --hover-cuadro: color-mix(in srgb, var(--acento-2) 16%, #ffffff);   /* ámbar suave */
 }
 body.quarto-dark {
-  --hover-cuadro: color-mix(in srgb, var(--acento) 22%, transparent);
+  --hover-cuadro: color-mix(in srgb, #ffc357 20%, transparent);
 }
 .table {
   --bs-table-hover-bg: var(--hover-cuadro);
@@ -684,7 +684,7 @@ table.dataTable.display > tbody > tr:hover > *,
 details.code-fold > summary {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--bs-primary, #2780e3);
+  color: var(--acento);
   cursor: pointer;
 }
 
@@ -897,7 +897,7 @@ a.video-enlace:hover {
   gap: 1.6rem;
   align-items: start;
   flex: 0 0 auto;
-  background: #f5f7fa;
+  background: #f7f7f6;
   border-top: 3px solid var(--acento-2);
   padding: 0.9rem 1.4rem;
   font-size: 0.78rem;
@@ -1058,7 +1058,7 @@ body.quarto-dark main h4 {
   padding: 0.8rem 1rem;
   border: 1px solid #d5dbe3;
   border-radius: 8px;
-  background: #fafbfd;
+  background: #fafafa;
 }
 .interactivo label { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; flex-wrap: wrap; }
 .interactivo input[type=range] { flex: 1 1 12rem; accent-color: var(--acento-2); }
@@ -1249,7 +1249,7 @@ body:has(#quarto-sidebar .sidebar-menu-container):has(.portada) #quarto-margin-s
 .md-cita { display: inline-block; padding-left: 0.6em; border-left: 3px solid #adb5bd; color: #6c757d; }
 .md-vista { text-align: left; padding: 0.2rem 0.9rem; border: 1px dashed #adb5bd; border-radius: 4px; }
 .doc-simulado { text-align: left; padding: 0.4rem 0.9rem; border: 1px dashed #adb5bd; border-radius: 4px; background: #fff; }
-.doc-simulado pre { margin: 0.4rem 0; padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 4px; background: #f3f5f7; white-space: pre-wrap; }
+.doc-simulado pre { margin: 0.4rem 0; padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 4px; background: #f4f4f3; white-space: pre-wrap; }
 .doc-simulado .doc-mensaje { color: #b35c00; }
 body.quarto-dark .doc-simulado { background: transparent; }
 body.quarto-dark .doc-simulado pre { background: #2e3135; }
@@ -1261,3 +1261,8 @@ body.quarto-dark .doc-simulado .doc-mensaje { color: #f0b46b; }
 .interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 20%, transparent); font-weight: 700; text-decoration: none; }
 body.quarto-dark .interactivo button.archivo { background: transparent; }
 body.quarto-dark .interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 25%, transparent); }
+
+/* Selección de texto y barras de desplazamiento con la paleta del libro */
+::selection { background: color-mix(in srgb, var(--acento-2) 28%, transparent); }
+body.quarto-dark ::selection { background: color-mix(in srgb, #ffc357 35%, transparent); color: #fff; }
+html { scrollbar-color: color-mix(in srgb, var(--acento) 45%, #c8c8c8) transparent; }

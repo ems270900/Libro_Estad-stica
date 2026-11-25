@@ -36,12 +36,13 @@ Cada archivo de datos de los ejemplos se describe aquí: qué contiene, columnas
 - `tiempos_viaje_poblacion_hipotetica.csv`: población de 2000 tiempos de viaje en bus de una ruta urbana. Columnas: `viaje` (1 a 2000) y `tiempo_min` (min). Gamma con forma 2 y escala 10 min, generado con `herramientas/datos_parte4.R`, semilla `17`. Capítulo 17.
 
 - `varillas_fluencia_hipoteticas.csv`: esfuerzo de fluencia (MPa) de diez varillas de acero, valores del material del curso IC-0516 usados como hipotéticos. Columnas `varilla` y `fluencia_mpa`. Capítulos 19 y 20.
-- `lote_cilindros_hipotetico.csv`: resistencia a compresión a 28 días (MPa) de 25 cilindros de un mismo concreto, normal con media 31 y desviación 2.6. Columnas `cilindro` y `resistencia_mpa`. Capítulos 18 y 19.
+- `lote_cilindros_hipotetico.csv`: resistencia a compresión a 28 días (MPa) de 25 cilindros de un mismo concreto, normal con media 31 y desviación 2.6. Columnas `cilindro` y `resistencia_mpa`. Capítulos 18, 19 y 21.
 - `tiempo_falla_bombas_hipotetico.csv`: horas de operación hasta la falla de 20 bombas, exponencial con media 400 h. Columnas `falla` y `tiempo_h`. Capítulo 18.
 - `espesor_carpeta_hipotetico.csv`: espesor (mm) de la carpeta asfáltica en 12 núcleos; espesor de diseño 50 mm. Columnas `nucleo` y `espesor_mm`. Capítulo 21.
 - `concreto_aditivo_hipotetico.csv`: resistencia a compresión (MPa) de 12 cilindros sin aditivo y 10 con aditivo. Columnas `mezcla` y `resistencia_mpa`. Capítulo 22.
 - `iri_mantenimiento_hipotetico.csv`: índice de regularidad internacional (m/km) de diez tramos antes y después de un mantenimiento. Columnas `tramo`, `iri_antes` e `iri_despues`. Capítulo 22.
-- `tipo_falla_cilindros_hipotetico.csv`: tipo de falla (Cónica, Columnar, Cortante) de 180 cilindros según la planta (A, B, C). Columnas `cilindro`, `planta` y `tipo_falla`. UTF-8. Capítulo 23.
+- `deslizamientos_material_hipotetico.csv`: mecanismo de falla (Traslacional, Rotacional, Flujo) de 180 deslizamientos de un inventario vial según el material del talud (Suelo residual, Coluvio, Roca meteorizada). Columnas `deslizamiento`, `material` y `mecanismo`. UTF-8. Capítulo 23.
+- `compactacion_campo_hipotetica.csv`: grado de compactación (% del Proctor modificado) de 25 ensayos de densidad de campo en una base granular, normal con media 97.6 y desviación 1.4. Columnas `ensayo` y `compactacion_pct`. Capítulo 19.
 - `llegada_camiones_hipotetica.csv`: camiones que llegan a una planta de concreto en 80 intervalos de 15 minutos, Poisson con media 2.2. Columnas `intervalo` y `camiones`. Capítulo 23.
 
 Los ocho archivos de la Parte V se generan con `herramientas/datos_parte5.R`, semilla `20261125` (correr con una sesión en UTF-8).
