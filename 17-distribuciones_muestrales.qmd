@@ -368,11 +368,11 @@ tibble(x = seq(-4.5, 4.5, length.out = 500)) %>%
   theme(legend.position = "top")
 ```
 
-La diferencia importa en la práctica a través de los cuantiles. El @tbl-muestreo-t compara el cuantil del 97.5 % de la $t$ con el de la normal estándar, 1.960, que es el que se usa en los intervalos de confianza del 95 % (capítulo 19).
+La diferencia importa en la práctica a través de los cuantiles. El @tbl-muestreo-t compara el valor $t_{0.025,\,\nu}$, que deja un área de 0.025 a su derecha (la misma notación de las tablas del apéndice A), con el de la normal estándar, $z_{0.025} = 1.960$, que es el que se usa en los intervalos de confianza del 95 % (capítulo 19).
 
 ```{r}
 #| label: tbl-muestreo-t
-#| tbl-cap: "Cuantil del 97.5 % de la distribución t según los grados de libertad."
+#| tbl-cap: "Valor t que deja un área de 0.025 a la derecha según los grados de libertad."
 #| echo: false
 
 tibble(gl = c(2, 5, 9, 20, 30, 100, Inf)) %>%
@@ -380,12 +380,12 @@ tibble(gl = c(2, 5, 9, 20, 30, 100, Inf)) %>%
          gl_txt = ifelse(is.finite(gl), as.character(gl), "∞ (normal)"),
          q = qt(0.975, gl)) %>%
   select(n, gl_txt, q) %>%
-  kbl(col.names = c("Tamaño de muestra <i>n</i>", "Grados de libertad <i>ν</i>", "<i>t</i><sub>0.975, <i>ν</i></sub>"),
+  kbl(col.names = c("Tamaño de muestra <i>n</i>", "Grados de libertad <i>ν</i>", "<i>t</i><sub>0.025, <i>ν</i></sub>"),
       escape = FALSE, align = "c", digits = 3) %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-Con 10 cilindros ($\nu = 9$), el cuantil es 2.262: un 15 % mayor que 1.960. Con 31 datos la diferencia ya es de apenas un 4 %. En R: `pt()`, `qt()`.
+Con 10 cilindros ($\nu = 9$), $t_{0.025,\,9} = 2.262$, que en R es `qt(0.975, df = 9)`: un 15 % mayor que 1.960. Con 31 datos la diferencia ya es de apenas un 4 %. En R: `pt()`, `qt()`.
 
 ### Distribución F
 
@@ -405,7 +405,7 @@ sigue una distribución $F$ con $\nu_1 = n_1 - 1$ y $\nu_2 = n_2 - 1$ grados de 
 
 1. Según la @eq-muestreo-chi2, $9\,S^2/25 \sim \chi^2_9$, con media 9 y varianza 18 (@eq-muestreo-chi2-momentos).
 2. $S > 7$ equivale a $S^2 > 49$, es decir, a $\chi^2 > 9 \times 49/25 = 17.64$.
-3. Con la tabla de la chi-cuadrado del apéndice A, 17.64 queda entre los cuantiles del 95 % (16.92) y del 97.5 % (19.02) para 9 grados de libertad, así que la probabilidad está entre 0.025 y 0.05. Con R se obtiene 0.040.
+3. Con la tabla de la chi-cuadrado del apéndice A, con 9 grados de libertad, 17.64 queda entre $\chi^2_{0.05,\,9} = 16.92$ y $\chi^2_{0.025,\,9} = 19.02$ (valores que dejan un área de 0.05 y 0.025 a su derecha), así que la probabilidad está entre 0.025 y 0.05. Con R se obtiene 0.040.
 
 **Pseudocódigo**
 
@@ -490,7 +490,7 @@ El teorema del límite central habla de la media, no de los datos. Que la media 
 4. Una losa de piso recibe 64 cajas cuyo peso tiene media 25 kg y desviación estándar 6 kg. Con el teorema para sumas, calcule la probabilidad de que el peso total pase de 1700 kg.
 5. Un proveedor asegura que solo el 4 % de sus tubos tiene defectos. Se inspecciona una muestra de 250 tubos. Calcule el error estándar de la proporción muestral y la probabilidad de encontrar más de un 7 % de tubos defectuosos si lo que asegura el proveedor es cierto. Compare con la binomial exacta.
 6. Use el interactivo con la población "Dado cargado" y encuentre el menor $n$ con el que el histograma de las medias ya no muestra asimetría a simple vista. Repita con la población bimodal. ¿Cuál necesita un $n$ mayor y por qué?
-7. Para $\nu = 4$, 9 y 29 grados de libertad, calcule con `qt()` el cuantil del 97.5 % de la $t$ y compárelo con 1.960. ¿Qué tamaño de muestra hace falta para que la diferencia sea menor que el 5 %?
+7. Para $\nu = 4$, 9 y 29 grados de libertad, calcule con `qt()` el valor $t_{0.025,\,\nu}$ y compárelo con 1.960. ¿Qué tamaño de muestra hace falta para que la diferencia sea menor que el 5 %?
 8. La desviación estándar del espesor de una carpeta es $\sigma = 0.6$ cm y el espesor es normal. Con muestras de 15 núcleos, calcule el valor que la desviación estándar muestral supera solo el 5 % de las veces. Use `qchisq()`.
 9. Repita el ejemplo de la simulación de la varianza muestral, pero con una población exponencial de media 5 en lugar de la normal. ¿Sigue $(n - 1)S^2/\sigma^2$ una chi-cuadrado con 9 grados de libertad? Compare la proporción simulada de $S > 7$ con la teórica.
 

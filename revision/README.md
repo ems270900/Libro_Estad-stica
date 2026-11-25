@@ -20,4 +20,9 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
 | 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
 | 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| 13. Variables aleatorias | Borrador | [13-variables_aleatorias.md](13-variables_aleatorias.md) | Parte IV |
+| 14. Distribuciones discretas | Borrador | [14-distribuciones_discretas.md](14-distribuciones_discretas.md) | Parte IV |
+| 15. Distribuciones continuas | Borrador | [15-distribuciones_continuas.md](15-distribuciones_continuas.md) | Parte IV |
+| 16. La distribución normal y sus aproximaciones | Borrador | [16-distribucion_normal.md](16-distribucion_normal.md) | Parte IV |
+| 17. Muestreo, distribuciones muestrales y teorema del límite central | Borrador | [17-distribuciones_muestrales.md](17-distribuciones_muestrales.md) | Parte IV |
 | Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |

@@ -221,17 +221,17 @@ Antes de buscar en la tabla conviene hacer un dibujo rápido de la campana, marc
 Muchas preguntas de ingeniería van en sentido contrario: se conoce la probabilidad y se busca el valor. ¿Qué resistencia supera el 95 % de los cilindros? ¿Qué caudal se excede solo el 1 % de los años? Ese valor es un cuantil. Para la normal se despeja $x$ de la @eq-normal-z:
 
 $$
-x_q = \mu + z_q\, \sigma
+x = \mu + z\, \sigma
 $$ {#eq-normal-cuantil}
 
-donde $z_q$ es el cuantil de la normal estándar, el valor con $\Phi(z_q) = q$. Se busca dentro de la tabla el área $q$ y se lee el $z$ que le corresponde. En R, el cuantil se calcula con `qnorm()`.
+donde $z$ es el valor de la normal estándar que deja la probabilidad buscada a su izquierda. Se busca dentro de la tabla esa área y se lee el $z$ que le corresponde. En R, el cuantil se calcula con `qnorm()`, que también trabaja con el área a la izquierda.
 
-Algunos cuantiles de la normal estándar aparecen tanto que conviene reconocerlos: $z_{0.90} = 1.282$, $z_{0.95} = 1.645$, $z_{0.975} = 1.960$ y $z_{0.99} = 2.326$. Por simetría, $z_{0.05} = -1.645$.
+En este libro, igual que en las tablas del apéndice A, se escribe $z_\alpha$ para el valor que deja un área $\alpha$ a su derecha: $P(Z > z_\alpha) = \alpha$, o sea, $\Phi(z_\alpha) = 1 - \alpha$. Algunos valores aparecen tanto que conviene reconocerlos: $z_{0.10} = 1.282$, $z_{0.05} = 1.645$, $z_{0.025} = 1.960$ y $z_{0.01} = 2.326$. En R, $z_\alpha$ es `qnorm(1 - alfa)`. Por simetría, el valor que deja un área $\alpha$ a su izquierda es $-z_\alpha$.
 
-Por ejemplo, con $\mu = 35$ MPa y $\sigma = 5$ MPa, la resistencia que supera el 95 % de los cilindros es el cuantil del 5 %:
+Por ejemplo, con $\mu = 35$ MPa y $\sigma = 5$ MPa, la resistencia que supera el 95 % de los cilindros deja un 5 % a su izquierda, así que corresponde a $z = -z_{0.05} = -1.645$:
 
 $$
-x_{0.05} = 35 + (-1.645)(5) = 26.8 \text{ MPa}
+x = 35 + (-1.645)(5) = 26.8 \text{ MPa}
 $$
 
 En R: `qnorm(0.05, mean = 35, sd = 5)`. Esa es la idea de la resistencia característica del concreto: un valor bajo el cual solo cae una fracción pequeña y fijada de los resultados. La fracción que se acepta y la forma exacta del criterio dependen del código de diseño que se use.
@@ -256,7 +256,7 @@ ver_datos("datos/resistencia_obra_60_cilindros_hipotetica.csv",
 1. Se estiman los parámetros con los datos: $\bar{x} = 35.70$ MPa y $s = 3.47$ MPa.
 2. Regla empírica: entre $\bar{x} - s = 32.23$ y $\bar{x} + s = 39.17$ MPa hay 44 de 60 cilindros (73 %, cerca del 68 % esperado); entre $\bar{x} \pm 2s$ hay 59 de 60 (98 %, cerca del 95 %).
 3. Proporción bajo 30 MPa: $z = (30 - 35.70)/3.47 = -1.64$, y $\Phi(-1.64) = 1 - 0.9495 = 0.0505$. En los datos hay 4 de 60 (6.7 %).
-4. Valor que supera el 90 % de los cilindros: $x_{0.10} = 35.70 + (-1.282)(3.47) = 31.25$ MPa.
+4. Valor que supera el 90 % de los cilindros: deja un 10 % a su izquierda, así que $z = -z_{0.10} = -1.282$ y $x = 35.70 + (-1.282)(3.47) = 31.25$ MPa.
 
 **Pseudocódigo**
 
