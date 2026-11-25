@@ -52,6 +52,14 @@ book:
     #     - 01-tema_corto.qmd
     #     - 02-otro_tema.qmd
 
+    - part: "Variables aleatorias y distribuciones"
+      chapters:
+        - 13-variables_aleatorias.qmd
+        - 14-distribuciones_discretas.qmd
+        - 15-distribuciones_continuas.qmd
+        - 16-distribucion_normal.qmd
+        - 17-distribuciones_muestrales.qmd
+
     - epilogo.qmd
     - 99-Referencias.qmd
 
