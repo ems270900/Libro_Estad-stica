@@ -57,6 +57,46 @@ round(resistencia_cilindro(cargas), 2)
 Una función conviene cuando el mismo cálculo se copia y pega más de dos veces. Además del ahorro, evita errores: si la fórmula tiene un problema, se corrige en un solo lugar. Los nombres de las funciones deben decir lo que hacen, de preferencia con un verbo o un sustantivo, y los argumentos deben llevar las unidades en el nombre, como `carga_kn`.
 :::
 
+### Funciones que devuelven varios resultados
+
+Una función devuelve un solo objeto. Si se necesitan varios resultados, se juntan en una lista con `list()`, dando un nombre a cada uno, y después se toman con `$`, igual que las columnas de un data frame. La siguiente función resume un lote de cilindros:
+
+```{r}
+resumen_lote <- function(resistencias, fc) {
+  list(n = length(resistencias),
+       media = mean(resistencias),
+       minimo = min(resistencias),
+       cumplen = sum(resistencias >= fc))
+}
+
+lote <- c(27.4, 29.1, 26.8, 30.2, 28.5)
+r <- resumen_lote(lote, fc = 28)
+r$media
+r$cumplen
+```
+
+Lo que se crea dentro de una función, como `area_mm2` en `resistencia_cilindro()`, existe solo mientras la función se ejecuta: no aparece en el panel de entorno ni choca con otros objetos del mismo nombre. Lo único que sale de la función es lo que devuelve.
+
+### Avisar errores con stop()
+
+Una función también puede revisar que los datos que recibe tengan sentido. Si no lo tienen, `stop()` detiene el cálculo con un mensaje que dice qué está mal. Una carga o un diámetro negativos no tienen sentido físico, y es mejor que la función lo diga a que devuelva una resistencia negativa:
+
+```{r}
+#| error: true
+resistencia_cilindro <- function(carga_kn, diametro_mm = 150) {
+  if (any(carga_kn < 0) || diametro_mm <= 0) {
+    stop("La carga no puede ser negativa y el diámetro debe ser mayor que cero.")
+  }
+  area_mm2 <- pi * diametro_mm^2 / 4
+  carga_kn * 1000 / area_mm2
+}
+
+resistencia_cilindro(600)
+resistencia_cilindro(-600)
+```
+
+La función `any()` devuelve `TRUE` si alguno de los valores de un vector lógico es `TRUE`, y `||` es el "o" para condiciones de un solo valor. En la última línea de la función no hace falta `return()`: una función devuelve el resultado de su última instrucción.
+
 ## Condiciones {#sec-prog-condiciones}
 
 Muchas decisiones de ingeniería son de la forma "si pasa esto, haga aquello; si no, haga lo otro". En R se escriben con `if` y `else`:
@@ -166,6 +206,93 @@ round(cumsum(x) / seq_along(x), 2)
 ::: {.callout-tip title="En la práctica"}
 Para entender qué hace un ciclo, conviene seguirlo con lápiz y papel, como en el cuadro del ejemplo: anotar en cada vuelta el valor de `i` y de cada objeto. Si el resultado de R no coincide con el de la tabla, el error está en la vuelta donde los dos empiezan a diferir.
 :::
+
+### Repetir mientras se cumpla una condición
+
+Un ciclo `for` da un número fijo de vueltas, que se conoce antes de empezar. Cuando no se sabe cuántas vueltas hacen falta, se usa `while`, que repite mientras una condición sea verdadera y se detiene en cuanto deja de serlo.
+
+::: {.callout-note title="Ejemplo: camiones de concreto para una losa"}
+
+**Planteamiento.** Una losa necesita 52 m³ de concreto y cada camión mezclador trae 7 m³. Calcule cuántos camiones hacen falta, sumando camión por camión, primero a mano y luego con un ciclo `while`.
+
+**Solución:**
+
+Se suma un camión a la vez hasta que el volumen acumulado alcance los 52 m³. El @tbl-prog-camiones muestra cada vuelta.
+
+| Camión | Volumen acumulado (m³) | ¿Alcanza 52 m³? |
+|:-:|:-:|:-:|
+| 1 | 7 | No |
+| 2 | 14 | No |
+| 3 | 21 | No |
+| 4 | 28 | No |
+| 5 | 35 | No |
+| 6 | 42 | No |
+| 7 | 49 | No |
+| 8 | 56 | Sí |
+
+: Volumen acumulado camión por camión. {#tbl-prog-camiones}
+
+Hacen falta 8 camiones, y sobran $56 - 52 = 4$ m³.
+
+**Pseudocódigo**
+
+1. Empezar con 0 camiones y 0 m³.
+2. Mientras el volumen acumulado sea menor que 52 m³: sumar un camión y 7 m³.
+3. Mostrar el número de camiones y el sobrante.
+4. Comprobar con una división redondeada hacia arriba.
+
+```{r}
+# 1) Valores iniciales
+necesario <- 52    # m³
+por_camion <- 7    # m³
+camiones <- 0
+volumen <- 0
+
+# 2) Ciclo: un camión por vuelta
+while (volumen < necesario) {
+  camiones <- camiones + 1
+  volumen <- volumen + por_camion
+}
+
+# 3) Resultado
+camiones
+volumen - necesario   # sobrante (m³)
+
+# 4) Comprobación sin ciclo
+ceiling(necesario / por_camion)
+```
+
+**Interpretación.** El ciclo se detuvo en el octavo camión, que es la primera vez que el volumen (56 m³) deja de ser menor que 52 m³. La función `ceiling()` redondea hacia arriba y da el mismo resultado en una línea; el ciclo, en cambio, sirve igual cuando los camiones traen volúmenes distintos, caso en que no basta una división.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Si la condición de un `while` nunca deja de cumplirse, el ciclo no termina y R se queda trabajando sin fin. Pasa, por ejemplo, si dentro del ciclo se olvida sumar el volumen. En ese caso se detiene con el botón rojo Stop de la consola o con la tecla Esc.
+:::
+
+### Aplicar una función a cada elemento
+
+Muchas veces un ciclo `for` solo aplica la misma función a cada elemento de un vector y guarda los resultados. La función `sapply()` hace eso en una línea: recibe el vector y la función, y devuelve un vector con un resultado por elemento.
+
+```{r}
+diametros <- c(100, 150, 200)    # mm
+
+# Con un ciclo for
+areas <- numeric(length(diametros))
+for (i in seq_along(diametros)) {
+  areas[i] <- pi * diametros[i]^2 / 4
+}
+areas
+
+# Con sapply(): la misma cuenta en una línea
+sapply(diametros, function(d) pi * d^2 / 4)
+```
+
+La función que se le da a `sapply()` se puede escribir ahí mismo, sin nombre, con `function(d) ...`. Para cuentas tan simples como esta, la forma vectorizada `pi * diametros^2 / 4` es todavía más corta; `sapply()` sirve cuando la función no acepta vectores, por ejemplo una que tiene un `if` adentro, como `clasificar()`:
+
+```{r}
+sapply(c(24.5, 26.8, 30.2), clasificar, fc = 28)
+```
 
 ## Simulación con números aleatorios {#sec-prog-simulacion}
 
@@ -323,6 +450,157 @@ Simulación de la suma de dos dados con el número de lanzamientos elegido.
 
 :::
 
+### Números aleatorios que no son enteros
+
+`sample()` elige de una lista de valores. Para simular una medición, como una resistencia o un caudal, hacen falta números con decimales. R tiene una función para cada distribución de probabilidad; las dos que se usan desde el inicio son:
+
+- `runif(n, min, max)`: `n` números al azar entre `min` y `max`, todos con la misma probabilidad. Sirve, por ejemplo, para simular la hora de llegada de un camión entre las 7 y las 9 de la mañana: `runif(1, 7, 9)`.
+- `rnorm(n, mean, sd)`: `n` números de una distribución normal con media `mean` y desviación estándar `sd`. Los valores se agrupan alrededor de la media y se vuelven más raros a medida que se alejan de ella, como pasa con muchas mediciones de ingeniería. La distribución normal se estudia en el capítulo 16.
+
+```{r}
+#| label: fig-prog-rnorm
+#| fig-cap: "Histograma de 5000 resistencias simuladas con rnorm(), media 32 MPa y desviación estándar 3 MPa."
+#| fig-alt: "Histograma con forma de campana centrado en 32 MPa, que va de unos 21 a unos 43 MPa"
+set.seed(2026)
+simuladas <- rnorm(5000, mean = 32, sd = 3)
+round(head(simuladas), 1)
+hist(simuladas, breaks = 40, col = "#1C6BA0", border = "white", main = "",
+     xlab = "Resistencia simulada (MPa)", ylab = "Frecuencia")
+```
+
+### Repetir un experimento con replicate()
+
+Para estimar una probabilidad hay que repetir el experimento muchas veces. `replicate(n, expresion)` ejecuta la expresión `n` veces y junta los resultados en un vector. Por ejemplo, cada repetición puede ensayar un lote de tres cilindros simulados y anotar si el lote completo superó 28 MPa:
+
+```{r}
+set.seed(2026)
+lote_ok <- replicate(10000, all(rnorm(3, mean = 32, sd = 3) >= 28))
+mean(lote_ok)    # proporción de lotes en que los tres cilindros superan 28 MPa
+```
+
+La función `all()` devuelve `TRUE` solo si todos los valores son `TRUE`. Escrito con un ciclo `for`, el mismo cálculo ocuparía seis o siete líneas.
+
+::: {.callout-note title="Ejemplo: probabilidad de que un cilindro no alcance la resistencia de diseño"}
+
+**Planteamiento.** Suponga que la resistencia a 28 días de los cilindros de una mezcla sigue una distribución normal con media de 32 MPa y desviación estándar de 3 MPa (valores hipotéticos). Estime la probabilidad de que un cilindro dé menos que la resistencia de diseño de 28 MPa, con la tabla de la normal y con una simulación de 10 000 cilindros.
+
+**Solución:**
+
+1. Se calcula cuántas desviaciones estándar está 28 MPa por debajo de la media: $z = (28 - 32) / 3 = -1.33$.
+2. En la tabla de la distribución normal estándar del apéndice A (@tbl-apa-z-neg), la fila $-1.3$ y la columna $0.03$ dan $P(Z \le -1.33) = 0.0918$.
+3. Se espera, entonces, que alrededor del 9 % de los cilindros no alcance 28 MPa: unos 9 de cada 100.
+
+**Pseudocódigo**
+
+1. Fijar la semilla.
+2. Simular 10 000 resistencias con `rnorm()`.
+3. Calcular la proporción de resistencias menores que 28 MPa.
+4. Comparar con el valor exacto de `pnorm()` y con el de la tabla.
+
+```{r}
+# 1) Semilla
+set.seed(2026)
+
+# 2) Resistencias simuladas
+f <- rnorm(10000, mean = 32, sd = 3)
+
+# 3) Proporción menor que 28 MPa
+mean(f < 28)
+
+# 4) Valor exacto con la función de la distribución normal
+pnorm(28, mean = 32, sd = 3)
+```
+
+**Interpretación.** La simulación dio `r round(mean(f < 28), 4)`, la función `pnorm()` da 0.0912 y la tabla, 0.0918; la pequeña diferencia con la tabla se debe a que $z$ se redondeó a dos decimales. Los tres coinciden en que cerca de 9 de cada 100 cilindros de esta mezcla quedarían por debajo de 28 MPa. La simulación no necesitó ninguna fórmula: bastó con imitar muchos cilindros y contar.
+
+:::
+
+### Interactivo: cómo se acerca la simulación al valor exacto
+
+En el interactivo de la @fig-prog-convergencia se simulan cilindros de la mezcla del ejemplo y se dibuja la proporción de cilindros bajo 28 MPa a medida que se suman ensayos. La línea discontinua es el valor exacto, 0.0912. La curva empieza en el décimo cilindro. Con pocos cilindros la proporción salta mucho; con miles se queda pegada a la línea. Presione el botón varias veces para ver simulaciones distintas.
+
+::: {#fig-prog-convergencia}
+
+```{=html}
+<div class="interactivo" id="int-convergencia">
+  <label><span>Número de cilindros simulados:</span> <output>1 000</output>
+    <input type="range" min="1.5" max="4.3" step="0.05" value="3"></label>
+  <button type="button">Simular de nuevo</button>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Proporción acumulada de cilindros bajo 28 MPa contra el número de cilindros simulados"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-convergencia");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var boton = raiz.querySelector("button"), texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 280, ml = 54, mr = 16, mt = 14, mb = 42, exacto = 0.0912, ytop = 0.3;
+  function miles(x) { return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+  function normal() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function dibujar() {
+    var n = Math.round(Math.pow(10, parseFloat(control.value))), bajo = 0, pts = [], s = "";
+    salida.textContent = miles(n);
+    var lx = Math.log10(n / 10);
+    function sx(k) { return ml + Math.log10(k / 10) / lx * (w - ml - mr); }
+    function sy(p) { return h - mb - Math.min(p, ytop) / ytop * (h - mt - mb); }
+    for (var k = 1; k <= n; k++) {
+      if (32 + 3 * normal() < 28) bajo++;
+      if (k >= 10 && (k < 60 || k % Math.max(1, Math.floor(n / 400)) === 0 || k === n)) pts.push(sx(k).toFixed(1) + "," + sy(bajo / k).toFixed(1));
+    }
+    for (var y = 0; y <= ytop + 1e-9; y += 0.05) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" style="stroke-opacity:0.25"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(y) + 4) + '" text-anchor="end">' + y.toFixed(2) + '</text>';
+    }
+    [10, 100, 1000, 10000].forEach(function (m) {
+      if (m <= n) s += '<text class="eje-texto" x="' + sx(m) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + miles(m) + '</text>';
+    });
+    s += '<line x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(exacto) + '" y2="' + sy(exacto) + '" style="stroke:#C0392B; stroke-width:1.5; stroke-dasharray:6 4"/>' +
+         '<polyline points="' + pts.join(" ") + '" class="curva"/>' +
+         '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Cilindros simulados (escala logarítmica)</text>' +
+         '<text class="eje-texto" x="12" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((mt + h - mb) / 2) + ')">Proporción bajo 28 MPa</text>';
+    svg.innerHTML = s;
+    texto.textContent = "Proporción final: " + (bajo / n).toFixed(4) + " (" + miles(bajo) + " de " + miles(n) + " cilindros). Valor exacto: 0.0912";
+  }
+  control.addEventListener("input", dibujar);
+  boton.addEventListener("click", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Proporción de cilindros simulados con resistencia menor que 28 MPa a medida que aumenta el número de cilindros.
+
+:::
+
+## Cómo encontrar errores en el código {#sec-prog-errores}
+
+Todo el que programa escribe código con errores; la diferencia está en encontrarlos rápido. Hay dos tipos. Los errores que detienen a R muestran un mensaje en rojo que empieza con `Error`, y son los más fáciles: el mensaje dice qué pasó, aunque sea en inglés. Los más difíciles son los que no detienen a R pero dan un resultado equivocado, como una media de 3000 MPa por haber olvidado convertir unidades. Para los dos sirve el mismo método:
+
+1. Leer el mensaje completo, despacio. Casi siempre nombra el objeto o la función que falló.
+2. Ejecutar el código línea por línea, desde el inicio, y mirar el resultado de cada una. La primera línea que da algo inesperado es donde está el error.
+3. Revisar los objetos intermedios: imprimir con `print()` o revisar con `str()` dentro de una función o de un ciclo, para ver qué valores tienen en cada paso.
+4. Comparar con un caso que se pueda calcular a mano, como en los ejemplos de este libro. Si el código da 33.95 MPa para un cilindro que a mano da 33.95 MPa, es probable que esté bien.
+5. Si nada de eso funciona, copiar el mensaje de error en un buscador. Casi cualquier error ya le pasó a otra persona antes.
+
+El @tbl-prog-errores reúne los mensajes más comunes al escribir funciones y ciclos.
+
+| Mensaje (en parte) | Causa más probable | Solución |
+|:--|:--|:--|
+| `object 'x' not found` | El objeto no existe, o el nombre está mal escrito (R distingue mayúsculas) | Revisar el nombre en el panel de entorno |
+| `could not find function "resumen_lote"` | La función no se ha ejecutado todavía, o falta cargar un paquete | Ejecutar el bloque donde se define la función o `library()` |
+| `unexpected '}'` o `unexpected ')'` | Sobra o falta una llave o un paréntesis | RStudio resalta el par de cada paréntesis al poner el cursor junto a él |
+| `the condition has length > 1` | Se le dio un vector a `if` | Usar `ifelse()` o `sapply()` |
+| `argument "fc" is missing, with no default` | Falta un argumento al llamar la función | Escribir todos los argumentos que no tienen valor por omisión |
+| `non-numeric argument to binary operator` | Se intentó sumar o multiplicar un texto | Revisar con `str()` que la columna sea numérica |
+| `missing value where TRUE/FALSE needed` | La condición de un `if` dio `NA` | Revisar si los datos tienen faltantes (`is.na()`) |
+
+: Mensajes de error frecuentes al programar en R. {#tbl-prog-errores}
+
+::: {.callout-tip title="En la práctica"}
+Cuando una función da un error, `traceback()`, ejecutado justo después, muestra la cadena de funciones que se estaban ejecutando, de la más externa a la que falló. Para revisar una función paso a paso, se escribe `browser()` en la línea donde se quiere parar: al llamar la función, R se detiene ahí y los objetos se pueden revisar en la consola. Se continúa con la tecla Enter y se sale con `Q`.
+:::
+
 ## Ejercicios propuestos
 
 1. Escriba una función `area_rectangular(b, h)` que devuelva el área de una sección rectangular en cm². Úsela para una columna de 30 cm × 45 cm y compruebe el resultado a mano.
@@ -333,6 +611,13 @@ Simulación de la suma de dos dados con el número de lanzamientos elegido.
 6. Calcule a mano la probabilidad de que la suma de dos dados sea mayor que 9 y compruébela con una simulación de 10 000 lanzamientos.
 7. Un lote tiene 10 cilindros, de los cuales 1 no cumple. Si se eligen 3 cilindros al azar sin reemplazo, ¿con qué frecuencia aparece el que no cumple en la muestra? Estímela con 5000 simulaciones usando `sample()` y un ciclo. En el capítulo 11 se verá cómo calcular este valor exacto.
 8. En el interactivo de la @fig-prog-interactivo, presione varias veces el botón con 10 lanzamientos y luego con 10 000. Describa con sus palabras la diferencia entre los dos casos.
+9. Escriba una función `area_circulo(d)` que devuelva el área de un círculo de diámetro `d` y que se detenga con `stop()` si el diámetro es negativo. Pruébela con 150 y con -150.
+10. Modifique `resumen_lote()` para que devuelva también la desviación estándar (`sd()`) y la proporción de cilindros que cumplen. Úsela con los 10 cilindros del edificio a 28 días.
+11. Un tanque de 18 m³ se llena con una bomba de 0.75 m³ por minuto. Con un ciclo `while`, calcule cuántos minutos completos hacen falta para llenarlo. Compruebe el resultado a mano.
+12. Use `sapply()` para calcular la resistencia de cilindros de 150 mm que fallaron con 480, 520, 575 y 610 kN.
+13. Simule 10 000 resistencias de una mezcla con media 30 MPa y desviación estándar 2.5 MPa. ¿Qué proporción queda por debajo de 28 MPa? Compare con `pnorm(28, 30, 2.5)`.
+14. Con `replicate()`, estime la probabilidad de que en un lote de 5 cilindros de la mezcla del ejemplo (media 32 MPa, desviación estándar 3 MPa) al menos uno dé menos de 28 MPa.
+15. El código `x <- c(25, 30, "35"); mean(x)` no da la media esperada. Ejecútelo, lea el mensaje y explique qué pasó y cómo se corrige.
 
 ## Lecturas recomendadas
 
