@@ -1,3 +1,11 @@
 # Palabras finales {.unnumbered}
 
-<!-- POR ESCRIBIR: lo redacta el autor o se propone cuando el libro esté completo. -->
+Si llegó hasta aquí, ya sabe algo que mucha gente nunca aprende: que un número sin su variabilidad dice menos de lo que parece. Un promedio de 30 MPa puede venir de un concreto parejo o de uno que a ratos falla, y la diferencia entre los dos no está en el promedio. Espero que este libro le haya ayudado a hacerse esa pregunta casi sin pensarlo, frente a un informe de laboratorio, un conteo de tránsito o una serie de lluvias.
+
+Lo escribí con el deseo de explicar la probabilidad y la estadística como me habría gustado que me las explicaran a mí: con ejemplos de la ingeniería civil, paso a paso, primero con lápiz y calculadora y después con R, sin dar por sabido lo que nadie ha enseñado todavía. Sé que el camino no es corto. Entre el primer `install.packages()` y la última tabla de ANOVA hay muchos mensajes de error, alguna fórmula que no salía y más de una noche larga. Si usted lo recorrió, el mérito es suyo.
+
+Ningún método de este libro reemplaza el criterio de quien lo aplica. Una prueba de hipótesis no sabe si el ensayo se hizo bien. Una regresión no sabe si el dato atípico fue un error de digitación o la primera señal de un problema en la obra. Y un valor $p$ pequeño no dice si la diferencia importa para el diseño. Esas preguntas las responde la persona que conoce los materiales, la obra y la forma en que se tomaron los datos. La estadística le da los números para responderlas con honestidad, incluida la honestidad de decir cuánto no se sabe.
+
+La ingeniería civil trabaja para la gente: los puentes que cruza, el agua que bebe, los edificios donde vive. Detrás de cada muestra que se ensaya hay una decisión que afecta a alguien que nunca va a leer el informe. Si estas páginas ayudan a que esas decisiones se tomen con mejores datos y con más cuidado, habrán cumplido su propósito.
+
+Gracias por leer. Y la próxima vez que alguien le diga que un río tiene en promedio 80 cm de profundidad, pregunte por la desviación estándar antes de cruzarlo.

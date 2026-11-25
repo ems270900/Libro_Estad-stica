@@ -28,7 +28,7 @@
 - Los capítulos 24 a 27 mencionan por su número otros capítulos (2, 9, 17, 19 a 21 y la Parte VII). Se escribieron en paralelo; conviene cambiar esas menciones por referencias cruzadas `@sec-` a medida que se unan las partes.
 - Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.
 - `references.bib` tiene dos claves para Lane (`laneintroduction`, de la Parte III y usada en la VI, y `lanesfintroduction`, de la Parte II) y dos para Watkins (`watkinsintroduction` y `watkinssfintroduction`). No se renombran claves ya citadas; conviene que el autor elija una de cada par y se unifiquen en un PR aparte.
-- Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Agregarlos a las instrucciones de instalación de la introducción.
+- Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Ya están en las instrucciones de instalación de la introducción.
 
 ## Parte VII (diseño de experimentos)
 
@@ -54,6 +54,14 @@
 - Los ejemplos con datos se escribieron con datos hipotéticos. Si el autor tiene datos reales publicables (tesis, informes), se pueden sustituir.
 - En el material de la Semana 6 hay dos errores que no pasaron al libro: el estadístico de las varillas (−3.2747 en lugar de −3.452) y la conclusión del ejemplo del pH.
 - Revisión del autor de los capítulos 18 a 23.
+
+## Prefacio, introducción y palabras finales
+
+- Revisión del autor de los tres textos. El prefacio y las palabras finales van en primera persona, como en el libro de hidrología.
+- Agradecimientos y firma (Cartago, Costa Rica): se adaptaron del libro de hidrología; el autor puede cambiarlos.
+- El prefacio dice que el texto nació del material de un curso de la Escuela de Ingeniería Civil de la UCR, sin nombrar el código del curso. Confirmar la redacción.
+- La introducción menciona R 4.6 y RStudio 2026.11 (versiones de las capturas). Actualizar si se repiten las capturas.
+- Ya se agregaron car, lmtest y tolerance a las instrucciones de instalación de la introducción.
 
 ## Decisiones del autor
 
