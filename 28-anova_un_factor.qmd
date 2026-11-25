@@ -1116,70 +1116,30 @@ Errores frecuentes al aplicar el ANOVA de un factor:
 
 ## Resumen: qué análisis usar {#sec-dce-resumen}
 
-La Parte VII tiene muchos nombres, pero casi todo se decide con tres preguntas: cuántos factores interesan, si hay una fuente de ruido conocida y si los supuestos se cumplen. La @fig-dce-mapa ordena los métodos de los capítulos 28 a 30 con esas preguntas. R hace todas las cuentas; lo que no puede hacer es elegir el diseño ni interpretar el resultado.
+La Parte VII tiene muchos nombres, pero casi todo se decide con tres preguntas: cuántos factores interesan, si hay una fuente de ruido conocida y si los supuestos se cumplen. La @fig-dce-mapa ordena los métodos de los capítulos 28 a 30 con esas preguntas. R hace todas las cuentas; lo que no puede hacer es elegir el diseño ni interpretar el resultado. En cada rama, la primera opción es para datos que cumplen los supuestos; Welch sirve cuando las varianzas difieren, y Kruskal-Wallis y Friedman cuando los datos son muy asimétricos o tienen atípicos. Después de cualquier ANOVA con diferencias vienen las comparaciones múltiples, la revisión de residuos y el tamaño del efecto del capítulo 29.
 
-::: {#fig-dce-mapa}
+```{r}
+#| label: fig-dce-mapa
+#| fig-cap: "Qué análisis usar en un experimento."
+#| fig-alt: "Diagrama de árbol: con un factor sin bloques, ANOVA, Welch o Kruskal-Wallis; con un factor y bloques, diseño en bloques o Friedman; con dos o más factores, factorial completo o diseño dos a la k y fraccionado"
+#| echo: false
 
-```{=html}
-<div class="interactivo" id="mapa-parte7">
-<svg viewBox="0 0 660 330" role="img" aria-label="Diagrama de decisión: según el número de factores, la presencia de bloques y los supuestos, se llega a ANOVA de un factor, Welch, Kruskal-Wallis, bloques, Friedman, factorial o dos a la k">
-  <g style="font-family: system-ui, sans-serif; font-size: 12px">
-    <rect x="230" y="8" width="200" height="34" rx="8" class="barra"/>
-    <text x="330" y="30" text-anchor="middle" class="eje-texto" style="font-weight:700">¿Cuántos factores interesan?</text>
-    <line x1="290" y1="42" x2="150" y2="78" class="eje"/><line x1="370" y1="42" x2="510" y2="78" class="eje"/>
-    <text x="200" y="62" class="eje-texto">Uno</text><text x="440" y="62" class="eje-texto">Dos o más</text>
-    <rect x="50" y="78" width="200" height="34" rx="8" class="barra"/>
-    <text x="150" y="100" text-anchor="middle" class="eje-texto" style="font-weight:700">¿Hay una fuente de ruido conocida?</text>
-    <rect x="410" y="78" width="200" height="34" rx="8" class="barra"/>
-    <text x="510" y="100" text-anchor="middle" class="eje-texto" style="font-weight:700">¿Muchos factores para tamizar?</text>
-    <line x1="110" y1="112" x2="80" y2="150" class="eje"/><line x1="190" y1="112" x2="230" y2="150" class="eje"/>
-    <text x="62" y="136" class="eje-texto">No</text><text x="218" y="136" class="eje-texto">Sí</text>
-    <line x1="470" y1="112" x2="440" y2="150" class="eje"/><line x1="550" y1="112" x2="580" y2="150" class="eje"/>
-    <text x="418" y="136" class="eje-texto">No</text><text x="572" y="136" class="eje-texto">Sí</text>
-    <rect x="5" y="150" width="150" height="34" rx="8" class="barra"/>
-    <text x="80" y="172" text-anchor="middle" class="eje-texto" style="font-weight:700">¿Supuestos razonables?</text>
-    <rect x="160" y="150" width="150" height="34" rx="8" class="barra"/>
-    <text x="235" y="172" text-anchor="middle" class="eje-texto" style="font-weight:700">¿Supuestos razonables?</text>
-    <rect x="360" y="150" width="160" height="48" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="440" y="170" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">Factorial completo</text>
-    <text x="440" y="188" text-anchor="middle" class="eje-texto" style="fill:#fff">aov(y ~ A * B), cap. 30</text>
-    <rect x="530" y="150" width="125" height="48" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="592" y="170" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">2^k o fraccionado</text>
-    <text x="592" y="188" text-anchor="middle" class="eje-texto" style="fill:#fff">cap. 30</text>
-    <line x1="45" y1="184" x2="30" y2="225" class="eje"/><line x1="80" y1="184" x2="90" y2="225" class="eje"/><line x1="115" y1="184" x2="150" y2="225" class="eje"/>
-    <line x1="210" y1="184" x2="215" y2="225" class="eje"/><line x1="260" y1="184" x2="280" y2="225" class="eje"/>
-    <rect x="0" y="225" width="62" height="58" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="31" y="248" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">ANOVA</text>
-    <text x="31" y="266" text-anchor="middle" class="eje-texto" style="fill:#fff">aov()</text>
-    <rect x="64" y="225" width="58" height="58" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="93" y="248" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">Welch</text>
-    <text x="93" y="266" text-anchor="middle" class="eje-texto" style="fill:#fff">oneway</text>
-    <rect x="124" y="225" width="64" height="58" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="156" y="248" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">Kruskal</text>
-    <text x="156" y="266" text-anchor="middle" class="eje-texto" style="fill:#fff">kruskal</text>
-    <rect x="190" y="225" width="58" height="58" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="219" y="248" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">Bloques</text>
-    <text x="219" y="266" text-anchor="middle" class="eje-texto" style="fill:#fff">cap. 29</text>
-    <rect x="250" y="225" width="64" height="58" rx="8" class="barra-activa" style="fill-opacity:0.85"/>
-    <text x="282" y="248" text-anchor="middle" class="eje-texto" style="fill:#fff;font-weight:700">Friedman</text>
-    <text x="282" y="266" text-anchor="middle" class="eje-texto" style="fill:#fff">cap. 29</text>
-    <text x="22" y="212" class="eje-texto" style="font-size:10px">Sí</text>
-    <text x="88" y="218" text-anchor="middle" class="eje-texto" style="font-size:10px">Var. ≠</text>
-    <text x="148" y="208" class="eje-texto" style="font-size:10px">Asimétricos</text>
-    <text x="198" y="212" class="eje-texto" style="font-size:10px">Sí</text>
-    <text x="276" y="208" class="eje-texto" style="font-size:10px">No</text>
-    <text x="0" y="305" class="eje-texto">Var. ≠: varianzas distintas entre tratamientos (prueba de Welch con oneway.test()).</text>
-    <text x="360" y="232" class="eje-texto">Después de cualquier ANOVA con diferencias:</text>
-    <text x="360" y="250" class="eje-texto">comparaciones múltiples (Tukey, Holm, contrastes),</text>
-    <text x="360" y="268" class="eje-texto">revisión de residuos y tamaño del efecto (cap. 29).</text>
-  </g>
-</svg>
-</div>
+source("R/diagramas.R")
+dg_jerarquia(
+  raiz = list(c("¿Cuántos factores?", "t0")),
+  ramas = list(
+    list(caja = list(c("Un factor", "t1"), c("sin bloques", "t2")),
+         hojas = list(list(c("ANOVA", "t1"), c("aov()", "te")),
+                      list(c("Welch", "t1"), c("oneway.test()", "te")),
+                      list(c("Kruskal", "t1"), c("kruskal.test()", "te")))),
+    list(caja = list(c("Un factor", "t1"), c("con bloques", "t2")),
+         hojas = list(list(c("Bloques", "t1"), c("aov()", "te")),
+                      list(c("Friedman", "t1"), c("friedman.test()", "te")))),
+    list(caja = list(c("Dos o más", "t1"), c("factores", "t2")),
+         hojas = list(list(c("Factorial", "t1"), c("aov(y ~ A * B)", "te")),
+                      list(c("2ᵏ", "t1"), c("lm()", "te"))))),
+  titulo = "Qué análisis usar en un experimento")
 ```
-
-Qué análisis usar en un experimento.
-
-:::
 
 El @tbl-dce-resumen reúne las ideas de este capítulo.
 
