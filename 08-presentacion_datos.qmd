@@ -142,9 +142,135 @@ par(op)
 
 En el círculo cuesta decidir si hay más puentes de acero o de concreto. En las barras se ve en el acto que hay 16 de concreto y 13 de acero.
 
+La razón está en cómo percibe el ojo las magnitudes. @cleveland1984graphical pidieron a varias personas comparar cantidades representadas de distintas formas y midieron cuánto se equivocaban. Las comparaciones más exactas fueron las de posiciones sobre una escala común (puntos o extremos de barras alineados sobre el mismo eje), seguidas por las de longitudes. Los ángulos y las áreas, que son lo que usa el gráfico circular, quedaron bastante más abajo. Por eso un gráfico de barras o de puntos casi siempre reemplaza con ventaja a un pastel.
+
+Aun así, el gráfico circular tiene un lugar. Cuando hay dos o tres categorías y el mensaje es "qué parte del todo" (por ejemplo, que el 60 % del presupuesto de una obra se va en la estructura), un pastel se entiende al instante, incluso para un público sin formación técnica. Si se usa, conviene escribir el porcentaje dentro de cada sector y no usar efectos en 3D.
+
+### Diagrama de Pareto
+
+En control de calidad y en gestión de proyectos interesa saber qué pocas causas explican la mayor parte de los problemas. El diagrama de Pareto es un gráfico de barras ordenado de mayor a menor frecuencia, con una línea encima que acumula el porcentaje [@montgomery2013statistical]. Lleva el nombre del economista Vilfredo Pareto, y se basa en la observación empírica de que, con frecuencia, alrededor del 20 % de las causas producen cerca del 80 % de los efectos. No es una ley: en unos casos la concentración es mayor y en otros menor, y el diagrama sirve justo para ver cuánto es en el caso concreto.
+
+::: {.callout-note title="Ejemplo: causas de atraso en proyectos de construcción"}
+
+**Planteamiento.** Una empresa constructora registró la causa principal de 120 días de atraso en sus obras de un año (datos hipotéticos). Construya el diagrama de Pareto y diga cuántas causas hay que atacar para eliminar cerca del 80 % de los días de atraso.
+
+```{r}
+#| echo: false
+data.frame(causa = c("Lluvia", "Entrega tardía de materiales", "Cambios de diseño", "Falla de equipo",
+                     "Falta de personal", "Permisos y trámites", "Accidentes", "Otras"),
+           dias = c(34, 26, 21, 14, 9, 7, 5, 4)) %>%
+  kbl(col.names = c("Causa", "Días de atraso"), align = "lc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Solución:**
+
+1. Se ordenan las causas de mayor a menor número de días. La categoría "Otras" va siempre al final, aunque no sea la menor, porque agrupa causas distintas.
+2. Se calcula el porcentaje de cada causa sobre el total de 120 días: lluvia $34/120 = 28.3$ %, materiales $26/120 = 21.7$ %, cambios de diseño $21/120 = 17.5$ %, equipo $14/120 = 11.7$ %, y así con las demás.
+3. Se acumulan los porcentajes: 28.3 %, 50.0 %, 67.5 %, 79.2 %, 86.7 %, 92.5 %, 96.7 % y 100 %.
+4. Las cuatro primeras causas (la mitad de las ocho) suman el 79.2 % de los días de atraso.
+
+**Pseudocódigo**
+
+1. Escribir las causas y los días en un data frame.
+2. Ordenar de mayor a menor, dejando "Otras" al final.
+3. Calcular el porcentaje y el porcentaje acumulado.
+4. Dibujar las barras y la línea acumulada, con R base y con ggplot2.
+
+```{r}
+# 1) Datos
+atrasos <- data.frame(
+  causa = c("Lluvia", "Entrega tardía de materiales", "Cambios de diseño", "Falla de equipo",
+            "Falta de personal", "Permisos y trámites", "Accidentes", "Otras"),
+  dias = c(34, 26, 21, 14, 9, 7, 5, 4)
+)
+
+# 2) y 3) Orden (ya viene ordenado, con "Otras" al final), porcentaje y acumulado
+atrasos$porcentaje <- 100 * atrasos$dias / sum(atrasos$dias)
+atrasos$acumulado <- cumsum(atrasos$porcentaje)
+atrasos
+```
+
+```{r}
+#| label: fig-pres-pareto-base
+#| fig-cap: "Diagrama de Pareto de las causas de atraso, con R base."
+#| fig-alt: "Ocho barras verticales de mayor a menor, de lluvia con 34 días a otras con 4, y una línea que acumula el porcentaje desde 28 % hasta 100 %, con una línea horizontal en 80 %"
+#| fig-width: 9
+#| fig-height: 4.6
+
+# 4) Diagrama de Pareto con R base: barras y un segundo eje para el porcentaje
+# Nombres partidos en líneas de unos 12 caracteres para que quepan bajo las barras
+etiquetas <- sapply(atrasos$causa, function(z) paste(strwrap(z, 12), collapse = "\n"))
+par(mar = c(5, 4, 1, 5))
+centros <- barplot(atrasos$dias, axisnames = FALSE, col = "#1C6BA0",
+                   ylim = c(0, 120), ylab = "Días de atraso")
+axis(1, at = centros, labels = etiquetas, tick = FALSE, padj = 1, cex.axis = 0.75)
+lines(centros, atrasos$acumulado * 120 / 100, type = "o", pch = 19, col = "#E69F00")
+axis(4, at = seq(0, 120, by = 24), labels = paste0(seq(0, 100, by = 20), " %"), las = 1)
+abline(h = 0.8 * 120, lty = 2, col = "grey50")
+```
+
+```{r}
+#| label: fig-pres-pareto-gg
+#| fig-cap: "Diagrama de Pareto de las causas de atraso, con ggplot2."
+#| fig-alt: "Diagrama de Pareto hecho con ggplot2: barras de mayor a menor, línea anaranjada del porcentaje acumulado y una línea discontinua en 80 %, que se cruza después de la cuarta causa"
+#| fig-width: 9
+#| fig-height: 4.6
+
+# 4) Con ggplot2: el porcentaje acumulado se dibuja en la escala de los días
+library(ggplot2)
+atrasos$causa <- factor(atrasos$causa, levels = atrasos$causa)
+total <- sum(atrasos$dias)
+ggplot(atrasos, aes(x = causa)) +
+  geom_col(aes(y = dias), fill = "#1C6BA0") +
+  geom_line(aes(y = acumulado * total / 100, group = 1), color = "#E69F00", linewidth = 1) +
+  geom_point(aes(y = acumulado * total / 100), color = "#E69F00", size = 2) +
+  geom_hline(yintercept = 0.8 * total, linetype = "dashed", color = "grey50") +
+  scale_y_continuous(name = "Días de atraso",
+                     sec.axis = sec_axis(~ . / total * 100, name = "Porcentaje acumulado (%)")) +
+  labs(x = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+```
+
+**Interpretación.** Cuatro de las ocho causas explican el 79 % de los días de atraso. La lluvia, la primera, no se puede eliminar, pero sí se puede planificar: programar los movimientos de tierra en la época seca o tener frentes de trabajo bajo techo. Las tres siguientes (materiales, cambios de diseño y equipo) dependen de la gestión de la empresa y son donde un plan de mejora rinde más. Atacar las cuatro últimas, en cambio, eliminaría como mucho el 21 % de los atrasos. El diagrama usa dos ejes verticales, algo que en general conviene evitar (@sec-pres-elegir); aquí se acepta porque el segundo eje es solo otra forma de leer el primero (el 100 % equivale a los 120 días).
+
+:::
+
 ## Cuadros de frecuencia de una variable cuantitativa {#sec-pres-cuantitativa}
 
 Una variable discreta con pocos valores distintos, como el número de carriles (1, 2 o 4), se resume igual que una cualitativa: se cuenta cuántas veces aparece cada valor. Una variable continua, como la lluvia máxima diaria, casi nunca repite valores, así que contar cada valor no resume nada. En ese caso los datos se agrupan en intervalos llamados clases, y se cuenta cuántos datos caen en cada clase. El resultado es un cuadro de frecuencias agrupadas, y su gráfico es el histograma que se presentó en el capítulo 4.
+
+### Diagrama de tallo y hojas
+
+Antes de agrupar en clases, con pocas decenas de datos conviene una vista rápida que conserve los valores. El diagrama de tallo y hojas, propuesto por @tukey1977exploratory, separa cada número en dos partes: el tallo (las cifras de adelante) y la hoja (la última cifra que se conserva). Los tallos se escriben en una columna, de menor a mayor, y las hojas de cada dato se anotan a la derecha de su tallo. El resultado es un histograma acostado hecho con los propios números.
+
+Con la lluvia máxima diaria, el tallo son las decenas de milímetros y la hoja las unidades, después de redondear al milímetro. Así, 44.8 mm se redondea a 45 y se anota como hoja 5 en el tallo 4; 151.0 mm se anota como hoja 1 en el tallo 15. En R base, `stem()` lo construye:
+
+```{r}
+lluvia <- read.csv("datos/precipitacion_maxima_diaria.csv")
+stem(lluvia$precipitacion_mm, scale = 2)
+```
+
+La primera fila, `4 | 567`, se lee como tres años con 45, 46 y 47 mm. La fila del tallo 6 es la más larga: 19 años con lluvias entre 60 y 69 mm. Los tallos 12, 13 y 14 están vacíos y luego aparece un solo año en 151 mm, el valor aislado que el capítulo 9 identifica como atípico. El argumento `scale = 2` duplica el número de tallos; con el valor por omisión, R junta dos decenas en cada tallo y la forma se ve más gruesa.
+
+El diagrama de tallo y hojas sirve para conjuntos de unas 15 a 150 observaciones. Con menos datos no se ve forma alguna, y con más, las filas se vuelven demasiado largas. Tiene una ventaja sobre el histograma: de él se pueden leer los datos ordenados, lo que ayuda a calcular a mano la mediana y los cuartiles del capítulo 9. Su desventaja es que no lo dibujan ggplot2 ni las hojas de cálculo, y en un informe formal se reemplaza por un histograma.
+
+Otra opción para pocos datos es el gráfico de puntos (*dot plot*), que apila un punto por dato sobre una recta numérica. La @fig-pres-puntos lo muestra para la misma serie, con un punto por año.
+
+```{r}
+#| label: fig-pres-puntos
+#| fig-cap: "Gráfico de puntos de la lluvia máxima diaria."
+#| fig-alt: "Pilas de puntos sobre un eje de 40 a 155 mm; la mayor parte de los puntos se amontona entre 55 y 90 mm, hay un grupo más bajo entre 100 y 120 mm y un punto aislado en 151 mm"
+#| fig-height: 3
+#| echo: false
+
+ggplot(lluvia, aes(x = precipitacion_mm)) +
+  geom_dotplot(binwidth = 2.5, method = "histodot", fill = "#1C6BA0", color = "white", stackratio = 1.1) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(x = "Precipitación máxima diaria (mm)") +
+  theme_minimal()
+```
 
 ### Cuántas clases y de qué ancho
 
@@ -164,6 +290,16 @@ $$ {#eq-pres-ancho}
 
 donde $x_{\max}$ y $x_{\min}$ son el mayor y el menor dato. El ancho se redondea hacia arriba a un número cómodo, para que las clases cubran todos los datos y sus límites sean fáciles de leer.
 
+::: {.callout-note title="Para profundizar" collapse="true"}
+La regla de Sturges no es la única. @scott1979optimal propuso fijar el ancho de clase a partir de la desviación estándar $s$, y @freedman1981histogram a partir del rango intercuartílico (RIC), que es menos sensible a los valores extremos:
+
+$$
+c_{\text{Scott}} = 3.49 \, s \, n^{-1/3}, \qquad c_{\text{FD}} = 2 \, \text{RIC} \, n^{-1/3}
+$$
+
+La desviación estándar y el RIC se explican en el capítulo 9. Las dos reglas hacen que el ancho baje a medida que crece $n$, de modo que con miles de datos dan muchas más clases que Sturges. En R, `nclass.Sturges(x)`, `nclass.scott(x)` y `nclass.FD(x)` devuelven el número de clases de cada regla. Para las 65 lluvias dan 8, 6 y 9 clases: tres opciones razonables que muestran la misma forma general. Ninguna regla reemplaza mirar el histograma y probar dos o tres anchos, como en el interactivo de la @sec-graf-interactivo.
+:::
+
 ### Partes de un cuadro de frecuencias agrupadas
 
 Cada fila del cuadro es una clase, y sus columnas son:
@@ -172,6 +308,47 @@ Cada fila del cuadro es una clase, y sus columnas son:
 - **Marca de clase** $x_i$: el punto medio del intervalo, $(a + b)/2$. Representa a todos los datos de la clase.
 - **Frecuencia absoluta** $f_i$ y **frecuencia relativa** $h_i = f_i / n$.
 - **Frecuencia acumulada** $F_i$: número de datos menores que el límite superior $b$ de la clase. Su versión relativa $H_i = F_i / n$ dice qué fracción de los datos queda por debajo de $b$.
+
+La @fig-pres-anatomia señala cada una de esas partes sobre el histograma de la lluvia máxima diaria que se construye en el ejemplo siguiente.
+
+```{r}
+#| label: fig-pres-anatomia
+#| fig-cap: "Partes de un histograma."
+#| fig-alt: "Histograma de siete clases de la lluvia máxima diaria con anotaciones: una llave horizontal marca el ancho de clase de 16 mm, una flecha señala los límites 60 y 76 mm, un punto marca la marca de clase 68 mm, una flecha vertical indica la frecuencia de 26 años en la clase más alta y otra señala la clase vacía de 124 a 140 mm"
+#| fig-width: 9
+#| fig-height: 4.6
+#| out-width: "85%"
+#| echo: false
+
+lim <- seq(44, 156, by = 16)
+fr <- as.vector(table(cut(lluvia$precipitacion_mm, breaks = lim, right = FALSE)))
+barras <- data.frame(xmin = head(lim, -1), xmax = lim[-1], f = fr)
+barras$marca <- (barras$xmin + barras$xmax) / 2
+ggplot(barras) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = f), fill = "#C6DBEF", color = "white", linewidth = 1) +
+  geom_rect(data = barras[2, ], aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = f),
+            fill = "#9ECAE1", color = "#1C6BA0", linewidth = 0.8) +
+  geom_text(aes(x = marca, y = f + 1, label = f), size = 3.6, color = "grey30") +
+  annotate("segment", x = 60, xend = 76, y = 29.5, yend = 29.5, color = "#1C6BA0",
+           arrow = arrow(ends = "both", length = unit(0.15, "cm"))) +
+  annotate("text", x = 68, y = 31.3, label = "ancho de clase c = 16 mm", size = 3.6, color = "#1C6BA0") +
+  annotate("point", x = 68, y = 0, size = 3, color = "#E69F00") +
+  annotate("text", x = 68, y = -4.2, label = "marca de clase x = 68 mm", size = 3.3, color = "#B07800") +
+  annotate("text", x = 60, y = -1.6, label = "límite 60", size = 3.1, hjust = 1) +
+  annotate("text", x = 76, y = -1.6, label = "límite 76", size = 3.1, hjust = 0) +
+  annotate("curve", x = 92, xend = 77, y = 22, yend = 20, curvature = 0.2,
+           arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
+  annotate("text", x = 93, y = 22, label = "altura = frecuencia f = 26 años\nclase [60, 76): 60 entra, 76 no", hjust = 0, size = 3.4, lineheight = 0.9) +
+  annotate("curve", x = 120, xend = 131, y = 9, yend = 2.5, curvature = -0.2,
+           arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
+  annotate("text", x = 112, y = 10.5, label = "clase vacía [124, 140)", hjust = 0, size = 3.4) +
+  annotate("text", x = 150, y = 4.5, label = "valor aislado\n(151.0 mm)", size = 3.3, lineheight = 0.9) +
+  scale_x_continuous(breaks = lim) +
+  coord_cartesian(ylim = c(-5, 32), clip = "off") +
+  labs(x = "Precipitación máxima diaria (mm)", y = "Frecuencia (años)") +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank())
+```
 
 ### Histograma, polígono de frecuencias y ojiva
 
@@ -322,6 +499,113 @@ g1 + g2
 Un histograma no es un gráfico de barras. En el histograma la variable es continua, el eje horizontal es una escala numérica y las barras van pegadas. En el gráfico de barras la variable es categórica (o discreta con pocos valores), las barras van separadas y su orden se puede cambiar. Si las clases de un histograma tienen anchos distintos, la altura de cada barra debe ser la densidad ($h_i$ dividido entre el ancho) y no la frecuencia, o las clases anchas se verán más importantes de lo que son.
 :::
 
+### Cómo leer la forma de un histograma
+
+Lo primero que se busca en un histograma es su forma, porque dice mucho del fenómeno que generó los datos. La @fig-pres-formas reúne las formas más comunes, cada una con un ejemplo de ingeniería civil en el que suele aparecer (los datos son hipotéticos).
+
+```{r}
+#| label: fig-pres-formas
+#| fig-cap: "Formas frecuentes de un histograma (datos hipotéticos)."
+#| fig-alt: "Seis histogramas: simétrico en forma de campana para la resistencia de cilindros; asimétrico a la derecha para la lluvia máxima anual; asimétrico a la izquierda para la eficiencia de remoción de una planta de tratamiento, con tope en 100 %; bimodal para el tránsito por hora con dos picos; aproximadamente uniforme para la hora de llegada de camiones durante un turno; y en forma de J invertida para el tiempo entre fallas de bombas"
+#| fig-width: 9
+#| fig-height: 5.4
+#| out-width: "90%"
+#| echo: false
+
+set.seed(8)
+m <- 1500
+formas <- data.frame(
+  valor = c(rnorm(m, 30, 3), 40 + rgamma(m, 2.2, 0.06), pmin(100, 100 - rgamma(m, 1.6, 0.35)),
+            c(rnorm(m / 2, 7.5, 1.2), rnorm(m / 2, 17.5, 1.4)), runif(m, 6, 14), rexp(m, 1 / 50)),
+  forma = rep(c("Simétrica: resistencia de cilindros (MPa)", "Asimétrica a la derecha: lluvia máxima (mm)",
+                "Asimétrica a la izquierda: remoción de DBO (%)", "Bimodal: hora de paso de los vehículos (h)",
+                "Uniforme: hora de llegada de camiones (h)", "J invertida: días entre fallas de bombas"), each = m)
+)
+formas$forma <- factor(formas$forma, levels = unique(formas$forma))
+# Se recorta el 0.5 % más extremo de cada forma para que las colas no aplasten la figura
+formas <- do.call(rbind, lapply(split(formas, formas$forma), function(d)
+  d[d$valor >= quantile(d$valor, 0.005) & d$valor <= quantile(d$valor, 0.995), ]))
+ggplot(formas, aes(valor)) +
+  geom_histogram(bins = 25, fill = "#C6DBEF", color = "white") +
+  facet_wrap(~ forma, scales = "free", ncol = 2) +
+  labs(x = NULL, y = "Frecuencia") +
+  theme_minimal() +
+  theme(strip.text = element_text(size = 9.5), axis.text.y = element_blank())
+```
+
+Cada forma sugiere algo sobre el origen de los datos:
+
+- **Simétrica en forma de campana.** Aparece cuando muchas causas pequeñas e independientes suman su efecto, como en la resistencia de cilindros de una misma mezcla. Es la forma de la distribución normal (capítulo 16).
+- **Asimétrica a la derecha.** Hay un límite por abajo (la lluvia no puede ser negativa) pero no por arriba. Es típica de máximos anuales de lluvia y caudal, de tiempos de viaje y de concentraciones de contaminantes.
+- **Asimétrica a la izquierda.** Hay un tope por arriba que los datos rozan, como una eficiencia de remoción que no puede pasar del 100 % o una compactación que se acerca a la máxima del ensayo Proctor.
+- **Bimodal.** Dos picos suelen indicar dos poblaciones mezcladas: las horas pico de la mañana y de la tarde, cilindros de dos plantas distintas, suelos de dos estratos en el mismo sondeo. Antes de resumir con un solo promedio conviene separar los grupos.
+- **Uniforme.** Todos los intervalos tienen más o menos la misma frecuencia: no hay un valor preferido, como la hora de llegada de camiones repartidos a lo largo de un turno.
+- **En J invertida.** Muchos valores pequeños y cada vez menos valores grandes. Es la forma de los tiempos entre eventos al azar, como las fallas de un equipo (distribución exponencial, capítulo 15).
+
+::: {.callout-warning title="Cuidado"}
+Con menos de unos 30 datos, un histograma puede mostrar picos o huecos que son solo producto del azar. Un segundo pico formado por dos o tres datos no prueba que haya dos poblaciones. Con pocos datos conviene mirar también el gráfico de puntos y el diagrama de caja del capítulo 9 antes de describir la forma.
+:::
+
+### Interactivo: el mismo ancho, otro punto de partida
+
+El ancho de clase no es lo único que cambia la forma de un histograma: el límite donde empieza la primera clase también lo hace. En la @fig-pres-int-origen, el ancho está fijo en el valor que elija y el control mueve el punto de partida de las clases para la serie de 65 lluvias. Con el ancho de 16 mm del ejemplo, compare el histograma que empieza en 44 mm con el que empieza en 52 mm.
+
+::: {#fig-pres-int-origen}
+
+```{=html}
+<div class="interactivo" id="int-origen-histograma">
+  <label><span>Ancho de clase (mm):</span> <output class="o-ancho">16</output>
+    <input type="range" class="c-ancho" min="4" max="30" step="1" value="16"></label>
+  <label><span>Inicio de la primera clase (mm):</span> <output class="o-inicio">44</output>
+    <input type="range" class="c-inicio" min="30" max="44" step="1" value="44"></label>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 270" role="img" aria-label="Histograma de la lluvia máxima diaria que cambia con el ancho y el inicio de las clases"></svg>
+</div>
+<script>
+(function () {
+  var datos = [60,70.6,47.4,51.4,105.1,109.3,67.3,86.2,60.2,64.2,54.8,56.6,90.5,112.3,64.5,82.1,65.5,87.4,66.4,73.5,65.7,74.8,76.2,119,56.3,86.5,82.6,77,87.6,75.9,83.8,89.2,57.5,74.1,57,102.3,58.4,73.6,62.6,111.1,89,61.5,107.5,63.6,50.4,52.3,61.1,66.6,113.2,68.7,67.7,74.7,116.6,52.8,151,80.2,67.7,69.1,65.7,62.6,44.8,98.1,46.3,57.8,86.4];
+  var raiz = document.getElementById("int-origen-histograma");
+  var cA = raiz.querySelector(".c-ancho"), cI = raiz.querySelector(".c-inicio");
+  var oA = raiz.querySelector(".o-ancho"), oI = raiz.querySelector(".o-inicio");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 270, ml = 44, mr = 14, mt = 12, mb = 42, x0 = 20, x1 = 170;
+  function sx(x) { return ml + (x - x0) / (x1 - x0) * (w - ml - mr); }
+  function dibujar() {
+    var ancho = parseFloat(cA.value);
+    // El inicio puede ir desde (44 - ancho + 1) hasta 44 para que la primera clase contenga el menor dato
+    cI.min = Math.max(20, 45 - ancho); if (parseFloat(cI.value) < parseFloat(cI.min)) cI.value = cI.min;
+    var inicio = parseFloat(cI.value);
+    oA.textContent = ancho; oI.textContent = inicio;
+    var lim = []; for (var b = inicio; b <= 151 + ancho; b += ancho) lim.push(b);
+    var f = []; for (var k = 0; k < lim.length - 1; k++) f.push(datos.filter(function (v) { return v >= lim[k] && v < lim[k + 1]; }).length);
+    var fmax = Math.max.apply(null, f), ytop = Math.ceil((fmax + 2) / 5) * 5;
+    var sy = function (y) { return h - mb - y / ytop * (h - mt - mb); };
+    var s = "";
+    for (var t = 0; t <= ytop; t += 5) s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(t) + '" y2="' + sy(t) + '" stroke-opacity="0.2"/>' +
+      '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    for (var j = 0; j < f.length; j++) {
+      s += '<rect x="' + sx(lim[j]).toFixed(1) + '" y="' + sy(f[j]).toFixed(1) + '" width="' + (sx(lim[j + 1]) - sx(lim[j]) - 1).toFixed(1) +
+        '" height="' + (sy(0) - sy(f[j])).toFixed(1) + '" style="fill:var(--serie-1,#1C6BA0)" fill-opacity="0.75"/>';
+    }
+    for (var u = 20; u <= 170; u += 10) s += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + u + '</text>';
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+      '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Precipitación máxima diaria (mm)</text>';
+    svg.innerHTML = s;
+    var imax = f.indexOf(fmax);
+    texto.textContent = (lim.length - 1) + " clases. Clase con más años: [" + lim[imax] + ", " + lim[imax + 1] + ") mm, con " + fmax + " años.";
+  }
+  cA.addEventListener("input", dibujar); cI.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Histograma con ancho y punto de partida ajustables.
+
+:::
+
+Con el mismo ancho, el histograma puede parecer más o menos asimétrico, o incluso mostrar un segundo pico, solo por dónde se colocaron los límites. Por eso no se debe sacar una conclusión de un detalle del histograma (un pico pequeño, una clase vacía) sin probar con otros límites. Las medidas del capítulo 9, como la mediana, los cuartiles o el coeficiente de asimetría, no dependen de cómo se agrupen los datos, y complementan al histograma.
+
 ### Interactivo: leer una ojiva
 
 La ojiva responde preguntas del tipo "¿en qué fracción de los años la lluvia fue menor que tal valor?". En la @fig-pres-interactivo, mueva el control para elegir un valor de lluvia. La línea muestra la ojiva del @tbl-pres-lluvia, y el texto da la respuesta exacta contando los 65 datos.
@@ -457,6 +741,36 @@ ggplot(puentes, aes(y = material, fill = estado)) +
 
 :::
 
+### Barras agrupadas o apiladas
+
+Un cuadro de contingencia se puede dibujar de tres formas, y cada una responde mejor una pregunta distinta. La @fig-pres-tres-barras muestra las tres con los mismos 40 puentes.
+
+```{r}
+#| label: fig-pres-tres-barras
+#| fig-cap: "Barras agrupadas, apiladas y apiladas al 100 %."
+#| fig-alt: "Tres gráficos de barras del mismo cuadro de contingencia; en las barras agrupadas cada material tiene tres barras lado a lado, una por estado; en las apiladas cada material tiene una barra cuya altura es su número total de puentes, dividida por estado; en las apiladas al 100 % todas las barras tienen la misma altura y se comparan las proporciones"
+#| fig-width: 9
+#| fig-height: 3.6
+#| out-width: "95%"
+#| echo: false
+
+colores_estado <- c(Malo = "#9E9E9E", Regular = "#6BAED6", Bueno = "#1C6BA0")
+base_barras <- ggplot(puentes, aes(x = material, fill = estado)) +
+  scale_fill_manual(values = colores_estado) +
+  labs(x = NULL, fill = "Estado") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+b1 <- base_barras + geom_bar(position = "dodge") + labs(y = "Puentes", subtitle = "Agrupadas")
+b2 <- base_barras + geom_bar(position = "stack") + labs(y = "Puentes", subtitle = "Apiladas")
+b3 <- base_barras + geom_bar(position = "fill") + labs(y = "Proporción", subtitle = "Apiladas al 100 %")
+library(patchwork)
+b1 + b2 + b3 + plot_layout(guides = "collect")
+```
+
+- **Agrupadas** (`position = "dodge"`): comparan conteos de un mismo estado entre materiales y de los estados dentro de cada material. Se leen bien con pocas categorías; con más de cuatro o cinco por grupo se vuelven un bosque de barras.
+- **Apiladas** (`position = "stack"`): muestran el total de cada material y cómo se reparte. Solo el segmento de abajo comparte una base común, así que comparar los segmentos de en medio es difícil.
+- **Apiladas al 100 %** (`position = "fill"`): igualan el tamaño de los grupos y comparan proporciones. Son la versión gráfica de los porcentajes por fila, pero esconden que un grupo tiene 16 puentes y otro 4. Conviene escribir el tamaño de cada grupo en el eje ("Madera, n = 4").
+
 ## Gráficos de dos variables cuantitativas {#sec-pres-dos-variables}
 
 ### Diagrama de dispersión
@@ -509,6 +823,26 @@ ggplot(caudal, aes(x = anio, y = caudal_m3s)) +
 ```
 
 En una serie de tiempo se buscan tres cosas: tendencia (si la variable sube o baja con los años), cambios bruscos de nivel y valores aislados muy distintos. En esta serie, el promedio de 1966–1992 es 543 m³/s y el de 1993–2018 es 735 m³/s, y los seis caudales mayores ocurrieron después de 2006. Antes de usar la serie para diseñar habría que averiguar si el cambio es real (más lluvia o cambios en la cuenca) o si se debe a un cambio en la estación o en el método de medición.
+
+Cuando una serie salta mucho de un año a otro, la tendencia se ve mejor con una media móvil: cada punto de la nueva curva es el promedio de los datos de una ventana de años centrada en él. La @fig-pres-movil agrega a la serie de caudales la media móvil de 11 años. En R base se calcula con `stats::filter(x, rep(1/11, 11))`, que deja sin valor los cinco primeros y los cinco últimos años, porque su ventana queda incompleta.
+
+```{r}
+#| label: fig-pres-movil
+#| fig-cap: "Caudal máximo anual y media móvil de 11 años."
+#| fig-alt: "La misma serie de caudales máximos en puntos grises y una curva suave azul que sube de unos 420 metros cúbicos por segundo a fines de la década de 1970 a cerca de 1000 al final de la serie"
+#| echo: false
+
+caudal$movil <- as.numeric(stats::filter(caudal$caudal_m3s, rep(1 / 11, 11)))
+ggplot(caudal, aes(x = anio)) +
+  geom_line(aes(y = caudal_m3s), color = "grey70") +
+  geom_point(aes(y = caudal_m3s), color = "grey55", size = 1.6) +
+  geom_line(aes(y = movil), color = "#1C6BA0", linewidth = 1.2) +
+  scale_y_continuous(limits = c(0, 1600), breaks = seq(0, 1600, by = 200)) +
+  labs(x = "Año", y = "Caudal máximo (m³/s)") +
+  theme_minimal()
+```
+
+La media móvil confirma lo que sugerían los promedios por periodo: el nivel de la serie sube a partir de los años noventa, pasando de unos 420 a cerca de 1000 m³/s en la ventana más reciente. La ventana es una decisión de quien analiza: una más corta sigue más los altibajos y una más larga suaviza más pero pierde más años en los extremos.
 
 ::: {.callout-tip title="En la práctica"}
 El análisis de frecuencia de caudales y lluvias supone que todos los años del registro vienen de la misma población. Por eso, antes de ajustar una distribución, se grafica la serie en el tiempo y se revisa que no tenga tendencias ni saltos. @helsel2020statistical dedican un capítulo completo a las pruebas de tendencia en series hidrológicas.
@@ -573,6 +907,62 @@ library(patchwork)
 p1 + p2
 ```
 
+@tufte2001visual propone medir esa distorsión con el factor de mentira: el cociente entre el tamaño del efecto que se ve en el gráfico y el tamaño del efecto en los datos. En la @fig-pres-eje, la planta C supera a la A en un 9 % ($30.0/27.5 = 1.09$), pero en el gráfico de la izquierda su barra mide el doble ($5.0/2.5 = 2.0$). Eso pasa porque se dibujan solo los tramos por encima de 25 MPa. El efecto visual es once veces mayor que el real: $(2.0 - 1)/(1.09 - 1) \approx 11$. Un gráfico honesto tiene un factor de mentira cercano a 1.
+
+### Interactivo: dónde empieza el eje
+
+En la @fig-pres-int-eje, mueva el control para elegir dónde empieza el eje vertical de las barras de la @fig-pres-eje. El texto compara la diferencia real entre las plantas A y C con la que se ve en el gráfico.
+
+::: {#fig-pres-int-eje}
+
+```{=html}
+<div class="interactivo" id="int-eje-barras">
+  <label><span>El eje empieza en (MPa):</span> <output>0</output>
+    <input type="range" min="0" max="27" step="0.5" value="0"></label>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 250" role="img" aria-label="Tres barras de resistencia media con el eje vertical que empieza en el valor elegido"></svg>
+</div>
+<script>
+(function () {
+  var plantas = ["Planta A", "Planta B", "Planta C"], fc = [27.5, 28.4, 30.0];
+  var raiz = document.getElementById("int-eje-barras");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 250, ml = 60, mb = 36, mt = 14, ymax = 31;
+  function dibujar() {
+    var y0 = parseFloat(control.value);
+    salida.textContent = y0.toFixed(1);
+    var sy = function (y) { return h - mb - (y - y0) / (ymax - y0) * (h - mt - mb); };
+    var s = "", paso = (ymax - y0) > 10 ? 5 : 1;
+    for (var t = Math.ceil(y0 / paso) * paso; t <= ymax; t += paso) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - 20) + '" y1="' + sy(t) + '" y2="' + sy(t) + '" stroke-opacity="0.2"/>' +
+        '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    }
+    fc.forEach(function (v, i) {
+      var x = 130 + i * 170;
+      s += '<rect x="' + x + '" y="' + sy(v).toFixed(1) + '" width="90" height="' + (sy(y0) - sy(v)).toFixed(1) +
+        '" style="fill:var(--serie-1,#1C6BA0)"/>' +
+        '<text class="eje-texto" x="' + (x + 45) + '" y="' + (sy(v) - 5) + '" text-anchor="middle">' + v.toFixed(1) + '</text>' +
+        '<text class="eje-texto" x="' + (x + 45) + '" y="' + (h - mb + 18) + '" text-anchor="middle">' + plantas[i] + '</text>';
+    });
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - 20) + '" y1="' + sy(y0) + '" y2="' + sy(y0) + '"/>' +
+      '<text class="eje-texto" x="14" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 14 ' + ((mt + h - mb) / 2) + ')">Resistencia media (MPa)</text>';
+    svg.innerHTML = s;
+    var real = fc[2] / fc[0], visto = (fc[2] - y0) / (fc[0] - y0);
+    var mentira = (visto - 1) / (real - 1);
+    texto.textContent = "La planta C supera a la A en " + (100 * (real - 1)).toFixed(0) + " %, pero su barra se ve " +
+      (100 * (visto - 1)).toFixed(0) + " % más alta. Factor de mentira: " + mentira.toFixed(1) + ".";
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Barras con el inicio del eje ajustable.
+
+:::
+
 ::: {.callout-tip title="En la práctica"}
 Antes de entregar un gráfico conviene revisar que los ejes tengan nombre y unidad, que se lea sin necesidad del texto, que la leyenda diga qué muestra en una oración y que no tenga título dentro del gráfico si ya lleva leyenda numerada. Son las mismas reglas con que están hechas las figuras de este libro.
 :::
@@ -589,6 +979,11 @@ Los ejercicios 1 a 4 usan el inventario de puentes (hipotético) y los ejercicio
 6. Dibuje el histograma, el polígono de frecuencias y la ojiva de los caudales con R base y con ggplot2. Con la ojiva, estime en qué porcentaje de los años el caudal máximo superó 1000 m³/s y compruebe el resultado contando los datos con `sum(caudal$caudal_m3s > 1000)`.
 7. Separe los caudales en dos periodos (1966–1992 y 1993–2018) y dibuje en un mismo gráfico los polígonos de frecuencias relativas de ambos. ¿Se ven distintas las dos distribuciones?
 8. Busque en un periódico, un informe técnico o una página web un gráfico que tenga alguno de los errores de la @sec-pres-elegir. Descríbalo, explique qué distorsiona y rehágalo en R con datos aproximados.
+9. Un acueducto municipal clasificó 200 quejas de usuarios en un mes (datos hipotéticos): falta de agua 74, baja presión 41, agua turbia 32, fugas en la vía pública 23, facturación 18 y otras 12. Construya el diagrama de Pareto a mano y con R. ¿Cuántas causas concentran cerca del 80 % de las quejas?
+10. Haga el diagrama de tallo y hojas de los 53 caudales máximos anuales con `stem()`. Pruebe `scale = 1` y `scale = 2`. ¿Cuál muestra mejor la forma? Use el diagrama para encontrar la mediana a mano.
+11. En el interactivo de la @fig-pres-int-origen, fije el ancho en 10 mm y busque un punto de partida con el que la clase más frecuente cambie. ¿Qué concluye sobre la confianza que merece un pico de un histograma?
+12. En el interactivo de la @fig-pres-int-eje, ¿desde qué valor del eje el factor de mentira pasa de 5? Compruebe el resultado con la fórmula del factor de mentira.
+13. Para cada forma de la @fig-pres-formas, proponga otro ejemplo de ingeniería civil, distinto del que trae la figura, en el que espere encontrar esa forma. Justifique su respuesta con el mecanismo que genera los datos.
 
 ## Lecturas recomendadas
 
@@ -597,3 +992,7 @@ Los ejercicios 1 a 4 usan el inventario de puentes (hipotético) y los ejercicio
 - @lanesfintroduction, capítulo 2: gráficos para variables cualitativas y cuantitativas, con ejemplos de gráficos engañosos.
 - @healy2018dataviz, capítulo 1: por qué algunos gráficos funcionan y otros no, con ejemplos de percepción visual.
 - @chang2018graphics: recetas de ggplot2 para cada tipo de gráfico de este capítulo.
+- @tufte2001visual: el clásico sobre la integridad de los gráficos, con el factor de mentira y muchos ejemplos de gráficos buenos y malos.
+- @cleveland1984graphical: el experimento que ordenó qué tan bien se comparan posiciones, longitudes, ángulos y áreas, base de la recomendación de preferir barras a pasteles.
+- @tukey1977exploratory, capítulo 1: el diagrama de tallo y hojas explicado por quien lo inventó.
+- @montgomery2013statistical, capítulo 5: el diagrama de Pareto y los demás gráficos básicos del control de calidad.

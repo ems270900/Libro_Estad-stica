@@ -166,13 +166,13 @@ tibble(
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-::: {.callout-note title="Ejemplo: resistencia del concreto de una planta de prefabricados"}
+::: {.callout-note title="Ejemplo: presión en un nodo de una red de agua potable"}
 
-**Planteamiento.** En una planta de prefabricados, la resistencia a compresión del concreto a 28 días sigue una distribución normal con $\mu = 35$ MPa y $\sigma = 5$ MPa (valores hipotéticos). Calcule la probabilidad de que un cilindro tenga:
+**Planteamiento.** En un nodo de una red de distribución de agua potable, la presión registrada cada hora sigue una distribución normal con $\mu = 35$ m y $\sigma = 5$ m de columna de agua (valores hipotéticos). Calcule la probabilidad de que, en una hora cualquiera, la presión sea:
 
-a) una resistencia menor que 30 MPa;
-b) una resistencia mayor que 42 MPa;
-c) una resistencia entre 40 y 50 MPa.
+a) menor que 30 m;
+b) mayor que 42 m;
+c) entre 40 y 50 m.
 
 **Solución:**
 
@@ -200,7 +200,7 @@ pnorm(z[1])                    # a) P(X < 30)
 1 - pnorm(z[2])                # b) P(X > 42)
 pnorm(z[4]) - pnorm(z[3])      # c) P(40 < X < 50)
 
-# 4) Directamente en MPa
+# 4) Directamente en metros de columna de agua
 pnorm(30, mean = mu, sd = sigma)
 pnorm(42, mean = mu, sd = sigma, lower.tail = FALSE)
 pnorm(50, mean = mu, sd = sigma) - pnorm(40, mean = mu, sd = sigma)
@@ -208,7 +208,7 @@ pnorm(50, mean = mu, sd = sigma) - pnorm(40, mean = mu, sd = sigma)
 
 La pequeña diferencia en c) (0.1574 contra 0.1573) se debe al redondeo de la tabla a cuatro decimales.
 
-**Interpretación.** Cerca de uno de cada seis cilindros (16 %) queda por debajo de 30 MPa. Si 30 MPa fuera la resistencia especificada, esa proporción sería demasiado alta para un concreto estructural: la planta tendría que subir la media o, mejor, reducir la variabilidad.
+**Interpretación.** Cerca de una hora de cada seis (16 %) la presión queda por debajo de 30 m. Si 30 m fuera la presión mínima de servicio fijada para ese sector, esa proporción sería demasiado alta: habría que subir la presión media o, mejor, reducir la variación con una válvula reguladora. Al otro lado, el 16 % de las horas con más de 40 m también importa, porque las presiones altas aumentan las fugas.
 
 :::
 
