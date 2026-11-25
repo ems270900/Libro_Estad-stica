@@ -1,0 +1,733 @@
+---
+title: "Tablas estadísticas"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+Con R, una probabilidad o un valor crítico se obtiene con una línea de código. Aun así, las tablas impresas siguen siendo útiles: en un examen solo con calculadora, para revisar un resultado de R y para ver de un vistazo cómo cambia un valor crítico con el tamaño de la muestra. Todas las tablas de este apéndice se generaron con R [@rcoreteam2025r], con las mismas funciones que se usan en el libro, así que coinciden con lo que da R hasta el último decimal mostrado.
+
+Cada tabla lleva un ejemplo de lectura con la respuesta a mano y la línea de R equivalente. Al final hay una calculadora para los casos que no caben en las tablas, como un número de grados de libertad que no aparece en la fila.
+
+```{r}
+#| label: preparar-tablas
+#| echo: false
+
+library(kableExtra)
+options(knitr.kable.NA = "")
+
+# Da formato a un número sin notación científica y con d decimales
+fmt <- function(x, d) formatC(x, format = "f", digits = d)
+
+# Los valores muy pequeños se muestran con tres cifras significativas
+fmt_signif <- function(x, d = 3) {
+  ifelse(x < 0.1,
+         formatC(signif(x, 3), format = "fg", digits = 3, flag = "#"),
+         formatC(x, format = "f", digits = d))
+}
+
+# Estilo común de los cuadros del apéndice
+estilo <- function(k, letra = 13) {
+  k %>%
+    kable_styling(full_width = FALSE, font_size = letra,
+                  bootstrap_options = c("striped", "hover", "condensed")) %>%
+    column_spec(1, bold = TRUE)
+}
+```
+
+## Cómo se usa una tabla {#sec-apa-uso}
+
+Todas las tablas se leen con los mismos pasos:
+
+1. Identificar la distribución: normal estándar $Z$, $t$ de Student, chi-cuadrado $\chi^2$, $F$ de Fisher o binomial.
+2. Ubicar sus parámetros: los grados de libertad $\nu$ (letra griega *nu*) en $t$ y en $\chi^2$, el par $\nu_1$ y $\nu_2$ en $F$, o $n$ y $p$ en la binomial.
+3. Revisar qué área da la tabla. La tabla $Z$ y la binomial dan el área a la izquierda, $P(X \le x)$. Las tablas $t$, $\chi^2$ y $F$ dan el valor que deja un área $\alpha$ a la derecha.
+4. Leer el número en el cruce de la fila y la columna.
+
+El paso 3 es la causa de la mayoría de los errores. Antes de leer cualquier número conviene dibujar la curva y sombrear el área que se busca, como en las figuras de cada sección.
+
+::: {.callout-tip title="En la práctica"}
+En R, las funciones que empiezan con `p` (`pnorm()`, `pt()`, `pchisq()`, `pf()`, `pbinom()`) dan el área a la izquierda de un valor. Las que empiezan con `q` (`qnorm()`, `qt()`, `qchisq()`, `qf()`) hacen lo contrario: reciben un área a la izquierda y devuelven el valor. Por eso el valor crítico que deja un área $\alpha$ a la derecha se calcula con `q...(1 - alfa, ...)`.
+:::
+
+```{r}
+#| label: figura-areas
+#| echo: false
+
+# Dibuja una densidad y sombrea un área; se usa en las figuras del apéndice
+dibujar_area <- function(f, desde, hasta, a, b, etiqueta, marcas, rotulos) {
+  x <- seq(desde, hasta, length.out = 400)
+  y <- f(x)
+  plot(x, y, type = "n", axes = FALSE, xlab = "", ylab = "",
+       ylim = c(0, max(y) * 1.1))
+  xs <- seq(a, b, length.out = 200)
+  polygon(c(a, xs, b), c(0, f(xs), 0), col = "#1C6BA055", border = NA)
+  lines(x, y, lwd = 2.5, col = "#1C6BA0")
+  abline(h = 0, col = "gray40")
+  axis(1, at = marcas, labels = rotulos, tick = TRUE,
+       col = "gray40", cex.axis = 1.2)
+  text(mean(c(max(a, desde), min(b, hasta))), max(y) * 0.25, etiqueta,
+       cex = 1.3, col = "#0b3d5c")
+}
+```
+
+## Distribución normal estándar {#sec-apa-z}
+
+La @fig-apa-z muestra lo que da la tabla: el área bajo la curva normal estándar a la izquierda de un valor $z$, es decir, la probabilidad acumulada $P(Z \le z)$. La fila da el entero y el primer decimal de $z$, y la columna da el segundo decimal. El @tbl-apa-z-neg tiene los valores negativos y el @tbl-apa-z-pos los positivos.
+
+```{r}
+#| label: fig-apa-z
+#| fig-cap: "La tabla Z da el área a la izquierda de z."
+#| fig-alt: "Curva normal estándar con el área sombreada a la izquierda de un valor z positivo"
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3
+
+par(mar = c(3, 1, 1, 1))
+dibujar_area(dnorm, -3.5, 3.5, -3.5, 1.2, expression(P(Z <= z)),
+             marcas = c(0, 1.2), rotulos = expression(0, z))
+```
+
+```{r}
+#| label: calculo-z
+#| echo: false
+
+# Cuadro de la normal estándar: filas con el primer decimal y columnas con el segundo
+tabla_z <- function(filas, signo) {
+  m <- t(sapply(filas, function(z0) pnorm(signo * (z0 + (0:9) / 100))))
+  rotulo <- paste0(if (signo < 0) "−" else "", fmt(filas, 1))
+  data.frame(z = rotulo, apply(m, 2, fmt, d = 4), check.names = FALSE)
+}
+z_neg <- tabla_z(seq(3.4, 0, by = -0.1), signo = -1)
+z_pos <- tabla_z(seq(0, 3.4, by = 0.1), signo = 1)
+encabezado_z <- c("<i>z</i>", sprintf("0.0%d", 0:9))
+```
+
+```{r}
+#| label: tbl-apa-z-neg
+#| tbl-cap: "Normal estándar: $P(Z \\le z)$ para $z$ negativos."
+#| echo: false
+
+z_neg %>%
+  kbl(col.names = encabezado_z, escape = FALSE, align = "c") %>%
+  estilo()
+```
+
+Para los valores negativos, la columna se resta: la fila −1.6 y la columna 0.07 corresponden a $z = -1.67$.
+
+```{r}
+#| label: tbl-apa-z-pos
+#| tbl-cap: "Normal estándar: $P(Z \\le z)$ para $z$ positivos."
+#| echo: false
+
+z_pos %>%
+  kbl(col.names = encabezado_z, escape = FALSE, align = "c") %>%
+  estilo()
+```
+
+Por debajo de $z = -3.49$ el área es menor que 0.0002 y por encima de $z = 3.49$ es mayor que 0.9998. En la práctica se toman como 0 y 1.
+
+Tres casos cubren todas las preguntas:
+
+- Área a la izquierda de $z$: se lee directo, $P(Z \le z)$.
+- Área a la derecha de $z$: $P(Z > z) = 1 - P(Z \le z)$.
+- Área entre $a$ y $b$: $P(a < Z \le b) = P(Z \le b) - P(Z \le a)$.
+
+::: {.callout-note title="Ejemplo: probabilidad de que un cilindro de concreto no alcance 25 MPa"}
+
+**Planteamiento.** La resistencia a compresión de los cilindros de una mezcla hipotética sigue una distribución normal con media $\mu = 30$ MPa y desviación estándar $\sigma = 3$ MPa. Calcule la probabilidad de que un cilindro tenga menos de 25 MPa.
+
+**Solución:**
+
+1. Se estandariza el valor: $z = (x - \mu)/\sigma = (25 - 30)/3 = -1.67$, redondeado a dos decimales para poder usar la tabla.
+2. En el @tbl-apa-z-neg se busca la fila −1.6 y la columna 0.07: $P(Z \le -1.67) = 0.0475$.
+3. La probabilidad pedida es $P(X < 25) = 0.0475$, cerca de 5 %.
+
+```{r}
+# Con el valor redondeado, igual que en la tabla
+pnorm(-1.67)
+
+# Sin redondear z: R estandariza solo si se le dan la media y la desviación
+pnorm(25, mean = 30, sd = 3)
+```
+
+**Interpretación.** Cerca de 5 de cada 100 cilindros quedarían por debajo de 25 MPa. La diferencia entre 0.0475 y 0.0478 viene solo de redondear $z$ a dos decimales y no cambia la conclusión.
+
+:::
+
+## Distribución t de Student {#sec-apa-t}
+
+La distribución $t$ se usa en lugar de la normal cuando la desviación estándar de la población se estima con la muestra. Su forma depende de los grados de libertad $\nu$; en las pruebas para una media, $\nu = n - 1$. El @tbl-apa-t da el valor $t_{\alpha,\,\nu}$ que deja un área $\alpha$ a la derecha, como muestra la @fig-apa-t.
+
+```{r}
+#| label: fig-apa-t
+#| fig-cap: "La tabla t da el valor que deja un área α a la derecha."
+#| fig-alt: "Curva t de Student con el área sombreada a la derecha del valor crítico"
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3
+
+par(mar = c(3, 1, 1, 1))
+dibujar_area(function(x) dt(x, df = 5), -4.5, 4.5, 2.015, 4.5,
+             expression(alpha), marcas = c(0, 2.015),
+             rotulos = expression(0, t[list(alpha, nu)]))
+```
+
+```{r}
+#| label: tbl-apa-t
+#| tbl-cap: "Valores críticos $t_{\\alpha,\\nu}$ con área $\\alpha$ a la derecha."
+#| echo: false
+
+alfas_t <- c(0.10, 0.05, 0.025, 0.01, 0.005, 0.001, 0.0005)
+nu_t <- c(1:30, 40, 50, 60, 80, 100, 120, Inf)
+m_t <- sapply(alfas_t, function(a) qt(1 - a, df = nu_t))
+tab_t <- data.frame(nu = ifelse(is.infinite(nu_t), "∞", nu_t), apply(m_t, 2, fmt, d = 3))
+
+tab_t %>%
+  kbl(col.names = c("<i>ν</i>", paste0("<i>α</i> = ", alfas_t)),
+      escape = FALSE, align = "c") %>%
+  estilo()
+```
+
+La última fila ($\nu = \infty$) coincide con la normal estándar: con muchos grados de libertad, la $t$ y la $Z$ son la misma curva. Por la simetría de la curva, el valor que deja un área $\alpha$ a la izquierda es $-t_{\alpha,\,\nu}$.
+
+::: {.callout-note title="Ejemplo: valor crítico para un intervalo de confianza con diez cilindros"}
+
+**Planteamiento.** Con una muestra de $n = 10$ cilindros se quiere un intervalo de confianza de 95 % para la resistencia media. Encuentre el valor $t$ que se usa.
+
+**Solución:**
+
+1. Grados de libertad: $\nu = n - 1 = 9$.
+2. Un intervalo de 95 % deja 5 % fuera, repartido en dos colas: $\alpha = 0.05/2 = 0.025$ en cada una.
+3. En el @tbl-apa-t, fila 9 y columna 0.025: $t_{0.025,\,9} = 2.262$.
+
+```{r}
+# Área a la izquierda = 1 - 0.025 = 0.975
+qt(0.975, df = 9)
+```
+
+**Interpretación.** El intervalo es $\bar{x} \pm 2.262\, s/\sqrt{10}$. Con la normal se habría usado 1.960, que da un intervalo más angosto de lo que justifican diez datos.
+
+:::
+
+## Distribución chi-cuadrado {#sec-apa-chi}
+
+La distribución chi-cuadrado aparece en los intervalos y las pruebas para una varianza y en las pruebas de bondad de ajuste y de independencia. Solo toma valores positivos y no es simétrica, así que se necesitan por separado los valores de la cola izquierda y los de la derecha. El @tbl-apa-chi da el valor $\chi^2_{\alpha,\,\nu}$ que deja un área $\alpha$ a la derecha (@fig-apa-chi); las columnas con $\alpha$ grande (0.995 a 0.90) sirven para la cola izquierda.
+
+```{r}
+#| label: fig-apa-chi
+#| fig-cap: "La tabla chi-cuadrado da el valor que deja un área α a la derecha."
+#| fig-alt: "Curva chi-cuadrado asimétrica con el área sombreada a la derecha del valor crítico"
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3
+
+par(mar = c(3, 1, 1, 1))
+dibujar_area(function(x) dchisq(x, df = 5), 0, 18, 11.07, 18,
+             expression(alpha), marcas = c(0, 11.07),
+             rotulos = expression(0, chi[list(alpha, nu)]^2))
+```
+
+```{r}
+#| label: tbl-apa-chi
+#| tbl-cap: "Valores críticos $\\chi^2_{\\alpha,\\nu}$ con área $\\alpha$ a la derecha."
+#| echo: false
+
+alfas_chi <- c(0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, 0.005)
+nu_chi <- c(1:30, seq(40, 100, by = 10))
+m_chi <- sapply(alfas_chi, function(a) qchisq(1 - a, df = nu_chi))
+tab_chi <- data.frame(nu = nu_chi, apply(m_chi, 2, fmt_signif, d = 3))
+
+tab_chi %>%
+  kbl(col.names = c("<i>ν</i>", paste0("<i>α</i> = ", alfas_chi)),
+      escape = FALSE, align = "c") %>%
+  estilo(letra = 12)
+```
+
+::: {.callout-note title="Ejemplo: valores para un intervalo de confianza de la varianza"}
+
+**Planteamiento.** Con $n = 10$ cilindros se quiere un intervalo de confianza de 95 % para la varianza de la resistencia. Encuentre los dos valores de chi-cuadrado que se usan.
+
+**Solución:**
+
+1. Grados de libertad: $\nu = n - 1 = 9$.
+2. Se deja 0.025 en cada cola. El valor de la derecha deja $\alpha = 0.025$ a su derecha y el de la izquierda deja $\alpha = 0.975$ a su derecha.
+3. En el @tbl-apa-chi, fila 9: $\chi^2_{0.025,\,9} = 19.023$ y $\chi^2_{0.975,\,9} = 2.700$.
+
+```{r}
+# qchisq() recibe el área a la izquierda
+qchisq(0.975, df = 9)   # valor de la derecha
+qchisq(0.025, df = 9)   # valor de la izquierda
+```
+
+**Interpretación.** Los dos valores no están a la misma distancia de la media de la distribución (que es $\nu = 9$), porque la curva es asimétrica. Por eso el intervalo para la varianza no es "estimación ± margen" como el de la media.
+
+:::
+
+## Distribución F de Fisher {#sec-apa-f}
+
+La distribución $F$ compara dos varianzas y es la base del análisis de varianza. Tiene dos parámetros: los grados de libertad del numerador, $\nu_1$, y los del denominador, $\nu_2$. Cada cuadro de esta sección corresponde a un valor de $\alpha$ y da $F_{\alpha,\,\nu_1,\,\nu_2}$, el valor que deja un área $\alpha$ a la derecha (@fig-apa-f). Las columnas son $\nu_1$ y las filas son $\nu_2$.
+
+```{r}
+#| label: fig-apa-f
+#| fig-cap: "La tabla F da el valor que deja un área α a la derecha."
+#| fig-alt: "Curva F asimétrica con el área sombreada a la derecha del valor crítico"
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3
+
+par(mar = c(3, 1, 1, 1))
+dibujar_area(function(x) df(x, df1 = 5, df2 = 10), 0, 5.5, 3.326, 5.5,
+             expression(alpha), marcas = c(0, 3.326),
+             rotulos = expression(0, F[list(alpha, nu[1], nu[2])]))
+```
+
+```{r}
+#| label: calculo-f
+#| echo: false
+
+nu1_f <- c(1:10, 12, 15, 20, 24, 30, 40, 60, 120, Inf)
+nu2_f <- c(1:30, 40, 60, 120, Inf)
+inf_txt <- function(v) ifelse(is.infinite(v), "∞", v)
+
+cuadro_f <- function(alfa) {
+  m <- outer(nu2_f, nu1_f, function(n2, n1) qf(1 - alfa, df1 = n1, df2 = n2))
+  tab <- data.frame(inf_txt(nu2_f), apply(m, 2, fmt, d = 2), check.names = FALSE)
+  tab %>%
+    kbl(col.names = c("<i>ν</i><sub>2</sub> \\ <i>ν</i><sub>1</sub>", inf_txt(nu1_f)),
+        escape = FALSE, align = "c") %>%
+    estilo(letra = 11) %>%
+    scroll_box(width = "100%")
+}
+```
+
+::: {.panel-tabset}
+
+### α = 0.10
+
+```{r}
+#| label: tbl-apa-f10
+#| tbl-cap: "Valores críticos $F_{0.10,\\nu_1,\\nu_2}$."
+#| echo: false
+
+cuadro_f(0.10)
+```
+
+### α = 0.05
+
+```{r}
+#| label: tbl-apa-f05
+#| tbl-cap: "Valores críticos $F_{0.05,\\nu_1,\\nu_2}$."
+#| echo: false
+
+cuadro_f(0.05)
+```
+
+### α = 0.025
+
+```{r}
+#| label: tbl-apa-f025
+#| tbl-cap: "Valores críticos $F_{0.025,\\nu_1,\\nu_2}$."
+#| echo: false
+
+cuadro_f(0.025)
+```
+
+### α = 0.01
+
+```{r}
+#| label: tbl-apa-f01
+#| tbl-cap: "Valores críticos $F_{0.01,\\nu_1,\\nu_2}$."
+#| echo: false
+
+cuadro_f(0.01)
+```
+
+:::
+
+Los cuadros solo traen la cola derecha. El valor que deja un área $\alpha$ a la izquierda se obtiene invirtiendo el valor de la cola derecha con los grados de libertad intercambiados:
+
+$$
+F_{1-\alpha,\,\nu_1,\,\nu_2} = \frac{1}{F_{\alpha,\,\nu_2,\,\nu_1}}
+$$ {#eq-apa-f-inversa}
+
+donde $F_{1-\alpha,\,\nu_1,\,\nu_2}$ es el valor que deja un área $\alpha$ a la izquierda y $F_{\alpha,\,\nu_2,\,\nu_1}$ se lee en el cuadro con $\nu_2$ en la columna y $\nu_1$ en la fila.
+
+::: {.callout-note title="Ejemplo: comparar la variabilidad de dos proveedores de agregado"}
+
+**Planteamiento.** Se ensayan 8 muestras del agregado de un proveedor y 10 del otro, y se quiere probar si el primero tiene mayor varianza con $\alpha = 0.05$. Encuentre el valor crítico de la cola derecha y, como práctica, el de la cola izquierda.
+
+**Solución:**
+
+1. Grados de libertad: $\nu_1 = 8 - 1 = 7$ (numerador) y $\nu_2 = 10 - 1 = 9$ (denominador).
+2. Cola derecha: en el @tbl-apa-f05, columna 7 y fila 9, $F_{0.05,\,7,\,9} = 3.29$.
+3. Cola izquierda, con la @eq-apa-f-inversa: se busca $F_{0.05,\,9,\,7} = 3.68$ (columna 9, fila 7) y se invierte, $F_{0.95,\,7,\,9} = 1/3.68 = 0.272$.
+
+```{r}
+qf(0.95, df1 = 7, df2 = 9)       # cola derecha
+qf(0.05, df1 = 7, df2 = 9)       # cola izquierda, directo
+1 / qf(0.95, df1 = 9, df2 = 7)   # cola izquierda con la ecuación
+```
+
+**Interpretación.** Si el cociente de las varianzas muestrales $s_1^2/s_2^2$ supera 3.29, se concluye que el primer proveedor entrega un agregado más variable. Un cociente de 2, aunque parezca grande, no basta con muestras tan pequeñas.
+
+:::
+
+## Distribución binomial {#sec-apa-binomial}
+
+La distribución binomial cuenta el número de éxitos $X$ en $n$ ensayos independientes, cada uno con probabilidad de éxito $p$. Los cuadros de esta sección dan la probabilidad acumulada $P(X \le x)$, con $n$ de 1 a 20 y valores de $p$ entre 0.05 y 0.95. Las probabilidades de un solo valor y de la cola derecha salen de restas:
+
+- $P(X = x) = P(X \le x) - P(X \le x - 1)$.
+- $P(X > x) = 1 - P(X \le x)$.
+- $P(X \ge x) = 1 - P(X \le x - 1)$.
+
+```{r}
+#| label: calculo-binomial
+#| echo: false
+
+p_bin <- c(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50,
+           0.60, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95)
+
+cuadro_binomial <- function(enes) {
+  filas <- do.call(rbind, lapply(enes, function(n) {
+    x <- 0:n
+    data.frame(x = x, sapply(p_bin, function(p) fmt(pbinom(x, size = n, prob = p), 3)),
+               check.names = FALSE)
+  }))
+  largo <- enes + 1
+  k <- filas %>%
+    kbl(col.names = c("<i>x</i>", fmt(p_bin, 2)), escape = FALSE, align = "c",
+        row.names = FALSE) %>%
+    add_header_above(c(" " = 1, "<i>p</i>" = length(p_bin)), escape = FALSE) %>%
+    estilo(letra = 11)
+  inicio <- cumsum(c(1, head(largo, -1)))
+  for (i in seq_along(enes)) {
+    k <- k %>% pack_rows(paste0("n = ", enes[i]), inicio[i], inicio[i] + largo[i] - 1)
+  }
+  k %>% scroll_box(width = "100%")
+}
+```
+
+::: {.panel-tabset}
+
+### n = 1 a 5
+
+```{r}
+#| label: tbl-apa-binom-1
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 1 a 5."
+#| echo: false
+
+cuadro_binomial(1:5)
+```
+
+### n = 6 a 10
+
+```{r}
+#| label: tbl-apa-binom-2
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 6 a 10."
+#| echo: false
+
+cuadro_binomial(6:10)
+```
+
+### n = 11 a 15
+
+```{r}
+#| label: tbl-apa-binom-3
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 11 a 15."
+#| echo: false
+
+cuadro_binomial(11:15)
+```
+
+### n = 16 a 20
+
+```{r}
+#| label: tbl-apa-binom-4
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 16 a 20."
+#| echo: false
+
+cuadro_binomial(16:20)
+```
+
+:::
+
+Un 1.000 en el cuadro no quiere decir que la probabilidad sea exactamente 1, sino que la diferencia con 1 es menor que 0.0005.
+
+::: {.callout-note title="Ejemplo: probetas defectuosas en un lote"}
+
+**Planteamiento.** En una planta hipotética, 10 % de las probetas salen con defectos de moldeo. Si se toman 20 probetas al azar, calcule la probabilidad de que a lo sumo 2 estén defectuosas, la de que exactamente 2 lo estén y la de que más de 2 lo estén.
+
+**Solución:**
+
+1. Se trata de una binomial con $n = 20$ y $p = 0.10$.
+2. A lo sumo 2: en el @tbl-apa-binom-4, bloque $n = 20$, fila $x = 2$, columna 0.10: $P(X \le 2) = 0.677$.
+3. Exactamente 2: $P(X = 2) = P(X \le 2) - P(X \le 1) = 0.677 - 0.392 = 0.285$.
+4. Más de 2: $P(X > 2) = 1 - 0.677 = 0.323$.
+
+```{r}
+pbinom(2, size = 20, prob = 0.10)       # a lo sumo 2
+dbinom(2, size = 20, prob = 0.10)       # exactamente 2
+1 - pbinom(2, size = 20, prob = 0.10)   # más de 2
+```
+
+**Interpretación.** Aunque solo 10 % de las probetas salga defectuosa, en una de cada tres muestras de 20 aparecerían más de 2 defectuosas. Encontrar 3 en una muestra no prueba, por sí solo, que el proceso empeoró.
+
+:::
+
+## Valores que no están en las tablas {#sec-apa-fuera}
+
+Las tablas no traen todos los grados de libertad. Para $\nu = 35$ en la tabla $t$, por ejemplo, hay tres salidas:
+
+1. Usar la fila más cercana con menos grados de libertad ($\nu = 30$). Da un valor un poco mayor y por eso una conclusión del lado seguro.
+2. Interpolar entre las filas 30 y 40.
+3. Calcular el valor exacto con R o con la calculadora de la @sec-apa-calculadora.
+
+::: {.callout-warning title="Cuidado"}
+Antes de usar una tabla de otro libro, revise qué área da. Algunos libros dan el área a la izquierda en la tabla $t$, otros dan el área entre 0 y $z$ en la tabla normal y otros usan $\alpha$ para el área total de las dos colas. Un mismo número puede significar cosas distintas en dos tablas.
+:::
+
+## Calculadora de las tablas {#sec-apa-calculadora}
+
+La calculadora de la @fig-apa-calculadora hace lo mismo que las tablas, pero con cualquier valor de los parámetros. Elija la distribución y sus parámetros, y luego escriba un valor $x$ para obtener sus probabilidades, o un área $\alpha$ para obtener el valor crítico. Debajo de cada resultado aparece la línea de R que da el mismo número.
+
+::: {#fig-apa-calculadora}
+
+```{=html}
+<div class="interactivo" id="int-tablas">
+  <label><span>Distribución:</span>
+    <select data-campo="dist">
+      <option value="z">Normal estándar Z</option>
+      <option value="t">t de Student</option>
+      <option value="chi">Chi-cuadrado</option>
+      <option value="f">F de Fisher</option>
+      <option value="binom">Binomial</option>
+    </select></label>
+  <label data-para="t chi"><span>Grados de libertad <i>ν</i>:</span>
+    <input type="number" data-campo="nu" value="9" min="1" step="1"></label>
+  <label data-para="f"><span>Grados de libertad <i>ν</i><sub>1</sub> (numerador):</span>
+    <input type="number" data-campo="nu1" value="7" min="1" step="1"></label>
+  <label data-para="f"><span>Grados de libertad <i>ν</i><sub>2</sub> (denominador):</span>
+    <input type="number" data-campo="nu2" value="9" min="1" step="1"></label>
+  <label data-para="binom"><span>Número de ensayos <i>n</i>:</span>
+    <input type="number" data-campo="n" value="20" min="1" max="500" step="1"></label>
+  <label data-para="binom"><span>Probabilidad de éxito <i>p</i>:</span>
+    <input type="number" data-campo="p" value="0.10" min="0" max="1" step="0.01"></label>
+  <label><span>Valor <i>x</i>:</span>
+    <input type="number" data-campo="x" value="1.96" step="any"></label>
+  <p data-salida="prob"></p>
+  <label data-para="z t chi f"><span>Área a la derecha <i>α</i>:</span>
+    <input type="number" data-campo="alfa" value="0.05" min="0.0001" max="0.9999" step="0.005"></label>
+  <p data-salida="critico"></p>
+  <svg viewBox="0 0 640 240" role="img" aria-label="Curva de la distribución elegida con el área a la izquierda de x sombreada y el valor crítico marcado"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-tablas");
+  if (!raiz) return;
+
+  // ---- Funciones de distribución (verificadas contra R) ----
+  var LC = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+    771.32342877765313, -176.61502916214059, 12.507343278686905,
+    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  function lgamma(x) {
+    if (x < 0.5) return Math.log(Math.PI / Math.abs(Math.sin(Math.PI * x))) - lgamma(1 - x);
+    x -= 1;
+    var a = LC[0], t = x + 7.5;
+    for (var i = 1; i < 9; i++) a += LC[i] / (x + i);
+    return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+  function pgammaReg(a, x) {
+    if (x <= 0) return 0;
+    var gln = lgamma(a);
+    if (x < a + 1) {
+      var ap = a, sum = 1 / a, del = sum;
+      for (var n = 0; n < 1000; n++) { ap += 1; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-15) break; }
+      return sum * Math.exp(-x + a * Math.log(x) - gln);
+    }
+    var b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+    for (var i = 1; i < 1000; i++) {
+      var an = -i * (i - a); b += 2;
+      d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+      c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300;
+      d = 1 / d; var de = d * c; h *= de; if (Math.abs(de - 1) < 1e-15) break;
+    }
+    return 1 - Math.exp(-x + a * Math.log(x) - gln) * h;
+  }
+  function betacf(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-300) d = 1e-300; d = 1 / d; var h = d;
+    for (var m = 1; m <= 1000; m++) {
+      var m2 = 2 * m, aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300;
+      c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; h *= d * c;
+      aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300;
+      c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d;
+      var de = d * c; h *= de; if (Math.abs(de - 1) < 1e-15) break;
+    }
+    return h;
+  }
+  function pbetaReg(x, a, b) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    if (x < (a + 1) / (a + b + 2)) return bt * betacf(a, b, x) / a;
+    return 1 - bt * betacf(b, a, 1 - x) / b;
+  }
+  function pnorm(z) { var p = 0.5 * pgammaReg(0.5, z * z / 2); return z >= 0 ? 0.5 + p : 0.5 - p; }
+  function pt(t, v) { var ib = 0.5 * pbetaReg(v / (v + t * t), v / 2, 0.5); return t >= 0 ? 1 - ib : ib; }
+  function pchisq(x, v) { return x <= 0 ? 0 : pgammaReg(v / 2, x / 2); }
+  function pf(x, v1, v2) { return x <= 0 ? 0 : pbetaReg(v1 * x / (v1 * x + v2), v1 / 2, v2 / 2); }
+  function dbinom(k, n, p) {
+    if (k < 0 || k > n) return 0;
+    if (p === 0) return k === 0 ? 1 : 0; if (p === 1) return k === n ? 1 : 0;
+    return Math.exp(lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1) + k * Math.log(p) + (n - k) * Math.log(1 - p));
+  }
+  function pbinom(x, n, p) { var s = 0; for (var k = 0; k <= Math.floor(x) && k <= n; k++) s += dbinom(k, n, p); return Math.min(s, 1); }
+  function dnorm(z) { return Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI); }
+  function dt(t, v) { return Math.exp(lgamma((v + 1) / 2) - lgamma(v / 2) - 0.5 * Math.log(v * Math.PI) - (v + 1) / 2 * Math.log(1 + t * t / v)); }
+  function dchisq(x, v) { return x <= 0 ? 0 : Math.exp((v / 2 - 1) * Math.log(x) - x / 2 - (v / 2) * Math.log(2) - lgamma(v / 2)); }
+  function dF(x, v1, v2) { return x <= 0 ? 0 : Math.exp(lgamma((v1 + v2) / 2) - lgamma(v1 / 2) - lgamma(v2 / 2) + (v1 / 2) * Math.log(v1 / v2) + (v1 / 2 - 1) * Math.log(x) - (v1 + v2) / 2 * Math.log(1 + v1 * x / v2)); }
+  function cuantil(cdf, prob, lo, hi) {
+    var k = 0;
+    while (cdf(hi) < prob && k++ < 60) hi *= 2;
+    for (var i = 0; i < 200; i++) { var m = (lo + hi) / 2; if (cdf(m) < prob) lo = m; else hi = m; }
+    return (lo + hi) / 2;
+  }
+
+  // ---- Interfaz ----
+  var campos = {};
+  raiz.querySelectorAll("[data-campo]").forEach(function (e) { campos[e.getAttribute("data-campo")] = e; });
+  var salidaProb = raiz.querySelector('[data-salida="prob"]');
+  var salidaCrit = raiz.querySelector('[data-salida="critico"]');
+  var svg = raiz.querySelector("svg"), W = 640, H = 240, M = 30;
+  var ultimaDist = campos.dist.value;
+  var xInicial = { z: 1.96, t: 2.262, chi: 16.919, f: 3.29, binom: 2 };
+
+  function num(nombre, porDefecto) {
+    var v = parseFloat(campos[nombre].value);
+    return isFinite(v) ? v : porDefecto;
+  }
+  function f4(v) { return v.toFixed(4); }
+  function fx(v) { return Math.abs(v) >= 100 ? v.toFixed(2) : v.toFixed(3); }
+  function r(v) { return String(parseFloat(v.toPrecision(6))); }
+
+  function modelo() {
+    var d = campos.dist.value;
+    var nu = Math.max(1, num("nu", 9)), nu1 = Math.max(1, num("nu1", 7)), nu2 = Math.max(1, num("nu2", 9));
+    var n = Math.min(500, Math.max(1, Math.round(num("n", 20)))), p = Math.min(1, Math.max(0, num("p", 0.1)));
+    if (d === "z") return { cdf: pnorm, pdf: dnorm, lo: -4, hi: 4, nombre: "Z",
+      rp: function (x) { return "pnorm(" + r(x) + ")"; },
+      rq: function (a) { return "qnorm(1 - " + r(a) + ")"; } };
+    if (d === "t") return { cdf: function (x) { return pt(x, nu); }, pdf: function (x) { return dt(x, nu); },
+      lo: -5, hi: 5, nombre: "t",
+      rp: function (x) { return "pt(" + r(x) + ", df = " + r(nu) + ")"; },
+      rq: function (a) { return "qt(1 - " + r(a) + ", df = " + r(nu) + ")"; } };
+    if (d === "chi") return { cdf: function (x) { return pchisq(x, nu); }, pdf: function (x) { return dchisq(x, nu); },
+      lo: 0, hi: cuantil(function (x) { return pchisq(x, nu); }, 0.999, 0, nu + 10), nombre: "χ²",
+      rp: function (x) { return "pchisq(" + r(x) + ", df = " + r(nu) + ")"; },
+      rq: function (a) { return "qchisq(1 - " + r(a) + ", df = " + r(nu) + ")"; } };
+    if (d === "f") return { cdf: function (x) { return pf(x, nu1, nu2); }, pdf: function (x) { return dF(x, nu1, nu2); },
+      lo: 0, hi: Math.min(15, cuantil(function (x) { return pf(x, nu1, nu2); }, 0.995, 0, 10)), nombre: "F",
+      rp: function (x) { return "pf(" + r(x) + ", df1 = " + r(nu1) + ", df2 = " + r(nu2) + ")"; },
+      rq: function (a) { return "qf(1 - " + r(a) + ", df1 = " + r(nu1) + ", df2 = " + r(nu2) + ")"; } };
+    return { discreta: true, n: n, p: p, cdf: function (x) { return pbinom(x, n, p); },
+      pmf: function (k) { return dbinom(k, n, p); }, lo: 0, hi: n, nombre: "X",
+      rp: function (x) { return "pbinom(" + Math.floor(x) + ", size = " + n + ", prob = " + r(p) + ")"; },
+      rd: function (x) { return "dbinom(" + Math.floor(x) + ", size = " + n + ", prob = " + r(p) + ")"; } };
+  }
+
+  function mostrarCampos() {
+    var d = campos.dist.value;
+    raiz.querySelectorAll("[data-para]").forEach(function (e) {
+      e.style.display = e.getAttribute("data-para").split(" ").indexOf(d) >= 0 ? "" : "none";
+    });
+    salidaCrit.style.display = d === "binom" ? "none" : "";
+    if (d !== ultimaDist) { campos.x.value = xInicial[d]; ultimaDist = d; }
+    campos.x.step = d === "binom" ? "1" : "any";
+  }
+
+  function codigo(texto) { return '<code>' + texto + '</code>'; }
+
+  function actualizar() {
+    mostrarCampos();
+    var m = modelo(), x = num("x", 0), alfa = Math.min(0.9999, Math.max(0.0001, num("alfa", 0.05)));
+    var izq = m.cdf(x), crit = null;
+    if (m.discreta) {
+      var k = Math.floor(x);
+      salidaProb.innerHTML = "P(X ≤ " + k + ") = <b>" + f4(izq) + "</b>, P(X = " + k + ") = <b>" + f4(m.pmf(k)) +
+        "</b>, P(X &gt; " + k + ") = <b>" + f4(1 - izq) + "</b><br>En R: " + codigo(m.rp(x)) + " y " + codigo(m.rd(x));
+    } else {
+      salidaProb.innerHTML = "P(" + m.nombre + " ≤ " + r(x) + ") = <b>" + f4(izq) + "</b> y P(" + m.nombre + " &gt; " + r(x) +
+        ") = <b>" + f4(1 - izq) + "</b><br>En R: " + codigo(m.rp(x));
+      crit = cuantil(m.cdf, 1 - alfa, m.lo < 0 ? -1000 : 0, Math.max(10, m.hi));
+      salidaCrit.innerHTML = "Valor que deja un área " + r(alfa) + " a la derecha: <b>" + fx(crit) +
+        "</b><br>En R: " + codigo(m.rq(alfa));
+    }
+    dibujar(m, x, crit);
+  }
+
+  function dibujar(m, x, crit) {
+    var lo = m.lo, hi = m.hi, partes = [], i, ymax = 0, puntos = [];
+    var sx = function (v) { return M + (v - lo) / (hi - lo) * (W - 2 * M); };
+    if (m.discreta) {
+      for (i = 0; i <= m.n; i++) ymax = Math.max(ymax, m.pmf(i));
+      var sy = function (v) { return H - M - v / (ymax * 1.1) * (H - 2 * M); };
+      var ancho = Math.max(1, (W - 2 * M) / (m.n + 1) * 0.8);
+      for (i = 0; i <= m.n; i++) {
+        var col = i <= Math.floor(x) ? '#1C6BA0' : '#adb5bd';
+        partes.push('<rect x="' + (sx(i) - ancho / 2).toFixed(1) + '" y="' + sy(m.pmf(i)).toFixed(1) + '" width="' + ancho.toFixed(1) +
+          '" height="' + (H - M - sy(m.pmf(i))).toFixed(1) + '" fill="' + col + '"/>');
+      }
+      var paso = Math.max(1, Math.ceil(m.n / 10));
+      for (i = 0; i <= m.n; i += paso) partes.push('<text class="eje-texto" x="' + sx(i) + '" y="' + (H - M + 16) + '" text-anchor="middle">' + i + '</text>');
+    } else {
+      for (i = 0; i <= 300; i++) {
+        var v = lo + (hi - lo) * i / 300, y = m.pdf(v);
+        if (!isFinite(y)) y = 0;
+        puntos.push([v, y]);
+        // Cerca de 0, la chi-cuadrado y la F con 1 o 2 grados de libertad crecen sin límite
+        if (lo < 0 || i > 6) ymax = Math.max(ymax, y);
+      }
+      var sy2 = function (v) { return H - M - Math.min(v, ymax * 1.05) / (ymax * 1.1) * (H - 2 * M); };
+      var area = "M" + sx(lo).toFixed(1) + "," + (H - M), curva = "";
+      puntos.forEach(function (q, j) {
+        curva += (j ? "L" : "M") + sx(q[0]).toFixed(1) + "," + sy2(q[1]).toFixed(1);
+        if (q[0] <= x) area += "L" + sx(q[0]).toFixed(1) + "," + sy2(q[1]).toFixed(1);
+      });
+      var xc = Math.min(Math.max(x, lo), hi);
+      area += "L" + sx(xc).toFixed(1) + "," + sy2(m.pdf(xc)).toFixed(1) + "L" + sx(xc).toFixed(1) + "," + (H - M) + "Z";
+      partes.push('<path d="' + area + '" fill="#1C6BA0" fill-opacity="0.25" stroke="none"/>');
+      partes.push('<path class="curva" d="' + curva + '"/>');
+      if (crit !== null && crit >= lo && crit <= hi) {
+        partes.push('<line x1="' + sx(crit) + '" x2="' + sx(crit) + '" y1="' + M + '" y2="' + (H - M) + '" stroke="#D55E00" stroke-width="2" stroke-dasharray="5,4"/>');
+        partes.push('<text class="eje-texto" x="' + sx(crit) + '" y="' + (M - 6) + '" text-anchor="middle">valor crítico</text>');
+      }
+      var nt = 8;
+      for (i = 0; i <= nt; i++) {
+        var vt = lo + (hi - lo) * i / nt;
+        partes.push('<text class="eje-texto" x="' + sx(vt) + '" y="' + (H - M + 16) + '" text-anchor="middle">' + (Math.abs(hi - lo) > 20 ? vt.toFixed(0) : vt.toFixed(1)) + '</text>');
+      }
+    }
+    partes.unshift('<line class="eje" x1="' + M + '" x2="' + (W - M) + '" y1="' + (H - M) + '" y2="' + (H - M) + '"/>');
+    svg.innerHTML = partes.join("");
+  }
+
+  Object.keys(campos).forEach(function (k) { campos[k].addEventListener("input", actualizar); });
+  actualizar();
+})();
+</script>
+```
+
+Calculadora de áreas y valores críticos. El área sombreada es la probabilidad a la izquierda de $x$ y la línea discontinua marca el valor crítico.
+
+:::
+
+## Ejercicios propuestos
+
+1. La deflexión de una viga sigue una distribución normal con media 12 mm y desviación estándar 1.5 mm. Con el @tbl-apa-z-pos, calcule la probabilidad de que la deflexión supere 15 mm y la de que quede entre 10 y 14 mm. Compruebe los resultados con `pnorm()`.
+2. Encuentre en el @tbl-apa-t el valor $t$ para un intervalo de confianza de 99 % con 16 datos. ¿Cuánto más ancho es ese intervalo que el de 95 % con los mismos datos?
+3. Con $\nu = 35$, compare el valor $t_{0.025}$ que se obtiene con la fila 30, con la interpolación entre las filas 30 y 40 y con `qt()`.
+4. Encuentre los valores $\chi^2$ para un intervalo de confianza de 90 % de la varianza con 25 datos.
+5. Use la @eq-apa-f-inversa para obtener $F_{0.95,\,5,\,12}$ a partir del cuadro de $\alpha = 0.05$. Compruebe el resultado con `qf()`.
+6. Un inspector revisa 15 soldaduras y, por experiencia, 20 % tienen defectos. Con los cuadros de la binomial, calcule la probabilidad de encontrar exactamente 3 defectuosas y la de encontrar al menos 5.
+7. Con la calculadora de la @sec-apa-calculadora, observe cómo cambia $t_{0.025,\,\nu}$ cuando $\nu$ pasa de 2 a 5, a 30 y a 300. ¿A qué valor se acerca?

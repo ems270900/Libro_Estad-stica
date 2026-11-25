@@ -18,6 +18,13 @@
 - Clave `lanesfonline` (Lane, *Online Statistics Education*, sin año en el PDF): si otra parte cita la misma obra, unificar la clave.
 - Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión) y al Apéndice A (tabla F y del rango estudentizado): agregar referencias cruzadas `@sec-` cuando esos capítulos existan.
 
+## Apéndices
+
+- Apéndice B: las funciones de las partes II a VII se anotaron con el capítulo previsto en la estructura. Al cerrar cada parte se revisa qué funciones usa de verdad y se ajusta la columna "Cap." y las filas.
+- Apéndice C: agregar los términos nuevos que aparezcan en las partes II a VII.
+- Notación de las tablas: $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha. Los capítulos 16 a 23 deben usar la misma convención.
+- Revisión del autor de los tres apéndices.
+
 ## Decisiones del autor
 
 - Publicación en la web: no se publica sin su permiso.

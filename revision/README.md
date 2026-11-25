@@ -17,3 +17,4 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 28. Principios del diseño experimental y ANOVA de un factor | Borrador | [28-anova_un_factor.md](28-anova_un_factor.md) | Parte VII |
 | 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII |
 | 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII |
+| Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
