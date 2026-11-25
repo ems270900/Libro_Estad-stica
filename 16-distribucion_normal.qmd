@@ -1,5 +1,619 @@
 ---
-title: "Pendiente"
+title: "La distribución normal y sus aproximaciones"
+bibliography: references.bib
+suppress-bibliography: true
 ---
 
-En redacción.
+```{r}
+#| include: false
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+naranja <- "#E69F00"
+tema_libro <- theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank())
+```
+
+Si se ensayan cien cilindros de una misma mezcla de concreto, sus resistencias no son iguales: la mayoría queda cerca del promedio, unas pocas quedan bastante por encima o por debajo, y el histograma toma forma de campana. Lo mismo pasa con los errores de una nivelación topográfica, con el espesor de una capa de asfalto o con el peso de los sacos de cemento de un lote. La curva que describe esa campana es la distribución normal, también llamada gaussiana. Es la distribución más usada de la estadística por dos razones: describe bien muchas mediciones de ingeniería y, por el teorema del límite central del capítulo 17, describe también el comportamiento de los promedios, aunque los datos originales no sean normales. Casi todos los métodos de inferencia de la Parte V se apoyan en ella. Este capítulo enseña a calcular probabilidades y cuantiles con la normal, a mano con la tabla $Z$ y con R, y a usarla para aproximar la binomial y la Poisson.
+
+## La curva normal {#sec-normal-curva}
+
+Una variable $X$ sigue una distribución normal con media $\mu$ y desviación estándar $\sigma$, lo que se escribe $X \sim N(\mu, \sigma)$, si su densidad es [@illowsky2013introductory, cap. 6]
+
+$$
+f_X(x) = \frac{1}{\sigma \sqrt{2\pi}} \exp\left[-\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2\right], \qquad -\infty < x < \infty
+$$ {#eq-normal-densidad}
+
+donde $\mu$ es la media, $\sigma$ es la desviación estándar (en las unidades de $x$), $\pi = 3.14159\ldots$ y $\exp(u) = e^u$.
+
+::: {.callout-warning title="Cuidado"}
+Algunos libros escriben $N(\mu, \sigma^2)$, con la varianza como segundo parámetro, y otros $N(\mu, \sigma)$, con la desviación estándar. Este libro usa la desviación estándar, igual que R: `pnorm(x, mean = 35, sd = 5)`. Al leer "$N(35, 25)$" en otro texto, hay que revisar si 25 es la varianza ($\sigma = 5$) o la desviación estándar.
+:::
+
+No hace falta memorizar la @eq-normal-densidad; lo que importa son sus propiedades, que se ven en la @fig-normal-familia:
+
+1. Es simétrica alrededor de $\mu$. Por eso su media, su mediana y su moda coinciden en $\mu$.
+2. Tiene un solo pico, en $x = \mu$, y baja hacia los dos lados sin llegar nunca a cero.
+3. La media $\mu$ es un parámetro de localización: cambiarla traslada la curva sin deformarla.
+4. La desviación estándar $\sigma$ es un parámetro de escala: con $\sigma$ grande, la curva es baja y ancha; con $\sigma$ pequeña, alta y angosta. El área bajo la curva siempre vale 1.
+5. Los puntos donde la curva cambia de cóncava a convexa (puntos de inflexión) están en $\mu - \sigma$ y $\mu + \sigma$.
+
+```{r}
+#| label: fig-normal-familia
+#| fig-cap: "Densidades normales con distintas medias y desviaciones estándar."
+#| fig-alt: "Tres campanas: dos con media 35 y desviaciones 3 y 6, la primera más alta y angosta, y una con media 45 y desviación 3"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+expand_grid(caso = c("μ = 35, σ = 3", "μ = 35, σ = 6", "μ = 45, σ = 3"),
+            x = seq(15, 60, length.out = 500)) %>%
+  mutate(mu = ifelse(str_detect(caso, "45"), 45, 35),
+         s = ifelse(str_detect(caso, "σ = 6"), 6, 3),
+         f = dnorm(x, mu, s)) %>%
+  ggplot(aes(x, f, color = caso)) +
+  geom_line(linewidth = 1.1) +
+  scale_color_viridis_d(end = 0.85) +
+  labs(x = "Resistencia (MPa)", y = "Densidad", color = NULL) +
+  tema_libro +
+  theme(legend.position = "top")
+```
+
+La normal admite valores negativos y valores tan grandes como se quiera, aunque una resistencia o un espesor no pueden ser negativos. No es un problema práctico: con $\mu = 35$ MPa y $\sigma = 5$ MPa, la probabilidad que la normal asigna a valores negativos es del orden de $10^{-12}$. Sí es un problema si $\mu$ está cerca de cero comparada con $\sigma$; en ese caso conviene una distribución para variables positivas, como la log-normal del capítulo 15.
+
+## La regla empírica {#sec-normal-regla}
+
+Para cualquier normal, sin importar $\mu$ ni $\sigma$, la proporción de valores que cae a cierta distancia de la media, medida en desviaciones estándar, es siempre la misma. La regla empírica resume los tres casos más usados [@illowsky2013introductory, cap. 6]:
+
+- Cerca del 68 % de los valores cae entre $\mu - \sigma$ y $\mu + \sigma$.
+- Cerca del 95 % cae entre $\mu - 2\sigma$ y $\mu + 2\sigma$.
+- Cerca del 99.7 % cae entre $\mu - 3\sigma$ y $\mu + 3\sigma$.
+
+La @fig-normal-regla la muestra para una resistencia con $\mu = 35$ MPa y $\sigma = 5$ MPa: el 95 % de los cilindros queda entre 25 y 45 MPa, y un valor por debajo de 20 MPa (tres desviaciones estándar bajo la media) es muy raro.
+
+```{r}
+#| label: fig-normal-regla
+#| fig-cap: "Regla empírica para una normal con μ = 35 MPa y σ = 5 MPa."
+#| fig-alt: "Campana normal con tres bandas sombreadas centradas en 35: de 30 a 40 con 68 por ciento, de 25 a 45 con 95 por ciento y de 20 a 50 con 99.7 por ciento"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+curva <- tibble(x = seq(15, 55, length.out = 600), f = dnorm(x, 35, 5))
+ggplot(curva, aes(x, f)) +
+  geom_area(data = filter(curva, x >= 20, x <= 50), fill = azul, alpha = 0.15) +
+  geom_area(data = filter(curva, x >= 25, x <= 45), fill = azul, alpha = 0.2) +
+  geom_area(data = filter(curva, x >= 30, x <= 40), fill = azul, alpha = 0.3) +
+  geom_line(color = azul, linewidth = 1.1) +
+  annotate("text", x = 35, y = 0.035, label = "68 %") +
+  annotate("text", x = 35, y = 0.012, label = "95 %") +
+  annotate("text", x = 35, y = 0.003, label = "99.7 %", size = 3.3) +
+  scale_x_continuous(breaks = seq(20, 50, 5),
+                     sec.axis = sec_axis(~ (. - 35) / 5, breaks = -3:3, name = "Desviaciones estándar desde la media")) +
+  labs(x = "Resistencia (MPa)", y = "Densidad") +
+  tema_libro
+```
+
+::: {.callout-tip title="En la práctica"}
+La regla empírica sirve para revisar resultados de cabeza. Si un laboratorio reporta un concreto con media de 30 MPa y desviación estándar de 2 MPa, y en el mismo lote aparece un cilindro de 20 MPa, ese valor está a 5 desviaciones estándar de la media. Con una normal, eso casi nunca pasa por azar: lo razonable es revisar el ensayo (el refrentado, la prensa, la edad del cilindro) antes de culpar al concreto.
+:::
+
+## La normal estándar y la tabla Z {#sec-normal-estandar}
+
+::: {.pregunta}
+Si hay infinitas normales, una para cada par de valores de $\mu$ y $\sigma$, ¿cómo cabe la información de todas en una sola tabla?
+:::
+
+Porque todas son la misma curva medida con otra regla. Si a $X$ se le resta su media y se divide entre su desviación estándar, se obtiene la variable estandarizada
+
+$$
+Z = \frac{X - \mu}{\sigma}
+$$ {#eq-normal-z}
+
+donde $Z$ mide a cuántas desviaciones estándar de la media está el valor $x$, con signo negativo si está por debajo. Por las propiedades del capítulo 13 (@eq-va-lineal), $Z$ tiene media 0 y desviación estándar 1, y se puede demostrar que sigue siendo normal. La normal con $\mu = 0$ y $\sigma = 1$ se llama normal estándar, y su FDA se escribe con la letra griega $\Phi$ (fi mayúscula):
+
+$$
+\Phi(z) = P(Z \le z)
+$$ {#eq-normal-phi}
+
+Entonces, para cualquier normal,
+
+$$
+P(X \le x) = P\left(Z \le \frac{x - \mu}{\sigma}\right) = \Phi\left(\frac{x - \mu}{\sigma}\right)
+$$ {#eq-normal-estandarizar}
+
+La FDA de la normal no tiene una fórmula con funciones elementales: la integral de la @eq-normal-densidad no se puede escribir con exponenciales, potencias y logaritmos. Por eso, antes de las computadoras, se calcularon tablas de $\Phi(z)$ que todavía se usan para resolver problemas a mano. El apéndice A tiene la tabla completa; el @tbl-normal-extracto muestra un fragmento para aprender a leerla.
+
+```{r}
+#| label: tbl-normal-extracto
+#| tbl-cap: "Fragmento de la tabla de la normal estándar: valores de Φ(z) = P(Z ≤ z)."
+#| echo: false
+
+filas <- seq(0.8, 1.3, by = 0.1)
+cols <- seq(0, 0.09, by = 0.01)
+tabla <- outer(filas, cols, function(a, b) pnorm(a + b))
+tabla <- as.data.frame(round(tabla, 4))
+tabla <- cbind(z = sprintf("%.1f", filas), tabla)
+tabla %>%
+  kbl(col.names = c("<i>z</i>", sprintf("%.2f", cols)), escape = FALSE, align = "c", digits = 4) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  column_spec(1, bold = TRUE)
+```
+
+Para buscar $\Phi(1.23)$, se va a la fila 1.2 (el entero y la primera decimal) y a la columna 0.03 (la segunda decimal): $\Phi(1.23) = 0.8907$. La tabla da áreas a la izquierda. Para los otros casos se usan dos hechos:
+
+- **Complemento.** $P(Z > z) = 1 - \Phi(z)$.
+- **Simetría.** Como la curva es simétrica alrededor de 0, $\Phi(-z) = 1 - \Phi(z)$. Por eso muchas tablas solo traen valores positivos de $z$.
+
+Con eso salen los tres casos que aparecen en la práctica, que se resumen en el @tbl-normal-casos.
+
+```{r}
+#| label: tbl-normal-casos
+#| tbl-cap: "Cálculo de probabilidades normales con la tabla Z y con R."
+#| echo: false
+
+tibble(
+  caso = c("Menor que <i>x</i>", "Mayor que <i>x</i>", "Entre <i>a</i> y <i>b</i>"),
+  tabla = c("Φ(<i>z</i>), con <i>z</i> = (<i>x</i> − <i>μ</i>)/<i>σ</i>",
+            "1 − Φ(<i>z</i>)",
+            "Φ(<i>z<sub>b</sub></i>) − Φ(<i>z<sub>a</sub></i>)"),
+  r = c("<code>pnorm(x, mu, sigma)</code>",
+        "<code>pnorm(x, mu, sigma, lower.tail = FALSE)</code>",
+        "<code>pnorm(b, mu, sigma) - pnorm(a, mu, sigma)</code>")
+) %>%
+  kbl(col.names = c("Probabilidad", "Con la tabla", "Con R"), escape = FALSE, align = "l") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+::: {.callout-note title="Ejemplo: resistencia del concreto de una planta de prefabricados"}
+
+**Planteamiento.** En una planta de prefabricados, la resistencia a compresión del concreto a 28 días sigue una distribución normal con $\mu = 35$ MPa y $\sigma = 5$ MPa (valores hipotéticos). Calcule la probabilidad de que un cilindro tenga:
+
+a) una resistencia menor que 30 MPa;
+b) una resistencia mayor que 42 MPa;
+c) una resistencia entre 40 y 50 MPa.
+
+**Solución:**
+
+1. a) $z = (30 - 35)/5 = -1.00$. Por simetría, $\Phi(-1.00) = 1 - \Phi(1.00) = 1 - 0.8413 = 0.1587$.
+2. b) $z = (42 - 35)/5 = 1.40$. $P(X > 42) = 1 - \Phi(1.40) = 1 - 0.9192 = 0.0808$.
+3. c) $z_a = (40 - 35)/5 = 1.00$ y $z_b = (50 - 35)/5 = 3.00$. $P(40 < X < 50) = \Phi(3.00) - \Phi(1.00) = 0.9987 - 0.8413 = 0.1574$.
+
+**Pseudocódigo**
+
+1. Definir $\mu$ y $\sigma$.
+2. Estandarizar cada valor con la @eq-normal-z.
+3. Calcular las áreas con `pnorm()` sobre la normal estándar, como con la tabla.
+4. Repetir con `pnorm()` directamente sobre la escala original y comprobar que coincide.
+
+```{r}
+mu <- 35
+sigma <- 5
+
+# 2) Estandarizar
+z <- (c(30, 42, 40, 50) - mu) / sigma
+z
+
+# 3) Con la normal estándar, como con la tabla
+pnorm(z[1])                    # a) P(X < 30)
+1 - pnorm(z[2])                # b) P(X > 42)
+pnorm(z[4]) - pnorm(z[3])      # c) P(40 < X < 50)
+
+# 4) Directamente en MPa
+pnorm(30, mean = mu, sd = sigma)
+pnorm(42, mean = mu, sd = sigma, lower.tail = FALSE)
+pnorm(50, mean = mu, sd = sigma) - pnorm(40, mean = mu, sd = sigma)
+```
+
+La pequeña diferencia en c) (0.1574 contra 0.1573) se debe al redondeo de la tabla a cuatro decimales.
+
+**Interpretación.** Cerca de uno de cada seis cilindros (16 %) queda por debajo de 30 MPa. Si 30 MPa fuera la resistencia especificada, esa proporción sería demasiado alta para un concreto estructural: la planta tendría que subir la media o, mejor, reducir la variabilidad.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Antes de buscar en la tabla conviene hacer un dibujo rápido de la campana, marcar el valor y sombrear el área que se pide. La mayoría de los errores con la normal no son de cálculo, sino de tomar el área equivocada: la de la izquierda cuando se pedía la de la derecha, o $\Phi(z)$ cuando se pedía la diferencia entre dos valores.
+:::
+
+## Cuantiles: del área al valor {#sec-normal-cuantiles}
+
+Muchas preguntas de ingeniería van en sentido contrario: se conoce la probabilidad y se busca el valor. ¿Qué resistencia supera el 95 % de los cilindros? ¿Qué caudal se excede solo el 1 % de los años? Ese valor es un cuantil. Para la normal se despeja $x$ de la @eq-normal-z:
+
+$$
+x_q = \mu + z_q\, \sigma
+$$ {#eq-normal-cuantil}
+
+donde $z_q$ es el cuantil de la normal estándar, el valor con $\Phi(z_q) = q$. Se busca dentro de la tabla el área $q$ y se lee el $z$ que le corresponde. En R, el cuantil se calcula con `qnorm()`.
+
+Algunos cuantiles de la normal estándar aparecen tanto que conviene reconocerlos: $z_{0.90} = 1.282$, $z_{0.95} = 1.645$, $z_{0.975} = 1.960$ y $z_{0.99} = 2.326$. Por simetría, $z_{0.05} = -1.645$.
+
+Por ejemplo, con $\mu = 35$ MPa y $\sigma = 5$ MPa, la resistencia que supera el 95 % de los cilindros es el cuantil del 5 %:
+
+$$
+x_{0.05} = 35 + (-1.645)(5) = 26.8 \text{ MPa}
+$$
+
+En R: `qnorm(0.05, mean = 35, sd = 5)`. Esa es la idea de la resistencia característica del concreto: un valor bajo el cual solo cae una fracción pequeña y fijada de los resultados. La fracción que se acepta y la forma exacta del criterio dependen del código de diseño que se use.
+
+## ¿Siguen los datos una normal? {#sec-normal-datos}
+
+Antes de usar la normal con datos reales, hay que comprobar que la describe bien. Además del histograma, el gráfico más útil para eso es el gráfico cuantil-cuantil (gráfico Q-Q). En él se ordenan los datos y se comparan con los cuantiles que tendría una normal: si los datos son normales, los puntos quedan cerca de una línea recta. Las desviaciones típicas se reconocen con la práctica: una curva en forma de U indica asimetría a la derecha, y puntos que se alejan de la recta en los dos extremos indican colas más pesadas que las de la normal.
+
+::: {.callout-note title="Ejemplo: resistencia de 60 cilindros de una obra"}
+
+**Planteamiento.** En una obra se ensayaron 60 cilindros de concreto a 28 días (datos hipotéticos). Compruebe si una normal describe bien los datos y úsela para estimar la proporción de cilindros con resistencia menor que 30 MPa y el valor que supera el 90 % de los cilindros.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/resistencia_cilindros_hipotetica.csv",
+          nombres = c("Cilindro", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Se estiman los parámetros con los datos: $\bar{x} = 35.70$ MPa y $s = 3.47$ MPa.
+2. Regla empírica: entre $\bar{x} - s = 32.23$ y $\bar{x} + s = 39.17$ MPa hay 44 de 60 cilindros (73 %, cerca del 68 % esperado); entre $\bar{x} \pm 2s$ hay 59 de 60 (98 %, cerca del 95 %).
+3. Proporción bajo 30 MPa: $z = (30 - 35.70)/3.47 = -1.64$, y $\Phi(-1.64) = 1 - 0.9495 = 0.0505$. En los datos hay 4 de 60 (6.7 %).
+4. Valor que supera el 90 % de los cilindros: $x_{0.10} = 35.70 + (-1.282)(3.47) = 31.25$ MPa.
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular la media y la desviación estándar.
+2. Contar la proporción de datos dentro de una y dos desviaciones estándar.
+3. Dibujar el histograma con la curva normal y el gráfico Q-Q.
+4. Calcular la probabilidad y el cuantil con `pnorm()` y `qnorm()` y compararlos con los datos.
+
+```{r}
+library(tidyverse)
+
+# 1) Datos y parámetros estimados
+cilindros <- read.csv("datos/resistencia_cilindros_hipotetica.csv")
+x <- cilindros$resistencia_mpa
+media <- mean(x)
+desv <- sd(x)
+c(media = media, desv = desv)
+
+# 2) Regla empírica con los datos
+c(una_desv = mean(abs(x - media) < desv),
+  dos_desv = mean(abs(x - media) < 2 * desv))
+
+# 3) Gráfico Q-Q en base R
+qqnorm(x, main = "", xlab = "Cuantiles teóricos", ylab = "Resistencia (MPa)")
+qqline(x, col = "#1C6BA0", lwd = 2)
+
+# 4) Probabilidad y cuantil con la normal ajustada, y comparación con los datos
+pnorm(30, mean = media, sd = desv)
+mean(x < 30)
+qnorm(0.10, mean = media, sd = desv)
+quantile(x, 0.10)
+```
+
+La @fig-normal-cilindros muestra los dos gráficos hechos con ggplot2.
+
+```{r}
+#| label: fig-normal-cilindros
+#| fig-cap: "Histograma con la curva normal ajustada y gráfico Q-Q de la resistencia de 60 cilindros."
+#| fig-alt: "A la izquierda, histograma con forma de campana y la curva normal encima; a la derecha, puntos alineados cerca de una recta"
+#| echo: false
+#| fig-subcap:
+#|   - "Histograma y normal ajustada."
+#|   - "Gráfico Q-Q."
+#| layout-ncol: 2
+#| out-width: "100%"
+#| fig-width: 4.5
+#| fig-height: 3.6
+
+g1 <- ggplot(cilindros, aes(resistencia_mpa)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 2, boundary = 28,
+                 fill = azul, alpha = 0.6, color = "white") +
+  stat_function(fun = dnorm, args = list(mean = media, sd = desv), color = naranja, linewidth = 1.1) +
+  labs(x = "Resistencia (MPa)", y = "Densidad") +
+  tema_libro
+g2 <- ggplot(cilindros, aes(sample = resistencia_mpa)) +
+  geom_qq(color = azul) +
+  geom_qq_line(color = naranja, linewidth = 1) +
+  labs(x = "Cuantiles teóricos (normal estándar)", y = "Resistencia (MPa)") +
+  tema_libro
+g1
+g2
+```
+
+**Interpretación.** El histograma tiene forma de campana, los puntos del gráfico Q-Q siguen la recta y la regla empírica se cumple de cerca, así que la normal es un modelo razonable. Con ella, se espera que cerca del 5 % de los cilindros quede bajo 30 MPa (en la muestra fue el 6.7 %, una diferencia de un cilindro), y que el 90 % supere 31.3 MPa.
+
+:::
+
+## Combinaciones de variables normales {#sec-normal-combinaciones}
+
+Una propiedad hace a la normal especialmente cómoda: las sumas y las combinaciones lineales de variables normales independientes siguen siendo normales [@wasserman2004all, cap. 2]. Si $X_1 \sim N(\mu_1, \sigma_1)$ y $X_2 \sim N(\mu_2, \sigma_2)$ son independientes, y $a$ y $b$ son constantes, entonces $aX_1 + bX_2$ es normal, con la media y la varianza que dan las propiedades del capítulo 13:
+
+$$
+aX_1 + bX_2 \sim N\left(a\mu_1 + b\mu_2,\ \sqrt{a^2\sigma_1^2 + b^2\sigma_2^2}\right)
+$$ {#eq-normal-combinacion}
+
+Por ejemplo, si el espesor de una base granular es $N(20, 1.5)$ cm y el de la carpeta asfáltica colocada encima es $N(7.5, 0.8)$ cm, independientes, el espesor total es $N(27.5, \sqrt{1.5^2 + 0.8^2}) = N(27.5, 1.70)$ cm. La probabilidad de que el total quede por debajo del mínimo de diseño de 25 cm es $\Phi\big((25 - 27.5)/1.70\big) = \Phi(-1.47) = 0.071$. Esta propiedad es la base de la distribución de la media muestral en el capítulo 17.
+
+## Aproximación normal a la binomial {#sec-normal-aprox-binomial}
+
+En el capítulo 14 se vio que la binomial con $p$ cercana a 0.5 tiene forma de campana. A medida que crece $n$, esa campana se parece cada vez más a una normal con la misma media y la misma desviación estándar:
+
+$$
+\mu = np, \qquad \sigma = \sqrt{np(1 - p)}
+$$ {#eq-normal-aprox-binomial}
+
+Una regla usual dice que la aproximación es aceptable si $np > 5$ y $n(1 - p) > 5$, y mejor si los dos valores pasan de 10 [@illowsky2013introductory, cap. 6]. Con $p$ muy pequeña o muy grande la binomial es asimétrica y hace falta un $n$ mucho mayor.
+
+Hay un detalle que mejora mucho la aproximación. La binomial solo toma valores enteros, y en un histograma cada valor $k$ ocupa el intervalo de $k - 0.5$ a $k + 0.5$. Para pasar a la normal, que es continua, se usa ese intervalo completo. Esto se llama corrección por continuidad:
+
+$$
+P(X \le k) \approx \Phi\left(\frac{k + 0.5 - np}{\sqrt{np(1-p)}}\right), \qquad
+P(X \ge k) \approx 1 - \Phi\left(\frac{k - 0.5 - np}{\sqrt{np(1-p)}}\right)
+$$ {#eq-normal-continuidad}
+
+y $P(X = k)$ se aproxima con el área entre $k - 0.5$ y $k + 0.5$. La @fig-normal-continuidad muestra la idea: cada barra de la binomial se reemplaza por el área bajo la curva sobre su base.
+
+```{r}
+#| label: fig-normal-continuidad
+#| fig-cap: "Binomial con n = 50 y p = 0.35 y la normal que la aproxima."
+#| fig-alt: "Barras de la binomial de 8 a 28 con una curva normal centrada en 17.5 que pasa por la parte alta de las barras; las barras de 20 en adelante están resaltadas"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+mu_b <- 50 * 0.35
+s_b <- sqrt(50 * 0.35 * 0.65)
+tibble(k = 6:30, p = dbinom(k, 50, 0.35), cola = k >= 20) %>%
+  ggplot(aes(k, p)) +
+  geom_col(aes(fill = cola), width = 1, color = "white", alpha = 0.8) +
+  stat_function(fun = dnorm, args = list(mean = mu_b, sd = s_b), color = naranja, linewidth = 1.1) +
+  geom_vline(xintercept = 19.5, linetype = "dashed") +
+  annotate("text", x = 19.7, y = 0.12, label = "19.5", hjust = 0) +
+  scale_fill_manual(values = c(`FALSE` = "#b9d3e6", `TRUE` = azul), guide = "none") +
+  labs(x = "Pilotes defectuosos, k", y = "Probabilidad") +
+  tema_libro
+```
+
+::: {.callout-note title="Ejemplo: pilotes defectuosos en una cimentación"}
+
+**Planteamiento.** En una obra se hincan 50 pilotes. Por las condiciones del terreno, cada pilote resulta defectuoso con probabilidad 0.35 (dato hipotético), independientemente de los demás. Calcule la probabilidad de que 20 o más pilotes resulten defectuosos con la binomial exacta y con la aproximación normal, con y sin corrección por continuidad.
+
+**Solución:**
+
+1. $X \sim \text{Bin}(50, 0.35)$. Condiciones: $np = 17.5 > 5$ y $n(1 - p) = 32.5 > 5$. La aproximación es aceptable.
+2. Parámetros de la normal: $\mu = 17.5$ y $\sigma = \sqrt{50 \cdot 0.35 \cdot 0.65} = \sqrt{11.375} = 3.373$.
+3. Con corrección: $P(X \ge 20) \approx 1 - \Phi\big((19.5 - 17.5)/3.373\big) = 1 - \Phi(0.59) = 1 - 0.7224 = 0.2776$.
+4. Sin corrección: $1 - \Phi\big((20 - 17.5)/3.373\big) = 1 - \Phi(0.74) = 1 - 0.7704 = 0.2296$.
+5. La binomial exacta (que a mano exigiría sumar 31 términos) da 0.2736, como se verá con R. La corrección por continuidad reduce el error de 0.044 a 0.003.
+
+**Pseudocódigo**
+
+1. Definir $n$ y $p$ y verificar las condiciones.
+2. Calcular $\mu$ y $\sigma$ de la normal.
+3. Calcular la aproximación con y sin corrección con `pnorm()`.
+4. Calcular la probabilidad exacta con `pbinom()` y comparar.
+
+```{r}
+n <- 50
+p <- 0.35
+
+# 1) Condiciones de la aproximación
+c(np = n * p, nq = n * (1 - p))
+
+# 2) Parámetros de la normal
+mu <- n * p
+sigma <- sqrt(n * p * (1 - p))
+
+# 3) Aproximaciones
+con_correccion <- pnorm(19.5, mu, sigma, lower.tail = FALSE)
+sin_correccion <- pnorm(20, mu, sigma, lower.tail = FALSE)
+
+# 4) Exacta: P(X >= 20) = 1 - P(X <= 19)
+exacta <- pbinom(19, n, p, lower.tail = FALSE)
+c(exacta = exacta, con_correccion = con_correccion, sin_correccion = sin_correccion)
+```
+
+**Interpretación.** Hay un 27 % de probabilidad de que 20 o más pilotes resulten defectuosos, una cifra que justifica prever en el presupuesto la reposición de varios pilotes. Con R la binomial exacta se calcula al instante, así que la aproximación normal ya no hace falta para calcular; su valor está en que explica por qué tantos conteos y proporciones se comportan como normales, que es lo que se usa en los intervalos de confianza para proporciones del capítulo 19.
+
+:::
+
+## Aproximación normal a la Poisson {#sec-normal-aprox-poisson}
+
+La Poisson con $\lambda$ grande también toma forma de campana, y se aproxima con una normal con $\mu = \lambda$ y $\sigma = \sqrt{\lambda}$, usando la misma corrección por continuidad. El @tbl-normal-aprox-poisson muestra cuánto se equivoca la aproximación para varios valores de $\lambda$. La segunda columna es el mayor error en la FDA, sobre todos los valores de $k$; las otras comparan una probabilidad de cola, la de superar $\lambda + 2\sqrt{\lambda}$.
+
+```{r}
+#| label: tbl-normal-aprox-poisson
+#| tbl-cap: "Error de la aproximación normal (con corrección por continuidad) a la Poisson."
+#| echo: false
+
+map_dfr(c(2, 5, 10, 20, 50), function(l) {
+  k <- 0:(l + 6 * sqrt(l) + 5)
+  kc <- ceiling(l + 2 * sqrt(l))
+  tibble(lambda = l,
+         error = max(abs(ppois(k, l) - pnorm(k + 0.5, l, sqrt(l)))),
+         k = kc,
+         exacta = ppois(kc - 1, l, lower.tail = FALSE),
+         aprox = pnorm(kc - 0.5, l, sqrt(l), lower.tail = FALSE))
+}) %>%
+  kbl(col.names = c("<i>λ</i>", "Error máximo en la FDA", "<i>k</i>",
+                    "<i>P</i>(<i>X</i> ≥ <i>k</i>) exacta", "<i>P</i>(<i>X</i> ≥ <i>k</i>) aproximada"),
+      escape = FALSE, align = "c", digits = c(0, 4, 0, 4, 4)) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+El error baja a medida que crece $\lambda$: con $\lambda = 2$ llega a 0.04 y con $\lambda = 50$ es menor que 0.01. Pero en las colas, que suelen ser lo que interesa en diseño, el error relativo sigue siendo apreciable aun con $\lambda = 20$ (0.029 contra 0.034, un 16 % menos).
+
+::: {.callout-warning title="Cuidado"}
+Las aproximaciones normales funcionan bien cerca del centro de la distribución y peor en las colas lejanas. Con $\lambda = 100$ vehículos por hora, la probabilidad de 130 o más es 0.0023 con la Poisson y 0.0016 con la normal: un error del 30 % justo en el valor que decide la capacidad de una vía. Cuando la pregunta es sobre eventos raros, se calcula con la distribución exacta (`ppois()`, `pbinom()`).
+:::
+
+## Interactivos {#sec-normal-interactivos}
+
+En el interactivo de la @fig-normal-int-area se mueven la media, la desviación estándar y los límites $a$ y $b$. El área sombreada es $P(a \le X \le b)$; debajo se muestran los valores $z$ de cada límite, que son los que se buscarían en la tabla. Conviene comprobar la regla empírica poniendo $a = \mu - \sigma$ y $b = \mu + \sigma$ para varias combinaciones de parámetros.
+
+::: {#fig-normal-int-area}
+
+```{=html}
+<div class="interactivo" id="int-normal-area">
+  <div class="controles">
+    <label><span>Media <i>μ</i>:</span> <output class="omu"></output>
+      <input class="rmu" type="range" min="20" max="50" step="0.5" value="35"></label>
+    <label><span>Desviación <i>σ</i>:</span> <output class="osd"></output>
+      <input class="rsd" type="range" min="1" max="10" step="0.1" value="5"></label>
+    <label><span>Límite <i>a</i>:</span> <output class="oa"></output>
+      <input class="ra" type="range" min="10" max="60" step="0.5" value="30"></label>
+    <label><span>Límite <i>b</i>:</span> <output class="ob"></output>
+      <input class="rb" type="range" min="10" max="60" step="0.5" value="40"></label>
+  </div>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Curva normal con el área entre a y b sombreada"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-normal-area");
+  var q = function (c) { return raiz.querySelector(c); };
+  var rmu = q(".rmu"), rsd = q(".rsd"), ra = q(".ra"), rb = q(".rb");
+  var svg = q("svg"), res = q(".resultado");
+  var w = 640, h = 260, mi = 20, md = 20, ms = 12, mb = 34, x0 = 10, x1 = 60;
+  function Phi(z) {
+    var t = 1 / (1 + 0.2316419 * Math.abs(z));
+    var d = 0.3989422804014327 * Math.exp(-z * z / 2);
+    var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return z >= 0 ? 1 - p : p;
+  }
+  function dibujar() {
+    var mu = +rmu.value, s = +rsd.value, a = +ra.value, b = +rb.value;
+    if (a > b) { var tmp = a; a = b; b = tmp; }
+    q(".omu").textContent = mu.toFixed(1); q(".osd").textContent = s.toFixed(1);
+    q(".oa").textContent = (+ra.value).toFixed(1); q(".ob").textContent = (+rb.value).toFixed(1);
+    var ymax = 1 / (1 * Math.sqrt(2 * Math.PI));
+    var sx = function (x) { return mi + (x - x0) / (x1 - x0) * (w - mi - md); };
+    var sy = function (y) { return h - mb - y / (ymax * 1.05) * (h - mb - ms); };
+    var f = function (x) { return Math.exp(-0.5 * Math.pow((x - mu) / s, 2)) / (s * Math.sqrt(2 * Math.PI)); };
+    var d = "", area = "M" + sx(a).toFixed(1) + "," + sy(0).toFixed(1);
+    for (var x = x0; x <= x1 + 1e-9; x += 0.1) {
+      var pt = sx(x).toFixed(1) + "," + sy(f(x)).toFixed(1);
+      d += (d ? "L" : "M") + pt;
+      if (x >= a && x <= b) area += "L" + pt;
+    }
+    area += "L" + sx(b).toFixed(1) + "," + sy(f(b)).toFixed(1) + "L" + sx(b).toFixed(1) + "," + sy(0).toFixed(1) + "Z";
+    var s2 = '<path class="area" d="' + area + '"/><path class="curva" d="' + d + '"/>' +
+      '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+      '<line class="guia" x1="' + sx(mu) + '" x2="' + sx(mu) + '" y1="' + ms + '" y2="' + sy(0) + '"/>';
+    for (var t = x0; t <= x1; t += 5) {
+      s2 += '<line class="eje" x1="' + sx(t) + '" x2="' + sx(t) + '" y1="' + sy(0) + '" y2="' + (sy(0) + 5) + '"/>' +
+            '<text class="eje-texto" x="' + sx(t) + '" y="' + (sy(0) + 18) + '" text-anchor="middle">' + t + '</text>';
+    }
+    svg.innerHTML = s2;
+    var za = (a - mu) / s, zb = (b - mu) / s, pr = Phi(zb) - Phi(za);
+    res.innerHTML = "<i>z<sub>a</sub></i> = " + za.toFixed(2) + " &nbsp;·&nbsp; <i>z<sub>b</sub></i> = " + zb.toFixed(2) +
+      " &nbsp;·&nbsp; <i>P</i>(" + a.toFixed(1) + " ≤ <i>X</i> ≤ " + b.toFixed(1) + ") = Φ(" + zb.toFixed(2) + ") − Φ(" + za.toFixed(2) + ") = " + pr.toFixed(4);
+  }
+  [rmu, rsd, ra, rb].forEach(function (r) { r.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Área bajo la curva normal. Mueva los parámetros y los límites $a$ y $b$.
+
+:::
+
+El interactivo de la @fig-normal-int-binomial compara la binomial con su aproximación normal. Las barras en azul oscuro forman $P(X \le k)$. Debajo aparecen el valor exacto y las dos aproximaciones. Conviene ver qué pasa con $n = 20$ y $p = 0.05$, donde $np = 1$ no cumple la condición, y luego subir $n$.
+
+::: {#fig-normal-int-binomial}
+
+```{=html}
+<div class="interactivo" id="int-normal-binom">
+  <div class="controles">
+    <label><span>Ensayos <i>n</i>:</span> <output class="on"></output>
+      <input class="rn" type="range" min="5" max="200" step="1" value="50"></label>
+    <label><span>Probabilidad <i>p</i>:</span> <output class="op"></output>
+      <input class="rp" type="range" min="0.01" max="0.99" step="0.01" value="0.35"></label>
+    <label><span>Umbral <i>k</i>:</span> <output class="ok"></output>
+      <input class="rk" type="range" min="0" max="50" step="1" value="19"></label>
+  </div>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Barras de la binomial con la curva normal que la aproxima"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-normal-binom");
+  var q = function (c) { return raiz.querySelector(c); };
+  var rn = q(".rn"), rp = q(".rp"), rk = q(".rk"), svg = q("svg"), res = q(".resultado");
+  var w = 640, h = 260, mi = 20, md = 20, ms = 12, mb = 34;
+  function lgamma(z) {
+    var c = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+             12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+    if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+    z -= 1; var a = 0.99999999999980993, t = z + 7.5;
+    for (var i = 0; i < 8; i++) a += c[i] / (z + i + 1);
+    return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+  function Phi(z) {
+    var t = 1 / (1 + 0.2316419 * Math.abs(z));
+    var d = 0.3989422804014327 * Math.exp(-z * z / 2);
+    var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return z >= 0 ? 1 - p : p;
+  }
+  function dibujar() {
+    var n = +rn.value, p = +rp.value;
+    rk.max = n; var k = Math.min(+rk.value, n); rk.value = k;
+    q(".on").textContent = n; q(".op").textContent = p.toFixed(2); q(".ok").textContent = k;
+    var mu = n * p, s = Math.sqrt(n * p * (1 - p));
+    var lo = Math.max(0, Math.floor(mu - 4.5 * s - 1)), hi = Math.min(n, Math.ceil(mu + 4.5 * s + 1));
+    var ps = [], pmax = 0, exacta = 0;
+    for (var x = 0; x <= n; x++) {
+      var px = Math.exp(lgamma(n + 1) - lgamma(x + 1) - lgamma(n - x + 1) + x * Math.log(p) + (n - x) * Math.log(1 - p));
+      ps.push(px); if (x <= k) exacta += px; if (px > pmax) pmax = px;
+    }
+    var fmax = Math.max(pmax, 1 / (s * Math.sqrt(2 * Math.PI)));
+    var sx = function (x) { return mi + (x - lo + 0.5) / (hi - lo + 1) * (w - mi - md); };
+    var sy = function (y) { return h - mb - y / (fmax * 1.08) * (h - mb - ms); };
+    var anc = (w - mi - md) / (hi - lo + 1), s2 = "";
+    for (var i = lo; i <= hi; i++) {
+      s2 += '<rect class="barra' + (i <= k ? ' barra-sel' : '') + '" x="' + (sx(i) - anc / 2).toFixed(1) + '" y="' + sy(ps[i]).toFixed(1) +
+            '" width="' + anc.toFixed(1) + '" height="' + (sy(0) - sy(ps[i])).toFixed(1) + '"/>';
+    }
+    var d = "";
+    for (var xx = lo - 0.5; xx <= hi + 0.5; xx += (hi - lo + 1) / 300) {
+      var fy = Math.exp(-0.5 * Math.pow((xx - mu) / s, 2)) / (s * Math.sqrt(2 * Math.PI));
+      d += (d ? "L" : "M") + sx(xx).toFixed(1) + "," + sy(fy).toFixed(1);
+    }
+    s2 += '<path class="curva-2" d="' + d + '"/><line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>';
+    var paso = Math.ceil((hi - lo + 1) / 12);
+    for (var j = lo; j <= hi; j += paso) s2 += '<text class="eje-texto" x="' + sx(j) + '" y="' + (sy(0) + 16) + '" text-anchor="middle">' + j + '</text>';
+    svg.innerHTML = s2;
+    var con = Phi((k + 0.5 - mu) / s), sin = Phi((k - mu) / s);
+    var ok = (n * p > 5 && n * (1 - p) > 5) ? "se cumple" : "no se cumple";
+    res.innerHTML = "<i>P</i>(<i>X</i> ≤ " + k + "): exacta = " + exacta.toFixed(4) + " &nbsp;·&nbsp; normal con corrección = " + con.toFixed(4) +
+      " &nbsp;·&nbsp; sin corrección = " + sin.toFixed(4) + " &nbsp;·&nbsp; <i>np</i> = " + (n * p).toFixed(1) + ", <i>n</i>(1 − <i>p</i>) = " + (n * (1 - p)).toFixed(1) +
+      ": la condición " + ok + ".";
+  }
+  [rn, rp, rk].forEach(function (r) { r.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Binomial y aproximación normal. Mueva $n$, $p$ y el umbral $k$.
+
+:::
+
+## Ejercicios propuestos
+
+1. El espesor de una carpeta asfáltica es normal con $\mu = 7.5$ cm y $\sigma = 0.6$ cm. Calcule, con la tabla del apéndice A y con R, la probabilidad de que un núcleo mida menos de 6.5 cm, más de 8.5 cm y entre 7 y 8 cm.
+2. Con los datos del ejercicio 1, encuentre el espesor que supera el 95 % de los núcleos y el intervalo centrado en la media que contiene el 90 % de ellos.
+3. Los sacos de cemento de una fábrica pesan, en promedio, 50.2 kg con desviación estándar de 0.4 kg. Si el peso es normal, ¿qué proporción de sacos pesa menos que los 50 kg rotulados? ¿Cuál debería ser la media para que esa proporción baje al 2 %, sin cambiar la desviación estándar?
+4. Use la regla empírica, sin tabla ni R, para responder: si la carga diaria de un puente es normal con media 850 kN y desviación estándar 60 kN, ¿entre qué valores está la carga el 95 % de los días? ¿Qué tan raro es un día con más de 1030 kN?
+5. Con los datos de resistencia de los 60 cilindros, dibuje el gráfico Q-Q con `qqnorm()` y `qqline()`. Repita con los días entre fallas de las bombas del capítulo 15 y describa en qué se diferencian los dos gráficos.
+6. La longitud de una viga prefabricada es normal con media 6.000 m y desviación estándar 4 mm, y el espacio entre apoyos donde se coloca es normal con media 6.010 m y desviación estándar 3 mm, independiente. Calcule la probabilidad de que la viga no quepa (que sea más larga que el espacio). Sugerencia: estudie la diferencia entre las dos variables con la @eq-normal-combinacion.
+7. En una auditoría se revisan 200 facturas de una obra, y cada una tiene un error con probabilidad 0.08. Calcule la probabilidad de encontrar más de 20 facturas con error con la binomial exacta y con la aproximación normal con corrección por continuidad.
+8. A una intersección llegan, en promedio, 36 vehículos por minuto en hora pico. Con la aproximación normal a la Poisson, calcule la probabilidad de que en un minuto lleguen más de 45. Compare con `ppois()`.
+9. Use el interactivo de la binomial para encontrar, con $p = 0.10$, a partir de qué $n$ la diferencia entre la probabilidad exacta y la aproximada con corrección es menor que 0.01 para $k$ igual a la media redondeada.
+
+## Lecturas recomendadas
+
+- @illowsky2013introductory, capítulo 6: la normal, la estandarización y la aproximación a la binomial, con ejercicios graduados.
+- @ayala2026estadistica: distribución normal y gráficos de normalidad con R, en español.
+- @wasserman2004all, capítulo 2: propiedades de la normal y de sus combinaciones lineales.
