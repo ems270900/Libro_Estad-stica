@@ -60,14 +60,6 @@ Los datos tienen dos orígenes, y el planteamiento de cada ejemplo dice cuál. L
 
 Cada capítulo cierra con ejercicios propuestos. No traen solución publicada: se resuelven con los métodos y los ejemplos del capítulo, primero a mano y después con R, y la comparación entre los dos resultados es la mejor forma de saber si quedaron bien.
 
-## Convenciones {.unnumbered}
-
-- El separador decimal es el punto (0.75), igual que en R. Los miles se separan con un espacio a partir de 10 000.
-- Los cuadros se llaman cuadros, no tablas, salvo las tablas estadísticas del apéndice A.
-- Los valores críticos $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha, en el texto y en las tablas.
-- Las ecuaciones, las figuras y los cuadros se numeran por capítulo, y las referencias cruzadas son enlaces: un clic sobre "Ecuación 16.2" lleva a la ecuación.
-- El código usa el operador `%>%` para encadenar pasos, que se explica desde cero en el capítulo 3.
-
 ## Programas y paquetes {.unnumbered}
 
 Los ejemplos usan [R](https://www.r-project.org/), un lenguaje libre para análisis de datos, y [RStudio](https://posit.co/download/rstudio-desktop/), el programa donde se escribe y se ejecuta el código. Los dos son gratuitos, y el capítulo 1 explica cómo instalarlos paso a paso. Las capturas de pantalla del libro se tomaron con R 4.6 y RStudio 2026.11; con versiones cercanas todo se ve casi igual.
