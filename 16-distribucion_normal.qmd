@@ -922,25 +922,25 @@ La @fig-guia-diagrama ordena las preguntas en un diagrama. Se empieza arriba, se
 source("R/diagramas_red.R")
 local({
   nd <- function(id, x, y, lineas, clase = "c1", w = NULL) list(id = id, x = x, y = y, lineas = lineas, clase = clase, w = w, tam = 14)
-  qd <- list(dg_lineas("¿Número fijo de ensayos n,", "t1", "cada uno éxito o fracaso?", "t1"),
-             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el primer éxito?", "t1"),
-             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el éxito número k?", "t1"),
-             dg_lineas("¿Eventos al azar en un", "t1", "intervalo de tiempo,", "t1", "longitud o área?", "t1"))
-  rd <- list(dg_lineas("Binomial", "t1", "hipergeométrica si es sin", "t2", "reemplazo y n/N > 0.05", "t2"),
+  qd <- list(dg_lineas("¿n ensayos fijos, cada", "t1", "uno éxito o fracaso?", "t1"),
+             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el 1.er éxito?", "t1"),
+             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el éxito k?", "t1"),
+             dg_lineas("¿Eventos al azar en", "t1", "un tiempo, una longitud", "t1", "o un área?", "t1"))
+  rd <- list(dg_lineas("Binomial", "t1", "hipergeométrica si", "t2", "es sin reemplazo", "t2", "y n/N > 0.05", "t2"),
              dg_lineas("Geométrica", "t1"), dg_lineas("Binomial negativa", "t1"), dg_lineas("Poisson", "t1"))
-  qc <- list(dg_lineas("¿Tiempo de espera entre", "t1", "eventos al azar?", "t1"),
+  qc <- list(dg_lineas("¿Tiempo de espera", "t1", "entre eventos al azar?", "t1"),
              dg_lineas("¿Vida útil con desgaste", "t1", "o fallas tempranas?", "t1"),
              dg_lineas("¿Máximo de un año", "t1", "o de un periodo?", "t1"),
-             dg_lineas("¿Proporción entre 0 y 1?", "t1"),
+             dg_lineas("¿Proporción", "t1", "entre 0 y 1?", "t1"),
              dg_lineas("¿Positiva, con cola", "t1", "larga a la derecha?", "t1"),
-             dg_lineas("¿Suma o promedio de", "t1", "muchos efectos; simétrica?", "t1"),
-             dg_lineas("¿Solo se conocen los", "t1", "límites y todo valor es", "t1", "igual de probable?", "t1"))
+             dg_lineas("¿Suma o promedio de", "t1", "muchos efectos;", "t1", "simétrica?", "t1"),
+             dg_lineas("¿Solo se conocen los", "t1", "límites, todo valor", "t1", "igual de probable?", "t1"))
   rc <- list(dg_lineas("Exponencial", "t1", "gamma si es hasta", "t2", "el evento número α", "t2"),
              dg_lineas("Weibull", "t1"), dg_lineas("Gumbel", "t1"), dg_lineas("Beta", "t1"), dg_lineas("Log-normal", "t1"),
              dg_lineas("Normal", "t1"), dg_lineas("Uniforme", "t1"))
   y <- 150 + 100 * (0:6)
-  xq <- c(140, 700); xr <- c(405, 965); wq <- 250; wr <- 210
-  nodos <- list(list(id = "raiz", x = 552, y = 42, clase = "c0", tam = 15,
+  xq <- c(125, 590); xr <- c(352, 817); wq <- 210; wr <- 160
+  nodos <- list(list(id = "raiz", x = 471, y = 42, clase = "c0", tam = 15,
                      lineas = dg_lineas("¿La variable se cuenta (cuántos) o se mide (cuánto)?", "t0")))
   aristas <- list()
   bloque <- function(pref, q, r, col, nota) {
@@ -953,10 +953,10 @@ local({
       aristas[[length(aristas) + 1]] <<- list(desde = paste0(pref, "q", i), hasta = sig,
                                              etiqueta = "No", et_tipo = "texto", et_dx = 16)
     }
-    nodos[[length(nodos) + 1]] <<- list(id = paste0(pref, "n"), x = xq[col], y = y[length(q)] + 100, clase = "texto", tam = 14, lineas = nota)
+    nodos[[length(nodos) + 1]] <<- list(id = paste0(pref, "n"), x = xq[col], y = y[length(q)] + 118, clase = "texto", tam = 14, lineas = nota)
   }
-  bloque("d", qd, rd, 1, dg_lineas("Ninguna: revisar los supuestos;", "t2", "si la varianza supera a la media,", "t2", "probar la binomial negativa", "t2"))
-  bloque("c", qc, rc, 2, dg_lineas("Ninguna: mirar el histograma", "t2", "y comparar varias (capítulos 15 y 23)", "t2"))
+  bloque("d", qd, rd, 1, dg_lineas("Ninguna: revisar los", "t2", "supuestos; si la varianza", "t2", "supera a la media, probar", "t2", "la binomial negativa", "t2"))
+  bloque("c", qc, rc, 2, dg_lineas("Ninguna: mirar el histograma", "t2", "y comparar varias", "t2", "(capítulos 15 y 23)", "t2"))
   aristas <- c(list(list(desde = "raiz", hasta = "dq1", ruta = "codo", etiqueta = "Se cuenta: discreta"),
                     list(desde = "raiz", hasta = "cq1", ruta = "codo", etiqueta = "Se mide: continua")), aristas)
   dg_red(nodos, aristas, titulo = "Diagrama para elegir la distribución")
@@ -967,7 +967,7 @@ El diagrama es una guía, no un algoritmo infalible. Hay variables que caben en 
 
 ### Cuadro resumen
 
-El @tbl-guia-resumen reúne, para cada distribución, la situación en que aparece, sus parámetros, las palabras del enunciado que suelen delatarla y un ejemplo de ingeniería civil. Las palabras clave orientan, pero no deciden: "promedio" aparece en problemas de Poisson, de exponencial y de normal.
+El @tbl-guia-resumen reúne, para cada distribución, la situación en que aparece, sus parámetros, las palabras del enunciado que suelen delatarla y un ejemplo de ingeniería civil. Esas palabras orientan, pero no deciden: "promedio" aparece en problemas de Poisson, de exponencial y de normal.
 
 ```{r}
 #| label: tbl-guia-resumen
@@ -991,7 +991,7 @@ tribble(
   "Gumbel", "Máximo de un año o de un periodo", "<i>u</i>, <i>α</i>", "máximo anual, creciente de diseño, periodo de retorno", "Caudal máximo anual de un río",
   "Normal", "Suma o promedio de muchos efectos pequeños; simétrica", "<i>μ</i>, <i>σ</i>", "en forma de campana; media y desviación estándar", "Error de cierre de una nivelación"
 ) %>%
-  kbl(col.names = c("Distribución", "Situación típica", "Parámetros", "Palabras clave del enunciado", "Ejemplo de ingeniería"),
+  kbl(col.names = c("Distribución", "Situación típica", "Parámetros", "Palabras del enunciado", "Ejemplo de ingeniería"),
       escape = FALSE, align = "l") %>%
   kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed", "striped"), font_size = 14) %>%
   column_spec(1, bold = TRUE)
@@ -1030,19 +1030,19 @@ tribble(
 source("R/diagramas_red.R")
 local({
   n <- function(id, x, y, t) list(id = id, x = x, y = y, lineas = dg_lineas(t, "t1"), clase = "c1")
-  nodos <- list(n("hip", 110, 90, "Hipergeométrica"), n("bin", 370, 90, "Binomial"), n("poi", 370, 290, "Poisson"),
-                n("geo", 110, 420, "Geométrica"), n("nor", 650, 90, "Normal"), n("lgn", 900, 90, "Log-normal"),
-                n("exp", 650, 290, "Exponencial"), n("gam", 900, 290, "Gamma"))
+  nodos <- list(n("hip", 100, 90, "Hipergeométrica"), n("bin", 335, 90, "Binomial"), n("poi", 335, 290, "Poisson"),
+                n("geo", 100, 420, "Geométrica"), n("nor", 570, 90, "Normal"), n("lgn", 790, 90, "Log-normal"),
+                n("exp", 570, 290, "Exponencial"), n("gam", 790, 290, "Gamma"))
   aristas <- list(list(desde = "hip", hasta = "bin", etiqueta = "n/N ≤ 0.05"),
                   list(desde = "bin", hasta = "poi", etiqueta = c("n grande,", "p pequeña")),
                   list(desde = "bin", hasta = "nor", etiqueta = c("np > 5 y", "n(1 − p) > 5")),
                   list(desde = "poi", hasta = "nor", etiqueta = "λ grande", et_pos = 0.55),
-                  list(desde = "poi", hasta = "exp", etiqueta = "mismo proceso", doble = TRUE),
+                  list(desde = "poi", hasta = "exp", etiqueta = c("mismo", "proceso"), doble = TRUE),
                   list(desde = "exp", hasta = "gam", etiqueta = "suma de α"),
                   list(desde = "nor", hasta = "lgn", etiqueta = "exp(·)"),
                   list(desde = "geo", hasta = "exp", etiqueta = "tiempo continuo"))
-  zonas <- list(list(x0 = 12, y0 = 12, x1 = 478, y1 = 468, titulo = "Discretas"),
-                list(x0 = 522, y0 = 12, x1 = 1000, y1 = 468, titulo = "Continuas", clase = "zA"))
+  zonas <- list(list(x0 = 12, y0 = 12, x1 = 430, y1 = 468, titulo = "Discretas"),
+                list(x0 = 466, y0 = 12, x1 = 880, y1 = 468, titulo = "Continuas", clase = "zA"))
   dg_red(nodos, aristas, zonas, titulo = "Red de relaciones entre distribuciones")
 })
 ```

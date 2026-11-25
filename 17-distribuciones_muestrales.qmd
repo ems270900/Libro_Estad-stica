@@ -709,7 +709,7 @@ El teorema del límite central habla de la media, no de los datos. Que la media 
 
 - @illowsky2018introductory, capítulo 7: el teorema del límite central para medias y para sumas, con muchos ejemplos numéricos.
 - @laneintroduction, capítulo 9: distribuciones muestrales explicadas con simulaciones, muy visual.
-- @walpole2012probabilidad, capítulo 8: distribuciones muestrales fundamentales, en español.
+- @walpole2012probabilidad, capítulo 8: distribuciones muestrales de la media, la t, la chi-cuadrado y la F, en español.
 - @montgomery2014applied, capítulo 7: distribuciones muestrales y el teorema del límite central desde la ingeniería.
 - @ayala2026estadistica: muestreo y distribuciones muestrales en español, con simulaciones en R.
 - @wasserman2004all, capítulo 5: enunciado formal del teorema del límite central y de la ley de los grandes números.
