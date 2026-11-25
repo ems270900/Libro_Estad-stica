@@ -6,6 +6,6 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejemplos: estimaciones puntuales de un lote de 25 cilindros (a mano, base R); tiempo medio entre fallas de 20 bombas por máxima verosimilitud (fórmula exacta, Newton-Raphson, `optimize()` y `MASS::fitdistr()`).
 - Interactivo: función de verosimilitud binomial con controles de n y x.
 - Figuras propias (R): sesgo de los dos estimadores de la varianza, log-verosimilitud de la exponencial.
-- Datos: `cilindros_concreto_hipoteticos.csv`, `tiempo_falla_bombas_hipotetico.csv`.
+- Datos: `lote_cilindros_hipotetico.csv`, `tiempo_falla_bombas_hipotetico.csv`.
 - Fuentes: Montgomery y Runger (2014), Walpole et al. (2012), Wasserman (2004), Illowsky y Dean (2018), Fisher (1922).
 - Pendiente: epígrafe (no se puso ninguno por no tener una frase con fuente verificada).

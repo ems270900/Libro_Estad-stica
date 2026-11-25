@@ -1,0 +1,663 @@
+---
+title: "Asociación y correlación"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"Reflection soon made it clear to me that not only were the two new problems identical in principle with the old one of kinship which I had already solved, but that all three of them were no more than special cases of a much more general problem, namely, that of Correlation."\
+— *Francis Galton, citado por @watkinsintroduction [tema 3].*
+:::
+
+En un laboratorio de materiales se ensaya la resistencia de cilindros hechos con distintas relaciones agua/cemento. En una carretera se mide el deterioro de cada tramo y el tránsito que soporta. En una cuenca se registran la lluvia y el caudal. En los tres casos la pregunta es la misma: cuando una variable cambia, ¿la otra cambia con ella? Este capítulo explica cómo verlo en un gráfico y cómo medirlo con un número, la correlación. También explica qué no dice ese número, porque dos variables que se mueven juntas no siempre tienen una relación de causa y efecto.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(ggplot2)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+```
+
+## Asociación entre dos variables {#sec-cor-asociacion}
+
+::: {.pregunta}
+Si la relación agua/cemento de una mezcla sube de 0.45 a 0.60, ¿qué se espera de la resistencia del concreto?
+:::
+
+Dos variables tienen asociación estadística cuando conocer el valor de una da información sobre el valor de la otra. Si se sabe que una mezcla tiene mucha agua para la cantidad de cemento, se espera que su resistencia sea baja. Esa expectativa es una asociación.
+
+En casi todos los problemas de ingeniería una de las dos variables es la que interesa explicar o predecir. Se llama variable respuesta y se escribe $Y$: la resistencia, el asentamiento, el caudal. La otra se llama variable predictora (o explicativa) y se escribe $X$: la relación agua/cemento, la carga, el área de la cuenca. En la correlación los papeles de $X$ y $Y$ son intercambiables. En la regresión (capítulo 25) no lo son.
+
+### El diagrama de dispersión
+
+El primer paso para estudiar una asociación es el diagrama de dispersión: un punto por cada par de valores $(x_i, y_i)$, con $X$ en el eje horizontal y $Y$ en el vertical. La @sec-graf-base explica cómo hacerlo con `plot()` y la @sec-graf-ggplot con `geom_point()`. En el diagrama se miran cuatro cosas [@laneintroduction, cap. 4]:
+
+1. **Dirección.** Si al crecer $X$ crece $Y$, la asociación es positiva. Si al crecer $X$ baja $Y$, es negativa.
+2. **Forma.** Los puntos pueden seguir una recta, una curva o ningún patrón.
+3. **Intensidad.** Qué tan cerca están los puntos de esa recta o curva.
+4. **Puntos inusuales.** Datos que quedan lejos del resto y que pueden ser errores o casos especiales.
+
+La @fig-cor-patrones muestra cuatro casos típicos.
+
+```{r}
+#| label: fig-cor-patrones
+#| fig-cap: "Cuatro patrones de asociación entre dos variables (datos hipotéticos)."
+#| fig-alt: "Cuatro diagramas de dispersión: puntos que suben en línea recta, puntos que bajan en línea recta, una nube sin patrón y puntos que forman una U"
+#| fig-width: 8
+#| fig-height: 5.5
+#| echo: false
+
+set.seed(24)
+x <- seq(1, 10, length.out = 35)
+patrones <- rbind(
+  data.frame(x, y = 2 + 1.8 * x + rnorm(35, 0, 1.2), tipo = "Positiva y lineal"),
+  data.frame(x, y = 24 - 1.5 * x + rnorm(35, 0, 1.2), tipo = "Negativa y lineal"),
+  data.frame(x, y = 8 + rnorm(35, 0, 3), tipo = "Sin asociación"),
+  data.frame(x, y = 2 + 0.35 * (x - 5.5)^2 + rnorm(35, 0, 0.8), tipo = "Curva (no lineal)")
+)
+patrones$tipo <- factor(patrones$tipo, levels = unique(patrones$tipo))
+ggplot(patrones, aes(x, y)) +
+  geom_point(color = azul, size = 1.8) +
+  facet_wrap(~ tipo, scales = "free_y") +
+  labs(x = "Variable X", y = "Variable Y") +
+  theme_minimal(base_size = 13)
+```
+
+El panel de la curva tiene una asociación muy clara, porque conocer $X$ dice mucho sobre $Y$. Sin embargo, como se verá en la @sec-cor-pearson, el coeficiente de Pearson de esos datos es casi cero. Por eso el gráfico va siempre antes que el número.
+
+## Covarianza {#sec-cor-covarianza}
+
+La covarianza mide si las dos variables tienden a alejarse de sus medias en la misma dirección. Para cada dato se calcula cuánto se aleja $x_i$ de su media ($x_i - \bar{x}$) y cuánto se aleja $y_i$ de la suya ($y_i - \bar{y}$), y se multiplican esas dos distancias:
+
+- Si los dos están por encima de su media, el producto es positivo.
+- Si los dos están por debajo, el producto también es positivo (menos por menos).
+- Si uno está arriba y el otro abajo, el producto es negativo.
+
+La covarianza muestral es el promedio de esos productos, dividido entre $n - 1$ como la varianza del capítulo 9 [@illowsky2018introductory, cap. 12]:
+
+$$
+s_{xy} = \frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{n - 1}
+$$ {#eq-cor-cov}
+
+donde $x_i$ y $y_i$ son los valores del par $i$, $\bar{x}$ y $\bar{y}$ son las medias muestrales y $n$ es el número de pares.
+
+Si $s_{xy} > 0$, los valores altos de $X$ suelen ir con valores altos de $Y$. Si $s_{xy} < 0$, los valores altos de $X$ suelen ir con valores bajos de $Y$. El problema de la covarianza es que sus unidades son el producto de las unidades de $X$ y de $Y$. Si la resistencia se pasa de MPa a kg/cm², la covarianza se multiplica por 10.2 sin que la relación haya cambiado. Por eso no sirve para decir si una asociación es fuerte o débil.
+
+## Coeficiente de correlación de Pearson {#sec-cor-pearson}
+
+El coeficiente de correlación de Pearson resuelve el problema de las unidades: divide la covarianza entre las dos desviaciones estándar [@pearson1896mathematical; @illowsky2018introductory, cap. 12]:
+
+$$
+r = \frac{s_{xy}}{s_x \, s_y} = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum (x_i - \bar{x})^2 \, \sum (y_i - \bar{y})^2}}
+$$ {#eq-cor-pearson}
+
+donde $s_x$ y $s_y$ son las desviaciones estándar muestrales de $X$ y de $Y$. La segunda forma es la que se usa a mano, porque los $n - 1$ se cancelan.
+
+Para abreviar, en esta parte del libro se usan tres sumas que aparecen una y otra vez:
+
+$$
+S_{xx} = \sum (x_i - \bar{x})^2, \qquad S_{yy} = \sum (y_i - \bar{y})^2, \qquad S_{xy} = \sum (x_i - \bar{x})(y_i - \bar{y})
+$$ {#eq-cor-sumas}
+
+Con ellas, $r = S_{xy} / \sqrt{S_{xx} \, S_{yy}}$. El coeficiente tiene estas propiedades:
+
+- Siempre está entre $-1$ y $1$.
+- El signo da la dirección: positivo si $Y$ sube con $X$, negativo si baja.
+- El valor absoluto da la intensidad de la asociación lineal: $|r| = 1$ si todos los puntos caen sobre una recta, y $r$ cerca de 0 si no hay tendencia lineal.
+- No tiene unidades y no cambia si se cambian las unidades de $X$ o de $Y$.
+- Es simétrico: la correlación de $X$ con $Y$ es la misma que la de $Y$ con $X$.
+
+Un $r = -0.80$ indica una asociación lineal más fuerte que un $r = 0.35$, aunque sea negativa: el signo y la magnitud responden preguntas distintas.
+
+::: {.callout-warning title="Cuidado"}
+Pearson mide solo asociación lineal. Los datos en forma de U de la @fig-cor-patrones tienen $r$ casi igual a cero y, sin embargo, $Y$ depende mucho de $X$. Un $r$ cercano a cero dice "no hay tendencia en línea recta", no "no hay relación".
+:::
+
+### Qué tan grande es una correlación
+
+Para las ciencias del comportamiento, @cohen1988statistical propuso tomar $|r| = 0.10$, $0.30$ y $0.50$ como referencias de efectos pequeño, mediano y grande. El @tbl-cor-cohen las resume.
+
+```{r}
+#| label: tbl-cor-cohen
+#| tbl-cap: "Referencias de Cohen para la magnitud de una correlación."
+#| echo: false
+
+data.frame(
+  r = c("menos de 0.10", "0.10 a 0.30", "0.30 a 0.50", "más de 0.50"),
+  efecto = c("Muy pequeño", "Pequeño", "Mediano", "Grande")
+) %>%
+  kbl(col.names = c("|<i>r</i>|", "Efecto"), escape = FALSE, align = "cc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  footnote(general = "Fuente: Cohen (1988).", general_title = "")
+```
+
+::: {.callout-tip title="En la práctica"}
+En ingeniería estas referencias se quedan cortas. Entre la resistencia de cilindros y la relación agua/cemento de un mismo laboratorio son comunes valores de $|r|$ mayores que 0.9, y un $r = 0.5$ sería una señal de que algo falla en el control de la mezcla. La magnitud se juzga con el conocimiento del problema, no con un umbral fijo.
+:::
+
+::: {.callout-note title="Ejemplo: correlación entre la relación agua/cemento y la resistencia"}
+
+**Planteamiento.** Se tienen diez mezclas hipotéticas de concreto con distinta relación agua/cemento ($x$, adimensional) y la resistencia a compresión a 28 días de cada una ($y$, MPa). Dibuje el diagrama de dispersión y calcule la covarianza y el coeficiente de correlación de Pearson.
+
+```{r}
+#| echo: false
+ver_datos("datos/mezclas_ac_hipoteticas.csv",
+          nombres = c("Mezcla", "Relación a/c", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Medias: $\bar{x} = 5.59/10 = 0.559$ y $\bar{y} = 337.9/10 = 33.79$ MPa.
+2. Para cada mezcla se calculan las desviaciones y sus productos (@tbl-cor-mano). Las columnas de desviaciones suman cero, lo que sirve de control.
+3. De la última fila del cuadro: $S_{xx} = 0.091890$, $S_{yy} = 373.529$ y $S_{xy} = -5.79010$.
+4. Covarianza (@eq-cor-cov): $s_{xy} = -5.79010/9 = -0.6433$ MPa.
+5. Correlación (@eq-cor-pearson):
+   $$
+   r = \frac{-5.79010}{\sqrt{(0.091890)(373.529)}} = \frac{-5.79010}{5.8586} = -0.988
+   $$
+
+```{r}
+#| label: tbl-cor-mano
+#| tbl-cap: "Cálculo a mano de las sumas para la correlación."
+#| echo: false
+
+m <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+dx <- m$relacion_ac - mean(m$relacion_ac)
+dy <- m$resistencia_mpa - mean(m$resistencia_mpa)
+cuadro <- data.frame(
+  i = c(1:10, "Suma"),
+  x = c(sprintf("%.2f", m$relacion_ac), sprintf("%.2f", sum(m$relacion_ac))),
+  y = c(sprintf("%.1f", m$resistencia_mpa), sprintf("%.1f", sum(m$resistencia_mpa))),
+  dx = c(sprintf("%.3f", dx), "0.000"),
+  dy = c(sprintf("%.2f", dy), "0.00"),
+  dx2 = c(sprintf("%.6f", dx^2), sprintf("%.6f", sum(dx^2))),
+  dy2 = c(sprintf("%.4f", dy^2), sprintf("%.4f", sum(dy^2))),
+  dxdy = c(sprintf("%.5f", dx * dy), sprintf("%.5f", sum(dx * dy)))
+)
+cuadro %>%
+  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>y<sub>i</sub></i> (MPa)",
+                    "<i>x<sub>i</sub></i> − <i>x̄</i>", "<i>y<sub>i</sub></i> − <i>ȳ</i>",
+                    "(<i>x<sub>i</sub></i> − <i>x̄</i>)<sup>2</sup>",
+                    "(<i>y<sub>i</sub></i> − <i>ȳ</i>)<sup>2</sup>",
+                    "(<i>x<sub>i</sub></i> − <i>x̄</i>)(<i>y<sub>i</sub></i> − <i>ȳ</i>)"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(11, bold = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Leer los datos y graficar $y$ contra $x$.
+2. Calcular las medias y las desviaciones de cada dato.
+3. Sumar los cuadrados y los productos de las desviaciones ($S_{xx}$, $S_{yy}$, $S_{xy}$).
+4. Calcular $s_{xy}$ con la @eq-cor-cov y $r$ con la @eq-cor-pearson.
+5. Repetir con `cov()` y `cor()` y comprobar que coinciden.
+
+```{r}
+#| label: fig-cor-mezclas
+#| fig-cap: "Resistencia a 28 días contra relación agua/cemento de diez mezclas hipotéticas."
+#| fig-alt: "Diez puntos que bajan casi en línea recta, desde 44 MPa con relación 0.40 hasta 25 MPa con relación 0.70"
+
+# 1) Datos y diagrama de dispersión (base R)
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+x <- mezclas$relacion_ac
+y <- mezclas$resistencia_mpa
+plot(x, y, pch = 19, col = "#1C6BA0",
+     xlab = "Relación agua/cemento", ylab = "Resistencia a 28 días (MPa)")
+```
+
+```{r}
+# 2) Desviaciones respecto de las medias
+dx <- x - mean(x)
+dy <- y - mean(y)
+
+# 3) Sumas de cuadrados y de productos
+Sxx <- sum(dx^2)
+Syy <- sum(dy^2)
+Sxy <- sum(dx * dy)
+
+# 4) Covarianza y correlación con las fórmulas
+n <- length(x)
+s_xy <- Sxy / (n - 1)
+r <- Sxy / sqrt(Sxx * Syy)
+c(Sxx = Sxx, Syy = Syy, Sxy = Sxy, covarianza = s_xy, r = r)
+
+# 5) Lo mismo con las funciones de R
+cov(x, y)
+cor(x, y)
+```
+
+**Interpretación.** El diagrama de la @fig-cor-mezclas muestra una tendencia lineal y decreciente, sin puntos apartados, y $r = -0.988$ confirma que la asociación lineal es negativa y muy fuerte. En estas diez mezclas, más agua por unidad de cemento va con menos resistencia, lo que concuerda con lo que se sabe del concreto. El número no dice cuántos MPa se pierden por cada aumento de la relación: eso lo responde la recta de regresión del capítulo 25.
+
+:::
+
+## Prueba de significancia para la correlación {#sec-cor-prueba}
+
+Las diez mezclas son una muestra. Si se hicieran otras diez, el $r$ saldría algo distinto. El valor $r$ es una estimación del coeficiente de la población, que se escribe $\rho$ (letra griega rho) y que no se conoce. Con pocos datos, un $r$ alto puede aparecer por azar aunque $\rho = 0$. La prueba de hipótesis del capítulo 20 responde si el $r$ observado es demasiado grande para atribuirlo al azar.
+
+Las hipótesis son
+
+$$
+H_0: \rho = 0 \qquad \text{contra} \qquad H_1: \rho \neq 0
+$$
+
+y el estadístico de prueba es [@illowsky2018introductory, cap. 12; @laneintroduction, cap. 14]
+
+$$
+t = r \, \sqrt{\frac{n - 2}{1 - r^2}}
+$$ {#eq-cor-t}
+
+donde $r$ es la correlación muestral y $n$ el número de pares. Si $H_0$ es cierta y los pares vienen de una distribución normal bivariada, $t$ sigue una distribución $t$ de Student con $n - 2$ grados de libertad. Se rechaza $H_0$ al nivel $\alpha$ si $|t| > t_{1-\alpha/2,\, n-2}$, o si el valor $p$ es menor que $\alpha$.
+
+::: {.callout-note title="Ejemplo: prueba para la correlación de las diez mezclas"}
+
+**Planteamiento.** Con las diez mezclas del ejemplo anterior ($r = -0.988$), pruebe con $\alpha = 0.05$ si la correlación de la población es distinta de cero.
+
+**Solución:**
+
+1. Hipótesis: $H_0: \rho = 0$ contra $H_1: \rho \neq 0$.
+2. Estadístico (@eq-cor-t):
+   $$
+   t = -0.98830 \, \sqrt{\frac{10 - 2}{1 - (-0.98830)^2}} = -0.98830 \, \sqrt{\frac{8}{0.02326}} = -18.33
+   $$
+3. Valor crítico con $n - 2 = 8$ grados de libertad: $t_{0.975,\,8} = 2.306$ (apéndice A).
+4. Decisión: $|{-18.33}| > 2.306$, así que se rechaza $H_0$. El valor $p$ es menor que 0.001.
+
+**Pseudocódigo**
+
+1. Calcular $r$.
+2. Calcular $t$ con la @eq-cor-t y el valor $p$ con la distribución $t$ de $n - 2$ grados de libertad.
+3. Comparar con `cor.test()`.
+
+```{r}
+# 1) Datos y correlación
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+x <- mezclas$relacion_ac
+y <- mezclas$resistencia_mpa
+n <- length(x)
+r <- cor(x, y)
+
+# 2) Estadístico t, valor crítico y valor p
+t_calc <- r * sqrt((n - 2) / (1 - r^2))
+t_crit <- qt(0.975, df = n - 2)
+p_valor <- 2 * pt(-abs(t_calc), df = n - 2)
+c(r = r, t = t_calc, t_critico = t_crit, p = p_valor)
+
+# 3) La misma prueba con la función de R
+cor.test(x, y)
+```
+
+**Interpretación.** Con un nivel de significancia del 5 %, las diez mezclas dan evidencia de una correlación lineal distinta de cero entre la relación agua/cemento y la resistencia. `cor.test()` entrega además un intervalo de confianza del 95 % para $\rho$, de $-0.997$ a $-0.950$: aun en el extremo menos favorable, la asociación es muy fuerte.
+
+:::
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+El intervalo de confianza de `cor.test()` usa la transformación $z$ de Fisher. La cantidad $z = \tfrac{1}{2}\ln\!\left(\tfrac{1+r}{1-r}\right)$ tiene, aproximadamente, distribución normal con desviación estándar $1/\sqrt{n-3}$ [@laneintroduction, cap. 10]. Se calcula el intervalo $z \pm 1.96/\sqrt{n-3}$ y se devuelve a la escala de $r$ con la tangente hiperbólica. En R: `tanh(atanh(r) + c(-1, 1) * qnorm(0.975) / sqrt(n - 3))`, que da los mismos límites que `cor.test()`.
+:::
+
+::: {.callout-warning title="Cuidado"}
+Que una correlación sea estadísticamente significativa no quiere decir que sea grande ni útil. Con 500 pares, un $r = 0.09$ ya da $p < 0.05$, y sin embargo la variable $X$ explica menos del 1 % de la variación de $Y$. La prueba responde si $\rho$ es distinto de cero; la magnitud de $r$ y el gráfico responden si importa.
+:::
+
+## Interactivo: cómo se ve una correlación {#sec-cor-interactivo}
+
+Con el control se cambia la correlación de la población que genera 60 puntos. Debajo del gráfico aparecen el coeficiente de Pearson y el de Spearman (@sec-cor-spearman) calculados con esos puntos. La casilla agrega un solo dato atípico, para ver cuánto mueve cada coeficiente.
+
+::: {#fig-cor-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-correlacion">
+  <label><span>Correlación de la población <i>ρ</i>:</span> <output>0.70</output>
+    <input type="range" min="-1" max="1" step="0.05" value="0.7"></label>
+  <label><input type="checkbox"> Agregar un dato atípico</label>
+  <svg viewBox="0 0 640 320" role="img" aria-label="Diagrama de dispersión que cambia con la correlación elegida"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-correlacion");
+  var control = raiz.querySelector("input[type=range]"), salida = raiz.querySelector("output");
+  var casilla = raiz.querySelector("input[type=checkbox]");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var w = 640, h = 320, m = 36, n = 60;
+  // Números pseudoaleatorios con semilla fija, para que los puntos no salten
+  var semilla = 24;
+  function azar() { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; }
+  var z1 = [], z2 = [];
+  for (var i = 0; i < n; i++) {
+    var u1 = azar(), u2 = azar(), u3 = azar(), u4 = azar();
+    z1.push(Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2));
+    z2.push(Math.sqrt(-2 * Math.log(u3)) * Math.cos(2 * Math.PI * u4));
+  }
+  var sx = function (x) { return m + (x + 3.5) / 7 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y + 3.5) / 7 * (h - 2 * m); };
+  function pearson(a, b) {
+    var k = a.length, ma = 0, mb = 0, sab = 0, saa = 0, sbb = 0;
+    for (var i = 0; i < k; i++) { ma += a[i] / k; mb += b[i] / k; }
+    for (var j = 0; j < k; j++) {
+      sab += (a[j] - ma) * (b[j] - mb); saa += Math.pow(a[j] - ma, 2); sbb += Math.pow(b[j] - mb, 2);
+    }
+    return sab / Math.sqrt(saa * sbb);
+  }
+  function rangos(a) {
+    var orden = a.map(function (v, i) { return [v, i]; }).sort(function (p, q) { return p[0] - q[0]; });
+    var r = new Array(a.length);
+    orden.forEach(function (p, k) { r[p[1]] = k + 1; });
+    return r;
+  }
+  function dibujar() {
+    var rho = parseFloat(control.value);
+    salida.textContent = rho.toFixed(2);
+    var xs = [], ys = [];
+    for (var i = 0; i < n; i++) {
+      xs.push(z1[i]); ys.push(rho * z1[i] + Math.sqrt(Math.max(0, 1 - rho * rho)) * z2[i]);
+    }
+    if (casilla.checked) { xs.push(3.2); ys.push(-3.2); }
+    var puntos = "";
+    for (var j = 0; j < xs.length; j++) {
+      var atipico = casilla.checked && j === xs.length - 1;
+      puntos += '<circle cx="' + sx(xs[j]).toFixed(1) + '" cy="' + sy(ys[j]).toFixed(1) + '" r="' +
+        (atipico ? 6 : 4) + '" fill="' + (atipico ? "#D55E00" : "#1C6BA0") + '" fill-opacity="0.8"/>';
+    }
+    var ejes = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m + '" y2="' + (h - m) + '"/>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 8) + '" text-anchor="middle">X</text>' +
+      '<text class="eje-texto" x="14" y="' + (h / 2) + '" text-anchor="middle">Y</text>';
+    svg.innerHTML = ejes + puntos;
+    texto.textContent = "Pearson r = " + pearson(xs, ys).toFixed(3) +
+      "    Spearman = " + pearson(rangos(xs), rangos(ys)).toFixed(3) + "    (n = " + xs.length + ")";
+  }
+  control.addEventListener("input", dibujar);
+  casilla.addEventListener("change", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Sesenta puntos generados con la correlación elegida. Mueva el control y active el dato atípico.
+
+:::
+
+Con $\rho = 0.3$ casi no se ve tendencia a simple vista, y con $\rho = 0.9$ la nube ya parece una banda angosta. Con $\rho$ cerca de 0.7, el dato atípico baja el $r$ de Pearson varias centésimas, mientras que el de Spearman cambia mucho menos.
+
+## Correlación de Spearman {#sec-cor-spearman}
+
+A veces los datos son ordinales (una calificación de 1 a 5, un orden de prioridad) o la relación es creciente pero no recta, como la resistencia del concreto con la edad, que sube rápido los primeros días y luego casi se detiene. Para esos casos se usa la correlación de rangos de Spearman [@spearman1904proof].
+
+El procedimiento es sencillo: se reemplaza cada valor de $X$ por su rango (su puesto al ordenar de menor a mayor: 1, 2, 3...) y lo mismo con $Y$, y luego se calcula el coeficiente de Pearson entre los dos rangos. Si no hay empates, el resultado es igual al de esta fórmula [@illowsky2018introductory; @ayala2026estadistica]:
+
+$$
+r_s = 1 - \frac{6 \sum d_i^2}{n\,(n^2 - 1)}
+$$ {#eq-cor-spearman}
+
+donde $d_i$ es la diferencia entre el rango de $x_i$ y el rango de $y_i$, y $n$ es el número de pares.
+
+Spearman mide asociación monótona: si al crecer $X$ la variable $Y$ siempre crece (o siempre baja), aunque sea en curva, $r_s = 1$ (o $-1$). Como trabaja con puestos y no con valores, un dato muy alejado pesa lo mismo que cualquier otro último puesto, y por eso le afectan menos los valores atípicos.
+
+Cuando hay empates, a los valores empatados se les da el promedio de los puestos que ocupan. Si dos datos empatan en los puestos 3 y 4, los dos reciben 3.5. En ese caso la @eq-cor-spearman deja de ser exacta y se calcula Pearson sobre los rangos, que es lo que hace R.
+
+## Correlación de Kendall {#sec-cor-kendall}
+
+La correlación de Kendall [@kendall1938new] compara los datos de dos en dos. Para cada par de observaciones $i$ y $j$ se pregunta si las dos variables las ordenan igual:
+
+- El par es concordante si la observación que tiene mayor $X$ también tiene mayor $Y$.
+- El par es discordante si la que tiene mayor $X$ tiene menor $Y$.
+
+Con $n$ observaciones hay $\binom{n}{2} = n(n-1)/2$ pares. Si no hay empates, el coeficiente es
+
+$$
+\tau = \frac{C - D}{n(n-1)/2}
+$$ {#eq-cor-kendall}
+
+donde $C$ es el número de pares concordantes y $D$ el de discordantes. Se interpreta así: $\tau$ es la proporción de pares que conservan el orden menos la proporción que lo invierten. Con $\tau = 0.6$, por ejemplo, el 80 % de los pares concordan y el 20 % no.
+
+Cuando hay empates se usa la versión $\tau_b$, que corrige el denominador:
+
+$$
+\tau_b = \frac{C - D}{\sqrt{(C + D + T_x)(C + D + T_y)}}
+$$ {#eq-cor-kendall-b}
+
+donde $T_x$ es el número de pares empatados solo en $X$ y $T_y$ el número de pares empatados solo en $Y$. Es la que calcula R con `method = "kendall"`.
+
+::: {.callout-note title="Ejemplo: Spearman y Kendall para dos inspectores de carreteras"}
+
+**Planteamiento.** Dos inspectores recorren por separado siete tramos hipotéticos de una carretera y los ordenan del más deteriorado (puesto 1) al menos deteriorado (puesto 7). Calcule las correlaciones de Spearman y de Kendall entre los dos órdenes y diga si los inspectores coinciden.
+
+```{r}
+#| echo: false
+ver_datos("datos/inspeccion_tramos_hipotetica.csv", filas = 7,
+          nombres = c("Tramo", "Puesto según A", "Puesto según B"))
+```
+
+**Solución:**
+
+1. Los datos ya son rangos, así que no hay que ordenarlos. La diferencia de cada tramo es $d_i = R_A - R_B$ (@tbl-cor-rangos).
+2. Suma de cuadrados: $\sum d_i^2 = 1 + 1 + 1 + 1 + 1 + 1 + 4 = 10$.
+3. Spearman (@eq-cor-spearman):
+   $$
+   r_s = 1 - \frac{6\,(10)}{7\,(7^2 - 1)} = 1 - \frac{60}{336} = 0.821
+   $$
+4. Para Kendall se cuentan los pares. Hay $7 \times 6 / 2 = 21$ pares de tramos. Como el inspector A ordenó los tramos de A a G, un par es discordante cuando, en la columna de B, un tramo de más arriba tiene un puesto mayor que uno de más abajo. Eso pasa en cuatro pares: (A, B), (C, D), (E, G) y (F, G). Entonces $D = 4$ y $C = 21 - 4 = 17$.
+5. Kendall (@eq-cor-kendall):
+   $$
+   \tau = \frac{17 - 4}{21} = 0.619
+   $$
+
+```{r}
+#| label: tbl-cor-rangos
+#| tbl-cap: "Diferencias de rangos para la correlación de Spearman."
+#| echo: false
+
+tr <- read.csv("datos/inspeccion_tramos_hipotetica.csv")
+d <- tr$rango_inspector_a - tr$rango_inspector_b
+data.frame(tramo = c(tr$tramo, "Suma"), a = c(tr$rango_inspector_a, NA),
+           b = c(tr$rango_inspector_b, NA), d = c(d, sum(d)), d2 = c(d^2, sum(d^2))) %>%
+  kbl(col.names = c("Tramo", "<i>R<sub>A</sub></i>", "<i>R<sub>B</sub></i>",
+                    "<i>d<sub>i</sub></i>", "<i>d<sub>i</sub></i><sup>2</sup>"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(8, bold = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Leer los rangos (o calcularlos con `rank()` si los datos son valores).
+2. Calcular $d_i$, $\sum d_i^2$ y $r_s$ con la @eq-cor-spearman.
+3. Recorrer todos los pares $(i, j)$ con $i < j$ y contar concordantes y discordantes.
+4. Calcular $\tau$ con la @eq-cor-kendall.
+5. Comparar con `cor()` y `cor.test()` usando `method = "spearman"` y `method = "kendall"`.
+
+```{r}
+# 1) Datos
+tramos <- read.csv("datos/inspeccion_tramos_hipotetica.csv")
+ra <- rank(tramos$rango_inspector_a)
+rb <- rank(tramos$rango_inspector_b)
+n <- length(ra)
+
+# 2) Spearman con la fórmula
+d <- ra - rb
+r_s <- 1 - 6 * sum(d^2) / (n * (n^2 - 1))
+
+# 3) Kendall contando pares concordantes y discordantes
+concordantes <- 0
+discordantes <- 0
+for (i in 1:(n - 1)) {
+  for (j in (i + 1):n) {
+    signo <- sign(ra[j] - ra[i]) * sign(rb[j] - rb[i])
+    if (signo > 0) concordantes <- concordantes + 1
+    if (signo < 0) discordantes <- discordantes + 1
+  }
+}
+tau <- (concordantes - discordantes) / (n * (n - 1) / 2)
+c(spearman = r_s, C = concordantes, D = discordantes, kendall = tau)
+
+# 4) Las mismas medidas con las funciones de R
+cor(ra, rb, method = "spearman")
+cor(ra, rb, method = "kendall")
+cor.test(ra, rb, method = "spearman")
+cor.test(ra, rb, method = "kendall")
+```
+
+**Interpretación.** Los dos inspectores coinciden bastante: $r_s = 0.821$, y de los 21 pares de tramos, 17 los ordenan igual. Solo difieren en tramos vecinos (A con B, C con D) y en el lugar del tramo G. Con siete tramos, la prueba de Spearman da $p = 0.034$ y la de Kendall $p = 0.069$, así que al 5 % solo la primera rechaza $H_0$. Con tan pocos datos las dos pruebas tienen poca potencia, y conviene informar el coeficiente junto con el número de tramos y no solo la decisión.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Los valores de $\tau$ suelen salir más bajos que los de $r_s$ para los mismos datos (aquí 0.619 contra 0.821), porque miden cosas distintas: $\tau$ es una diferencia de proporciones de pares y $r_s$ es una correlación de rangos. Un $\tau$ no se compara con las referencias de Pearson ni con un $r_s$.
+:::
+
+## Cuál coeficiente usar {#sec-cor-elegir}
+
+La elección depende del tipo de datos y de la forma que se ve en el gráfico [@helsel2020statistical, cap. 8]. El @tbl-cor-elegir resume los tres coeficientes.
+
+```{r}
+#| label: tbl-cor-elegir
+#| tbl-cap: "Comparación de los coeficientes de Pearson, Spearman y Kendall."
+#| echo: false
+
+data.frame(
+  coef = c("Pearson, <i>r</i>", "Spearman, <i>r<sub>s</sub></i>", "Kendall, <i>τ</i>"),
+  mide = c("Asociación lineal", "Asociación monótona", "Concordancia de orden entre pares"),
+  datos = c("Dos variables numéricas", "Numéricas u ordinales", "Ordinales, muestras pequeñas o con muchos empates"),
+  cuidado = c("Le afectan mucho los atípicos y la curvatura", "Pierde parte de la información al pasar a rangos",
+              "Sus valores no se comparan con los de Pearson"),
+  r = c("<code>cor(x, y)</code>", "<code>cor(x, y, method = \"spearman\")</code>",
+        "<code>cor(x, y, method = \"kendall\")</code>")
+) %>%
+  kbl(col.names = c("Coeficiente", "Qué mide", "Datos adecuados", "Precaución", "En R"),
+      escape = FALSE, align = "lllll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+La @fig-cor-monotona muestra por qué conviene calcular más de uno. Los puntos siguen una curva siempre creciente, del tipo de la resistencia del concreto contra la edad. Spearman detecta que el orden se conserva casi perfecto, mientras que Pearson baja porque la curva no es una recta.
+
+```{r}
+#| label: fig-cor-monotona
+#| fig-cap: "Relación creciente pero no lineal y sus tres coeficientes (datos hipotéticos)."
+#| fig-alt: "Puntos que suben rápido al inicio y luego se aplanan, con los valores de Pearson, Spearman y Kendall anotados"
+#| echo: false
+
+set.seed(951)
+mono <- data.frame(x = seq(0.2, 12, length.out = 45))
+mono$y <- log(mono$x) + rnorm(45, 0, 0.08)
+etiqueta <- sprintf("Pearson = %.2f\nSpearman = %.2f\nKendall = %.2f",
+                    cor(mono$x, mono$y), cor(mono$x, mono$y, method = "spearman"),
+                    cor(mono$x, mono$y, method = "kendall"))
+ggplot(mono, aes(x, y)) +
+  geom_point(color = azul, size = 2) +
+  annotate("label", x = 8.5, y = 0, label = etiqueta, hjust = 0, size = 4) +
+  labs(x = "Variable X", y = "Variable Y") +
+  theme_minimal(base_size = 13)
+```
+
+### Matriz de correlación
+
+Cuando hay varias variables numéricas, `cor()` aplicado a un data frame calcula todas las correlaciones de dos en dos. El resultado se llama matriz de correlación. Con los 48 cilindros hipotéticos que se usan en los capítulos 26 y 27:
+
+```{r}
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+numericas <- cilindros[, c("relacion_ac", "cemento_kg_m3", "edad_dias", "resistencia_mpa")]
+round(cor(numericas), 2)
+```
+
+La diagonal vale 1 porque cada variable está perfectamente correlacionada consigo misma, y la matriz es simétrica. La relación agua/cemento y el contenido de cemento tienen $r = -0.98$: con la misma cantidad de agua, más cemento significa una relación más baja. Ese tipo de par casi redundante complica la regresión múltiple, como se verá en la @sec-rlm-multicolinealidad.
+
+```{r}
+#| echo: false
+ver_datos("datos/cilindros_concreto_hipoteticos.csv",
+          nombres = c("Cilindro", "Relación a/c", "Cemento (kg/m³)", "Edad (días)",
+                      "Aditivo", "Resistencia (MPa)"))
+```
+
+## Correlación no es causalidad {#sec-cor-causalidad}
+
+::: {.pregunta}
+En una cuenca, los meses con más deslizamientos son también los meses con más caudal en el río. ¿El caudal provoca los deslizamientos?
+:::
+
+No necesariamente. Las dos cosas aumentan con la lluvia. Una correlación alta entre dos variables puede aparecer por tres motivos:
+
+1. **Una causa la otra.** La relación agua/cemento cambia la porosidad de la pasta, y eso cambia la resistencia.
+2. **Las dos responden a una tercera variable.** La lluvia aumenta el caudal y también satura las laderas. A esa tercera variable se le llama variable de confusión.
+3. **Azar o selección de los datos.** Con muchas variables y pocos datos, siempre aparecen correlaciones que no se repiten en otra muestra.
+
+La @fig-cor-confusion simula el caso de la cuenca. Los deslizamientos y el caudal tienen una correlación alta, pero el color muestra que los dos crecen con la lluvia mensual.
+
+```{r}
+#| label: fig-cor-confusion
+#| fig-cap: "Deslizamientos y caudal mensual de una cuenca, coloreados por la lluvia del mes (datos hipotéticos)."
+#| fig-alt: "Puntos que suben de izquierda a derecha; los de la izquierda son azules (poca lluvia) y los de la derecha amarillos (mucha lluvia)"
+#| echo: false
+
+set.seed(73)
+lluvia <- runif(48, 50, 600)
+confusion <- data.frame(
+  lluvia = lluvia,
+  caudal = 2 + 0.035 * lluvia + rnorm(48, 0, 2),
+  deslizamientos = pmax(0, round(0.012 * lluvia + rnorm(48, 0, 1.2)))
+)
+ggplot(confusion, aes(caudal, deslizamientos, color = lluvia)) +
+  geom_jitter(size = 2.5, width = 0, height = 0.15) +
+  scale_color_viridis_c(name = "Lluvia del\nmes (mm)") +
+  labs(x = "Caudal medio mensual (m³/s)", y = "Deslizamientos reportados en el mes") +
+  theme_minimal(base_size = 13)
+```
+
+Para afirmar una relación de causa y efecto se necesita más que una correlación: un experimento en el que se controle $X$ (como los de la Parte VII), una secuencia en el tiempo que tenga sentido y un mecanismo físico que la explique, además de descartar las variables de confusión.
+
+### El cuarteto de Anscombe
+
+@anscombe1973graphs construyó cuatro conjuntos de 11 pares con casi la misma media de $X$, la misma media de $Y$, las mismas varianzas, la misma recta de regresión y la misma correlación ($r = 0.82$). Sus gráficos (@fig-cor-anscombe) son muy distintos: una relación lineal con ruido, una curva perfecta, una recta con un atípico y un caso en que un único punto crea toda la correlación. Los datos vienen incluidos en R como `anscombe`.
+
+```{r}
+#| label: fig-cor-anscombe
+#| fig-cap: "Los cuatro conjuntos de Anscombe y su recta de mínimos cuadrados. Fuente: datos de @anscombe1973graphs."
+#| fig-alt: "Cuatro diagramas de dispersión con la misma recta: uno lineal con ruido, uno en curva, uno lineal con un punto alto y uno con todos los puntos en una columna salvo uno"
+#| fig-width: 8
+#| fig-height: 5.5
+#| echo: false
+
+ans <- data.frame(
+  conjunto = rep(c("I", "II", "III", "IV"), each = 11),
+  x = c(anscombe$x1, anscombe$x2, anscombe$x3, anscombe$x4),
+  y = c(anscombe$y1, anscombe$y2, anscombe$y3, anscombe$y4)
+)
+ggplot(ans, aes(x, y)) +
+  geom_smooth(method = "lm", se = FALSE, color = "grey45", linewidth = 0.8) +
+  geom_point(color = azul, size = 2.2) +
+  facet_wrap(~ conjunto) +
+  labs(x = "X", y = "Y") +
+  theme_minimal(base_size = 13)
+```
+
+```{r}
+# Correlación de cada conjunto de Anscombe
+c(I = cor(anscombe$x1, anscombe$y1), II = cor(anscombe$x2, anscombe$y2),
+  III = cor(anscombe$x3, anscombe$y3), IV = cor(anscombe$x4, anscombe$y4))
+```
+
+Los cuatro números coinciden hasta el tercer decimal, y solo el conjunto I es un caso en que el coeficiente de Pearson resume bien la relación.
+
+::: {.callout-warning title="Cuidado"}
+Si los datos cubren solo una parte del rango de $X$, la correlación sale más baja que en la población completa. Por ejemplo, si solo se ensayan mezclas con relación agua/cemento entre 0.50 y 0.55, el efecto de la relación queda escondido entre la variación propia de los ensayos y $r$ puede salir cercano a cero. Antes de concluir que "no hay relación" hay que revisar si el rango estudiado era suficiente.
+:::
+
+## Ejercicios propuestos
+
+1. Con las diez mezclas de `mezclas_ac_hipoteticas.csv`, pase la resistencia de MPa a kg/cm² (multiplique por 10.197) y vuelva a calcular la covarianza y la correlación. Explique qué cambió y qué no.
+2. Para seis vigas hipotéticas se midieron la carga aplicada (kN) y la deflexión al centro del claro (mm): (10, 0.8), (20, 1.6), (30, 2.5), (40, 3.1), (50, 4.1) y (60, 4.9). Calcule a mano $S_{xx}$, $S_{yy}$, $S_{xy}$ y $r$, y compruebe el resultado con `cor()`.
+3. En una muestra de $n = 15$ tramos de carretera, la correlación entre el tránsito promedio diario y el índice de rugosidad fue $r = 0.52$. Pruebe con $\alpha = 0.05$ si $\rho$ es distinto de cero. Repita con $n = 60$ y comente la diferencia.
+4. Tres evaluadores ordenan ocho ofertas de una licitación. Invente dos órdenes que den $r_s = 1$ y $\tau = 1$, y otros dos que den $r_s = -1$. ¿Qué orden da $\tau$ cercano a 0?
+5. Con los datos `anscombe`, calcule para cada conjunto las correlaciones de Spearman y de Kendall. ¿En cuál de los cuatro se separan más de la de Pearson? Explique por qué con el gráfico.
+6. Con `cilindros_concreto_hipoteticos.csv`, calcule las tres correlaciones entre la edad y la resistencia. Explique con un diagrama de dispersión por qué la de Spearman es mayor que la de Pearson.
+7. Un informe afirma que "las ciudades con más kilómetros de ciclovía tienen menos muertes por accidentes de tránsito, así que construir ciclovías salva vidas". Proponga dos variables de confusión que podrían explicar la correlación y un estudio que ayudaría a separar los efectos.
+8. Busque un conjunto de datos de ingeniería que conozca (por ejemplo, lluvia anual y caudal de varias estaciones) y diga qué coeficiente usaría y por qué, antes de calcularlo.
+
+## Lecturas recomendadas
+
+- @illowsky2018introductory, capítulo 12: explica con muchos ejemplos el diagrama de dispersión, el coeficiente $r$ y su prueba, a nivel muy introductorio y con licencia abierta.
+- @laneintroduction, capítulo 4: muestra con gráficos cómo se ven distintos valores de $r$ y cómo se calcula paso a paso.
+- @helsel2020statistical, capítulo 8: compara Pearson, Spearman y Kendall con datos de recursos hídricos y recomienda cuándo usar cada uno.
+- @anscombe1973graphs: el artículo original del cuarteto, corto y fácil de leer, sobre por qué graficar antes de calcular.

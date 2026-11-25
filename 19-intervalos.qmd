@@ -387,7 +387,7 @@ ggplot(curva, aes(x, y)) +
 
 ```{r}
 #| echo: false
-ver_datos("datos/cilindros_concreto_hipoteticos.csv",
+ver_datos("datos/lote_cilindros_hipotetico.csv",
           nombres = c("Cilindro", "Resistencia (MPa)"))
 ```
 
@@ -407,7 +407,7 @@ ver_datos("datos/cilindros_concreto_hipoteticos.csv",
 
 ```{r}
 # 1) Datos
-cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros <- read.csv("datos/lote_cilindros_hipotetico.csv")
 x <- cilindros$resistencia_mpa
 n <- length(x)
 s2 <- var(x)
@@ -493,7 +493,7 @@ donde $z_{(1-P)/2}$ es el valor de la normal que deja $(1-P)/2$ a la derecha y $
 
 ```{r}
 # 1) Datos
-cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros <- read.csv("datos/lote_cilindros_hipotetico.csv")
 x <- cilindros$resistencia_mpa
 n <- length(x)
 media <- mean(x)

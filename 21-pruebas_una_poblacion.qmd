@@ -426,7 +426,7 @@ La prueba para la varianza es muy sensible a la falta de normalidad, mucho más 
 
 ## Ejercicios propuestos
 
-1. La resistencia especificada de un concreto es de 28 MPa. Para los 25 cilindros de `datos/cilindros_concreto_hipoteticos.csv`, pruebe con $\alpha = 0.01$ si la resistencia media es mayor que 28 MPa. Resuelva a mano y con `t.test()`.
+1. La resistencia especificada de un concreto es de 28 MPa. Para los 25 cilindros de `datos/lote_cilindros_hipotetico.csv`, pruebe con $\alpha = 0.01$ si la resistencia media es mayor que 28 MPa. Resuelva a mano y con `t.test()`.
 2. Una norma de agua potable fija un máximo de 0.3 mg/L de hierro. Ocho muestras de un pozo dieron 0.28, 0.33, 0.31, 0.35, 0.29, 0.34, 0.32 y 0.36 mg/L. ¿Hay evidencia, con $\alpha = 0.05$, de que la concentración media supera el máximo? Revise la normalidad con un gráfico Q-Q.
 3. Una municipalidad afirma que el 60 % de las calles de un distrito tiene aceras en buen estado. En una muestra aleatoria de 150 calles, 78 las tenían. Pruebe la afirmación con $\alpha = 0.05$ y una alternativa bilateral. Compare `prop.test()` con y sin corrección por continuidad.
 4. De 15 pilotes inspeccionados con ensayos de integridad, 1 presentó defectos. El diseño supone que como máximo el 2 % de los pilotes tiene defectos. Con la prueba binomial exacta, ¿hay evidencia contra ese supuesto?

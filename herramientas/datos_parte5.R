@@ -21,7 +21,7 @@ cilindros <- data.frame(
   cilindro = 1:25,
   resistencia_mpa = round(rnorm(25, mean = 31, sd = 2.6), 1)
 )
-write.csv(cilindros, "datos/cilindros_concreto_hipoteticos.csv", row.names = FALSE)
+write.csv(cilindros, "datos/lote_cilindros_hipotetico.csv", row.names = FALSE)
 
 # 3) Tiempo entre fallas de 20 bombas de un sistema de agua potable, en horas
 #    (capítulo 18). Exponencial con media de 400 h.

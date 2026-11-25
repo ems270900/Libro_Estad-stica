@@ -154,7 +154,7 @@ Un estimador es consistente si se acerca al parámetro a medida que crece la mue
 
 ```{r}
 #| echo: false
-ver_datos("datos/cilindros_concreto_hipoteticos.csv",
+ver_datos("datos/lote_cilindros_hipotetico.csv",
           nombres = c("Cilindro", "Resistencia (MPa)"))
 ```
 
@@ -176,7 +176,7 @@ ver_datos("datos/cilindros_concreto_hipoteticos.csv",
 
 ```{r}
 # 1) Datos
-cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros <- read.csv("datos/lote_cilindros_hipotetico.csv")
 x <- cilindros$resistencia_mpa
 
 # 2) Media y desviación estándar con la fórmula
