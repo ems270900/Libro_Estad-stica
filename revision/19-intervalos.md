@@ -18,5 +18,6 @@ Fecha: 2026-11-25. Estado: borrador.
 - Secciones nuevas: anatomía de un intervalo (analogía de la herradura), cobertura real de Wald y Wilson con la regla del tres, intervalo para la media de una exponencial (bombas, χ² con 2n g. l. y comprobación por simulación), cotas unilaterales (asentamiento de un terraplén), errores comunes con cuadro.
 - Interactivos nuevos: cobertura exacta de Wald y Wilson; tres intervalos (confianza, predicción y tolerancia) según n.
 - Dos filas nuevas en el cuadro resumen. Ejercicios 8 a 11.
-- Fuente nueva: Hanley y Lippman-Hand (1983). Pendiente: cita de libro para el intervalo exponencial (comentario CITA PENDIENTE).
+- Fuente nueva: Hanley y Lippman-Hand (1983). 
 - Leyendas cortas, títulos sin la forma "De X a Y", ejemplos nuevos fuera del concreto.
+- Cita resuelta (2026-11-25): el intervalo exponencial se respalda con el NIST/SEMATECH e-Handbook of Statistical Methods, sec. 8.4.5.1 (verificada en línea), y la relación chi-cuadrado y gamma con Montgomery y Runger (2014). Se agregó la variante para ensayos detenidos en un tiempo fijo.

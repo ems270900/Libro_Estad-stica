@@ -104,6 +104,5 @@
 
 ## Ampliación de la Parte V (2026-11-25)
 
-- Capítulo 19: falta citar un libro para el intervalo de la media de una exponencial con la chi-cuadrado de 2n grados de libertad (comentario CITA PENDIENTE). La derivación está en el texto y se comprobó por simulación.
 - Capítulo 23: el ejemplo de velocidades en una ruta rural usa datos hipotéticos generados con semilla; si el autor tiene mediciones reales anonimizadas, se pueden sustituir.
 - Capítulo 20: la escala de lectura del valor p sigue a Wasserman (2004); el autor puede preferir otra redacción.
