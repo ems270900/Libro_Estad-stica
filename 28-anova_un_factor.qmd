@@ -158,7 +158,7 @@ $$
 \alpha_{\text{familia}} = 1 - (1 - \alpha)^m
 $$ {#eq-dce-error-familiar}
 
-donde $\alpha$ es el nivel de significancia de cada prueba y $m$ es el número de pruebas. El conjunto de pruebas que responde una misma pregunta se llama familia, y $\alpha_{\text{familia}}$ es el error familiar [@lanesfonline, cap. 12]. El @tbl-dce-familiar muestra que con seis tratamientos la probabilidad de declarar alguna diferencia falsa pasa del 50 %.
+donde $\alpha$ es el nivel de significancia de cada prueba y $m$ es el número de pruebas. El conjunto de pruebas que responde una misma pregunta se llama familia, y $\alpha_{\text{familia}}$ es el error familiar [@laneintroduction, cap. 12]. El @tbl-dce-familiar muestra que con seis tratamientos la probabilidad de declarar alguna diferencia falsa pasa del 50 %.
 
 ```{r}
 #| label: tbl-dce-familiar
@@ -651,6 +651,6 @@ Los supuestos se refieren a los errores $\varepsilon_{ij}$, que se estiman con l
 ## Lecturas recomendadas
 
 - @montgomery2017design, capítulos 1 a 3: la referencia más usada en ingeniería para diseño de experimentos, con el ANOVA de un factor desarrollado en detalle.
-- @lanesfonline, capítulo 15: explicación sencilla del ANOVA de un factor, con ejercicios interactivos en su versión web.
-- @illowsky2013introductory, capítulo 13: introducción a la distribución $F$ y al ANOVA de un factor, con ejemplos resueltos paso a paso.
+- @laneintroduction, capítulo 15: explicación sencilla del ANOVA de un factor, con ejercicios interactivos en su versión web.
+- @illowsky2018introductory, capítulo 13: introducción a la distribución $F$ y al ANOVA de un factor, con ejemplos resueltos paso a paso.
 - @fisher1935design: el libro que fundó el diseño de experimentos. Sus primeros capítulos se leen sin matemática avanzada.

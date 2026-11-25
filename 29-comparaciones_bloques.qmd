@@ -35,7 +35,7 @@ $$
 |\bar{y}_j - \bar{y}_{j'}| > HSD \quad\Rightarrow\quad \mu_j \neq \mu_{j'}
 $$ {#eq-mc-regla-tukey}
 
-La distribución del rango estudentizado describe la diferencia entre la media mayor y la menor de $k$ medias, dividida entre su error estándar. Como toma en cuenta cuántas medias se comparan, el valor crítico crece con $k$ y protege a la familia completa. Sus valores están en tablas, y en R se obtienen con `qtukey(1 - alpha, nmeans = k, df = gl_E)` [@lanesfonline, cap. 12].
+La distribución del rango estudentizado describe la diferencia entre la media mayor y la menor de $k$ medias, dividida entre su error estándar. Como toma en cuenta cuántas medias se comparan, el valor crítico crece con $k$ y protege a la familia completa. Sus valores están en tablas, y en R se obtienen con `qtukey(1 - alpha, nmeans = k, df = gl_E)` [@laneintroduction, cap. 12].
 
 Si los grupos tienen tamaños distintos, se usa la versión de Tukey-Kramer [@kramer1956extension], que cambia la raíz de la @eq-mc-hsd por
 
@@ -157,7 +157,7 @@ Las letras de Tukey resumen qué diferencias se detectaron, no cuán importantes
 
 ## Corrección de Bonferroni {#sec-mc-bonferroni}
 
-La corrección de Bonferroni es la forma más simple de proteger una familia de $m$ comparaciones: cada una se hace con nivel $\alpha/m$ en lugar de $\alpha$. Así el error familiar no pasa de $\alpha$, sin importar si las pruebas son independientes [@lanesfonline, cap. 12]. Con $m = 6$ parejas y $\alpha = 0.05$, cada prueba usa $0.05/6 = 0.0083$.
+La corrección de Bonferroni es la forma más simple de proteger una familia de $m$ comparaciones: cada una se hace con nivel $\alpha/m$ en lugar de $\alpha$. Así el error familiar no pasa de $\alpha$, sin importar si las pruebas son independientes [@laneintroduction, cap. 12]. Con $m = 6$ parejas y $\alpha = 0.05$, cada prueba usa $0.05/6 = 0.0083$.
 
 Para dos medias con $n$ observaciones, la diferencia mínima de Bonferroni usa la distribución $t$ con los grados de libertad del error:
 
@@ -654,5 +654,5 @@ En un diseño en bloques con una observación por combinación no se puede estim
 ## Lecturas recomendadas
 
 - @montgomery2017design, capítulos 3 y 4: comparaciones múltiples, revisión de supuestos y diseño en bloques, con muchos ejemplos de ingeniería.
-- @lanesfonline, capítulo 12: explicación sencilla del error familiar, el método de Tukey, Bonferroni y los contrastes, con la idea de que Tukey no requiere un ANOVA previo.
+- @laneintroduction, capítulo 12: explicación sencilla del error familiar, el método de Tukey, Bonferroni y los contrastes, con la idea de que Tukey no requiere un ANOVA previo.
 - @tukey1949comparing: el artículo original del método de comparaciones por parejas.

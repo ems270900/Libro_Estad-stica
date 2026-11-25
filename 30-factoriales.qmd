@@ -23,7 +23,7 @@ Un diseño factorial completo ensaya todas las combinaciones de los niveles de l
 
 ## Efectos principales e interacción {#sec-fac-interaccion}
 
-El efecto principal de un factor es el cambio promedio en la respuesta al pasar de un nivel a otro, promediando sobre los niveles del otro factor. Hay interacción cuando ese cambio no es el mismo en todos los niveles del otro factor [@lanesfonline, cap. 15].
+El efecto principal de un factor es el cambio promedio en la respuesta al pasar de un nivel a otro, promediando sobre los niveles del otro factor. Hay interacción cuando ese cambio no es el mismo en todos los niveles del otro factor [@laneintroduction, cap. 15].
 
 La forma más clara de verlo es el gráfico de interacción: en el eje horizontal van los niveles de un factor, en el vertical la media de la respuesta, y se dibuja una línea por cada nivel del otro factor. Si las líneas son paralelas, el efecto de A es el mismo con cualquier nivel de B y no hay interacción. Si no son paralelas, o se cruzan, hay interacción.
 
@@ -506,5 +506,5 @@ Un informe de un experimento debe dejar claros cinco puntos: qué unidades se us
 ## Lecturas recomendadas
 
 - @montgomery2017design, capítulos 5 y 6: diseños factoriales generales y $2^k$, con el análisis de experimentos sin repetición.
-- @lanesfonline, capítulo 15: explicación sencilla de los diseños de varios factores, la interacción y los efectos simples.
+- @laneintroduction, capítulo 15: explicación sencilla de los diseños de varios factores, la interacción y los efectos simples.
 - @daniel1959halfnormal: el artículo que propuso analizar los efectos de un $2^k$ con un gráfico de probabilidad normal.

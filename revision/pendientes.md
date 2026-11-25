@@ -12,11 +12,17 @@
 - El HTML de un solo archivo necesita MathJax; en la nube de este proyecto el CDN está bloqueado, así que se compila en un entorno con red abierta.
 - Revisión del autor de los capítulos 1 a 6.
 
+## Parte III (Probabilidad)
+
+- Revisión del autor de los capítulos 10 a 12.
+- Los datos de atrasos de obra, de varillas, de plantas de concreto y de ensayos en pilotes son hipotéticos. Si el autor tiene datos reales publicables (por ejemplo, de un informe de laboratorio con permiso), se pueden sustituir.
+- Epígrafes: el del capítulo 10 es de Laplace (*Essai philosophique sur les probabilités*, 1814) y el del capítulo 12 de Joseph Butler (*The Analogy of Religion*, 1736, introducción). El capítulo 11 no lleva epígrafe porque no se encontró uno con fuente verificable; el autor puede proponer uno.
+- `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
+
 ## Parte VII (diseño de experimentos)
 
 - Revisión del autor de los capítulos 28 a 30 y de las traducciones de los epígrafes (Fisher 1938, Tukey 1962, Fisher 1926).
-- Clave `lanesfonline` (Lane, *Online Statistics Education*, sin año en el PDF): si otra parte cita la misma obra, unificar la clave.
-- Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión) (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 usa el rango estudentizado con `qtukey()`; si se quiere resolver a mano sin R, falta una tabla de $q$ en el Apéndice A.
+- Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 usa el rango estudentizado con `qtukey()`; si se quiere resolver a mano sin R, falta una tabla de $q$ en el Apéndice A.
 
 ## Apéndices
 
