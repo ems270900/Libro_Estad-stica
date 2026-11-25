@@ -25,7 +25,7 @@ Una hipótesis estadística es una afirmación sobre un parámetro de la poblaci
 
 La hipótesis nula, $H_0$, es la afirmación de partida: no hay cambio, no hay efecto, el producto cumple. Se mantiene salvo que los datos den evidencia fuerte en su contra. Siempre incluye el signo de igualdad.
 
-La hipótesis alternativa, $H_1$, es lo que se quiere demostrar: hubo un cambio, el producto no cumple, el método nuevo es mejor. Solo se acepta si los datos permiten rechazar $H_0$.
+La hipótesis alternativa, $H_1$, es lo que se quiere demostrar: hubo un cambio, el producto no cumple, el método nuevo es mejor. Solo se acepta si los datos llevan a rechazar $H_0$.
 
 Para el control de las varillas:
 

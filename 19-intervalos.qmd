@@ -547,7 +547,7 @@ ggplot() +
   theme_minimal(base_size = 13)
 ```
 
-**Interpretación.** La @fig-ic-tres muestra la diferencia de tamaño. La media del lote se conoce con un margen de ±1 MPa, pero el próximo cilindro puede dar entre 27 y 37 MPa, y el 90 % de los cilindros cae, con 95 % de confianza, entre 26.9 y 37.4 MPa. Si la especificación fuera que casi ningún cilindro bajara de 28 MPa, el intervalo de confianza para la media no serviría para revisarla; harían falta los otros dos.
+**Interpretación.** La @fig-ic-tres muestra la diferencia de tamaño. La media del lote se conoce con un margen de ±1 MPa, pero el próximo cilindro puede dar entre 27 y 37 MPa. Con 95 % de confianza, el 90 % de los cilindros cae entre 26.9 y 37.4 MPa. Si la especificación fuera que casi ningún cilindro bajara de 28 MPa, el intervalo de confianza para la media no serviría para revisarla; harían falta los otros dos.
 
 :::
 
@@ -603,11 +603,11 @@ p_previa <- c(0.5, 0.08)
 ceiling(z^2 * p_previa * (1 - p_previa) / E_p^2)
 ```
 
-**Interpretación.** Para la media bastan 23 cilindros, pero para estimar la fracción defectuosa con ±5 % harían falta entre 114 y 385. Las proporciones piden muestras mucho más grandes que las medias. Por eso, en control de calidad, la resistencia se resume con la media y la desviación estándar y no solo con el conteo de cilindros que no cumplen.
+**Interpretación.** Para la media bastan 23 cilindros, pero para estimar la fracción defectuosa con ±5 % harían falta entre 114 y 385. Las proporciones piden muestras mucho más grandes que las medias. Por eso, en control de calidad, la resistencia se resume con la media y la desviación estándar, además del conteo de cilindros que no cumplen.
 
 :::
 
-La @fig-ic-tamano permite repetir el cálculo con otros valores.
+Con la @fig-ic-tamano se repite el cálculo para otros valores.
 
 ::: {#fig-ic-tamano}
 

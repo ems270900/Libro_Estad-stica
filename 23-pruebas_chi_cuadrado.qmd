@@ -26,7 +26,7 @@ $$
 \chi^2 = \sum_{i=1}^{k} \frac{(O_i - E_i)^2}{E_i}
 $$ {#eq-chi-pearson}
 
-donde $O_i$ es el conteo observado en la categoría $i$, $E_i$ es el conteo esperado si $H_0$ es cierta y $k$ es el número de categorías. Cada término compara una categoría: la diferencia se eleva al cuadrado para que las positivas y las negativas no se cancelen, y se divide entre $E_i$ para que una diferencia de 5 pese más en una categoría donde se esperaban 10 que en una donde se esperaban 100.
+donde $O_i$ es el conteo observado en la categoría $i$, $E_i$ es el conteo esperado si $H_0$ es cierta y $k$ es el número de categorías. Cada término compara una categoría. La diferencia se eleva al cuadrado para que las positivas y las negativas no se cancelen, y se divide entre $E_i$ para que una diferencia de 5 pese más en una categoría donde se esperaban 10 que en una donde se esperaban 100.
 
 Si $H_0$ es cierta y los conteos esperados no son muy pequeños, el estadístico sigue aproximadamente una distribución $\chi^2$. Las diferencias grandes producen valores grandes de $\chi^2$, así que la prueba siempre rechaza por la cola derecha: se rechaza $H_0$ si $\chi^2 > \chi^2_{\alpha,\,\nu}$, o si el valor $p = P(\chi^2_\nu \ge \chi^2_{\text{obs}})$ es menor que $\alpha$. Los grados de libertad $\nu$ dependen del tipo de prueba.
 

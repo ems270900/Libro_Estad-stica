@@ -443,7 +443,7 @@ La @fig-dos-calculadora hace las dos versiones de la prueba $t$ para muestras in
     var a = s1 * s1 / n1, b = s2 * s2 / n2, tw = (m1 - m2) / Math.sqrt(a + b);
     var nu = (a + b) * (a + b) / (a * a / (n1 - 1) + b * b / (n2 - 1));
     var sp2 = ((n1 - 1) * s1 * s1 + (n2 - 1) * s2 * s2) / (n1 + n2 - 2), tc = (m1 - m2) / Math.sqrt(sp2 * (1 / n1 + 1 / n2));
-    texto.innerHTML = "Welch: <i>t</i> = " + tw.toFixed(3) + ", <i>ν</i> = " + nu.toFixed(2) + ", valor <i>p</i> = <b>" + f(valorp(tw, nu)) + "</b><br>" +
+    texto.innerHTML = "Welch: <i>t</i> = " + tw.toFixed(3) + ", <i>ν</i> = " + nu.toFixed(2) + ", valor <i>p</i> = <b>" + f(valorp(tw, nu)) + "</b>. " +
       "Varianzas iguales: <i>s</i><sub><i>p</i></sub> = " + Math.sqrt(sp2).toFixed(3) + ", <i>t</i> = " + tc.toFixed(3) + ", " + (n1 + n2 - 2) +
       " g. l., valor <i>p</i> = <b>" + f(valorp(tc, n1 + n2 - 2)) + "</b>";
   }

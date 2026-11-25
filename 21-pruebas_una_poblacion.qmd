@@ -165,7 +165,7 @@ ggplot(tibble(x = x), aes(sample = x)) +
   theme_minimal(base_size = 13)
 ```
 
-**Interpretación.** El espesor medio estimado es 48.4 mm, 1.6 mm menos que el de diseño, y la diferencia es estadísticamente significativa al 5 %. `t.test()` da también el límite superior de confianza: con 95 % de confianza el espesor medio es menor que 49.8 mm. Para la obra, eso respalda el reclamo al contratista. Quedaría por evaluar con criterios de diseño de pavimentos si 1.6 mm menos reducen la vida útil de forma importante.
+**Interpretación.** El espesor medio estimado es 48.4 mm, 1.6 mm menos que el de diseño, y la diferencia es estadísticamente significativa al 5 %. `t.test()` da también el límite superior de confianza: con 95 % de confianza el espesor medio es menor que 49.8 mm. Para la obra, eso respalda el reclamo al contratista. Quedaría por evaluar con criterios de diseño de pavimentos cuántos años de vida útil se pierden con 1.6 mm menos.
 
 :::
 
