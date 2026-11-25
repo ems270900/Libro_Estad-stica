@@ -285,7 +285,16 @@ Las funciones `p` dan siempre el área a la izquierda. Para el área a la derech
 | `aov()` | Ajusta un análisis de varianza (ANOVA) | `modelo <- aov(mpa ~ mezcla, data = datos)` | 28 |
 | `summary()` | Cuadro del ANOVA | `summary(modelo)` | 28 |
 | `TukeyHSD()` | Comparaciones múltiples de Tukey | `TukeyHSD(modelo)` | 29 |
+| `sample()` | Sortea la asignación o el orden de los ensayos | `sample(rep(c("A", "B"), each = 5))` | 28 |
+| `tapply()` | Aplica una función a cada grupo | `tapply(datos$mpa, datos$mezcla, mean)` | 28 |
+| `ave()` | Media del grupo de cada observación | `ave(datos$mpa, datos$mezcla)` | 28 |
+| `qtukey()` | Cuantil del rango estudentizado | `qtukey(0.95, nmeans = 4, df = 16)` | 29 |
+| `pairwise.t.test()` | Pruebas t por parejas con ajuste del valor p | `pairwise.t.test(datos$mpa, datos$mezcla, p.adjust.method = "bonferroni")` | 29 |
+| `contrasts()` | Define los contrastes de un factor | `contrasts(datos$mezcla) <- cbind(c(1, -1, 0))` | 29 |
+| `bartlett.test()` | Prueba de igualdad de varianzas de Bartlett | `bartlett.test(mpa ~ mezcla, data = datos)` | 29 |
+| `kruskal.test()` | Prueba de Kruskal-Wallis | `kruskal.test(mpa ~ mezcla, data = datos)` | 29 |
 | `interaction.plot()` | Gráfico de interacción entre dos factores | `interaction.plot(datos$a, datos$b, datos$y)` | 30 |
+| `model.matrix()` | Matriz de signos de un factorial 2^k | `model.matrix(~ A * B * C, data = datos)` | 30 |
 
 : Funciones de diseño de experimentos. {#tbl-apb-experimentos}
 

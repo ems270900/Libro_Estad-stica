@@ -1,0 +1,9 @@
+"asfalto","fibra","repeticion","espesor_um"
+"bajo","baja",1,8
+"bajo","baja",2,10
+"alto","baja",1,14
+"alto","baja",2,16
+"bajo","alta",1,12
+"bajo","alta",2,14
+"alto","alta",1,20
+"alto","alta",2,22

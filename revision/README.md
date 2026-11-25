@@ -20,6 +20,9 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
 | 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
 | 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| 28. Principios del diseño experimental y ANOVA de un factor | Borrador | [28-anova_un_factor.md](28-anova_un_factor.md) | Parte VII |
+| 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII |
+| 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII |
 | Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
 | 18. Estimación puntual | Borrador | [18-estimacion_puntual.md](18-estimacion_puntual.md) | Parte V |
 | 19. Intervalos de confianza, de predicción y de tolerancia | Borrador | [19-intervalos.md](19-intervalos.md) | Parte V |

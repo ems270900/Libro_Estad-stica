@@ -25,6 +25,11 @@
 - Epígrafes: el del capítulo 10 es de Laplace (*Essai philosophique sur les probabilités*, 1814) y el del capítulo 12 de Joseph Butler (*The Analogy of Religion*, 1736, introducción). El capítulo 11 no lleva epígrafe porque no se encontró uno con fuente verificable; el autor puede proponer uno.
 - `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
 
+## Parte VII (diseño de experimentos)
+
+- Revisión del autor de los capítulos 28 a 30 y de las traducciones de los epígrafes (Fisher 1938, Tukey 1962, Fisher 1926).
+- Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 usa el rango estudentizado con `qtukey()`; si se quiere resolver a mano sin R, falta una tabla de $q$ en el Apéndice A.
+
 ## Apéndices
 
 - Apéndice B: las funciones de las partes II a VII se anotaron con el capítulo previsto en la estructura. Al cerrar cada parte se revisa qué funciones usa de verdad y se ajusta la columna "Cap." y las filas.
