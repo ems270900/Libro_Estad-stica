@@ -93,4 +93,4 @@
 
 ## Diagramas (2026-11-25)
 
-- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_paneles`) para mantener el estilo común.
+- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_decision`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_venn3`, `dg_particion`, `dg_sistemas`, `dg_pascal`, `dg_espacios`, `dg_poblacion_muestra`, `dg_matriz`, `dg_dianas`, `dg_paneles`) para mantener el estilo común.
