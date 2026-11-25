@@ -12,10 +12,9 @@
 ## Fuentes
 
 - Montgomery (2017), cap. 5 y 6. Daniel (1959). Lane, cap. 15.
-- Epígrafe: Fisher (1926), *The arrangement of field experiments*, p. 511 del artículo (503–513).
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
 - Diapositivas de la Semana 8: datos de los ejemplos de pinturas y asfalto. El ejemplo 2³ de mortero es nuevo (hipotético).
 
 ## Pendiente para el autor
 
-- Confirmar la traducción del epígrafe.
 - El ejemplo de pinturas se basa en el planteamiento de Montgomery (sec. 5.3) con datos propios hipotéticos; no reproduce sus datos.

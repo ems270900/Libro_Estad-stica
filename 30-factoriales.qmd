@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"La naturaleza responde mejor a un cuestionario lógico y bien pensado; de hecho, si se le hace una sola pregunta, a menudo se niega a contestar hasta que se haya tratado algún otro tema."\
-— *Ronald A. Fisher, 1926* [@fisher1926arrangement]
-:::
-
 Una mezcla asfáltica no depende de un solo ingrediente. Su desempeño cambia con el contenido de asfalto, el tipo de agregado, la fibra y la temperatura de compactación, y el efecto de cada uno puede depender de los otros. Los capítulos anteriores compararon los niveles de un solo factor. Este capítulo trata de los diseños factoriales, que estudian dos o más factores en el mismo experimento con todas sus combinaciones. Con ellos se estiman los efectos de cada factor con menos ensayos que estudiándolos por separado, y se detecta la interacción: cuando el efecto de un factor cambia según el nivel de otro. La presentación sigue a @montgomery2017design [cap. 5 y 6].
 
 ## Por qué estudiar varios factores a la vez {#sec-fac-porque}

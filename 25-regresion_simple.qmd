@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"My object is to place beyond doubt the existence of a simple and far-reaching law that governs the hereditary transmission [...] that the mean filial regression towards mediocrity was directly proportional to the parental deviation from it."\
-— *Francis Galton, citado por @watkinsintroduction [tema 3].*
-:::
-
 La correlación del capítulo 24 dice que la resistencia del concreto baja cuando sube la relación agua/cemento, y que la asociación es muy fuerte. Pero quien diseña una mezcla necesita algo más concreto: cuántos MPa se pierden si la relación pasa de 0.50 a 0.55, o qué resistencia se espera con una relación de 0.62. La regresión lineal simple responde esas preguntas con la ecuación de una recta, $\hat{y} = b_0 + b_1 x$, ajustada a los datos. Este capítulo explica cómo se calcula esa recta a mano y con `lm()`, cómo se interpretan sus coeficientes, qué tan confiable es y cómo se usa para predecir sin salirse del rango de los datos.
 
 ```{r}

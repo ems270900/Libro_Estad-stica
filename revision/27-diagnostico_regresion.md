@@ -8,4 +8,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Paquete nuevo: lmtest, para `bptest()` y `dwtest()`. MASS viene con R.
 - Figuras propias: patrones de residuos, `plot()` del modelo de las mezclas, residuos contra edad, tres casos de atípico, apalancamiento e influencia, residuos de las cuencas.
 - Interactivo: mezcla adicional movible con recta, $h$, $r$ y distancia de Cook en vivo (`#fig-diag-interactivo`).
-- Epígrafe: @box1979robustness, p. 202, traducción propia.
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

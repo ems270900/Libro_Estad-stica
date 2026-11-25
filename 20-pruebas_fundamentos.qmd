@@ -12,11 +12,6 @@ library(kableExtra)
 options(knitr.kable.NA = "")
 ```
 
-::: {.quote-block}
-"Se puede decir que todo experimento existe solo para dar a los hechos la oportunidad de refutar la hipótesis nula."\
-— *Ronald A. Fisher, The Design of Experiments (1935)*
-:::
-
 Una fábrica de varillas de acero tiene como objetivo un esfuerzo de fluencia medio de 300 MPa. En el último control, diez varillas dieron una media de 296.35 MPa. ¿Bajó la calidad, o la diferencia de 3.65 MPa es la variación normal de una muestra a otra? Si se ajusta el proceso cada vez que una muestra sale baja, se pierde dinero en correcciones innecesarias; si nunca se ajusta, se entregan varillas débiles. Una prueba de hipótesis es una regla para tomar esa decisión con los datos y con un riesgo de error conocido. Este capítulo presenta la lógica común a todas las pruebas; los tres capítulos siguientes la aplican a casos concretos [@montgomery2014applied; @walpole2012probabilidad].
 
 ## Hipótesis nula y alternativa {#sec-ph-hipotesis}

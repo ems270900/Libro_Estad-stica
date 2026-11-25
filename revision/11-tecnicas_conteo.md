@@ -7,4 +7,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejemplos (con Solución:, pseudocódigo y R, con comprobación por enumeración o simulación): mezclas de prueba (3 × 4 × 2); cargos en un proyecto P(7, 3); códigos de muestras; sensores alrededor de un tanque; camiones y palabra CONCRETO; cilindros para ensayo C(12, 4); comisión con al menos un técnico certificado (por casos y por complemento); pedido de bolsas de cemento CR(3, 5); inspección de un lote de pernos (anticipo de la hipergeométrica).
 - Los ejemplos y ejercicios son nuevos; no se copiaron los de las tareas del curso para no adelantar sus soluciones.
 - Interactivo: calculadora de conteo con n y k que muestra los seis conteos y lista los arreglos cuando son pocos (`#fig-conteo-int-calculadora`).
-- Sin epígrafe (no se encontró uno con fuente verificable).
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

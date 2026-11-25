@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Es mucho mejor una respuesta aproximada a la pregunta correcta, que suele ser vaga, que una respuesta exacta a la pregunta equivocada, que siempre se puede precisar."\
-— *John W. Tukey, 1962* [@tukey1962future, pp. 13–14]
-:::
-
 El ANOVA del capítulo anterior concluyó que los cuatro métodos de curado no dan la misma resistencia media. Para quien escribe las especificaciones de una obra esa respuesta no basta: necesita saber si el vapor supera a la membrana, si la membrana y el aditivo son equivalentes y cuántos megapascales hay de diferencia. Este capítulo trata de tres temas. Las comparaciones múltiples localizan las diferencias sin inflar el error familiar. Los residuos sirven para revisar los supuestos del ANOVA. El diseño en bloques completos aleatorizados saca del error una fuente de variación conocida, como el lote de cemento, para que las comparaciones sean más precisas. La presentación sigue a @montgomery2017design [cap. 3 y 4].
 
 ## Después del ANOVA: qué medias difieren {#sec-mc-familia}

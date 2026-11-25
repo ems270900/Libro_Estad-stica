@@ -13,9 +13,8 @@
 ## Fuentes
 
 - Montgomery (2017), cap. 3 y 4. Tukey (1949), Kramer (1956), Levene (1960). Lane, cap. 12.
-- Epígrafe: Tukey (1962), *The future of data analysis*, pp. 13–14.
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
 - Diapositivas de la Semana 8: datos del ejemplo de bloques.
 
 ## Pendiente para el autor
 
-- Confirmar la traducción del epígrafe.
