@@ -7,3 +7,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejemplos (con Solución:, pseudocódigo y R): resistencia del concreto de una planta (tabla Z y `pnorm()`), 60 cilindros de una obra con datos descargables (regla empírica, Q-Q, probabilidad y cuantil), pilotes defectuosos (binomial exacta contra normal con y sin corrección).
 - Figuras propias con R: familia normal, regla empírica, histograma y gráfico Q-Q, binomial con su normal.
 - Interactivos: área bajo la normal con valores z (`#fig-normal-int-area`) y binomial contra aproximación normal (`#fig-normal-int-binomial`).
+- Diversificación de ramas (2026-11-25): el primer ejemplo de probabilidades normales pasa del concreto de prefabricados a la presión en un nodo de una red de agua potable (μ = 35 m, σ = 5 m; mismos resultados). El párrafo de cuantiles conserva la resistencia característica del concreto.

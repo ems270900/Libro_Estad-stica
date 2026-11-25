@@ -4,7 +4,7 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-En ingeniería casi nunca se calcula una probabilidad a ciegas: casi siempre se sabe algo. Se sabe que la varilla que se compró es lisa, que el ensayo no destructivo dio positivo o que la carga de concreto vino de cierta planta. Esa información cambia las probabilidades. La probabilidad condicional es la manera de incorporar al cálculo lo que ya se sabe. De ella salen tres resultados que se usan todo el tiempo: la regla de la multiplicación, para calcular la probabilidad de que pasen varias cosas seguidas; la idea de independencia, que dice cuándo un evento no da información sobre otro; y el teorema de Bayes, que dice cómo cambiar una probabilidad cuando llega un dato nuevo.
+En ingeniería casi nunca se calcula una probabilidad a ciegas: casi siempre se sabe algo. Se sabe que la varilla que se compró es lisa, que el ensayo no destructivo dio positivo o que la tormenta que se acerca es un ciclón tropical. Esa información cambia las probabilidades. La probabilidad condicional es la manera de incorporar al cálculo lo que ya se sabe. De ella salen tres resultados que se usan todo el tiempo: la regla de la multiplicación, para calcular la probabilidad de que pasen varias cosas seguidas; la idea de independencia, que dice cuándo un evento no da información sobre otro; y el teorema de Bayes, que dice cómo cambiar una probabilidad cuando llega un dato nuevo.
 
 El capítulo sigue a @bertsekas2008introduction [secs. 1.3 a 1.5], @illowsky2018introductory [secs. 3.2 a 3.5] y @blitzstein2019introduction [cap. 2]. Las aplicaciones a la confiabilidad de sistemas y al riesgo en obras civiles siguen a @ang2007probability [caps. 2 y 3] y a @chow1988applied.
 
@@ -643,9 +643,9 @@ Riesgo de excedencia durante la vida útil.
 
 ## Probabilidad total {#sec-condicional-total}
 
-Muchas veces un evento puede ocurrir por varios caminos, y se conoce su probabilidad en cada camino, pero no la total. Por ejemplo, el concreto de una obra llega de tres plantas, y para cada planta se sabe qué proporción de sus cargas sale fuera de especificación. ¿Cuál es la proporción total?
+Muchas veces un evento puede ocurrir por varios caminos, y se conoce su probabilidad en cada camino, pero no la total. Por ejemplo, las tormentas que afectan una cuenca son de tres tipos, y para cada tipo se sabe qué proporción de las tormentas desborda el río. ¿Cuál es la proporción total?
 
-Para responder se necesita una partición del espacio muestral: un grupo de eventos $A_1, A_2, \ldots, A_k$ que no se traslapan y que juntos cubren todo $S$ (cada carga viene de una y solo una planta). Entonces cualquier evento $B$ se parte en los pedazos $B \cap A_1, B \cap A_2, \ldots$, y al sumar sus probabilidades, cada una escrita con la regla de la multiplicación, se obtiene el teorema de la probabilidad total [@bertsekas2008introduction, sec. 1.4]:
+Para responder se necesita una partición del espacio muestral: un grupo de eventos $A_1, A_2, \ldots, A_k$ que no se traslapan y que juntos cubren todo $S$ (cada tormenta es de uno y solo un tipo). Entonces cualquier evento $B$ se parte en los pedazos $B \cap A_1, B \cap A_2, \ldots$, y al sumar sus probabilidades, cada una escrita con la regla de la multiplicación, se obtiene el teorema de la probabilidad total [@bertsekas2008introduction, sec. 1.4]:
 
 $$
 P(B) = \sum_{i=1}^{k} P(A_i) \, P(B \mid A_i) = P(A_1) \, P(B \mid A_1) + \cdots + P(A_k) \, P(B \mid A_k),
@@ -725,7 +725,7 @@ mean(desliza)
 
 ## Teorema de Bayes {#sec-condicional-bayes}
 
-La probabilidad total va "hacia adelante": de las causas (la planta) al efecto (la carga fuera de especificación). El teorema de Bayes va "hacia atrás": si se observó el efecto, ¿cuál es la probabilidad de cada causa? Se obtiene al escribir $P(A_i \cap B)$ de las dos formas de la @eq-condicional-mult y usar la @eq-condicional-total en el denominador [@bayes1763essay; @bertsekas2008introduction, sec. 1.4]:
+La probabilidad total va "hacia adelante": de las causas (el tipo de tormenta) al efecto (el desbordamiento). El teorema de Bayes va "hacia atrás": si se observó el efecto, ¿cuál es la probabilidad de cada causa? Se obtiene al escribir $P(A_i \cap B)$ de las dos formas de la @eq-condicional-mult y usar la @eq-condicional-total en el denominador [@bayes1763essay; @bertsekas2008introduction, sec. 1.4]:
 
 $$
 P(A_i \mid B) = \frac{P(A_i) \, P(B \mid A_i)}{P(B)} = \frac{P(A_i) \, P(B \mid A_i)}{\sum_{j=1}^{k} P(A_j) \, P(B \mid A_j)},
@@ -746,13 +746,13 @@ Los cálculos con el teorema de Bayes son más fáciles de entender, y se comete
 :::
 
 
-::: {.callout-note title="Ejemplo: cargas de concreto fuera de especificación"}
+::: {.callout-note title="Ejemplo: origen de un desbordamiento"}
 
-**Planteamiento.** Una obra recibe concreto premezclado de tres plantas: la planta 1 entrega el 45 % de las cargas, la planta 2 el 35 % y la planta 3 el 20 %. Por registros de control de calidad (hipotéticos), la proporción de cargas con revenimiento fuera de especificación es 0.04 en la planta 1, 0.06 en la planta 2 y 0.10 en la planta 3. (a) ¿Qué proporción de las cargas que llegan a la obra está fuera de especificación? (b) Si una carga está fuera de especificación, ¿cuál es la probabilidad de que venga de cada planta?
+**Planteamiento.** En una cuenca, las tormentas con lluvia importante son de tres tipos: el 45 % se asocia a frentes fríos, el 35 % a ondas tropicales y el 20 % a ciclones tropicales. Por el registro histórico (valores hipotéticos), la proporción de tormentas que desbordan el río en el puente de la carretera es 0.04 con frentes fríos, 0.06 con ondas tropicales y 0.10 con ciclones. (a) ¿Qué proporción de las tormentas desborda el río? (b) Si el río se desbordó, ¿cuál es la probabilidad de que la tormenta haya sido de cada tipo?
 
 **Solución:**
 
-Sean $A_1$, $A_2$ y $A_3$ los eventos "la carga viene de la planta 1, 2 o 3", y $F$ = "la carga está fuera de especificación".
+Sean $A_1$, $A_2$ y $A_3$ los eventos "la tormenta es un frente frío, una onda tropical o un ciclón", y $F$ = "el río se desborda".
 
 1. Datos: $P(A_1) = 0.45$, $P(A_2) = 0.35$, $P(A_3) = 0.20$; $P(F \mid A_1) = 0.04$, $P(F \mid A_2) = 0.06$, $P(F \mid A_3) = 0.10$.
 2. Caminos que terminan en $F$ (regla de la multiplicación):
@@ -766,8 +766,8 @@ La @fig-condicional-arbol-plantas muestra el árbol. Los caminos que terminan en
 
 ```{r}
 #| label: fig-condicional-arbol-plantas
-#| fig-cap: "Árbol de probabilidad del origen de una carga."
-#| fig-alt: "Árbol con tres ramas iniciales, planta 1 con 0.45, planta 2 con 0.35 y planta 3 con 0.20; de cada una salen las ramas F, fuera de especificación, y C, conforme; a la derecha las probabilidades de los seis caminos"
+#| fig-cap: "Árbol de probabilidad del tipo de tormenta."
+#| fig-alt: "Árbol con tres ramas iniciales, frente frío con 0.45, onda tropical con 0.35 y ciclón con 0.20; de cada una salen las ramas F, desbordamiento, y C, cauce sin desbordar; a la derecha las probabilidades de los seis caminos"
 #| echo: false
 
 arbol(nivel1 = c("A1", "A2", "A3"), p1 = c(0.45, 0.35, 0.20),
@@ -777,7 +777,7 @@ arbol(nivel1 = c("A1", "A2", "A3"), p1 = c(0.45, 0.35, 0.20),
 
 **Pseudocódigo**
 
-1. Guardar las probabilidades a priori y las verosimilitudes como vectores, una posición por planta.
+1. Guardar las probabilidades a priori y las verosimilitudes como vectores, una posición por tipo de tormenta.
 2. Multiplicar posición por posición para obtener los caminos.
 3. Sumar los caminos para la probabilidad total.
 4. Dividir cada camino entre la suma para obtener las probabilidades a posteriori.
@@ -785,11 +785,11 @@ arbol(nivel1 = c("A1", "A2", "A3"), p1 = c(0.45, 0.35, 0.20),
 
 ```{r}
 # 1) Datos
-a_priori <- c(planta1 = 0.45, planta2 = 0.35, planta3 = 0.20)
-p_fuera <- c(0.04, 0.06, 0.10)          # P(F | planta)
+a_priori <- c(frente = 0.45, onda = 0.35, ciclon = 0.20)
+p_desborde <- c(0.04, 0.06, 0.10)       # P(F | tipo)
 
-# 2) Caminos: P(planta y F)
-caminos <- a_priori * p_fuera
+# 2) Caminos: P(tipo y F)
+caminos <- a_priori * p_desborde
 caminos
 
 # 3) Probabilidad total
@@ -808,7 +808,7 @@ El mismo cálculo, organizado como cuadro con `dplyr`:
 library(dplyr)
 
 bayes <- tibble(
-  planta = c("Planta 1", "Planta 2", "Planta 3"),
+  tormenta = c("Frente frío", "Onda tropical", "Ciclón"),
   a_priori = c(0.45, 0.35, 0.20),
   verosimilitud = c(0.04, 0.06, 0.10)
 ) %>%
@@ -826,7 +826,7 @@ El resultado se resume en el @tbl-condicional-bayes.
 
 bayes %>%
   mutate(across(where(is.numeric), ~ sprintf("%.3f", .x))) %>%
-  kbl(col.names = c("Planta", "A priori <i>P</i>(<i>A<sub>i</sub></i>)",
+  kbl(col.names = c("Tormenta", "A priori <i>P</i>(<i>A<sub>i</sub></i>)",
                     "Verosimilitud <i>P</i>(<i>F</i> | <i>A<sub>i</sub></i>)",
                     "Camino <i>P</i>(<i>A<sub>i</sub></i> ∩ <i>F</i>)",
                     "A posteriori <i>P</i>(<i>A<sub>i</sub></i> | <i>F</i>)"),
@@ -834,7 +834,7 @@ bayes %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-**Interpretación.** El 5.9 % de las cargas llega fuera de especificación. La planta 3 entrega solo el 20 % del concreto, pero si una carga está mal, la probabilidad de que venga de ella sube a 0.339, casi lo mismo que la planta 1, que entrega más del doble. Esa es la lógica de Bayes: el dato "fuera de especificación" pesa más a favor de la planta con peor control. Para reducir el problema convendría empezar por la planta 3, que tiene la tasa más alta, aunque cada planta aporte una parte parecida de las cargas defectuosas.
+**Interpretación.** El 5.9 % de las tormentas desborda el río. Los ciclones son solo el 20 % de las tormentas, pero si el río se desbordó, la probabilidad de que la causa haya sido un ciclón sube a 0.339, casi lo mismo que la de un frente frío, que es más del doble de frecuente. Esa es la lógica de Bayes: el dato "hubo desbordamiento" pesa más a favor del tipo de tormenta que con más facilidad lo produce. Aun así, cada tipo aporta una parte parecida de los desbordamientos, así que un sistema de alerta que vigilara solo los ciclones dejaría pasar dos de cada tres eventos.
 
 :::
 
@@ -995,7 +995,7 @@ El @tbl-condicional-formulas reúne las reglas del capítulo.
 5. Una caja tiene 5 probetas de acero de una colada A y 3 de una colada B. Se sacan 3 probetas sin reemplazo. Dibuje el árbol y calcule la probabilidad de que las tres sean de la colada A. Repita con reemplazo y explique por qué cambia el resultado.
 6. En el ejemplo de las vigas, ¿cuántas vigas habría que revisar (sin reemplazo) para que la probabilidad de no encontrar ninguna defectuosa sea menor que 0.10? Escriba un ciclo `for` o use `choose()` para probar con 2, 3, 4, … vigas.
 7. Un puente tiene dos apoyos que deben funcionar los dos (serie). Cada apoyo tiene dos aisladores en paralelo, cada uno con confiabilidad 0.95. Suponiendo independencia, calcule la confiabilidad del sistema a mano y con una simulación en R.
-8. Tres cuadrillas, A, B y C, hacen el 50 %, el 30 % y el 20 % de las soldaduras de una estructura. La proporción de soldaduras rechazadas es 0.02 para A, 0.04 para B y 0.07 para C. (a) ¿Qué proporción de soldaduras se rechaza? (b) Si una soldadura fue rechazada, ¿cuál es la probabilidad de que la haya hecho cada cuadrilla? Arme el cuadro con `dplyr` como en el ejemplo de las plantas.
+8. Tres cuadrillas, A, B y C, hacen el 50 %, el 30 % y el 20 % de las soldaduras de una estructura. La proporción de soldaduras rechazadas es 0.02 para A, 0.04 para B y 0.07 para C. (a) ¿Qué proporción de soldaduras se rechaza? (b) Si una soldadura fue rechazada, ¿cuál es la probabilidad de que la haya hecho cada cuadrilla? Arme el cuadro con `dplyr` como en el ejemplo de las tormentas.
 9. Un sensor de humedad para detectar fugas en una tubería da alarma el 95 % de las veces cuando hay fuga y el 3 % de las veces cuando no la hay. En un tramo dado, la probabilidad de fuga es 0.02. (a) Si suena la alarma, ¿cuál es la probabilidad de que haya fuga? (b) Si no suena, ¿cuál es la probabilidad de que haya fuga? (c) Compruebe los resultados con una simulación y con el interactivo de la @fig-condicional-int-bayes.
 10. Demuestre que si $A$ y $B$ son independientes, también lo son $A$ y $B^c$. Sugerencia: escriba $P(A) = P(A \cap B) + P(A \cap B^c)$.
 11. Explique con un ejemplo de ingeniería civil por qué dos eventos mutuamente excluyentes con probabilidad positiva no pueden ser independientes.
