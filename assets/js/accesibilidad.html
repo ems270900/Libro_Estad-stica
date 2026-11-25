@@ -10,7 +10,8 @@
     position: fixed; top: 0.6rem; right: 1rem; z-index: 1060;
     display: flex; gap: 0.35rem; align-items: center;
   }
-  #barra-lectura > button, #barra-lectura > .quarto-color-scheme-toggle {
+  #barra-lectura > button, #barra-lectura > a.boton-barra, #barra-lectura > .quarto-color-scheme-toggle,
+  #barra-lectura #quarto-search .aa-DetachedSearchButton {
     position: static; display: inline-flex; align-items: center; justify-content: center;
     min-width: 2.3rem; height: 2.3rem; padding: 0 0.55rem;
     background: var(--bs-body-bg, #fff); color: var(--bs-body-color, #212529);
@@ -18,12 +19,25 @@
     font: 600 0.95rem/1 system-ui, sans-serif; cursor: pointer; text-decoration: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
+  #barra-lectura > a.boton-barra:hover, #barra-lectura > .quarto-color-scheme-toggle:hover,
+  #barra-lectura #quarto-search .aa-DetachedSearchButton:hover,
   #barra-lectura > button:hover, #barra-lectura > button[aria-expanded="true"] {
-    border-color: #1C6BA0; color: #1C6BA0;
+    border-color: var(--acento-2); color: var(--acento-2);
   }
   #barra-lectura > button:focus-visible, .panel-lectura button:focus-visible,
-  .panel-lectura input:focus-visible { outline: 3px solid #1C6BA0; outline-offset: 2px; }
+  .panel-lectura input:focus-visible { outline: 3px solid var(--acento-2); outline-offset: 2px; }
   #barra-lectura svg { width: 1.05rem; height: 1.05rem; }
+  #barra-lectura > a.boton-barra:focus-visible { outline: 3px solid var(--acento-2); outline-offset: 2px; }
+  /* Búsqueda de Quarto (libro web) con la misma forma que los demás botones */
+  #barra-lectura #quarto-search { position: static; margin: 0; padding: 0; }
+  #barra-lectura #quarto-search .aa-DetachedSearchButton { margin: 0; }
+  /* Libro web: el índice del capítulo, a la derecha, empieza debajo de la barra */
+  #quarto-margin-sidebar { padding-top: 2.6rem; }
+  #barra-lectura #quarto-search .aa-Autocomplete, #barra-lectura #quarto-search .aa-DetachedSearchButton { width: auto; }
+  #barra-lectura #quarto-search .aa-DetachedSearchButtonIcon { width: auto; color: inherit; cursor: pointer; }
+  #barra-lectura #quarto-search .aa-DetachedSearchButtonPlaceholder,
+  #barra-lectura #quarto-search .aa-DetachedSearchButtonQuery { display: none; }
+  #barra-lectura #quarto-search .aa-DetachedSearchButtonIcon svg { color: currentColor; }
   /* Icono propio del interruptor de modo oscuro (luna en modo claro, sol en
      modo oscuro), dibujado con el color del texto para que se vea en ambos */
   #barra-lectura > .quarto-color-scheme-toggle .bi::before {
@@ -54,7 +68,8 @@
     border: 1px solid var(--bs-border-color, #ced4da);
     background: var(--bs-body-bg, #fff); color: var(--bs-body-color, #212529); font: inherit;
   }
-  .panel-lectura button[aria-pressed="true"] { background: #1C6BA0; border-color: #1C6BA0; color: #fff; }
+  .panel-lectura button[aria-pressed="true"] { background: var(--acento-2); border-color: var(--acento-2); color: #fff; }
+  body.quarto-dark .panel-lectura button[aria-pressed="true"] { color: #111; }
   .panel-lectura .restablecer { width: 100%; margin-top: 0.6rem; }
   .panel-lectura .nota { color: var(--bs-secondary-color, #6c757d); font-size: 0.85rem; margin: 0.6rem 0 0; }
 
@@ -66,8 +81,8 @@
   #resultados-busqueda { list-style: none; margin: 0.6rem 0 0; padding: 0; }
   #resultados-busqueda li { border-top: 1px solid var(--bs-border-color, #e9ecef); }
   #resultados-busqueda a { display: block; padding: 0.5rem 0.2rem; text-decoration: none; color: inherit; }
-  #resultados-busqueda a:hover, #resultados-busqueda a:focus { background: rgba(28, 107, 160, 0.08); }
-  #resultados-busqueda .lugar { display: block; font-size: 0.8rem; color: #1C6BA0; font-weight: 600; }
+  #resultados-busqueda a:hover, #resultados-busqueda a:focus { background: color-mix(in srgb, var(--acento-2) 8%, transparent); }
+  #resultados-busqueda .lugar { display: block; font-size: 0.8rem; color: var(--acento-2); font-weight: 600; }
   #resultados-busqueda mark { padding: 0; background: #ffe58a; color: #000; }
   .resaltado-busqueda { outline: 3px solid #f0ad4e; outline-offset: 3px; transition: outline-color 1s; }
 
@@ -127,22 +142,44 @@ document.addEventListener("DOMContentLoaded", function () {
   var barra = document.createElement("div");
   barra.id = "barra-lectura";
   var iconoLupa = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11.74 10.34a6.5 6.5 0 1 0-1.4 1.4l3.85 3.85a1 1 0 0 0 1.4-1.4zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg>';
-  var html = "";
+  var iconoCasa = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h3a.5.5 0 0 0 .5-.5V11h2v3.5a.5.5 0 0 0 .5.5h3a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5H10v-3.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5V14H3.5a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>';
+  // Botón de inicio: en el libro web abre index.html; en el HTML de un solo
+  // archivo (sin barra lateral de Quarto) vuelve a la primera página, la portada.
+  // Se decide al hacer clic, porque la barra lateral puede cargarse después.
+  var html = '<a id="boton-inicio" class="boton-barra" href="./index.html"' +
+    ' aria-label="Ir a la portada" title="Ir a la portada">' + iconoCasa + '</a>';
   if (!hayBusquedaQuarto) {
     html += '<button type="button" id="boton-busqueda" aria-label="Buscar en el libro" aria-expanded="false" aria-controls="panel-busqueda" title="Buscar en el libro (Ctrl+K)">' + iconoLupa + '</button>';
   }
   html += '<button type="button" id="boton-acceso" aria-label="Opciones de lectura: tamaño de letra, contraste y fuente" aria-expanded="false" aria-controls="panel-acceso" title="Tamaño de letra, contraste y fuente">Aa</button>';
   barra.innerHTML = html;
   document.body.appendChild(barra);
+  document.getElementById("boton-inicio").addEventListener("click", function (e) {
+    // Libro web: el enlace normal a index.html
+    if (document.querySelector("#quarto-sidebar .sidebar-menu-container")) return;
+    // HTML de un solo archivo: volver a la primera página, la portada
+    e.preventDefault();
+    // Sin destino en la dirección, assets/js/paginas.html muestra la portada
+    history.pushState(null, "", location.pathname + location.search);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    window.scrollTo(0, 0);
+  });
+  // Libro web: la búsqueda de Quarto (botón con lupa) pasa a la misma barra
+  var busquedaQuarto = document.getElementById("quarto-search");
+  if (busquedaQuarto) {
+    busquedaQuarto.classList.remove("px-1", "quarto-navigation-tool");
+    barra.insertBefore(busquedaQuarto, document.getElementById("boton-acceso"));
+  }
 
   // El interruptor de modo oscuro de Quarto pasa a la misma barra, que está
   // fija arriba a la derecha y se ve en todos los capítulos. En el libro de un
   // solo archivo Quarto crea el interruptor después de este código, así que se
   // intenta de nuevo cuando la página termina de cargar.
   function moverInterruptor() {
-    var interruptor = document.querySelector("body > .quarto-color-scheme-toggle.top-right");
+    var interruptor = document.querySelector("body > .quarto-color-scheme-toggle.top-right") ||
+      document.querySelector("#quarto-sidebar .sidebar-tools-main .quarto-color-scheme-toggle");
     if (!interruptor) return;
-    interruptor.classList.remove("top-right");
+    interruptor.classList.remove("top-right", "quarto-navigation-tool", "px-1");
     interruptor.setAttribute("aria-label", "Cambiar entre modo claro y oscuro");
     interruptor.title = "Modo claro u oscuro";
     barra.appendChild(interruptor);

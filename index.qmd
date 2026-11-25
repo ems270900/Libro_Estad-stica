@@ -18,13 +18,15 @@ format:
 <p class="portada-subtitulo">Fundamentos, métodos y aplicaciones con R</p>
 </div>
 <div class="portada-banda-autor">
-<p class="portada-autor">Ing. Edwin Matarrita Segura, M.Sc.</p>
+<p class="portada-autor">Ing. Edwin Matarrita Segura</p>
+<p class="portada-correo"><a href="mailto:edwin.matarrita@ucr.ac.cr">edwin.matarrita@ucr.ac.cr</a></p>
 </div>
 </div>
 
 <figure class="portada-imagen">
-<img src="assets/img/ciclo_h.png" alt="Ilustración del ciclo del agua con sus reservas y flujos, desde la atmósfera hasta el agua subterránea">
-<figcaption>Ilustración: Servicio Geológico de los Estados Unidos (USGS).</figcaption>
+<!-- Imagen de portada: para cambiarla basta con reemplazar assets/img/portada.png (proporción 1.85:1). -->
+<img src="assets/img/portada.png" alt="Ilustración de la portada con gráficos de datos y distribuciones de probabilidad">
+<figcaption>Ilustración generada con R y SVG a partir de datos y modelos.</figcaption>
 </figure>
 
 <div class="portada-pie">
