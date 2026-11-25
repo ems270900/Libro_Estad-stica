@@ -28,7 +28,8 @@
 
 ## Parte VI (Correlación y regresión)
 
-- Revisión del autor de los capítulos 24 a 27.
+- Revisión del autor de los capítulos 24 a 27. Se ampliaron el 2026-11-25 (secciones de intuición, errores comunes, valores $p$ y tamaño del efecto, cuatro ejemplos nuevos de otras ramas, cinco interactivos y unas veinte figuras nuevas).
+- Referencias nuevas de la Parte VI por confirmar con el autor: akaike1974new, bland1986statistical, chow1988applied, duan1983smearing, fisher1915frequency, matejka2017same, pearson1897mathematical, robinson1950ecological, rodgers1988thirteen, simpson1951interpretation y wilk1968probability (todas con DOI verificado salvo el libro de Chow).
 - Todos los datos son hipotéticos (`herramientas/datos_parte6.R`). Los datos de la tarea de regresión de la Semana 7 no se usaron, para que la tarea siga sirviendo en el curso. Si el autor tiene datos reales publicables de ensayos de concreto o de caudales, se pueden sustituir.
 - Los capítulos 24 a 27 mencionan por su número otros capítulos (2, 9, 17, 19 a 21 y la Parte VII). Se escribieron en paralelo; conviene cambiar esas menciones por referencias cruzadas `@sec-` a medida que se unan las partes.
 - Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.
@@ -84,6 +85,9 @@
 
 - Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Parte V lista (DBO, tránsito, compactación y medidores en el 19; coliformes en el 21; plantas de tratamiento y obras en el 22; deslizamientos en el 23). Partes III y IV listas (alcantarillado en el 11, tormentas en el 12, pozos de monitoreo en el 14, presión en una red en el 16). El capítulo 9 conserva los doce cilindros como conjunto guía, porque todo el capítulo y su interactivo dependen de ellos; la Parte II ya agregó ejemplos de otras ramas. Faltan los capítulos 2 y 6 (Parte I).
 - La prueba de jarras usa dosis "recomendadas por el proveedor" sin dar valores en mg/L; si el autor quiere dosis típicas, hay que citarlas de un manual de potabilización.
+- Ampliación de los capítulos 28 a 30 (2026-11-25): revisión del autor; probar los ocho interactivos nuevos en su navegador y en modo oscuro.
+- Las secciones de Montgomery (2017) que se citan no se pudieron cotejar con el libro (no está en las carpetas del autor). Si lo tiene, conviene confirmarlas.
+- Referencias nuevas: Box, Hunter y Hunter (2005), Lenth (1989), Welch (1951), Holm (1979) y Friedman (1937), con DOI verificado salvo Box (libro) y Holm (sin DOI, JSTOR).
 
 ## Ampliación de la Parte II (2026-11-25)
 
@@ -92,4 +96,4 @@
 
 ## Diagramas (2026-11-25)
 
-- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_paneles`) para mantener el estilo común.
+- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_decision`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_venn3`, `dg_particion`, `dg_sistemas`, `dg_pascal`, `dg_espacios`, `dg_poblacion_muestra`, `dg_matriz`, `dg_dianas`, `dg_paneles`) para mantener el estilo común.

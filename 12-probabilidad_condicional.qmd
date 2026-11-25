@@ -420,26 +420,8 @@ La @fig-condicional-sistemas dibuja los dos arreglos como diagramas de bloques. 
 #| fig-cap: "Sistemas en serie y en paralelo."
 #| fig-alt: "Arriba, tres cajas en fila unidas por una línea de entrada a salida. Abajo, tres cajas apiladas que comparten una línea de entrada a la izquierda y una de salida a la derecha"
 #| echo: false
-#| fig-width: 8
-#| fig-height: 4.2
-#| out-width: "80%"
 
-serie <- data.frame(x = c(3, 5, 7), y = 4, et = c("1", "2", "3"))
-paralelo <- data.frame(x = 5, y = c(2, 1.2, 0.4), et = c("1", "2", "3"))
-ggplot() +
-  annotate("segment", x = 1.3, xend = 8.7, y = 4, yend = 4, linewidth = 0.8, color = "grey30") +
-  geom_label(data = serie, aes(x, y, label = et), size = 5, label.padding = unit(0.6, "lines"), fill = "#e3eef6") +
-  annotate("segment", x = 3.2, xend = 3.2, y = 0.4, yend = 2, linewidth = 0.8, color = "grey30") +
-  annotate("segment", x = 6.8, xend = 6.8, y = 0.4, yend = 2, linewidth = 0.8, color = "grey30") +
-  annotate("segment", x = 3.2, xend = 6.8, y = c(2, 1.2, 0.4), yend = c(2, 1.2, 0.4), linewidth = 0.8, color = "grey30") +
-  annotate("segment", x = c(1.3, 6.8), xend = c(3.2, 8.7), y = 1.2, yend = 1.2, linewidth = 0.8, color = "grey30") +
-  geom_label(data = paralelo, aes(x, y, label = et), size = 5, label.padding = unit(0.45, "lines"), fill = "#fbe7c2") +
-  annotate("text", x = c(1.1, 8.9, 1.1, 8.9), y = c(4, 4, 1.2, 1.2), label = c("Entrada", "Salida", "Entrada", "Salida"),
-           hjust = c(1, 0, 1, 0), size = 4) +
-  annotate("text", x = 5, y = c(4.75, 2.6), size = 4.5, fontface = "bold",
-           label = c("En serie: funciona si funcionan 1, 2 y 3", "En paralelo: funciona si funciona 1, 2 o 3")) +
-  xlim(0, 10) + ylim(0.1, 5) +
-  theme_void()
+dg_sistemas(3, titulos = c("En serie: funciona si funcionan 1, 2 y 3", "En paralelo: funciona si funciona 1, 2 o 3"))
 ```
 
 Las dos fórmulas tienen consecuencias opuestas cuando crece el número de componentes, como muestra la @fig-condicional-confiabilidad-n para componentes con confiabilidad 0.90. En serie, cada componente que se agrega es una nueva forma de fallar: con 10 componentes la confiabilidad baja a $0.90^{10} = 0.349$. En paralelo, cada componente es un respaldo más: con solo 2 la confiabilidad sube a 0.99, y con 3 a 0.999. Esta es la idea de la redundancia, que se usa en el diseño de acueductos, de sistemas eléctricos de emergencia y de estructuras con varios caminos de carga [@ang2007probability, cap. 3].
@@ -660,24 +642,8 @@ La @fig-condicional-particion muestra la idea. El rectángulo es el espacio mues
 #| fig-cap: "Partición del espacio muestral y el evento B."
 #| fig-alt: "Rectángulo dividido en tres franjas verticales A1, A2 y A3; una elipse B las atraviesa y cada pedazo de la elipse está sombreado con un tono distinto"
 #| echo: false
-#| fig-width: 7
-#| fig-height: 3.6
-#| out-width: "70%"
 
-rej <- expand.grid(x = seq(0, 1, length.out = 300), y = seq(0, 0.5, length.out = 150))
-rej <- rej[((rej$x - 0.5) / 0.4)^2 + ((rej$y - 0.25) / 0.14)^2 <= 1, ]
-rej$franja <- cut(rej$x, c(0, 0.45, 0.8, 1), labels = c("A1", "A2", "A3"), include.lowest = TRUE)
-ggplot() +
-  geom_raster(data = rej, aes(x, y, fill = franja), alpha = 0.5) +
-  scale_fill_manual(values = c(A1 = "#1C6BA0", A2 = "#E69F00", A3 = "#009E73"), guide = "none") +
-  annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 0.5, fill = NA, color = "grey30") +
-  annotate("segment", x = c(0.45, 0.8), xend = c(0.45, 0.8), y = 0, yend = 0.5, color = "grey30") +
-  annotate("text", x = c(0.225, 0.625, 0.9), y = 0.46, label = c("A[1]", "A[2]", "A[3]"), parse = TRUE, size = 5) +
-  annotate("text", x = c(0.3, 0.62, 0.875), y = 0.25, size = 4, color = "grey10", parse = TRUE,
-           label = c("B*' ∩ '*A[1]", "B*' ∩ '*A[2]", "B*' ∩ '*A[3]")) +
-  annotate("text", x = 0.5, y = 0.07, label = "B", fontface = "italic", size = 5) +
-  coord_equal() +
-  theme_void()
+dg_particion(cortes = c(0.45, 0.8))
 ```
 
 ::: {.callout-note title="Ejemplo: probabilidad de deslizamiento de un talud según la lluvia"}

@@ -1,0 +1,9 @@
+"corrida","asfalto","temperatura","estabilidad_kn"
+"(1)",-1,-1,8.2
+"a",1,-1,9.0
+"b",-1,1,8.6
+"ab",1,1,9.4
+"centro 1",0,0,9.9
+"centro 2",0,0,10.3
+"centro 3",0,0,10.1
+"centro 4",0,0,9.7

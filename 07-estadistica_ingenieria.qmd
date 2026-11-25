@@ -71,39 +71,10 @@ La @fig-est-inferencia resume el recorrido completo. De la población se toma un
 #| label: fig-est-inferencia
 #| fig-cap: "Población, muestra e inferencia."
 #| fig-alt: "A la izquierda, un óvalo grande llamado población con muchos puntos grises y el parámetro mu; a la derecha, un óvalo pequeño llamado muestra con pocos puntos azules y el estadístico x barra; una flecha superior va de la población a la muestra con el rótulo muestreo; una flecha inferior regresa de la muestra a la población con el rótulo inferencia, con probabilidad; debajo de la muestra se lee estadística descriptiva"
-#| fig-width: 9
-#| fig-height: 3.8
-#| out-width: "85%"
 #| echo: false
 
-set.seed(11)
-ang <- seq(0, 2 * pi, length.out = 200)
-pob_borde <- data.frame(x = 2.6 * cos(ang), y = 1.6 * sin(ang))
-mue_borde <- data.frame(x = 7.4 + 1.2 * cos(ang), y = 0.85 * sin(ang))
-r <- sqrt(runif(260)); t <- runif(260, 0, 2 * pi)
-pob_pts <- data.frame(x = 2.3 * r * cos(t), y = 1.35 * r * sin(t))
-elegidos <- sample(nrow(pob_pts), 12)
-r2 <- sqrt(runif(12)); t2 <- runif(12, 0, 2 * pi)
-mue_pts <- data.frame(x = 7.4 + 0.95 * r2 * cos(t2), y = 0.6 * r2 * sin(t2))
-ggplot() +
-  geom_path(data = pob_borde, aes(x, y), color = "grey40") +
-  geom_path(data = mue_borde, aes(x, y), color = "#1C6BA0", linewidth = 0.9) +
-  geom_point(data = pob_pts, aes(x, y), color = "grey60", size = 1.2) +
-  geom_point(data = pob_pts[elegidos, ], aes(x, y), color = "#1C6BA0", size = 1.8) +
-  geom_point(data = mue_pts, aes(x, y), color = "#1C6BA0", size = 2.4) +
-  annotate("text", x = 0, y = 2.0, label = "Población (N unidades)", size = 4.2) +
-  annotate("text", x = 0, y = -2.0, label = "parámetros: μ, σ, p (desconocidos)", size = 3.6, color = "grey30") +
-  annotate("text", x = 7.4, y = 1.25, label = "Muestra (n unidades)", size = 4.2) +
-  annotate("text", x = 7.4, y = -1.25, label = "estadísticos: x̄, s, p̂", size = 3.6, color = "#1C6BA0") +
-  annotate("text", x = 7.4, y = -1.75, label = "estadística descriptiva", size = 3.6, fontface = "italic") +
-  annotate("curve", x = 2.8, xend = 6.1, y = 0.9, yend = 0.6, curvature = -0.3,
-           arrow = arrow(length = unit(0.2, "cm")), color = "grey30") +
-  annotate("text", x = 4.5, y = 1.55, label = "muestreo", size = 3.8) +
-  annotate("curve", x = 6.1, xend = 2.8, y = -0.6, yend = -0.9, curvature = -0.3,
-           arrow = arrow(length = unit(0.2, "cm")), color = "#1C6BA0", linewidth = 0.9) +
-  annotate("text", x = 4.5, y = -1.5, label = "inferencia (con probabilidad)", size = 3.8, color = "#1C6BA0") +
-  coord_equal(xlim = c(-2.8, 9), ylim = c(-2.2, 2.2)) +
-  theme_void()
+source("R/diagramas.R")
+dg_poblacion_muestra()
 ```
 
 ::: {.callout-tip title="En la práctica"}
@@ -197,34 +168,14 @@ Los datos se ordenan casi siempre en un cuadro con una fila por unidad y una col
 #| label: fig-est-matriz
 #| fig-cap: "Estructura de los datos ordenados."
 #| fig-alt: "Cuadrícula de cinco filas y cuatro columnas; la fila de arriba tiene los nombres de las variables material, estado, carriles y longitud; cada fila siguiente es un puente; una fila está resaltada con el rótulo unidad estadística, una columna con el rótulo variable y una celda con el rótulo observación"
-#| fig-width: 9
-#| fig-height: 3.4
-#| out-width: "80%"
 #| echo: false
 
-celdas <- expand.grid(col = 1:4, fila = 1:4)
-valores <- c("Concreto", "Regular", "2", "48.3",
-             "Acero", "Bueno", "2", "61.0",
-             "Madera", "Malo", "1", "22.5",
-             "Mixto", "Regular", "4", "35.8")
-celdas$texto <- valores
-celdas$tipo <- ifelse(celdas$fila == 2, "fila", ifelse(celdas$col == 4, "columna", "otra"))
-celdas$tipo[celdas$fila == 2 & celdas$col == 4] <- "celda"
-encabezado <- data.frame(col = 1:4, fila = 0, texto = c("material", "estado", "carriles", "longitud (m)"))
-ids <- data.frame(col = 0, fila = 1:4, texto = c("P01", "P02", "P03", "P04"))
-ggplot() +
-  geom_tile(data = celdas, aes(col, -fila, fill = tipo), color = "white", linewidth = 1.2,
-            width = 0.98, height = 0.9) +
-  scale_fill_manual(values = c(fila = "#9ECAE1", columna = "#C6DBEF", celda = "#E69F00", otra = "grey92"),
-                    guide = "none") +
-  geom_text(data = celdas, aes(col, -fila, label = texto), size = 3.8) +
-  geom_text(data = encabezado, aes(col, -fila, label = texto), size = 3.8, fontface = "bold") +
-  geom_text(data = ids, aes(col, -fila, label = texto), size = 3.6, color = "grey40") +
-  annotate("text", x = 5.1, y = -2, label = "← unidad estadística\n(una fila por puente)", hjust = 0, size = 3.6) +
-  annotate("text", x = 4, y = -4.85, label = "↑ variable (una columna)", size = 3.6) +
-  annotate("text", x = 5.1, y = -0.4, label = "observación: el valor de una\nvariable en una unidad (celda naranja)", hjust = 0, size = 3.6) +
-  coord_cartesian(xlim = c(-0.4, 7.6), ylim = c(-5.1, 0.4)) +
-  theme_void()
+dg_matriz(encabezado = c("material", "estado", "carriles", "longitud (m)"),
+          ids = c("P01", "P02", "P03", "P04"),
+          valores = c("Concreto", "Regular", "2", "48.3",
+                      "Acero", "Bueno", "2", "61.0",
+                      "Madera", "Malo", "1", "22.5",
+                      "Mixto", "Regular", "4", "35.8"))
 ```
 
 Muchos problemas de análisis empiezan con datos desordenados: una hoja con un año por columna, celdas combinadas, totales mezclados con los datos o dos valores en una celda ("12.5 / 13.1"). Antes de calcular nada conviene llevar los datos a la forma de la @fig-est-matriz. El capítulo 3 muestra cómo hacerlo en R.
@@ -487,33 +438,11 @@ La analogía del tiro al blanco separa dos defectos que se confunden a menudo. E
 #| label: fig-est-diana
 #| fig-cap: "Sesgo y precisión."
 #| fig-alt: "Cuatro dianas en una cuadrícula de dos por dos; arriba a la izquierda, disparos agrupados en el centro (sin sesgo y preciso); arriba a la derecha, disparos agrupados lejos del centro (con sesgo y preciso); abajo a la izquierda, disparos dispersos alrededor del centro (sin sesgo e impreciso); abajo a la derecha, disparos dispersos y corridos (con sesgo e impreciso)"
-#| fig-width: 7
-#| fig-height: 6.4
-#| out-width: "65%"
 #| echo: false
 
-set.seed(21)
-anillos <- expand.grid(r = c(1, 2, 3, 4), t = seq(0, 2 * pi, length.out = 120))
-casos <- data.frame(
+dg_dianas(data.frame(
   caso = c("Sin sesgo y preciso", "Con sesgo y preciso", "Sin sesgo e impreciso", "Con sesgo e impreciso"),
-  dx = c(0, 1.9, 0, 1.6), dy = c(0, 1.5, 0, -1.4), sd = c(0.35, 0.35, 1.3, 1.3)
-)
-disparos <- do.call(rbind, lapply(seq_len(nrow(casos)), function(i) {
-  data.frame(caso = casos$caso[i], x = rnorm(12, casos$dx[i], casos$sd[i]),
-             y = rnorm(12, casos$dy[i], casos$sd[i]))
-}))
-dianas <- merge(casos["caso"], data.frame(r = anillos$r, x = anillos$r * cos(anillos$t),
-                                          y = anillos$r * sin(anillos$t)))
-disparos$caso <- factor(disparos$caso, levels = casos$caso)
-dianas$caso <- factor(dianas$caso, levels = casos$caso)
-ggplot() +
-  geom_path(data = dianas, aes(x, y, group = r), color = "grey60") +
-  annotate("point", x = 0, y = 0, shape = 3, size = 4, color = "grey30") +
-  geom_point(data = disparos, aes(x, y), color = "#1C6BA0", size = 2.2, alpha = 0.85) +
-  facet_wrap(~ caso, ncol = 2) +
-  coord_equal(xlim = c(-4.2, 4.2), ylim = c(-4.2, 4.2)) +
-  theme_void() +
-  theme(strip.text = element_text(size = 11, margin = margin(b = 4)))
+  dx = c(0, 1.9, 0, 1.6), dy = c(0, 1.5, 0, -1.4), sd = c(0.35, 0.35, 1.3, 1.3)))
 ```
 
 El sesgo es la distancia entre el centro de la nube de disparos y el centro de la diana: un error que empuja todos los resultados hacia el mismo lado. La precisión es qué tan juntos quedan los disparos entre sí. Una balanza descalibrada que marca siempre 0.5 kg de más es precisa pero sesgada; una cinta métrica de tela que se estira distinto cada vez no tiene sesgo, pero es imprecisa. La exactitud que se busca en ingeniería necesita las dos cosas.

@@ -16,6 +16,105 @@ Porque el problema de la @sec-dce-muchas-t sigue ahí. Con cuatro coagulantes ha
 
 Este capítulo presenta tres métodos. El de Tukey compara todas las parejas. El de Bonferroni sirve para cualquier grupo pequeño de comparaciones elegidas de antemano. Los contrastes responden preguntas específicas, como comparar un coagulante contra el promedio de los demás. Los ejemplos continúan la prueba de jarras de la @sec-dce-ejemplo, con $CM_E = 2.50$ (puntos porcentuales al cuadrado), 16 grados de libertad del error y cinco jarras por coagulante.
 
+### Comparaciones planeadas y comparaciones a posteriori {#sec-mc-planeadas}
+
+Antes de elegir un método conviene distinguir dos situaciones. En las comparaciones planeadas, la pregunta se escribió antes de ver los datos: "¿los coagulantes nuevos superan al sulfato de aluminio que se usa hoy?". En las comparaciones a posteriori (*post hoc*), se miran las medias y se decide qué comparar. La diferencia importa porque, al elegir después de mirar, se tiende a comparar las medias que más se separaron, y esas son justamente las que más probablemente se separaron por azar. Los métodos a posteriori, como Tukey o Scheffé, cobran ese precio con una distancia mínima mayor; los planeados, como un contraste o Bonferroni sobre pocas parejas, pueden ser menos exigentes [@montgomery2017design, sec. 3.5].
+
+El @tbl-mc-metodos resume los métodos más usados.
+
+```{r}
+#| label: tbl-mc-metodos
+#| tbl-cap: "Métodos de comparaciones múltiples."
+#| echo: false
+
+library(kableExtra)
+metodos <- data.frame(
+  metodo = c("Pruebas t sin ajuste (LSD de Fisher)", "Tukey", "Bonferroni", "Holm",
+             "Dunnett", "Scheffé"),
+  uso = c("Solo después de un ANOVA significativo y con tres tratamientos; no controla el error familiar con más.",
+          "Todas las parejas, planeadas o no.",
+          "Pocas comparaciones elegidas de antemano.",
+          "Las mismas situaciones que Bonferroni; siempre detecta al menos lo mismo.",
+          "Cada tratamiento contra un control, como el coagulante que se usa hoy.",
+          "Cualquier contraste, incluso elegido después de ver los datos."),
+  r = c("pairwise.t.test(..., p.adjust.method = \"none\")", "TukeyHSD()",
+        "pairwise.t.test(..., p.adjust.method = \"bonferroni\")", "pairwise.t.test() (ajuste por omisión)",
+        "Paquete multcomp (no se usa en este libro)", "Cálculo manual con qf()")
+)
+metodos$r <- paste0("<code>", metodos$r, "</code>")
+metodos %>%
+  kbl(col.names = c("Método", "Cuándo se usa", "En R"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed")) %>%
+  column_spec(1, width = "12em")
+```
+
+La @fig-mc-int-distancia compara tres de esos métodos con los datos de la prueba de jarras. Las barras son las diferencias absolutas entre las medias de las seis parejas y la línea es la distancia mínima del método elegido: las barras que la superan son las parejas que se declaran distintas. Los controles cambian el número de jarras por coagulante y el cuadrado medio del error, con las mismas medias.
+
+::: {#fig-mc-int-distancia}
+
+```{=html}
+<div class="interactivo" id="int-mc-distancia">
+  <label><span>Método:</span>
+    <select>
+      <option value="0">Pruebas t sin ajuste</option>
+      <option value="1">Bonferroni (6 parejas)</option>
+      <option value="2" selected>Tukey</option>
+    </select></label>
+  <label><span>Jarras por coagulante:</span> <output>5</output>
+    <input type="range" min="2" max="12" step="1" value="5"></label>
+  <label><span>Cuadrado medio del error:</span> <output>2.5</output>
+    <input type="range" min="0.5" max="12" step="0.5" value="2.5"></label>
+  <svg viewBox="0 0 640 250" role="img" aria-label="Barras con las diferencias entre las medias de seis parejas de coagulantes y una línea con la distancia mínima"></svg>
+  <p class="int-resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-mc-distancia");
+  var sel = raiz.querySelector("select"), controles = raiz.querySelectorAll("input"), salidas = raiz.querySelectorAll("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".int-resultado");
+  // Multiplicadores de sqrt(2 CM_E / n) para n = 2 a 12 (gl del error = 4(n - 1)), calculados en R:
+  // qt(0.975, gl), qt(1 - 0.05/12, gl) y qtukey(0.95, 4, gl) / sqrt(2)
+  var mult = [
+    [2.7764, 2.306, 2.1788, 2.1199, 2.086, 2.0639, 2.0484, 2.0369, 2.0281, 2.0211, 2.0154],
+    [4.851, 3.4789, 3.1527, 3.0083, 2.9271, 2.8751, 2.8389, 2.8123, 2.792, 2.7759, 2.7628],
+    [4.0709, 3.2024, 2.9689, 2.861, 2.7989, 2.7586, 2.7303, 2.7094, 2.6932, 2.6804, 2.67]];
+  var pares = ["SF − SA", "PAC − SA", "CF − SA", "PAC − SF", "CF − SF", "PAC − CF"], dif = [4, 10, 6, 6, 2, 4];
+  var w = 640, h = 250, mi = 45, md = 15, ms = 15, mb = 35, ymax = 12;
+  var sy = function (v) { return h - mb - Math.min(v, ymax) / ymax * (h - mb - ms); };
+  function dibujar() {
+    var met = parseInt(sel.value, 10), n = parseInt(controles[0].value, 10), cme = parseFloat(controles[1].value);
+    salidas[0].textContent = n; salidas[1].textContent = cme.toFixed(1);
+    var dm = mult[met][n - 2] * Math.sqrt(2 * cme / n), g = "", cuenta = 0, ancho = (w - mi - md) / 6;
+    for (var v = 0; v <= 12; v += 2) {
+      g += '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke-dasharray="2,3"/>' +
+           '<text class="eje-texto" x="' + (mi - 6) + '" y="' + (sy(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    }
+    for (var i = 0; i < 6; i++) {
+      var sale = dif[i] > dm; if (sale) cuenta++;
+      var x = mi + i * ancho + 0.2 * ancho;
+      g += '<rect x="' + x.toFixed(1) + '" y="' + sy(dif[i]).toFixed(1) + '" width="' + (0.6 * ancho).toFixed(1) + '" height="' + (h - mb - sy(dif[i])).toFixed(1) +
+           '" class="' + (sale ? "barra-activa" : "barra") + '"/>' +
+           '<text class="eje-texto" x="' + (x + 0.3 * ancho).toFixed(1) + '" y="' + (h - mb + 15) + '" text-anchor="middle">' + pares[i] + '</text>';
+    }
+    g += '<line class="media-grupo" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(dm).toFixed(1) + '" y2="' + sy(dm).toFixed(1) + '"/>' +
+         '<text class="eje-texto" x="' + ((w + mi) / 2) + '" y="' + (h - 3) + '" text-anchor="middle">Pareja de coagulantes (diferencia absoluta de medias, puntos porcentuales)</text>';
+    svg.innerHTML = g;
+    texto.innerHTML = "Distancia mínima: <b>" + dm.toFixed(2) + " puntos</b>. Parejas declaradas distintas: <b>" + cuenta + " de 6</b>." +
+      (met === 0 ? " Sin ajuste, el error familiar con seis comparaciones ronda el 20 %." : " El error familiar se mantiene en 5 %.");
+  }
+  sel.addEventListener("change", dibujar);
+  for (var i = 0; i < 2; i++) controles[i].addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Distancia mínima de tres métodos de comparación.
+
+:::
+
+Con los valores del ejemplo, las pruebas sin ajuste dan la distancia más corta (2.12 puntos), Tukey una intermedia (2.86) y Bonferroni la más larga (3.01). Una distancia corta no es mejor por sí misma: es más corta porque acepta más falsas alarmas. Con Tukey y 2 jarras por coagulante, solo se detecta la diferencia de 10 puntos; con 10 jarras se detectan las seis, incluida la de 2 puntos.
+
 ## Método de Tukey {#sec-mc-tukey}
 
 @tukey1949comparing propuso comparar todas las parejas con una sola distancia mínima. Dos medias se declaran distintas si su diferencia supera la diferencia honestamente significativa (HSD, por sus siglas en inglés). Cuando todos los grupos tienen $n$ observaciones,
@@ -61,7 +160,7 @@ ver_datos("datos/jarras_coagulantes_hipotetico.csv",
 
 ```{r}
 #| label: tbl-mc-tukey-mano
-#| tbl-cap: "Comparaciones de Tukey por parejas."
+#| tbl-cap: "Comparaciones de Tukey (HSD = 2.86 puntos)."
 #| echo: false
 
 library(kableExtra)
@@ -128,7 +227,7 @@ Cada fila de `TukeyHSD()` es una pareja: `diff` es la diferencia de medias, `lwr
 
 ```{r}
 #| label: fig-mc-tukey
-#| fig-cap: "Intervalos simultáneos de Tukey."
+#| fig-cap: "Intervalos simultáneos de Tukey al 95 %."
 #| fig-alt: "Seis intervalos horizontales; solo el de cloruro férrico menos sulfato férrico cruza la línea vertical en cero"
 #| echo: false
 
@@ -182,6 +281,57 @@ La función `pairwise.t.test()` usa la desviación estándar combinada de los cu
 
 ::: {.callout-tip title="En la práctica"}
 Para comparar todas las parejas, Tukey es mejor que Bonferroni: su distancia mínima es menor (2.86 contra 3.01 puntos en el ejemplo), así que detecta más diferencias con el mismo error familiar. Bonferroni conviene cuando se planean pocas comparaciones, por ejemplo tres de las seis parejas posibles, porque entonces $\alpha/m$ es menos exigente.
+:::
+
+### Método de Holm {#sec-mc-holm}
+
+Bonferroni divide $\alpha$ entre $m$ para todas las comparaciones, aunque varias tengan valores $p$ diminutos. @holm1979simple propuso una versión por pasos que controla el mismo error familiar y nunca detecta menos. Se ordenan los $m$ valores $p$ de menor a mayor, $p_{(1)} \le p_{(2)} \le \cdots \le p_{(m)}$, y se comparan en ese orden con umbrales que se van relajando:
+
+$$
+p_{(i)} \le \frac{\alpha}{m - i + 1}, \qquad i = 1, 2, \ldots, m
+$$ {#eq-mc-holm}
+
+La primera comparación se juzga con $\alpha/m$, como en Bonferroni; la segunda con $\alpha/(m-1)$; y así hasta la última, que se juzga con $\alpha$. En cuanto una comparación no cumple su umbral, se detiene el proceso y esa y todas las siguientes se declaran no significativas. Es el ajuste que usa `pairwise.t.test()` cuando no se le indica otro.
+
+::: {.callout-note title="Ejemplo: método de Holm en la prueba de jarras"}
+
+**Planteamiento.** Con las seis pruebas $t$ por parejas de la prueba de jarras (desviación estándar combinada, 16 grados de libertad), aplique el método de Holm con $\alpha = 0.05$ y compare con Bonferroni.
+
+**Solución:**
+
+1. Valores $p$ sin ajuste, de `pairwise.t.test(..., p.adjust.method = "none")`, ordenados: PAC − SA, $2.7 \times 10^{-8}$; CF − SA y PAC − SF, $1.9 \times 10^{-5}$ cada uno; SF − SA y PAC − CF, $0.0010$ cada uno; CF − SF, $0.0628$.
+2. Umbrales (@eq-mc-holm): $0.05/6 = 0.0083$, $0.05/5 = 0.0100$, $0.05/4 = 0.0125$, $0.05/3 = 0.0167$, $0.05/2 = 0.0250$ y $0.05/1 = 0.0500$.
+3. Las cinco primeras comparaciones quedan por debajo de su umbral. La última, CF − SF, tiene $0.0628 > 0.05$ y no se declara significativa.
+4. Valores $p$ ajustados, que se comparan directamente con 0.05: se multiplica cada $p_{(i)}$ por $m - i + 1$ y, si alguno resulta menor que el anterior, se le asigna el anterior. Para CF − SF, $0.0628 \times 1 = 0.0628$; con Bonferroni, $0.0628 \times 6 = 0.377$.
+
+**Pseudocódigo**
+
+1. Calcular los valores $p$ de las seis parejas sin ajuste.
+2. Ordenarlos y multiplicar cada uno por $m - i + 1$.
+3. Forzar que los valores ajustados no bajen al avanzar en el orden y recortarlos en 1.
+4. Repetir con `p.adjust()` y con `pairwise.t.test()`.
+
+```{r}
+# 1) Valores p sin ajuste
+p_sin <- pairwise.t.test(jarras$remocion_pct, jarras$coagulante,
+                         p.adjust.method = "none")$p.value
+p_sin <- p_sin[!is.na(p_sin)]
+m <- length(p_sin)
+
+# 2) y 3) Ajuste de Holm a mano
+orden <- order(p_sin)
+p_holm <- numeric(m)
+p_holm[orden] <- pmin(1, cummax((m - seq_len(m) + 1) * p_sin[orden]))
+
+# 4) Comparación con p.adjust()
+round(cbind(sin_ajuste = p_sin, holm = p_holm,
+            holm_r = p.adjust(p_sin, "holm"), bonferroni = p.adjust(p_sin, "bonferroni")), 4)
+```
+
+`cummax()` da el máximo acumulado, y con eso los valores ajustados no bajan al avanzar en el orden. El cuadro muestra que Holm y Bonferroni coinciden en la comparación más extrema y que Holm da valores ajustados menores en el resto.
+
+**Interpretación.** Holm llega a la misma conclusión que Tukey y Bonferroni: el sulfato férrico y el cloruro férrico no se distinguen y los demás pares sí. La diferencia está en la fuerza de la evidencia que se reporta para CF − SF: un valor $p$ ajustado de 0.063 con Holm contra 0.377 con Bonferroni. Holm es preferible a Bonferroni siempre: controla el mismo error familiar con más potencia.
+
 :::
 
 ## Contrastes {#sec-mc-contrastes}
@@ -256,6 +406,40 @@ En la fila `coagulantesa_vs_resto` el valor `t value` es el mismo $-8.16$ del c�
 
 :::
 
+## Cómo se interpretan los valores p de las comparaciones {#sec-mc-valor-p}
+
+Las funciones de comparaciones múltiples devuelven valores $p$ ajustados, como la columna `p adj` de `TukeyHSD()` o la salida de `pairwise.t.test()`. Un valor $p$ ajustado se lee así: es el menor error familiar con el que esa comparación se declararía significativa. Si el valor $p$ ajustado de PAC contra sulfato férrico es 0.0001, esa diferencia se declararía con cualquier error familiar mayor que 0.01 %. Si el de cloruro férrico contra sulfato férrico es 0.229, haría falta aceptar un error familiar de casi 23 % para declararla. Como ya incluye el ajuste, se compara directamente con el $\alpha$ elegido para la familia, sin dividirlo otra vez entre $m$.
+
+La misma pareja puede tener valores $p$ muy distintos según el método, como muestra el @tbl-mc-p-ajustados para cloruro férrico contra sulfato férrico. No hay contradicción: cada método responde una pregunta distinta. El valor sin ajuste trata esa comparación como si fuera la única; los ajustados la tratan como una de seis.
+
+```{r}
+#| label: tbl-mc-p-ajustados
+#| tbl-cap: "Valor p de cloruro férrico contra sulfato férrico según el método."
+#| echo: false
+
+p_cf_sf <- data.frame(
+  metodo = c("Prueba t sin ajuste", "Holm", "Tukey", "Bonferroni"),
+  p = c(0.0628, 0.0628, 0.2288, 0.3766),
+  pregunta = c("¿Difieren estos dos coagulantes, si fuera la única comparación?",
+               "¿Difieren, protegiendo las seis comparaciones por pasos?",
+               "¿Difieren, protegiendo todas las parejas con el rango estudentizado?",
+               "¿Difieren, protegiendo las seis comparaciones con α/6?")
+)
+p_cf_sf %>%
+  kbl(col.names = c("Método", "Valor <i>p</i>", "Pregunta que responde"), escape = FALSE,
+      digits = 4, align = "lcl") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Cuatro situaciones confunden con frecuencia:
+
+1. **ANOVA significativo y ninguna pareja significativa.** Puede pasar, sobre todo con Tukey o Bonferroni. El ANOVA detecta que las medias no son todas iguales, y esa diferencia puede estar repartida en un contraste que no es una pareja, por ejemplo el promedio de dos coagulantes contra el de los otros dos. No es un error de cálculo: las dos pruebas responden preguntas distintas.
+2. **ANOVA no significativo y alguna pareja significativa sin ajuste.** Es la situación que más se presta a falsas alarmas. Si el ANOVA no rechazó y la comparación no se planeó antes, la diferencia de esa pareja se reporta como exploratoria.
+3. **Letras compartidas que no son transitivas.** Con tres medias, A puede no diferir de B y B no diferir de C, mientras A sí difiere de C. Por eso una media puede llevar dos letras, como "ab". No quiere decir que A y C sean iguales a B: quiere decir que B está entre las dos y los datos no alcanzan para separarla de ninguna.
+4. **"No se distinguen" no es "son iguales".** El intervalo de Tukey para cloruro férrico menos sulfato férrico va de $-0.9$ a $4.9$ puntos (@fig-mc-tukey). Los datos son compatibles con que los dos coagulantes sean iguales, pero también con que el cloruro férrico remueva casi 5 puntos más. Si la planta necesita saber si son equivalentes, la pregunta se plantea con un margen de equivalencia que importe para la operación, por ejemplo 1 punto, y se revisa si todo el intervalo cae dentro de ese margen.
+
+El intervalo de confianza de una diferencia da más información que su valor $p$: dice si la diferencia es creíble (el intervalo no incluye el cero) y, además, cuánto podría valer. Por eso la @fig-mc-tukey es el resultado principal de un análisis de comparaciones, y los valores $p$ ajustados un complemento.
+
 ## Supuestos y diagnóstico con residuos {#sec-mc-supuestos}
 
 Las conclusiones del ANOVA y de las comparaciones dependen de los supuestos de la @sec-dce-supuestos: independencia, normalidad y varianza común de los errores. Los errores no se observan, pero se estiman con los residuos, que son la diferencia entre cada observación y su valor ajustado. En el ANOVA de un factor, el valor ajustado es la media del grupo:
@@ -272,7 +456,7 @@ La revisión empieza con dos gráficos. El de residuos contra valores ajustados 
 
 ```{r}
 #| label: tbl-mc-patrones
-#| tbl-cap: "Patrones en los gráficos de residuos y qué indican."
+#| tbl-cap: "Patrones en los gráficos de residuos."
 #| echo: false
 
 patrones <- data.frame(
@@ -314,7 +498,7 @@ Dos pruebas complementan los gráficos. La de Shapiro-Wilk tiene como hipótesis
 
 ```{r}
 #| label: fig-mc-residuos
-#| fig-cap: "Residuos del ANOVA de la prueba de jarras."
+#| fig-cap: "Residuos de la prueba de jarras."
 #| fig-alt: "Dos gráficos de residuos sin patrones visibles; los puntos del gráfico cuantil-cuantil siguen la recta"
 #| fig-width: 9
 #| fig-height: 4
@@ -438,7 +622,7 @@ ver_datos("datos/jarras_muestras_hipotetico.csv",
 
 ```{r}
 #| label: tbl-mc-datos-bloques
-#| tbl-cap: "Remoción por coagulante y muestra de agua."
+#| tbl-cap: "Remoción (%) por coagulante y muestra de agua."
 #| echo: false
 
 muestras <- read.csv("datos/jarras_muestras_hipotetico.csv")
@@ -513,11 +697,11 @@ Sin las muestras, su variación pasa al error: $SC_E$ sube de 6 a 46, $CM_E$ de 
 TukeyHSD(modelo_bl, which = "coagulante")
 ```
 
-Ahora también el sulfato férrico y el cloruro férrico se distinguen (diferencia de 2 puntos, valor $p$ ajustado de 0.004). La @fig-mc-lotes muestra por qué: las líneas de las muestras son casi paralelas. Cada muestra de agua sube o baja todos los coagulantes por igual, y una vez que se descuenta ese desplazamiento, queda muy poco error.
+Ahora también el sulfato férrico y el cloruro férrico se distinguen (diferencia de 2 puntos, valor $p$ ajustado de 0.004). La @fig-mc-lotes muestra por qué. Cada línea une las cuatro jarras de una misma muestra de agua, y las cinco líneas son casi paralelas. Cada muestra de agua sube o baja todos los coagulantes por igual, y una vez que se descuenta ese desplazamiento, queda muy poco error.
 
 ```{r}
 #| label: fig-mc-lotes
-#| fig-cap: "Jarras de cada muestra de agua por coagulante."
+#| fig-cap: "Remoción por coagulante y muestra de agua."
 #| fig-alt: "Cinco líneas casi paralelas, una por muestra, que suben del sulfato de aluminio al PAC y bajan hacia el cloruro férrico"
 #| echo: false
 
@@ -534,7 +718,7 @@ ggplot(muestras, aes(x = coagulante, y = remocion_pct, group = muestra, color = 
 
 :::
 
-En la @fig-mc-int-bloques se puede cambiar cuánto difieren las muestras de agua y ver el efecto sobre los dos análisis. Con el control en 1 se obtienen los datos del ejemplo.
+En la @fig-mc-int-bloques se puede cambiar cuánto difieren las muestras de agua y ver el efecto sobre los dos análisis; cada color es una muestra. Con el control en 1 se obtienen los datos del ejemplo.
 
 ::: {#fig-mc-int-bloques}
 
@@ -629,7 +813,7 @@ En la @fig-mc-int-bloques se puede cambiar cuánto difieren las muestras de agua
 </script>
 ```
 
-Efecto de los bloques en el ANOVA.
+ANOVA con bloques y sin ellos.
 
 :::
 
@@ -643,6 +827,75 @@ Conviene bloquear cuando se conoce antes del ensayo una fuente de variación imp
 En un diseño en bloques con una observación por combinación no se puede estimar la interacción entre tratamiento y bloque: esa variación queda dentro del error. Si un coagulante funciona muy bien con un agua y mal con otra, el modelo aditivo de la @eq-mc-modelo-bloques no lo representa. Para estudiar interacciones se necesitan repeticiones dentro de cada combinación, que es el diseño factorial del capítulo siguiente.
 :::
 
+### Tamaño del efecto con bloques: eta cuadrado parcial {#sec-mc-eta-parcial}
+
+En el diseño en bloques, el $\eta^2$ del capítulo anterior (@eq-dce-eta) cambia de significado. En el ejemplo, $\eta^2 = SC_{\text{trat}}/SC_T = 260/306 = 0.85$: el coagulante explica el 85 % de toda la variación, incluida la que viene de las muestras de agua. Esa proporción depende de cuánto difieran las muestras, que no tiene nada que ver con los coagulantes: con muestras más distintas, $SC_T$ crece y $\eta^2$ baja, aunque el efecto de los coagulantes sea el mismo. Por eso en diseños con más de una fuente se usa el eta cuadrado parcial, que deja fuera las otras fuentes:
+
+$$
+\eta^2_p = \frac{SC_{\text{trat}}}{SC_{\text{trat}} + SC_E}
+$$ {#eq-mc-eta-parcial}
+
+En el ejemplo, $\eta^2_p = 260/(260 + 6) = 0.977$. Se lee como la proporción de la variación que explica el coagulante entre la que queda después de quitar la de las muestras. Los dos números son correctos y responden preguntas distintas; lo importante es decir cuál se reporta, porque el parcial siempre es igual o mayor [@laneintroduction, cap. 19]. Para comparar con otros estudios, que pueden haber usado otros bloques, el $\eta^2_p$ es más estable. En el factorial del capítulo siguiente cada efecto tiene su propio $\eta^2_p$.
+
+### Variantes del diseño en bloques {#sec-mc-variantes-bloques}
+
+El diseño en bloques completos aleatorizados es el más sencillo de una familia. El @tbl-mc-variantes-bloques resume las variantes más comunes [@montgomery2017design, cap. 4].
+
+```{r}
+#| label: tbl-mc-variantes-bloques
+#| tbl-cap: "Variantes del diseño en bloques."
+#| echo: false
+
+var_bl <- data.frame(
+  diseno = c("Bloques completos aleatorizados", "Prueba de Friedman", "Cuadrado latino",
+             "Bloques incompletos balanceados", "Bloques aleatorios"),
+  cuando = c("Una fuente de ruido conocida y bloques que alcanzan para todos los tratamientos.",
+             "Lo mismo, pero con datos muy asimétricos, atípicos o respuesta ordinal.",
+             "Dos fuentes de ruido a la vez, como la muestra de agua y el operador, con tantos niveles como tratamientos.",
+             "Cada bloque no alcanza para todos los tratamientos, como un equipo de jarras con menos jarras que coagulantes.",
+             "Los bloques son una muestra de muchos posibles (lotes, días) y se quiere generalizar a todos."),
+  ejemplo = c("Cinco muestras de agua, cuatro jarras por muestra.",
+              "Calificaciones de 1 a 5 de la claridad del agua tratada.",
+              "Cuatro coagulantes, cuatro muestras de agua y cuatro operadores.",
+              "Cinco coagulantes en un equipo de tres jarras.",
+              "Los días de ensayo vistos como muestra del año.")
+)
+var_bl %>%
+  kbl(col.names = c("Diseño", "Cuándo se usa", "Ejemplo"), align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed")) %>%
+  column_spec(1, width = "12em")
+```
+
+La prueba de @friedman1937use es la versión por rangos del diseño en bloques, como Kruskal-Wallis lo es del ANOVA de un factor. Dentro de cada bloque se ordenan los tratamientos del 1 al $a$ y se prueba si los rangos promedio de los tratamientos difieren más de lo que daría el azar. Solo usa el orden dentro de cada bloque, así que la diferencia entre bloques desaparece por construcción. En R es `friedman.test(remocion_pct ~ coagulante | muestra, data = muestras)`, y para el ejemplo da $\chi^2 = 15$ con 3 grados de libertad y un valor $p = 0.002$: el PAC queda primero en las cinco muestras y el sulfato de aluminio último en las cinco. Como trabaja con rangos, pierde algo de potencia si los datos son normales, y no da diferencias en puntos porcentuales, que es lo que necesita la planta.
+
+## Resumen: cuándo usar qué {#sec-mc-resumen}
+
+```{r}
+#| label: tbl-mc-resumen
+#| tbl-cap: "Resumen del capítulo 29."
+#| echo: false
+
+resumen_29 <- data.frame(
+  pregunta = c("¿Qué parejas difieren?", "¿Solo algunas comparaciones planeadas?",
+               "¿Una pregunta que no es una pareja?", "¿Se cumplen los supuestos?",
+               "¿Varianzas distintas o datos asimétricos?", "¿Hay una fuente de ruido conocida?",
+               "¿Qué tan grande es el efecto con bloques?"),
+  respuesta = c("Tukey, con intervalos simultáneos.", "Holm (mejor que Bonferroni).",
+                "Un contraste planeado; Scheffé si se eligió después de ver los datos.",
+                "Gráficos de residuos primero; Shapiro-Wilk y Levene como apoyo.",
+                "Transformación, Welch o Kruskal-Wallis.",
+                "Diseño en bloques; Friedman si los datos no son normales.",
+                "η² parcial, además de las diferencias en sus unidades."),
+  r = c("TukeyHSD()", "pairwise.t.test(), p.adjust()", "lm() con contrasts()",
+        "plot(modelo), shapiro.test()", "oneway.test(), kruskal.test()",
+        "aov(y ~ trat + bloque), friedman.test()", "Cálculo con las SC")
+)
+resumen_29$r <- paste0("<code>", resumen_29$r, "</code>")
+resumen_29 %>%
+  kbl(col.names = c("Pregunta", "Qué hacer", "En R"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
 ## Ejercicios propuestos
 
 1. Con los datos del ejercicio 1 del capítulo anterior (tres dosis de aditivo reductor de agua), aplique el método de Tukey a mano y con `TukeyHSD()`. Resuma el resultado con letras y explique qué dosis recomendaría.
@@ -651,9 +904,16 @@ En un diseño en bloques con una observación por combinación no se puede estim
 4. Se miden las deflexiones (mm) de vigas de cuatro proveedores de madera y se observa que los residuos forman un embudo: la dispersión crece con la deflexión media. Explique qué transformación probaría primero, cómo comprobaría si funcionó y cómo reportaría las medias después de transformar.
 5. Un laboratorio compara tres métodos de compactación de muestras de suelo (Proctor estándar, Proctor modificado y vibratorio) y la densidad seca (kg/m³) depende del operador. Cada uno de cuatro operadores compacta una muestra con cada método. Escriba el modelo, el cuadro ANOVA en forma general con sus grados de libertad y el código de R que usaría. ¿Por qué el operador es un bloque y no un segundo factor de interés?
 6. Con la @fig-mc-int-bloques, encuentre el valor del control a partir del cual el análisis sin bloques deja de rechazar $H_0$ con $\alpha = 0.05$. Explique el resultado con la @eq-mc-particion-bloques.
+7. Con la @fig-mc-int-distancia, busque el menor número de jarras por coagulante con el que Tukey distingue el cloruro férrico del sulfato férrico, con $CM_E = 2.5$. Repita con Bonferroni y con las pruebas sin ajuste, y explique por qué el número cambia.
+8. En una comparación de cinco tipos de pavimento permeable, los valores $p$ sin ajuste de las diez parejas fueron 0.001, 0.004, 0.006, 0.010, 0.015, 0.030, 0.041, 0.120, 0.350 y 0.780. Aplique a mano los métodos de Bonferroni y de Holm con $\alpha = 0.05$ y compruebe con `p.adjust()`. ¿Cuántas parejas declara distintas cada uno?
+9. Una empresa constructora compara el tiempo de armado (min) de una formaleta con tres sistemas de anclaje. Cada uno de seis carpinteros arma una formaleta con cada sistema, en orden sorteado. Datos hipotéticos: sistema A: 42, 38, 45, 50, 40, 47; B: 36, 35, 41, 44, 37, 42; C: 39, 37, 43, 47, 38, 44 (en el mismo orden de carpinteros). Haga el ANOVA en bloques, calcule $\eta^2$ y $\eta^2_p$ del sistema, aplique Tukey y compare con la prueba de Friedman.
+10. Explique con sus palabras qué significa que el valor $p$ ajustado de Tukey de una pareja sea 0.23, y por qué no se puede concluir que esos dos tratamientos son iguales. Use el intervalo de Tukey de la misma pareja en su respuesta.
 
 ## Lecturas recomendadas
 
 - @montgomery2017design, capítulos 3 y 4: comparaciones múltiples, revisión de supuestos y diseño en bloques, con muchos ejemplos de ingeniería.
 - @laneintroduction, capítulo 12: explicación sencilla del error familiar, el método de Tukey, Bonferroni y los contrastes, con la idea de que Tukey no requiere un ANOVA previo.
 - @tukey1949comparing: el artículo original del método de comparaciones por parejas.
+- @holm1979simple: el método por pasos que mejora a Bonferroni sin perder el control del error familiar.
+- @friedman1937use: la prueba por rangos para el diseño en bloques.
+- @walpole2012probabilidad, capítulo 13: comparaciones múltiples y diseño en bloques en español, con ejercicios resueltos.
