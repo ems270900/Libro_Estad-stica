@@ -47,6 +47,14 @@
 - Notación de las tablas: $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha. Los capítulos 16 a 23 deben usar la misma convención.
 - Revisión del autor de los tres apéndices.
 
+## Parte V (inferencia estadística)
+
+- Epígrafes de los capítulos 18, 19, 21, 22 y 23: no se pusieron por falta de frases con fuente verificada. El del capítulo 20 es de Fisher (1935).
+- El paquete `tolerance` (capítulo 19) debe estar instalado en el entorno donde se compila.
+- Los ejemplos con datos se escribieron con datos hipotéticos. Si el autor tiene datos reales publicables (tesis, informes), se pueden sustituir.
+- En el material de la Semana 6 hay dos errores que no pasaron al libro: el estadístico de las varillas (−3.2747 en lugar de −3.452) y la conclusión del ejemplo del pH.
+- Revisión del autor de los capítulos 18 a 23.
+
 ## Decisiones del autor
 
 - Publicación en la web: no se publica sin su permiso.

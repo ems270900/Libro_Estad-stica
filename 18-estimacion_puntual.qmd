@@ -1,0 +1,473 @@
+---
+title: "Estimación puntual"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+```
+
+Un laboratorio ensaya 25 cilindros del concreto que llega a una obra. Lo que interesa no son esos 25 cilindros, que se destruyen en la prensa, sino los miles de metros cúbicos que quedan en la estructura. Con la muestra se quiere saber cuál es la resistencia media de todo el concreto, cuánto varía y qué fracción queda por debajo de la resistencia especificada. Esos valores de la población nunca se conocen con exactitud: se estiman. Este capítulo explica qué es un estimador, cómo se juzga si es bueno y cómo se construye uno con el método de máxima verosimilitud. Es la puerta de entrada a la inferencia estadística, que ocupa toda esta parte del libro [@montgomery2014applied; @walpole2012probabilidad].
+
+## Parámetros, estimadores y estimaciones {#sec-est-conceptos}
+
+::: {.pregunta}
+Si se ensayaran otros 25 cilindros del mismo concreto, ¿se obtendría la misma media?
+:::
+
+No. Cada muestra da una media distinta, aunque el concreto sea el mismo. Para hablar de esto sin confusiones hacen falta tres palabras.
+
+Un parámetro es un número que describe a la población: la media $\mu$, la desviación estándar $\sigma$ o la proporción $p$ de elementos que cumplen una condición. Es fijo, pero desconocido.
+
+Un estimador es la regla o fórmula que se aplica a los datos de una muestra para aproximar ese parámetro. La media muestral $\bar{X} = \sum X_i / n$ es un estimador de $\mu$. Como la muestra es aleatoria, el estimador también es una variable aleatoria: cambia de una muestra a otra y tiene su propia distribución, la distribución muestral.
+
+Una estimación es el número que se obtiene al aplicar el estimador a una muestra concreta. Si los 25 cilindros dan $\bar{x} = 32.15$ MPa, ese 32.15 es la estimación puntual de $\mu$. Se llama puntual porque es un solo valor; en el capítulo siguiente se acompaña con un intervalo.
+
+Se acostumbra escribir el estimador con letra mayúscula ($\bar{X}$, $S$) y la estimación con minúscula ($\bar{x}$, $s$). Para un parámetro genérico se usa la letra griega $\theta$, y su estimador se marca con un acento circunflejo: $\hat{\theta}$ se lee "theta sombrero". El @tbl-est-parametros reúne los estimadores que se usan en el resto del libro.
+
+| Parámetro | Qué mide | Estimador | Fórmula |
+|:-:|:--|:-:|:-:|
+| $\mu$ | Media de una población | $\bar{x}$ | $\dfrac{1}{n}\sum x_i$ |
+| $\sigma^2$ | Varianza de una población | $s^2$ | $\dfrac{1}{n-1}\sum (x_i - \bar{x})^2$ |
+| $\sigma$ | Desviación estándar de una población | $s$ | $\sqrt{s^2}$ |
+| $p$ | Proporción de una población | $\hat{p}$ | $x/n$ |
+| $\mu_1 - \mu_2$ | Diferencia entre las medias de dos poblaciones | $\bar{x}_1 - \bar{x}_2$ | |
+| $p_1 - p_2$ | Diferencia entre dos proporciones | $\hat{p}_1 - \hat{p}_2$ | |
+
+: Parámetros de la población y sus estimadores puntuales. {#tbl-est-parametros}
+
+La diferencia entre la estimación y el parámetro, $\hat{\theta} - \theta$, es el error de estimación. Nunca se conoce, porque $\theta$ es desconocido, pero sí se puede saber qué tan grande suele ser. Eso es lo que miden las propiedades de la sección siguiente.
+
+## Propiedades de un buen estimador {#sec-est-propiedades}
+
+Para un mismo parámetro puede haber varios estimadores. La media de la población, por ejemplo, se podría estimar con la media muestral, con la mediana o con el promedio del dato mayor y el menor. Para escoger entre ellos se mira su comportamiento si el muestreo se repitiera muchas veces.
+
+### Sesgo {#sec-est-sesgo}
+
+Un estimador es insesgado si, en promedio sobre todas las muestras posibles, da el valor del parámetro. El sesgo es la diferencia entre ese promedio y el parámetro:
+
+$$
+\text{sesgo}(\hat{\theta}) = E(\hat{\theta}) - \theta
+$$ {#eq-est-sesgo}
+
+donde $E(\hat{\theta})$ es el valor esperado del estimador y $\theta$ es el parámetro. Si el sesgo es cero, el estimador es insesgado [@montgomery2014applied].
+
+La media muestral es insesgada: $E(\bar{X}) = \mu$. La varianza muestral también lo es, pero solo si se divide entre $n - 1$. Si se divide entre $n$, el estimador da en promedio un valor menor que $\sigma^2$:
+
+$$
+E\!\left[\frac{1}{n}\sum (X_i - \bar{X})^2\right] = \frac{n-1}{n}\,\sigma^2
+$$ {#eq-est-sesgo-varianza}
+
+La razón es que los datos están, en promedio, más cerca de su propia media $\bar{x}$ que de la media verdadera $\mu$, así que la suma de cuadrados queda corta. Dividir entre $n - 1$ en lugar de $n$ compensa exactamente esa diferencia. Por eso `var()` y `sd()` de R dividen entre $n - 1$.
+
+La @fig-est-sesgo lo muestra con una simulación. Se tomaron 10 000 muestras de cinco cilindros de una población normal con $\sigma^2 = 6.25$ MPa² y en cada una se calculó la varianza de las dos formas.
+
+```{r}
+#| label: fig-est-sesgo
+#| fig-cap: "Distribución de dos estimadores de la varianza en 10 000 muestras de tamaño 5. La línea discontinua es el valor verdadero."
+#| cache: true
+#| fig-alt: "Dos curvas de densidad. La del estimador que divide entre n tiene su promedio a la izquierda del valor verdadero; la que divide entre n menos 1 lo tiene sobre él."
+#| echo: false
+
+set.seed(18)
+sim <- replicate(10000, {
+  y <- rnorm(5, mean = 30, sd = 2.5)
+  c(var(y), var(y) * 4 / 5)
+})
+sim_df <- tibble(
+  valor = c(sim[1, ], sim[2, ]),
+  estimador = rep(c("Divide entre n − 1", "Divide entre n"), each = 10000)
+)
+promedios <- sim_df %>% group_by(estimador) %>% summarise(m = mean(valor))
+
+ggplot(sim_df, aes(valor, colour = estimador)) +
+  geom_density(linewidth = 1) +
+  geom_vline(xintercept = 6.25, linetype = "dashed") +
+  geom_vline(data = promedios, aes(xintercept = m, colour = estimador), linewidth = 0.6) +
+  scale_colour_manual(values = c("#1C6BA0", "#E69F00")) +
+  coord_cartesian(xlim = c(0, 25)) +
+  labs(x = "Varianza estimada (MPa²)", y = "Densidad", colour = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+El promedio de las varianzas que dividen entre $n - 1$ quedó en `r round(mean(sim[1, ]), 2)` MPa², muy cerca de 6.25. El de las que dividen entre $n$ quedó en `r round(mean(sim[2, ]), 2)` MPa², que es casi exactamente $\frac{4}{5}(6.25) = 5.00$, como predice la @eq-est-sesgo-varianza.
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**Por qué se divide entre $n - 1$.** Se parte de la identidad $\sum (X_i - \bar{X})^2 = \sum (X_i - \mu)^2 - n(\bar{X} - \mu)^2$. Al tomar el valor esperado, cada $E[(X_i - \mu)^2]$ vale $\sigma^2$ y $E[(\bar{X} - \mu)^2] = \operatorname{Var}(\bar{X}) = \sigma^2/n$. Entonces
+
+$$
+E\left[\sum (X_i - \bar{X})^2\right] = n\sigma^2 - n\,\frac{\sigma^2}{n} = (n-1)\,\sigma^2 ,
+$$
+
+y al dividir entre $n - 1$ el valor esperado queda igual a $\sigma^2$. El número $n - 1$ se llama grados de libertad: de las $n$ desviaciones $x_i - \bar{x}$, solo $n - 1$ son libres, porque todas juntas suman cero [@wasserman2004all].
+:::
+
+::: {.callout-warning title="Cuidado"}
+Que $S^2$ sea insesgado no significa que $S$ también lo sea. La raíz cuadrada no conserva el promedio, y $S$ subestima un poco a $\sigma$ en muestras pequeñas. La diferencia es menor al 3 % desde $n = 10$ y en la práctica se ignora, pero muestra que la propiedad depende de la escala en que se mida el parámetro.
+:::
+
+### Varianza y error estándar {#sec-est-error-estandar}
+
+Un estimador insesgado puede ser poco útil si sus valores cambian mucho de una muestra a otra. La dispersión del estimador alrededor de su promedio se mide con su varianza, y su raíz cuadrada recibe un nombre propio: el error estándar. Para la media muestral, con datos independientes,
+
+$$
+\operatorname{EE}(\bar{X}) = \frac{\sigma}{\sqrt{n}}
+$$ {#eq-est-ee-media}
+
+donde $\sigma$ es la desviación estándar de la población y $n$ es el tamaño de la muestra. Como $\sigma$ casi nunca se conoce, se reemplaza por $s$ y se obtiene el error estándar estimado $s/\sqrt{n}$ [@illowsky2018introductory].
+
+La @eq-est-ee-media dice algo muy práctico: para reducir el error estándar a la mitad hay que cuadruplicar el tamaño de la muestra. Pasar de 25 a 100 cilindros reduce el error estándar de la media de $\sigma/5$ a $\sigma/10$.
+
+Para una proporción, el error estándar es
+
+$$
+\operatorname{EE}(\hat{p}) = \sqrt{\frac{p\,(1-p)}{n}}
+$$ {#eq-est-ee-proporcion}
+
+donde $p$ es la proporción de la población. Se estima con $\sqrt{\hat{p}(1-\hat{p})/n}$.
+
+::: {.callout-warning title="Cuidado"}
+La desviación estándar $s$ y el error estándar $s/\sqrt{n}$ son cosas distintas. La primera mide cuánto varían los cilindros entre sí y no baja al ensayar más cilindros. El segundo mide cuánto variaría la media de una muestra a otra y sí baja con $n$. Confundirlos es uno de los errores más comunes en los informes de laboratorio.
+:::
+
+### Error cuadrático medio y consistencia {#sec-est-ecm}
+
+A veces un estimador con un poco de sesgo tiene mucha menos varianza que uno insesgado. Para compararlos se usa el error cuadrático medio (ECM), que suma las dos fuentes de error:
+
+$$
+\operatorname{ECM}(\hat{\theta}) = E\big[(\hat{\theta} - \theta)^2\big] = \operatorname{Var}(\hat{\theta}) + \big[\text{sesgo}(\hat{\theta})\big]^2
+$$ {#eq-est-ecm}
+
+Entre dos estimadores se prefiere el de menor ECM. Si los dos son insesgados, el ECM es solo la varianza y se prefiere el de menor varianza, que se llama más eficiente. Para datos normales, la media muestral es más eficiente que la mediana: con muestras grandes, la varianza de la mediana es cerca de $\pi/2 \approx 1.57$ veces la de la media [@wasserman2004all].
+
+Un estimador es consistente si se acerca al parámetro a medida que crece la muestra. La media, la varianza muestral y la proporción muestral lo son. La consistencia es la garantía mínima: con suficientes datos, el estimador termina dando el valor correcto.
+
+::: {.callout-note title="Ejemplo: estimaciones puntuales para un lote de concreto"}
+
+**Planteamiento.** Se ensayaron a compresión 25 cilindros hipotéticos de un mismo concreto a los 28 días. La resistencia especificada es de 30 MPa. Estime la resistencia media, la desviación estándar, el error estándar de la media y la proporción de cilindros por debajo de 30 MPa.
+
+```{r}
+#| echo: false
+ver_datos("datos/lote_cilindros_hipotetico.csv",
+          nombres = c("Cilindro", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Media: la suma de los 25 resultados es 803.8 MPa, así que $\bar{x} = 803.8/25 = 32.15$ MPa.
+2. Varianza: se resta la media a cada dato, se eleva al cuadrado y se suma. La suma de cuadrados es $\sum (x_i - \bar{x})^2 = 135.36$ MPa². Entonces $s^2 = 135.36/24 = 5.640$ MPa².
+3. Desviación estándar: $s = \sqrt{5.640} = 2.375$ MPa.
+4. Error estándar de la media: $s/\sqrt{n} = 2.375/\sqrt{25} = 2.375/5 = 0.475$ MPa.
+5. Proporción bajo la especificación: hay dos cilindros con menos de 30 MPa (28.2 y 29.0 MPa), así que $\hat{p} = 2/25 = 0.08$, y su error estándar es $\sqrt{0.08 \times 0.92/25} = 0.054$.
+
+**Pseudocódigo**
+
+1. Leer los datos y guardar la columna de resistencias en un vector.
+2. Calcular $n$, la media y la desviación estándar.
+3. Calcular el error estándar con la @eq-est-ee-media.
+4. Contar los cilindros por debajo de 30 MPa y dividir entre $n$.
+5. Comparar con las funciones de R.
+
+```{r}
+# 1) Datos
+cilindros <- read.csv("datos/lote_cilindros_hipotetico.csv")
+x <- cilindros$resistencia_mpa
+
+# 2) Media y desviación estándar con la fórmula
+n <- length(x)
+media <- sum(x) / n
+suma_cuadrados <- sum((x - media)^2)
+s <- sqrt(suma_cuadrados / (n - 1))
+
+# 3) Error estándar de la media
+ee_media <- s / sqrt(n)
+
+# 4) Proporción bajo 30 MPa (x < 30 da TRUE o FALSE; mean() cuenta los TRUE)
+p_gorro <- mean(x < 30)
+ee_p <- sqrt(p_gorro * (1 - p_gorro) / n)
+
+c(n = n, media = media, s = s, ee_media = ee_media, p = p_gorro, ee_p = ee_p)
+
+# 5) Las mismas estimaciones con las funciones de R
+c(mean(x), sd(x), sd(x) / sqrt(n))
+```
+
+```{r}
+#| label: tbl-est-cilindros
+#| tbl-cap: "Estimaciones puntuales para el lote de concreto."
+#| echo: false
+
+tibble(
+  parametro = c("<i>μ</i>", "<i>σ</i>", "EE(<i>x̄</i>)", "<i>p</i> (fracción bajo 30 MPa)"),
+  estimador = c("<i>x̄</i>", "<i>s</i>", "<i>s</i>/√<i>n</i>", "<i>p̂</i>"),
+  valor = c(sprintf("%.2f MPa", media), sprintf("%.3f MPa", s),
+            sprintf("%.3f MPa", ee_media), sprintf("%.2f", p_gorro))
+) %>%
+  kbl(col.names = c("Parámetro", "Estimador", "Estimación"), escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Interpretación.** La mejor estimación de la resistencia media del concreto es 32.15 MPa, con un error estándar de 0.48 MPa: si se repitiera el muestreo, las medias variarían alrededor de medio megapascal. La desviación de 2.4 MPa describe la variación entre cilindros, que es lo que controla cuántos quedan bajo la especificación. La proporción estimada de 8 % viene de solo dos cilindros, y su error estándar (5.4 %) es casi tan grande como ella: con 25 ensayos esa fracción se conoce mal.
+
+:::
+
+## Máxima verosimilitud {#sec-est-mv}
+
+::: {.pregunta}
+Si 2 de 25 cilindros no cumplieron, ¿qué valor de $p$ hace más creíble ese resultado?
+:::
+
+Para la media y la proporción, el estimador "natural" es evidente. Para otros parámetros, como los de una distribución exponencial o de Weibull, no lo es tanto. El método de máxima verosimilitud da una receta general, propuesta por Fisher [-@fisher1922mathematical]: se escoge el valor del parámetro que hace más probable la muestra que se observó.
+
+### La función de verosimilitud
+
+Si los datos $x_1, \dots, x_n$ son independientes y cada uno tiene función de probabilidad o de densidad $f(x \mid \theta)$, la probabilidad conjunta de toda la muestra es el producto de las probabilidades individuales. Vista como función del parámetro, con los datos fijos, ese producto se llama función de verosimilitud:
+
+$$
+L(\theta) = \prod_{i=1}^{n} f(x_i \mid \theta)
+$$ {#eq-est-verosimilitud}
+
+donde $\prod$ indica el producto de los $n$ factores. El estimador de máxima verosimilitud (EMV) es el valor $\hat{\theta}$ que hace máxima a $L(\theta)$. Como los productos son incómodos de derivar, se trabaja con el logaritmo, $\ell(\theta) = \ln L(\theta)$, que convierte el producto en suma y tiene su máximo en el mismo punto [@wasserman2004all].
+
+El procedimiento a mano tiene cuatro pasos:
+
+1. Escribir $L(\theta)$ con la @eq-est-verosimilitud.
+2. Tomar logaritmo: $\ell(\theta) = \sum \ln f(x_i \mid \theta)$.
+3. Derivar respecto de $\theta$ e igualar a cero.
+4. Despejar $\theta$. El resultado es $\hat{\theta}$.
+
+### Una proporción
+
+En el ejemplo del concreto, cada cilindro cumple o no cumple, y $X = 2$ de $n = 25$ no cumplieron. Con la distribución binomial,
+
+$$
+L(p) = \binom{25}{2} p^{2} (1-p)^{23}, \qquad \ell(p) = \ln\binom{25}{2} + 2 \ln p + 23 \ln(1-p)
+$$
+
+Al derivar e igualar a cero:
+
+$$
+\frac{d\ell}{dp} = \frac{2}{p} - \frac{23}{1-p} = 0 \quad\Rightarrow\quad 2(1-p) = 23p \quad\Rightarrow\quad \hat{p} = \frac{2}{25} = 0.08
+$$
+
+En general, con $x$ éxitos en $n$ ensayos, el EMV es $\hat{p} = x/n$: la proporción muestral. El método confirma lo que dictaba el sentido común. La @fig-est-interactivo muestra la forma de $L(p)$ para distintos valores de $x$ y $n$.
+
+::: {#fig-est-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-verosimilitud">
+  <label><span>Ensayos <i>n</i>:</span> <output>25</output>
+    <input type="range" min="5" max="100" step="1" value="25" data-ctrl="n"></label>
+  <label><span>Éxitos <i>x</i>:</span> <output>2</output>
+    <input type="range" min="0" max="25" step="1" value="2" data-ctrl="x"></label>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Función de verosimilitud binomial que cambia con n y x"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-verosimilitud");
+  var cn = raiz.querySelector('[data-ctrl="n"]'), cx = raiz.querySelector('[data-ctrl="x"]');
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado");
+  var svg = raiz.querySelector("svg"), w = 640, h = 260, m = 34;
+  var sx = function (p) { return m + p * (w - 2 * m); };
+  var sy = function (y) { return h - m - y * (h - 2 * m - 10); };
+  function dibujar() {
+    var n = parseInt(cn.value, 10);
+    cx.max = n;
+    if (parseInt(cx.value, 10) > n) cx.value = n;
+    var x = parseInt(cx.value, 10), pg = x / n;
+    salidas[0].textContent = n; salidas[1].textContent = x;
+    // log-verosimilitud relativa al máximo, para que la curva quede entre 0 y 1
+    function logL(p) {
+      var a = x > 0 ? x * Math.log(p) : 0, b = (n - x) > 0 ? (n - x) * Math.log(1 - p) : 0;
+      return a + b;
+    }
+    var pmax = Math.min(Math.max(pg, 1e-9), 1 - 1e-9), lmax = logL(pmax), d = "";
+    for (var i = 1; i < 400; i++) {
+      var p = i / 400, y = Math.exp(logL(p) - lmax);
+      d += (d ? "L" : "M") + sx(p).toFixed(1) + "," + sy(y).toFixed(1);
+    }
+    var ejes = "";
+    for (var k = 0; k <= 10; k += 2) {
+      var v = k / 10;
+      ejes += '<line class="eje" x1="' + sx(v) + '" x2="' + sx(v) + '" y1="' + (h - m) + '" y2="' + (h - m + 5) + '"/>' +
+              '<text class="eje-texto" x="' + sx(v) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + v.toFixed(1) + '</text>';
+    }
+    svg.innerHTML = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' + ejes +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 2) + '" text-anchor="middle">p</text>' +
+      '<line class="eje" stroke-dasharray="4 3" x1="' + sx(pg) + '" x2="' + sx(pg) + '" y1="' + (h - m) + '" y2="' + sy(1) + '"/>' +
+      '<path class="curva" d="' + d + '"/>';
+    texto.innerHTML = "Máximo en <i>p̂</i> = <i>x</i>/<i>n</i> = " + x + "/" + n + " = " + pg.toFixed(3);
+  }
+  cn.addEventListener("input", dibujar); cx.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Verosimilitud binomial relativa a su máximo. Mueva los controles: el máximo siempre queda en $x/n$ y la curva se angosta al crecer $n$.
+
+:::
+
+Al mover el control de $n$ con la misma proporción de éxitos, la curva se vuelve más angosta. Esa es otra forma de ver que con más datos el parámetro queda mejor determinado.
+
+### El tiempo medio entre fallas
+
+En la distribución exponencial con media $\theta$, la densidad es $f(x \mid \theta) = \frac{1}{\theta} e^{-x/\theta}$ para $x \ge 0$. Con $n$ datos,
+
+$$
+\ell(\theta) = -n \ln \theta - \frac{1}{\theta}\sum x_i
+$$ {#eq-est-logL-exp}
+
+donde $\theta$ es el tiempo medio entre fallas (h) y $\sum x_i$ es la suma de los tiempos observados (h). Al derivar e igualar a cero:
+
+$$
+\frac{d\ell}{d\theta} = -\frac{n}{\theta} + \frac{\sum x_i}{\theta^2} = 0 \quad\Rightarrow\quad \hat{\theta} = \frac{\sum x_i}{n} = \bar{x}
+$$ {#eq-est-emv-exp}
+
+De nuevo el EMV coincide con la media muestral. La tasa de fallas $\lambda = 1/\theta$ tiene EMV $\hat{\lambda} = 1/\bar{x}$, porque el EMV se conserva al transformar el parámetro: si $\hat{\theta}$ es el EMV de $\theta$, el de $g(\theta)$ es $g(\hat{\theta})$ [@wasserman2004all].
+
+En muchos modelos la derivada no se puede despejar y el máximo se busca con un método numérico. El más usado es el de Newton-Raphson, que corrige un valor inicial con la pendiente y la curvatura de $\ell$:
+
+$$
+\theta_{k+1} = \theta_k - \frac{\ell'(\theta_k)}{\ell''(\theta_k)}
+$$ {#eq-est-newton}
+
+donde $\ell'$ y $\ell''$ son la primera y la segunda derivada de la log-verosimilitud. Para la exponencial, $\ell''(\theta) = n/\theta^2 - 2\sum x_i/\theta^3$. Aunque aquí sí existe la solución exacta, el ejemplo siguiente aplica el método numérico para que se vea cómo trabajan las funciones de R por dentro.
+
+::: {.callout-note title="Ejemplo: tiempo medio entre fallas de bombas por máxima verosimilitud"}
+
+**Planteamiento.** Se registró el tiempo de operación hasta la falla (h) de 20 bombas hipotéticas de un sistema de agua potable. Suponga que los tiempos siguen una distribución exponencial. Estime el tiempo medio entre fallas $\theta$ y la tasa de fallas $\lambda$ por máxima verosimilitud, con la fórmula exacta y con el método de Newton-Raphson.
+
+```{r}
+#| echo: false
+ver_datos("datos/tiempo_falla_bombas_hipotetico.csv",
+          nombres = c("Falla", "Tiempo hasta la falla (h)"))
+```
+
+**Solución:**
+
+1. Suma de los tiempos: $\sum x_i = 7715$ h, con $n = 20$.
+2. EMV exacto con la @eq-est-emv-exp: $\hat{\theta} = 7715/20 = 385.75$ h, y $\hat{\lambda} = 1/385.75 = 0.00259$ fallas por hora.
+3. Newton-Raphson con la @eq-est-newton, partiendo de $\theta_0 = 300$ h. En la primera iteración:
+   $\ell'(300) = -20/300 + 7715/300^2 = -0.06667 + 0.08572 = 0.019056$ y
+   $\ell''(300) = 20/300^2 - 2(7715)/300^3 = 0.000222 - 0.000571 = -0.000349$.
+   Entonces $\theta_1 = 300 - 0.019056/(-0.000349) = 354.56$ h.
+4. Se repite con $\theta_1$ y así sucesivamente. El @tbl-est-newton muestra que en cuatro iteraciones el cambio es menor que 0.001 h y el valor coincide con el exacto.
+
+**Pseudocódigo**
+
+1. Leer los tiempos y calcular $n$ y $\sum x_i$.
+2. Calcular el EMV exacto $\hat{\theta} = \bar{x}$.
+3. Definir $\ell'$ y $\ell''$, escoger $\theta_0$ y repetir la @eq-est-newton hasta que el cambio sea menor que una tolerancia.
+4. Maximizar $\ell(\theta)$ con `optimize()` y ajustar la distribución con `MASS::fitdistr()`.
+5. Comprobar que los tres resultados coinciden.
+
+```{r}
+# 1) Datos
+bombas <- read.csv("datos/tiempo_falla_bombas_hipotetico.csv")
+x <- bombas$tiempo_h
+n <- length(x)
+suma <- sum(x)
+
+# 2) EMV exacto
+theta_exacto <- suma / n
+theta_exacto
+
+# 3) Newton-Raphson, con una fila por iteración
+d1 <- function(theta) -n / theta + suma / theta^2          # primera derivada
+d2 <- function(theta) n / theta^2 - 2 * suma / theta^3     # segunda derivada
+theta <- 300
+iteraciones <- data.frame()
+for (k in 0:20) {
+  theta_nuevo <- theta - d1(theta) / d2(theta)
+  cambio <- abs(theta_nuevo - theta)
+  iteraciones <- rbind(iteraciones,
+                       data.frame(k = k, theta = theta, d1 = d1(theta),
+                                  d2 = d2(theta), theta_nuevo = theta_nuevo, cambio = cambio))
+  theta <- theta_nuevo
+  if (cambio < 0.001) break
+}
+theta
+
+# 4) Máximo numérico de la log-verosimilitud y ajuste con un paquete
+log_ver <- function(theta) -n * log(theta) - suma / theta
+optimize(log_ver, interval = c(50, 2000), maximum = TRUE, tol = 1e-8)$maximum
+
+library(MASS)                   # incluido con R; fitdistr() ajusta por máxima verosimilitud
+ajuste <- fitdistr(x, densfun = "exponential")
+ajuste                          # da la tasa lambda y su error estándar
+1 / ajuste$estimate             # tiempo medio entre fallas (h)
+```
+
+```{r}
+#| label: tbl-est-newton
+#| tbl-cap: "Iteraciones de Newton-Raphson para el tiempo medio entre fallas."
+#| echo: false
+
+iteraciones %>%
+  mutate(theta = sprintf("%.2f", theta), d1 = sprintf("%.6f", d1),
+         d2 = sprintf("%.6f", d2), theta_nuevo = sprintf("%.2f", theta_nuevo),
+         cambio = sprintf("%.4f", cambio)) %>%
+  kbl(col.names = c("<i>k</i>", "<i>θ<sub>k</sub></i> (h)", "<i>ℓ</i>′(<i>θ<sub>k</sub></i>)",
+                    "<i>ℓ</i>″(<i>θ<sub>k</sub></i>)", "<i>θ</i><sub><i>k</i>+1</sub> (h)",
+                    "|<i>θ</i><sub><i>k</i>+1</sub> − <i>θ<sub>k</sub></i>| (h)"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+```{r}
+#| label: fig-est-logver
+#| fig-cap: "Log-verosimilitud de la exponencial para los tiempos de falla de las bombas."
+#| fig-alt: "Curva cóncava con un máximo en 385.75 horas marcado con una línea vertical."
+#| echo: false
+
+tibble(theta = seq(150, 900, length.out = 400)) %>%
+  mutate(l = log_ver(theta)) %>%
+  ggplot(aes(theta, l)) +
+  geom_line(colour = "#1C6BA0", linewidth = 1) +
+  geom_vline(xintercept = theta_exacto, linetype = "dashed") +
+  annotate("text", x = theta_exacto + 15, y = log_ver(theta_exacto) - 2.5,
+           label = "hat(theta) == 385.75~h", parse = TRUE, hjust = 0) +
+  labs(x = expression("Tiempo medio entre fallas " * theta * " (h)"),
+       y = expression("Log-verosimilitud " * l(theta))) +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** Con los 20 registros, el tiempo medio entre fallas estimado es de 386 h, unas dos semanas de operación continua, y la tasa es de 0.0026 fallas por hora. La @fig-est-logver muestra que la log-verosimilitud es bastante plana cerca del máximo: valores entre 300 y 500 h tienen una verosimilitud parecida. Eso anticipa que el intervalo de confianza para $\theta$ será ancho, como se verá en el capítulo siguiente.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Los estimadores de máxima verosimilitud tienen tres propiedades que explican por qué son los más usados: son consistentes, su distribución se acerca a la normal cuando $n$ crece y, para muestras grandes, ningún otro estimador razonable tiene menor varianza [@wasserman2004all]. Por eso las funciones de R que ajustan distribuciones (`MASS::fitdistr()`) o modelos (`glm()`) trabajan por máxima verosimilitud. Con muestras pequeñas pueden tener algo de sesgo: el EMV de la varianza normal es el que divide entre $n$.
+:::
+
+### Método de los momentos
+
+Un método más antiguo y más sencillo es el de los momentos: se igualan la media (y, si hace falta, la varianza) de la distribución a las de la muestra y se despeja el parámetro. En la exponencial, la media es $\theta$, así que el método de los momentos da $\hat{\theta} = \bar{x}$, igual que la máxima verosimilitud. En otras distribuciones los dos métodos dan valores distintos.
+
+::: {.callout-warning title="Cuidado"}
+Cuando dos métodos de estimación dan valores distintos para el mismo parámetro, los resultados no se promedian. Cada método tiene sus propiedades; para muestras de tamaño moderado se prefiere el de máxima verosimilitud.
+:::
+
+## Ejercicios propuestos
+
+1. Para los diez esfuerzos de fluencia del archivo `datos/varillas_fluencia_hipoteticas.csv`, calcule a mano y con R la media, la desviación estándar y el error estándar de la media. ¿Cuántas varillas habría que ensayar para que el error estándar fuera la mitad?
+2. En una muestra de 120 tubos de concreto, 9 presentaron fisuras. Estime la proporción de tubos fisurados y su error estándar.
+3. Modifique la simulación de la @fig-est-sesgo para muestras de tamaño 20. ¿Cuánto vale ahora el sesgo del estimador que divide entre $n$? Compare con la @eq-est-sesgo-varianza.
+4. Simule 5000 muestras de tamaño 15 de una normal con media 30 y desviación 2.5. En cada una calcule la media y la mediana. ¿Cuál de los dos estimadores tiene menor varianza? Calcule el cociente entre las dos varianzas.
+5. El número de vehículos pesados que cruzan un puente en un minuto sigue una distribución de Poisson con media $\lambda$. Demuestre que el EMV de $\lambda$ es $\bar{x}$. Luego estime $\lambda$ con estos conteos de diez minutos: 3, 5, 2, 4, 6, 3, 1, 4, 5, 2.
+6. Repita el ejemplo de Newton-Raphson con $\theta_0 = 600$ h. ¿Cuántas iteraciones necesita? ¿Qué pasa si arranca en $\theta_0 = 1200$ h?
+
+## Lecturas recomendadas
+
+- @montgomery2014applied, capítulo 7: propiedades de los estimadores y máxima verosimilitud con ejemplos de ingeniería.
+- @walpole2012probabilidad, capítulo 9: estimación puntual y por intervalos, en español.
+- @wasserman2004all, capítulos 6 y 9: tratamiento más formal del sesgo, la consistencia y la máxima verosimilitud.
+- @illowsky2018introductory, capítulos 7 y 8: el error estándar, el teorema del límite central y la estimación, con muchos ejemplos.

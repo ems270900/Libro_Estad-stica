@@ -27,3 +27,13 @@ Cada archivo de datos de los ejemplos se describe aquí: qué contiene, columnas
 - `adherencia_pintura_hipotetica.csv`: índice de adherencia (0 a 100 puntos) de tres pinturas anticorrosivas aplicadas por inmersión o rociado, tres placas por combinación (factorial 2 × 3). Columnas: `metodo` (inmersion, rociado), `pintura` (P1, P2, P3), `repeticion` (1 a 3) y `adherencia` (puntos). Valores de las diapositivas de la Semana 8. Capítulo 30.
 - `pelicula_asfalto_hipotetica.csv`: espesor de película de asfalto (µm) en un factorial 2² con dos repeticiones. Columnas: `asfalto` (bajo, alto), `fibra` (baja, alta), `repeticion` (1, 2) y `espesor_um` (µm). Valores de las diapositivas de la Semana 8. Capítulo 30.
 - `mortero_factorial_hipotetico.csv`: resistencia a compresión (MPa) de cubos de mortero en un factorial 2³ sin repetición. Columnas: `corrida` (orden estándar), `cemento`, `agua_cemento` y `curado` (codificados −1 y +1) y `resistencia_mpa` (MPa). Generado con la media 30 + 3A − 2B + 2.5C + 1.5AC más desviaciones fijas escritas a mano (0.3, −0.2, 0.4, −0.1, −0.3, 0.2, 0.1, −0.4). Capítulo 30.
+- `varillas_fluencia_hipoteticas.csv`: esfuerzo de fluencia (MPa) de diez varillas de acero, valores del material del curso IC-0516 usados como hipotéticos. Columnas `varilla` y `fluencia_mpa`. Capítulos 19 y 20.
+- `lote_cilindros_hipotetico.csv`: resistencia a compresión a 28 días (MPa) de 25 cilindros de un mismo concreto, normal con media 31 y desviación 2.6. Columnas `cilindro` y `resistencia_mpa`. Capítulos 18 y 19.
+- `tiempo_falla_bombas_hipotetico.csv`: horas de operación hasta la falla de 20 bombas, exponencial con media 400 h. Columnas `falla` y `tiempo_h`. Capítulo 18.
+- `espesor_carpeta_hipotetico.csv`: espesor (mm) de la carpeta asfáltica en 12 núcleos; espesor de diseño 50 mm. Columnas `nucleo` y `espesor_mm`. Capítulo 21.
+- `concreto_aditivo_hipotetico.csv`: resistencia a compresión (MPa) de 12 cilindros sin aditivo y 10 con aditivo. Columnas `mezcla` y `resistencia_mpa`. Capítulo 22.
+- `iri_mantenimiento_hipotetico.csv`: índice de regularidad internacional (m/km) de diez tramos antes y después de un mantenimiento. Columnas `tramo`, `iri_antes` e `iri_despues`. Capítulo 22.
+- `tipo_falla_cilindros_hipotetico.csv`: tipo de falla (Cónica, Columnar, Cortante) de 180 cilindros según la planta (A, B, C). Columnas `cilindro`, `planta` y `tipo_falla`. UTF-8. Capítulo 23.
+- `llegada_camiones_hipotetica.csv`: camiones que llegan a una planta de concreto en 80 intervalos de 15 minutos, Poisson con media 2.2. Columnas `intervalo` y `camiones`. Capítulo 23.
+
+Los ocho archivos de la Parte V se generan con `herramientas/datos_parte5.R`, semilla `20261125` (correr con una sesión en UTF-8).

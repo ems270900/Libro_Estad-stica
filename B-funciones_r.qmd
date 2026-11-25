@@ -247,12 +247,17 @@ Las funciones `p` dan siempre el área a la izquierda. Para el área a la derech
 
 | Función | Qué hace | Ejemplo | Cap. |
 |:--|:--|:--|:-:|
-| `t.test()` | Prueba $t$ e intervalo de confianza para una media o dos medias | `t.test(x, mu = 28)` | 21 |
-| `prop.test()` | Prueba e intervalo para una o dos proporciones | `prop.test(12, 40, p = 0.5)` | 21 |
+| `optimize()` | Busca el máximo o el mínimo de una función en un intervalo | `optimize(f, c(50, 2000), maximum = TRUE)` | 18 |
+| `fitdistr()` | Ajusta una distribución por máxima verosimilitud [MASS] | `fitdistr(x, "exponential")` | 18 |
+| `normtol.int()` | Intervalo de tolerancia para una población normal [tolerance] | `normtol.int(x, alpha = 0.05, P = 0.90, side = 2)` | 19 |
+| `power.t.test()` | Potencia o tamaño de muestra de una prueba $t$ | `power.t.test(delta = 3, sd = 3.3, power = 0.9)` | 20 |
+| `t.test()` | Prueba $t$ e intervalo de confianza para una media o dos medias | `t.test(x, mu = 28)` | 19 a 22 |
+| `prop.test()` | Prueba e intervalo para una o dos proporciones | `prop.test(12, 40, p = 0.5)` | 19, 21 |
 | `binom.test()` | Prueba exacta para una proporción (muestras pequeñas) | `binom.test(3, 20, p = 0.1)` | 21 |
 | `var.test()` | Prueba $F$ para comparar dos varianzas | `var.test(x, y)` | 22 |
 | `chisq.test()` | Prueba chi-cuadrado de bondad de ajuste o de independencia | `chisq.test(cuadro)` | 23 |
-| `shapiro.test()` | Prueba de normalidad de Shapiro-Wilk | `shapiro.test(x)` | 27 |
+| `fisher.test()` | Prueba exacta de independencia en un cuadro de 2 × 2 | `fisher.test(cuadro)` | 23 |
+| `shapiro.test()` | Prueba de normalidad de Shapiro-Wilk | `shapiro.test(x)` | 21, 27 |
 
 : Funciones de intervalos de confianza y pruebas de hipótesis. {#tbl-apb-inferencia}
 

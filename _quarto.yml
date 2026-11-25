@@ -66,6 +66,15 @@ book:
         - 11-tecnicas_conteo.qmd
         - 12-probabilidad_condicional.qmd
 
+    - part: "Inferencia estadística"
+      chapters:
+        - 18-estimacion_puntual.qmd
+        - 19-intervalos.qmd
+        - 20-pruebas_fundamentos.qmd
+        - 21-pruebas_una_poblacion.qmd
+        - 22-pruebas_dos_poblaciones.qmd
+        - 23-pruebas_chi_cuadrado.qmd
+
     - part: "Correlación y regresión"
       chapters:
         - 24-correlacion.qmd

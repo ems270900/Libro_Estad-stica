@@ -1,0 +1,428 @@
+---
+title: "Pruebas chi-cuadrado"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+# jQuery antes del primer cuadro: kableExtra lo necesita y aquí el primer cuadro va antes que ver_datos()
+knitr::knit_meta_add(list(rmarkdown::html_dependency_jquery()))
+```
+
+Las pruebas de los capítulos anteriores trabajan con medias, proporciones y varianzas. Muchas preguntas de ingeniería, en cambio, se responden contando: cuántos accidentes ocurren cada día de la semana, cuántos camiones llegan en cada intervalo, qué tipo de falla presenta cada cilindro según la planta que lo despachó. Las pruebas chi-cuadrado comparan esos conteos observados con los que se esperarían si una hipótesis fuera cierta. Se usan para dos preguntas: si los datos siguen una distribución propuesta (bondad de ajuste) y si dos variables categóricas están relacionadas (independencia). Ambas vienen del mismo estadístico, propuesto por Pearson [-@pearson1900criterion].
+
+## El estadístico chi-cuadrado {#sec-chi-estadistico}
+
+::: {.pregunta}
+Si los accidentes de una obra se repartieran por igual entre los seis días laborales, ¿cuántos habría que esperar cada día?
+:::
+
+Con 140 accidentes, unos 23.3 por día. Nunca se observarán exactamente esos valores, porque los conteos varían por azar. La pregunta es si las diferencias entre lo observado y lo esperado son de tamaño normal o demasiado grandes. Pearson propuso medirlas así:
+
+$$
+\chi^2 = \sum_{i=1}^{k} \frac{(O_i - E_i)^2}{E_i}
+$$ {#eq-chi-pearson}
+
+donde $O_i$ es el conteo observado en la categoría $i$, $E_i$ es el conteo esperado si $H_0$ es cierta y $k$ es el número de categorías. Cada término compara una categoría. La diferencia se eleva al cuadrado para que las positivas y las negativas no se cancelen, y se divide entre $E_i$ para que una diferencia de 5 pese más en una categoría donde se esperaban 10 que en una donde se esperaban 100.
+
+Si $H_0$ es cierta y los conteos esperados no son muy pequeños, el estadístico sigue aproximadamente una distribución $\chi^2$. Las diferencias grandes producen valores grandes de $\chi^2$, así que la prueba siempre rechaza por la cola derecha: se rechaza $H_0$ si $\chi^2 > \chi^2_{\alpha,\,\nu}$, o si el valor $p = P(\chi^2_\nu \ge \chi^2_{\text{obs}})$ es menor que $\alpha$. Los grados de libertad $\nu$ dependen del tipo de prueba.
+
+::: {.callout-warning title="Cuidado"}
+La aproximación $\chi^2$ necesita conteos esperados suficientemente grandes. La regla habitual, de Cochran [-@cochran1954some], es que ningún $E_i$ sea menor que 1 y que no más del 20 % de ellos sea menor que 5. Si no se cumple, se agrupan categorías vecinas o, en cuadros de 2 × 2, se usa la prueba exacta de Fisher. La regla se aplica a los esperados, no a los observados: un conteo observado de 0 no es un problema si su esperado es 6.
+:::
+
+## Bondad de ajuste {#sec-chi-bondad}
+
+Una prueba de bondad de ajuste contrasta si los datos de una variable vienen de una distribución dada:
+
+- $H_0$: los datos siguen la distribución propuesta.
+- $H_1$: los datos no siguen la distribución propuesta.
+
+Los esperados se calculan como $E_i = n\,p_i$, donde $n$ es el total de observaciones y $p_i$ es la probabilidad de la categoría $i$ según la distribución de $H_0$. Los grados de libertad son
+
+$$
+\nu = k - 1 - m
+$$ {#eq-chi-gl-bondad}
+
+donde $k$ es el número de categorías (después de agrupar las que tengan esperados pequeños) y $m$ es el número de parámetros de la distribución que se estimaron con los mismos datos [@montgomery2014applied]. Se resta 1 porque los esperados deben sumar $n$, y se resta un grado más por cada parámetro estimado.
+
+::: {.callout-note title="Ejemplo: ¿se reparten los accidentes por igual entre los días?"}
+
+**Planteamiento.** En una obra se registraron 140 accidentes laborales hipotéticos en un año, distribuidos así de lunes a sábado: 38, 19, 16, 18, 21 y 28. Con $\alpha = 0.05$, ¿hay evidencia de que los accidentes no se reparten por igual entre los días?
+
+**Solución:**
+
+1. Hipótesis: $H_0$: cada día tiene la misma probabilidad, $p_i = 1/6$. $H_1$: al menos un día tiene una probabilidad distinta.
+2. Esperados: $E_i = 140 \times 1/6 = 23.33$ para cada día. Todos son mayores que 5.
+3. Estadístico, término por término con la @eq-chi-pearson: lunes $(38 - 23.33)^2/23.33 = 9.219$; martes 0.805; miércoles 2.305; jueves 1.219; viernes 0.233; sábado 0.933. La suma es $\chi^2 = 14.71$.
+4. Grados de libertad: $\nu = 6 - 1 - 0 = 5$, porque no se estimó ningún parámetro.
+5. Decisión: $\chi^2_{0.05,\,5} = 11.07$. Como $14.71 > 11.07$, se rechaza $H_0$. El valor $p$ es 0.012.
+6. Conclusión: con 5 % de significancia, los accidentes no se reparten por igual entre los días de la semana.
+
+**Pseudocódigo**
+
+1. Guardar los conteos observados y las probabilidades de $H_0$.
+2. Calcular los esperados $E_i = n\,p_i$ y revisar que no sean pequeños.
+3. Calcular cada término $(O_i - E_i)^2/E_i$ y sumarlos.
+4. Calcular el valor $p$ con `pchisq()` y $\nu = k - 1$.
+5. Comprobar con `chisq.test()`.
+
+```{r}
+# 1) Datos
+dias <- c("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
+observados <- c(38, 19, 16, 18, 21, 28)
+p0 <- rep(1 / 6, 6)
+
+# 2) Esperados
+n <- sum(observados)
+esperados <- n * p0
+
+# 3) Estadístico
+terminos <- (observados - esperados)^2 / esperados
+chi2 <- sum(terminos)
+
+# 4) Valor p con k - 1 grados de libertad
+gl <- length(observados) - 1
+c(chi2 = chi2, gl = gl, critico = qchisq(0.95, gl), p = 1 - pchisq(chi2, gl))
+
+# 5) Con la función de R
+chisq.test(observados, p = p0)
+```
+
+```{r}
+#| label: tbl-chi-dias
+#| tbl-cap: "Accidentes observados y esperados por día."
+#| echo: false
+
+tibble(dia = dias, o = observados, e = esperados, t = terminos) %>%
+  bind_rows(tibble(dia = "Total", o = sum(observados), e = sum(esperados), t = chi2)) %>%
+  mutate(e = sprintf("%.2f", e), t = sprintf("%.3f", t)) %>%
+  kbl(col.names = c("Día", "<i>O<sub>i</sub></i>", "<i>E<sub>i</sub></i>", "(<i>O<sub>i</sub></i> − <i>E<sub>i</sub></i>)²/<i>E<sub>i</sub></i>"),
+      escape = FALSE, align = c("l", "c", "c", "c")) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(7, bold = TRUE)
+```
+
+**Interpretación.** El @tbl-chi-dias muestra de dónde viene el rechazo: el lunes aporta 9.2 de los 14.7 del estadístico, con 38 accidentes contra 23 esperados. El sábado también está por encima. Para la gestión de la seguridad, el resultado sugiere revisar qué pasa al inicio de la semana: la charla de seguridad, la planificación de las tareas o el estado de los equipos después del fin de semana.
+
+:::
+
+### Ajuste a una distribución con parámetros estimados
+
+Con frecuencia la distribución de $H_0$ tiene parámetros que no se conocen y se estiman con los mismos datos, por ejemplo la media $\lambda$ de una Poisson. En ese caso se pierde un grado de libertad por cada parámetro estimado (@eq-chi-gl-bondad).
+
+::: {.callout-note title="Ejemplo: llegada de camiones a una planta de concreto"}
+
+**Planteamiento.** Se contó el número de camiones que llegan a una planta de concreto en 80 intervalos hipotéticos de 15 minutos. Con $\alpha = 0.05$, ¿es razonable el modelo de Poisson para el número de llegadas por intervalo?
+
+```{r}
+#| echo: false
+ver_datos("datos/llegada_camiones_hipotetica.csv",
+          nombres = c("Intervalo", "Camiones"))
+```
+
+**Solución:**
+
+1. Hipótesis: $H_0$: las llegadas por intervalo siguen una distribución de Poisson. $H_1$: no la siguen.
+2. Estimación de $\lambda$: hubo 165 llegadas en 80 intervalos, así que $\hat{\lambda} = 165/80 = 2.0625$ camiones por intervalo, que es el estimador de máxima verosimilitud.
+3. Categorías: se observaron 9, 21, 21 y 22 intervalos con 0, 1, 2 y 3 camiones, y 7 intervalos con 4 o más. Los valores de 4 en adelante se agrupan porque sus esperados por separado serían menores que 5.
+4. Probabilidades y esperados con $P(X = x) = e^{-\hat{\lambda}}\hat{\lambda}^x/x!$. Por ejemplo, $P(X = 0) = e^{-2.0625} = 0.1271$ y $E_0 = 80 \times 0.1271 = 10.17$. El @tbl-chi-poisson tiene el resto; la última categoría se obtiene como $1 - P(X \le 3) = 0.1543$.
+5. Estadístico: $\chi^2 = 0.135 + 0.000 + 0.019 + 3.416 + 2.315 = 5.884$.
+6. Grados de libertad: $\nu = 5 - 1 - 1 = 3$, porque se estimó $\lambda$.
+7. Decisión: $\chi^2_{0.05,\,3} = 7.815$. Como $5.884 < 7.815$, no se rechaza $H_0$. El valor $p$ es 0.117.
+8. Conclusión: con 5 % de significancia, los datos no contradicen el modelo de Poisson.
+
+**Pseudocódigo**
+
+1. Leer los datos y estimar $\hat{\lambda} = \bar{x}$.
+2. Contar los intervalos con 0, 1, 2, 3 y 4 o más camiones.
+3. Calcular las probabilidades con `dpois()` y la de la última categoría con `1 - ppois(3, ...)`.
+4. Calcular esperados, estadístico y valor $p$ con $\nu = k - 2$.
+5. Comprobar con `chisq.test()` y corregir los grados de libertad a mano.
+
+```{r}
+# 1) Datos y estimación de lambda
+camiones <- read.csv("datos/llegada_camiones_hipotetica.csv")
+x <- camiones$camiones
+lambda <- mean(x)
+
+# 2) Conteos observados por categoría (la última agrupa 4 o más)
+observados <- c(sum(x == 0), sum(x == 1), sum(x == 2), sum(x == 3), sum(x >= 4))
+
+# 3) Probabilidades de la Poisson
+p0 <- c(dpois(0:3, lambda), 1 - ppois(3, lambda))
+
+# 4) Esperados, estadístico y valor p (se estimó 1 parámetro)
+esperados <- length(x) * p0
+chi2 <- sum((observados - esperados)^2 / esperados)
+gl <- length(observados) - 1 - 1
+c(lambda = lambda, chi2 = chi2, gl = gl, p = 1 - pchisq(chi2, gl))
+
+# 5) chisq.test() no sabe que lambda se estimó: usa k - 1 = 4 grados de libertad
+prueba <- chisq.test(observados, p = p0)
+prueba$statistic
+1 - pchisq(prueba$statistic, df = gl)      # valor p corregido
+```
+
+```{r}
+#| label: tbl-chi-poisson
+#| tbl-cap: "Camiones por intervalo: conteos observados y esperados con el modelo de Poisson."
+#| echo: false
+
+tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = esperados,
+       t = (observados - esperados)^2 / esperados) %>%
+  mutate(p = sprintf("%.4f", p), e = sprintf("%.2f", e), t = sprintf("%.3f", t)) %>%
+  kbl(col.names = c("Camiones <i>x</i>", "<i>O<sub>i</sub></i>", "<i>P</i>(<i>X</i> = <i>x</i>)",
+                    "<i>E<sub>i</sub></i>", "(<i>O<sub>i</sub></i> − <i>E<sub>i</sub></i>)²/<i>E<sub>i</sub></i>"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+```{r}
+#| label: fig-chi-poisson
+#| fig-cap: "Intervalos observados y esperados según el número de camiones que llegan."
+#| fig-alt: "Barras de conteos observados junto a puntos de los esperados por la Poisson; las mayores diferencias están en 3 y en 4 o más."
+#| echo: false
+
+tibble(cat = factor(c("0", "1", "2", "3", "4 o más"), levels = c("0", "1", "2", "3", "4 o más")),
+       Observados = observados, Esperados = esperados) %>%
+  ggplot(aes(cat)) +
+  geom_col(aes(y = Observados), fill = "#1C6BA0", alpha = 0.8, width = 0.6) +
+  geom_point(aes(y = Esperados), colour = "#E69F00", size = 4) +
+  geom_line(aes(y = Esperados, group = 1), colour = "#E69F00", linewidth = 0.8) +
+  labs(x = "Camiones por intervalo de 15 min", y = "Número de intervalos") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** La @fig-chi-poisson muestra que hubo más intervalos con 3 camiones y menos con 4 o más que los que predice la Poisson, pero esas diferencias caben dentro de lo esperable por azar con 80 intervalos. Se puede usar el modelo de Poisson con $\lambda \approx 2.06$ camiones cada 15 minutos para dimensionar, por ejemplo, la zona de espera de la planta. Si se usara el valor $p$ de `chisq.test()` sin corregir (0.208), la conclusión sería la misma en este caso, pero en otros el error en los grados de libertad cambia la decisión.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+No rechazar $H_0$ en una prueba de bondad de ajuste no demuestra que los datos sigan la distribución propuesta, solo que no hay evidencia en contra. Con pocos datos, varias distribuciones distintas pasan la prueba. Los resultados de pruebas de bondad de ajuste de varias distribuciones no se promedian ni se usan para escoger "la mejor" solo por su valor $p$; la elección se apoya también en el mecanismo físico del fenómeno.
+:::
+
+## Independencia en cuadros de contingencia {#sec-chi-independencia}
+
+::: {.pregunta}
+¿El tipo de falla de un cilindro depende de la planta que despachó el concreto?
+:::
+
+Cuando cada elemento se clasifica según dos variables categóricas, los conteos se ordenan en un cuadro de contingencia, con $r$ filas para las categorías de una variable y $c$ columnas para las de la otra. La prueba de independencia contrasta:
+
+- $H_0$: las dos variables son independientes.
+- $H_1$: las dos variables están relacionadas.
+
+Si las variables son independientes, la probabilidad de caer en la celda $(i, j)$ es el producto de las probabilidades de la fila y de la columna. De ahí sale el conteo esperado de cada celda:
+
+$$
+E_{ij} = \frac{(\text{total de la fila } i) \times (\text{total de la columna } j)}{n}
+$$ {#eq-chi-esperado}
+
+donde $n$ es el total del cuadro. El estadístico es el de la @eq-chi-pearson sumado sobre las $r \times c$ celdas, con
+
+$$
+\nu = (r - 1)(c - 1)
+$$ {#eq-chi-gl-independencia}
+
+grados de libertad [@montgomery2014applied]. La misma prueba sirve para la pregunta de homogeneidad, que compara la distribución de una variable en varias poblaciones muestreadas por separado: por ejemplo, si la distribución de los tipos de falla es la misma en las tres plantas. Los cálculos son idénticos.
+
+::: {.callout-note title="Ejemplo: tipo de falla de los cilindros según la planta"}
+
+**Planteamiento.** Se registró el tipo de falla (cónica, columnar o cortante) de 180 cilindros hipotéticos despachados por tres plantas de concreto. Con $\alpha = 0.05$, ¿hay evidencia de que el tipo de falla depende de la planta?
+
+```{r}
+#| echo: false
+ver_datos("datos/tipo_falla_cilindros_hipotetico.csv",
+          nombres = c("Cilindro", "Planta", "Tipo de falla"))
+```
+
+**Solución:**
+
+1. Cuadro de contingencia: al contar los cilindros por planta y tipo de falla se obtiene el @tbl-chi-contingencia.
+2. Hipótesis: $H_0$: el tipo de falla es independiente de la planta. $H_1$: hay relación.
+3. Esperados con la @eq-chi-esperado: para la planta A y falla cónica, $E = 70 \times 88/180 = 34.22$. Las demás celdas se calculan igual y aparecen entre paréntesis en el cuadro. Todos los esperados son mayores que 5.
+4. Estadístico: el término de la planta A con falla cónica es $(43 - 34.22)^2/34.22 = 2.251$. Al sumar los nueve términos, $\chi^2 = 2.251 + 0.655 + 1.786 + 0.379 + 0.095 + 0.333 + 1.213 + 0.384 + 0.900 = 7.997$.
+5. Grados de libertad: $\nu = (3 - 1)(3 - 1) = 4$.
+6. Decisión: $\chi^2_{0.05,\,4} = 9.488$. Como $7.997 < 9.488$, no se rechaza $H_0$. El valor $p$ es 0.092.
+7. Conclusión: con 5 % de significancia, no hay evidencia suficiente de que el tipo de falla dependa de la planta.
+
+**Pseudocódigo**
+
+1. Leer los datos y armar el cuadro de contingencia con `table()`.
+2. Calcular los totales de filas y columnas y los esperados con la @eq-chi-esperado.
+3. Calcular el estadístico, los grados de libertad y el valor $p$.
+4. Comprobar con `chisq.test()` y revisar los residuos estandarizados.
+
+```{r}
+# 1) Datos y cuadro de contingencia
+fallas <- read.csv("datos/tipo_falla_cilindros_hipotetico.csv", fileEncoding = "UTF-8")
+fallas$tipo_falla <- factor(fallas$tipo_falla, levels = c("Cónica", "Columnar", "Cortante"))
+cuadro <- table(fallas$planta, fallas$tipo_falla)
+addmargins(cuadro)                    # agrega los totales
+
+# 2) Esperados: total de fila por total de columna entre n
+n <- sum(cuadro)
+esperados <- outer(rowSums(cuadro), colSums(cuadro)) / n
+round(esperados, 2)
+
+# 3) Estadístico, grados de libertad y valor p
+chi2 <- sum((cuadro - esperados)^2 / esperados)
+gl <- (nrow(cuadro) - 1) * (ncol(cuadro) - 1)
+c(chi2 = chi2, gl = gl, critico = qchisq(0.95, gl), p = 1 - pchisq(chi2, gl))
+
+# 4) Con la función de R
+prueba <- chisq.test(cuadro)
+prueba
+round(prueba$stdres, 2)               # residuos estandarizados por celda
+```
+
+```{r}
+#| label: tbl-chi-contingencia
+#| tbl-cap: "Cilindros por planta y tipo de falla: observados y, entre paréntesis, esperados."
+#| echo: false
+
+celdas <- matrix(sprintf("%d (%.2f)", cuadro, esperados), nrow = nrow(cuadro))
+tibble(planta = rownames(cuadro)) %>%
+  bind_cols(as_tibble(celdas, .name_repair = ~ colnames(cuadro))) %>%
+  mutate(total = as.character(rowSums(cuadro))) %>%
+  bind_rows(tibble(planta = "Total", !!!setNames(as.list(as.character(colSums(cuadro))), colnames(cuadro)),
+                   total = as.character(n))) %>%
+  kbl(col.names = c("Planta", colnames(cuadro), "Total"), align = c("l", "c", "c", "c", "c")) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(4, bold = TRUE)
+```
+
+```{r}
+#| label: fig-chi-fallas
+#| fig-cap: "Proporción de cada tipo de falla en los cilindros de cada planta."
+#| fig-alt: "Barras apiladas al 100 % para las plantas A, B y C; la planta A tiene más fallas cónicas que las otras dos."
+#| echo: false
+
+as_tibble(cuadro, .name_repair = ~ c("planta", "tipo", "n")) %>%
+  group_by(planta) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(planta, prop, fill = factor(tipo, levels = c("Cortante", "Columnar", "Cónica")))) +
+  geom_col(width = 0.6) +
+  scale_fill_manual(values = c("Cónica" = "#1C6BA0", "Columnar" = "#56B4E9", "Cortante" = "#E69F00")) +
+  scale_y_continuous(labels = function(v) paste0(v * 100, " %")) +
+  labs(x = NULL, y = "Proporción de cilindros", fill = "Tipo de falla") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** La @fig-chi-fallas sugiere que la planta A tiene más fallas cónicas (61 %) que la B (43 %) y la C (38 %), y el residuo estandarizado de esa celda es 2.7. Sin embargo, al considerar el cuadro completo, el valor $p$ de 0.092 no alcanza el 5 %. Con estos datos no se puede afirmar que el tipo de falla dependa de la planta; si la diferencia de la planta A es real, una muestra mayor lo mostraría.
+
+:::
+
+Los residuos estandarizados que entrega `chisq.test()` ayudan a ver qué celdas se apartan más de lo esperado. Valores mayores que 2 en valor absoluto señalan celdas que vale la pena mirar, pero solo después de una prueba global significativa, o como pista para un estudio posterior.
+
+La @fig-chi-calculadora repite la prueba de independencia con cualquier cuadro de 3 × 3. Si se deja una fila o una columna completa en cero, se trata como si no existiera, de modo que también sirve para cuadros de 2 × 2, 2 × 3 o 3 × 2.
+
+::: {#fig-chi-calculadora}
+
+```{=html}
+<div class="interactivo" id="int-chi-cuadro">
+  <table class="entrada">
+    <tr><th></th><th>Columna 1</th><th>Columna 2</th><th>Columna 3</th></tr>
+    <tr><th>Fila 1</th><td><input type="number" min="0" step="1" value="43"></td><td><input type="number" min="0" step="1" value="18"></td><td><input type="number" min="0" step="1" value="9"></td></tr>
+    <tr><th>Fila 2</th><td><input type="number" min="0" step="1" value="26"></td><td><input type="number" min="0" step="1" value="20"></td><td><input type="number" min="0" step="1" value="14"></td></tr>
+    <tr><th>Fila 3</th><td><input type="number" min="0" step="1" value="19"></td><td><input type="number" min="0" step="1" value="18"></td><td><input type="number" min="0" step="1" value="13"></td></tr>
+  </table>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-chi-cuadro"), texto = raiz.querySelector(".resultado");
+  var celdas = raiz.querySelectorAll("input");
+  function lgamma(x) {
+    var g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, tmp = x + 5.5; tmp -= (x + 0.5) * Math.log(tmp); var ser = 1.000000000190015;
+    for (var j = 0; j < 6; j++) ser += g[j] / ++y;
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+  }
+  // Gamma incompleta regularizada P(a, x): serie si x < a + 1, fracción continua si no
+  function gammp(a, x) {
+    if (x <= 0) return 0;
+    if (x < a + 1) {
+      var ap = a, sum = 1 / a, del = sum;
+      for (var n = 0; n < 500; n++) { ap++; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-14) break; }
+      return sum * Math.exp(-x + a * Math.log(x) - lgamma(a));
+    }
+    var b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+    for (var i = 1; i < 500; i++) {
+      var an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+      c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; var dl = d * c; h *= dl; if (Math.abs(dl - 1) < 1e-14) break;
+    }
+    return 1 - Math.exp(-x + a * Math.log(x) - lgamma(a)) * h;
+  }
+  function calcular() {
+    var o = [[], [], []], ok = true;
+    celdas.forEach(function (el, k) { var v = parseFloat(el.value); if (isNaN(v) || v < 0) ok = false; o[Math.floor(k / 3)][k % 3] = v; });
+    if (!ok) { texto.textContent = "Los conteos deben ser números iguales o mayores que cero."; return; }
+    var filas = [0, 1, 2].filter(function (i) { return o[i][0] + o[i][1] + o[i][2] > 0; });
+    var cols = [0, 1, 2].filter(function (j) { return o[0][j] + o[1][j] + o[2][j] > 0; });
+    if (filas.length < 2 || cols.length < 2) { texto.textContent = "Se necesitan al menos dos filas y dos columnas con datos."; return; }
+    var tf = {}, tc = {}, n = 0;
+    filas.forEach(function (i) { tf[i] = 0; cols.forEach(function (j) { tf[i] += o[i][j]; }); n += tf[i]; });
+    cols.forEach(function (j) { tc[j] = 0; filas.forEach(function (i) { tc[j] += o[i][j]; }); });
+    var chi2 = 0, emin = Infinity, chicos = 0, celdasTot = 0;
+    filas.forEach(function (i) { cols.forEach(function (j) {
+      var e = tf[i] * tc[j] / n; chi2 += (o[i][j] - e) * (o[i][j] - e) / e;
+      emin = Math.min(emin, e); if (e < 5) chicos++; celdasTot++;
+    }); });
+    var gl = (filas.length - 1) * (cols.length - 1), p = 1 - gammp(gl / 2, chi2 / 2);
+    var aviso = (emin < 1 || chicos / celdasTot > 0.2) ? " Atención: hay esperados pequeños; la aproximación no es confiable." : "";
+    texto.innerHTML = "Cuadro de " + filas.length + " × " + cols.length + ", <i>n</i> = " + n + ". <i>χ</i>² = " + chi2.toFixed(3) +
+      " con " + gl + " g. l.; valor <i>p</i> = <b>" + (p < 0.0001 ? "< 0.0001" : p.toFixed(4)) + "</b>. Menor esperado: " + emin.toFixed(2) + "." + aviso;
+  }
+  celdas.forEach(function (el) { el.addEventListener("input", calcular); });
+  calcular();
+})();
+</script>
+```
+
+Calculadora de la prueba de independencia. Viene cargada con el cuadro de las plantas y los tipos de falla.
+
+:::
+
+### Cuadros de 2 × 2
+
+Un cuadro de 2 × 2 tiene un solo grado de libertad, y la prueba de independencia es equivalente a la prueba $z$ para dos proporciones de la @sec-dos-proporciones: el $\chi^2$ es igual a $z^2$. En estos cuadros, `chisq.test()` aplica por omisión la corrección por continuidad de Yates [-@yates1934contingency], que resta 0.5 a cada $|O - E|$ antes de elevar al cuadrado y da un valor $p$ algo mayor. Con conteos esperados pequeños se prefiere la prueba exacta de Fisher, `fisher.test()`, que no depende de la aproximación $\chi^2$.
+
+Con los bloques defectuosos de las dos plantas del capítulo anterior (21 de 150 y 9 de 160), las tres versiones dan:
+
+```{r}
+bloques <- matrix(c(21, 129,
+                     9, 151), nrow = 2, byrow = TRUE,
+                  dimnames = list(c("Planta 1", "Planta 2"), c("Defectuoso", "Sin defecto")))
+chisq.test(bloques, correct = FALSE)$statistic   # igual a z² = 2.492²
+chisq.test(bloques)$p.value                      # con corrección de Yates
+fisher.test(bloques)$p.value                     # prueba exacta
+```
+
+Las tres llevan a rechazar la igualdad de proporciones con $\alpha = 0.05$ ($p$ entre 0.013 y 0.021).
+
+::: {.callout-warning title="Cuidado"}
+Las pruebas chi-cuadrado se aplican a conteos de elementos independientes, nunca a porcentajes, promedios ni mediciones continuas. Si se ingresa el cuadro en porcentajes, el estadístico cambia con la escala y el resultado no tiene sentido. Tampoco sirven cuando un mismo elemento se cuenta en varias celdas o se mide dos veces, como antes y después de una intervención; para eso hay pruebas específicas para datos pareados.
+:::
+
+## Ejercicios propuestos
+
+1. Un proveedor afirma que sus agregados tienen la siguiente composición por tamaño: 30 % grava gruesa, 45 % grava fina y 25 % arena. En una muestra de 200 partículas se contaron 70, 92 y 38. Con $\alpha = 0.05$, ¿los datos contradicen la composición declarada?
+2. Se registró el número de fallas por mes en una red de tuberías durante 60 meses: 0 fallas en 12 meses, 1 en 20, 2 en 15, 3 en 8, 4 en 3 y 5 en 2. Pruebe si el número de fallas mensuales sigue una distribución de Poisson. Agrupe las categorías que lo necesiten y calcule bien los grados de libertad.
+3. Con los datos de `datos/tipo_falla_cilindros_hipotetico.csv`, compare solo las plantas A y C. ¿Cambia la conclusión? ¿Por qué esto no autoriza a reportar la comparación que salió significativa?
+4. En una encuesta a 250 conductores se cruzó el tipo de vehículo (liviano, pesado) con el uso del cinturón (sí, no). Los conteos fueron: livianos 160 sí y 40 no; pesados 30 sí y 20 no. Pruebe la independencia con y sin corrección de Yates y con la prueba de Fisher.
+5. Con la calculadora de la @fig-chi-calculadora, multiplique por 2 todos los conteos del cuadro de las plantas. ¿Qué pasa con el estadístico y con el valor $p$? Explique por qué, con la @eq-chi-pearson.
+6. Simule en R 2000 cuadros de 3 × 3 con 180 cilindros en los que el tipo de falla sea independiente de la planta. Aplique `chisq.test()` a cada uno y calcule la fracción de valores $p$ menores que 0.05. ¿Se acerca al 5 %?
+
+## Lecturas recomendadas
+
+- @montgomery2014applied, capítulo 9: pruebas de bondad de ajuste y de independencia en cuadros de contingencia.
+- @walpole2012probabilidad, capítulo 10: prueba chi-cuadrado de bondad de ajuste, de independencia y de homogeneidad, en español.
+- @illowsky2018introductory, capítulo 11: la distribución chi-cuadrado y sus pruebas, con muchos ejercicios.
+- @cochran1954some: el artículo clásico sobre cuándo es confiable la aproximación chi-cuadrado y qué hacer cuando no lo es.
