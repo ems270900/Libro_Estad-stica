@@ -1,6 +1,6 @@
 # Guía de estilo del libro
 
-*Estadística Aplicada a la Ingeniería*
+*Probabilidad e Inferencia Estadística Aplicada a la Ingeniería Civil*
 
 Adaptada de la guía del libro *Hidrología Aplicada a la Ingeniería Civil*, del mismo autor. Los ejemplos de reescritura de la sección 2 vienen de ese libro y se conservan porque los patrones son los mismos.
 
