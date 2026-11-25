@@ -19,6 +19,15 @@
 - Epígrafes: el del capítulo 10 es de Laplace (*Essai philosophique sur les probabilités*, 1814) y el del capítulo 12 de Joseph Butler (*The Analogy of Religion*, 1736, introducción). El capítulo 11 no lleva epígrafe porque no se encontró uno con fuente verificable; el autor puede proponer uno.
 - `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
 
+## Parte VI (Correlación y regresión)
+
+- Revisión del autor de los capítulos 24 a 27.
+- Todos los datos son hipotéticos (`herramientas/datos_parte6.R`). Los datos de la tarea de regresión de la Semana 7 no se usaron, para que la tarea siga sirviendo en el curso. Si el autor tiene datos reales publicables de ensayos de concreto o de caudales, se pueden sustituir.
+- Epígrafes: los de los capítulos 24 y 25 son de Galton, citados por Watkins (fuente secundaria); el del 27 es de Box (1979, p. 202). El capítulo 26 no lleva epígrafe; el autor puede proponer uno.
+- Los capítulos remiten a capítulos todavía no escritos (2, 9, 17, 19 a 21 y la Parte VII) por su número. Cuando existan, conviene cambiar esas menciones por referencias cruzadas `@sec-`.
+- Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.
+- Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Agregarlos a las instrucciones de instalación de la introducción.
+
 ## Apéndices
 
 - Apéndice B: las funciones de las partes II a VII se anotaron con el capítulo previsto en la estructura. Al cerrar cada parte se revisa qué funciones usa de verdad y se ajusta la columna "Cap." y las filas.

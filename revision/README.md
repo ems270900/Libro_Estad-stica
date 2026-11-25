@@ -17,4 +17,8 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
 | 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
 | 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| 24. Asociación y correlación | Borrador | [24-correlacion.md](24-correlacion.md) | Parte VI |
+| 25. Regresión lineal simple | Borrador | [25-regresion_simple.md](25-regresion_simple.md) | Parte VI |
+| 26. Regresión lineal múltiple | Borrador | [26-regresion_multiple.md](26-regresion_multiple.md) | Parte VI |
+| 27. Supuestos, diagnóstico y medidas remediales | Borrador | [27-diagnostico_regresion.md](27-diagnostico_regresion.md) | Parte VI |
 | Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
