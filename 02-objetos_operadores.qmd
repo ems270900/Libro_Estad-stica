@@ -81,9 +81,60 @@ altura_cm <- c(45, 50, 50, 60)
 base_cm * altura_cm           # área de cada sección (cm²)
 ```
 
-::: {.callout-warning title="Cuidado"}
-Si los vectores tienen largos distintos, R repite el más corto hasta completar el largo del más largo. Cuando el largo mayor no es múltiplo del menor, R da una advertencia (`longer object length is not a multiple of shorter object length`). Casi siempre es señal de que falta o sobra un dato.
+### La regla del reciclaje
+
+Si los vectores tienen largos distintos, R no da un error: repite el más corto, desde el inicio, hasta completar el largo del más largo. A esto se le llama reciclaje [@wickham2017r4ds]. La @fig-obj-reciclaje lo muestra con un vector de seis valores y otro de dos.
+
+::: {#fig-obj-reciclaje}
+
+```{=html}
+<svg class="diagrama" viewBox="-40 0 680 200" role="img" aria-label="El vector 10, 20, 30, 40, 50, 60 más el vector 1, 2: el segundo vector se repite como 1, 2, 1, 2, 1, 2 y el resultado es 11, 22, 31, 42, 51, 62">
+  <text x="70" y="42" class="d-nota" style="text-anchor:end">x</text>
+  <text x="70" y="102" class="d-nota" style="text-anchor:end">y (reciclado)</text>
+  <text x="70" y="172" class="d-nota" style="text-anchor:end">x + y</text>
+  <g>
+    <rect x="90" y="20" width="80" height="36" class="d-caja"/><text x="130" y="44" class="d-texto">10</text>
+    <rect x="180" y="20" width="80" height="36" class="d-caja"/><text x="220" y="44" class="d-texto">20</text>
+    <rect x="270" y="20" width="80" height="36" class="d-caja"/><text x="310" y="44" class="d-texto">30</text>
+    <rect x="360" y="20" width="80" height="36" class="d-caja"/><text x="400" y="44" class="d-texto">40</text>
+    <rect x="450" y="20" width="80" height="36" class="d-caja"/><text x="490" y="44" class="d-texto">50</text>
+    <rect x="540" y="20" width="80" height="36" class="d-caja"/><text x="580" y="44" class="d-texto">60</text>
+  </g>
+  <g>
+    <rect x="90" y="80" width="80" height="36" class="d-caja d-acento"/><text x="130" y="104" class="d-texto">1</text>
+    <rect x="180" y="80" width="80" height="36" class="d-caja d-acento"/><text x="220" y="104" class="d-texto">2</text>
+    <rect x="270" y="80" width="80" height="36" class="d-caja d-gris" stroke-dasharray="4 3"/><text x="310" y="104" class="d-texto">1</text>
+    <rect x="360" y="80" width="80" height="36" class="d-caja d-gris" stroke-dasharray="4 3"/><text x="400" y="104" class="d-texto">2</text>
+    <rect x="450" y="80" width="80" height="36" class="d-caja d-gris" stroke-dasharray="4 3"/><text x="490" y="104" class="d-texto">1</text>
+    <rect x="540" y="80" width="80" height="36" class="d-caja d-gris" stroke-dasharray="4 3"/><text x="580" y="104" class="d-texto">2</text>
+  </g>
+  <g>
+    <rect x="90" y="150" width="80" height="36" class="d-caja"/><text x="130" y="174" class="d-texto">11</text>
+    <rect x="180" y="150" width="80" height="36" class="d-caja"/><text x="220" y="174" class="d-texto">22</text>
+    <rect x="270" y="150" width="80" height="36" class="d-caja"/><text x="310" y="174" class="d-texto">31</text>
+    <rect x="360" y="150" width="80" height="36" class="d-caja"/><text x="400" y="174" class="d-texto">42</text>
+    <rect x="450" y="150" width="80" height="36" class="d-caja"/><text x="490" y="174" class="d-texto">51</text>
+    <rect x="540" y="150" width="80" height="36" class="d-caja"/><text x="580" y="174" class="d-texto">62</text>
+  </g>
+</svg>
+```
+
+Reciclaje de un vector corto.
+
 :::
+
+```{r}
+x <- c(10, 20, 30, 40, 50, 60)
+y <- c(1, 2)
+x + y
+```
+
+El caso más común de reciclaje es tan natural que no parece reciclaje: en `resistencia * 1000`, el número 1000 es un vector de largo 1 que R repite para cada elemento. El reciclaje con vectores más largos, en cambio, rara vez es intencional.
+
+::: {.callout-warning title="Cuidado"}
+Cuando el largo mayor no es múltiplo del menor, R da una advertencia (`longer object length is not a multiple of shorter object length`), pero igual hace la cuenta. Cuando sí es múltiplo, no avisa nada. Si se suman las cargas de 6 columnas con un vector de 3 factores de mayoración porque faltaron datos, R repite los 3 factores sin quejarse y el resultado sale mal. Antes de operar dos vectores conviene revisar con `length()` que tengan el largo esperado.
+:::
+
 
 ### Seleccionar elementos
 
@@ -156,6 +207,96 @@ Para convertir de un tipo a otro se usan las funciones `as.numeric()`, `as.chara
 ```{r}
 as.numeric(mezcla)
 ```
+
+### Qué tipo gana al mezclar
+
+Cuando un vector recibe valores de tipos distintos, R los convierte todos al tipo más general, siguiendo un orden fijo: lógico, entero, numérico y carácter (@fig-obj-coercion). A esa conversión automática se le llama coerción [@wickham2017r4ds]. Un `TRUE` mezclado con números se convierte en 1 y un `FALSE` en 0; un número mezclado con texto se convierte en texto. El valor faltante `NA` no cambia el tipo: se adapta al de los demás.
+
+::: {#fig-obj-coercion}
+
+```{=html}
+<svg class="diagrama" viewBox="0 0 660 110" role="img" aria-label="Orden de la coerción: lógico, luego entero, luego numérico, luego carácter; cada tipo se convierte en el de su derecha">
+  <defs><marker id="co-flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-punta"/></marker></defs>
+  <rect x="10" y="20" width="130" height="50" rx="8" class="d-caja"/><text x="75" y="43" class="d-titulo">Lógico</text><text x="75" y="61" class="d-texto">TRUE</text>
+  <rect x="180" y="20" width="130" height="50" rx="8" class="d-caja"/><text x="245" y="43" class="d-titulo">Entero</text><text x="245" y="61" class="d-texto">5L</text>
+  <rect x="350" y="20" width="130" height="50" rx="8" class="d-caja"/><text x="415" y="43" class="d-titulo">Numérico</text><text x="415" y="61" class="d-texto">27.4</text>
+  <rect x="520" y="20" width="130" height="50" rx="8" class="d-caja d-acento"/><text x="585" y="43" class="d-titulo">Carácter</text><text x="585" y="61" class="d-texto">"Puente"</text>
+  <line x1="140" y1="45" x2="178" y2="45" class="d-linea" marker-end="url(#co-flecha)"/>
+  <line x1="310" y1="45" x2="348" y2="45" class="d-linea" marker-end="url(#co-flecha)"/>
+  <line x1="480" y1="45" x2="518" y2="45" class="d-linea" marker-end="url(#co-flecha)"/>
+  <text x="330" y="98" class="d-nota">Al mezclar, todo pasa al tipo que está más a la derecha</text>
+</svg>
+```
+
+Orden de la coerción en R.
+
+:::
+
+En el @fig-obj-coercion-int se arma un vector agregando valores de distintos tipos. Debajo aparece cómo lo imprime R y qué devuelve `class()`. Vale la pena probar `TRUE` con `27.4` (el `TRUE` se convierte en 1), cualquier valor con `"Puente"` (todo pasa a texto) y `NA` con valores de cada tipo.
+
+::: {#fig-obj-coercion-int}
+
+```{=html}
+<div class="interactivo" id="int-coercion">
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem;">
+    <button type="button" data-v="27.4">27.4</button>
+    <button type="button" data-v="30">30</button>
+    <button type="button" data-v="5L">5L</button>
+    <button type="button" data-v="TRUE">TRUE</button>
+    <button type="button" data-v="FALSE">FALSE</button>
+    <button type="button" data-v='"Puente"'>"Puente"</button>
+    <button type="button" data-v='"29.1"'>"29.1"</button>
+    <button type="button" data-v="NA">NA</button>
+    <button type="button" class="co-borrar" style="background:#6c757d;">Borrar</button>
+  </div>
+  <pre class="co-salida" style="text-align:left; margin-top:0.5rem; font-size:0.88rem;"></pre>
+</div>
+<script>
+(function () {
+  const r = document.getElementById("int-coercion"), sal = r.querySelector(".co-salida");
+  let v = ["27.4", "TRUE"];
+  const tipo = x => x === "NA" ? 0 : (x === "TRUE" || x === "FALSE") ? 1 : /L$/.test(x) ? 2 : /^"/.test(x) ? 4 : 3;
+  const nombres = ["logical", "logical", "integer", "numeric", "character"];
+  function convertir(x, t) {
+    if (x === "NA") return "NA";
+    if (t === 4) { const s = x.replace(/^"|"$/g, "").replace(/L$/, ""); return '"' + s + '"'; }
+    if (t === 3 || t === 2) { if (x === "TRUE") return "1"; if (x === "FALSE") return "0"; return x.replace(/L$/, ""); }
+    return x;
+  }
+  function mostrar() {
+    if (!v.length) { sal.textContent = "x <- c()\nx\nNULL"; return; }
+    const t = Math.max(...v.map(tipo));
+    const conv = v.map(x => convertir(x, t));
+    let impreso = conv;
+    if (t === 3) {
+      // R imprime todos los números con la misma cantidad de decimales
+      const dec = Math.max(0, ...conv.filter(x => x !== "NA").map(x => (x.split(".")[1] || "").length));
+      impreso = conv.map(x => x === "NA" ? "NA" : Number(x).toFixed(dec));
+    }
+    const ancho = Math.max(...impreso.map(x => x.length));
+    impreso = impreso.map(x => t === 4 ? x.padEnd(ancho) : x.padStart(ancho));
+    sal.textContent = "x <- c(" + v.join(", ") + ")\nx\n[1] " + impreso.join(" ").trimEnd() + "\nclass(x)\n[1] \"" + nombres[t] + "\"";
+  }
+  r.querySelectorAll("button[data-v]").forEach(b => b.addEventListener("click", () => { if (v.length < 8) v.push(b.dataset.v); mostrar(); }));
+  r.querySelector(".co-borrar").addEventListener("click", () => { v = []; mostrar(); });
+  mostrar();
+})();
+</script>
+```
+
+Coerción al combinar valores de distintos tipos.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Un caso que aparece mucho con datos copiados de Excel en español es la coma decimal. Para R, `"29,1"` no es un número, y `as.numeric("29,1")` devuelve `NA` con la advertencia `NAs introduced by coercion`. La solución es cambiar la coma por un punto antes de convertir: `as.numeric(sub(",", ".", "29,1"))` da 29.1. El capítulo 3 muestra cómo leer de una vez archivos completos con coma decimal.
+:::
+
+```{r}
+as.numeric("29,1")
+as.numeric(sub(",", ".", "29,1"))
+```
+
 
 ### Factores
 
@@ -518,6 +659,60 @@ paste("La resistencia media del lote es", round(media, 1), "MPa.")
 Para que R escriba siempre el mismo número de decimales, aunque el último sea cero, se usa `format()` con el argumento `nsmall`: `format(28.10, nsmall = 2)` da `"28.10"`, mientras que `round(28.10, 2)` muestra 28.1.
 
 ## Matrices y listas {#sec-obj-matrices}
+
+Los vectores son la pieza básica, pero R tiene otras formas de guardar datos, llamadas estructuras de datos. La @fig-obj-estructuras las compara: el vector es una fila de valores del mismo tipo; la matriz, un cuadro de valores del mismo tipo; la lista, una colección de objetos de cualquier tipo y tamaño, y el data frame, que se estudia en el capítulo 3, un cuadro donde cada columna es un vector y cada columna puede tener un tipo distinto [@grolemund2014hopr].
+
+::: {#fig-obj-estructuras}
+
+```{=html}
+<svg class="diagrama" viewBox="0 0 700 240" role="img" aria-label="Cuatro estructuras de datos: un vector de cuatro números en una fila; una matriz de dos filas por tres columnas de números; una lista con un texto, un vector y una matriz pequeña; un data frame con una columna de texto, una numérica y una lógica">
+  <text x="80" y="22" class="d-titulo">Vector</text>
+  <rect x="20" y="40" width="30" height="30" class="d-caja"/><rect x="50" y="40" width="30" height="30" class="d-caja"/><rect x="80" y="40" width="30" height="30" class="d-caja"/><rect x="110" y="40" width="30" height="30" class="d-caja"/>
+  <text x="80" y="95" class="d-nota">un tipo, una dimensión</text>
+  <text x="80" y="118" class="d-texto">c(27.4, 29.1, ...)</text>
+
+  <text x="255" y="22" class="d-titulo">Matriz</text>
+  <g>
+    <rect x="210" y="40" width="30" height="30" class="d-caja"/><rect x="240" y="40" width="30" height="30" class="d-caja"/><rect x="270" y="40" width="30" height="30" class="d-caja"/>
+    <rect x="210" y="70" width="30" height="30" class="d-caja"/><rect x="240" y="70" width="30" height="30" class="d-caja"/><rect x="270" y="70" width="30" height="30" class="d-caja"/>
+  </g>
+  <text x="255" y="125" class="d-nota">un tipo, filas y columnas</text>
+  <text x="255" y="148" class="d-texto">matrix(..., nrow = 2)</text>
+
+  <text x="440" y="22" class="d-titulo">Lista</text>
+  <rect x="375" y="35" width="130" height="150" rx="10" class="d-caja d-gris"/>
+  <rect x="390" y="48" width="100" height="26" class="d-caja d-acento"/><text x="440" y="66" class="d-texto">"Puente"</text>
+  <rect x="390" y="86" width="25" height="25" class="d-caja"/><rect x="415" y="86" width="25" height="25" class="d-caja"/><rect x="440" y="86" width="25" height="25" class="d-caja"/>
+  <rect x="390" y="124" width="25" height="25" class="d-caja"/><rect x="415" y="124" width="25" height="25" class="d-caja"/>
+  <rect x="390" y="149" width="25" height="25" class="d-caja"/><rect x="415" y="149" width="25" height="25" class="d-caja"/>
+  <text x="440" y="208" class="d-nota">cualquier cosa adentro</text>
+  <text x="440" y="230" class="d-texto">list(...)</text>
+
+  <text x="615" y="22" class="d-titulo">Data frame</text>
+  <g>
+    <rect x="555" y="40" width="40" height="30" class="d-caja d-acento"/><rect x="595" y="40" width="40" height="30" class="d-caja"/><rect x="635" y="40" width="40" height="30" class="d-caja d-naranja"/>
+    <rect x="555" y="70" width="40" height="30" class="d-caja d-acento"/><rect x="595" y="70" width="40" height="30" class="d-caja"/><rect x="635" y="70" width="40" height="30" class="d-caja d-naranja"/>
+    <rect x="555" y="100" width="40" height="30" class="d-caja d-acento"/><rect x="595" y="100" width="40" height="30" class="d-caja"/><rect x="635" y="100" width="40" height="30" class="d-caja d-naranja"/>
+  </g>
+  <text x="615" y="155" class="d-nota">un tipo por columna</text>
+  <text x="615" y="178" class="d-texto">data.frame(...)</text>
+</svg>
+```
+
+Estructuras de datos de R; cada color es un tipo de dato.
+
+:::
+
+| Estructura | Tipos que admite | Cuándo se usa | Ejemplo en ingeniería |
+|:--|:--|:--|:--|
+| Vector | Uno solo | Una variable medida varias veces | Las resistencias de un lote |
+| Factor | Categorías | Una variable categórica | El tipo de suelo de cada sondeo |
+| Matriz | Uno solo | Un cuadro de números para hacer cuentas | Resistencias por mezcla y edad |
+| Lista | Cualquiera | Juntar resultados de distinto tipo y tamaño | El resultado de un ajuste de regresión |
+| Data frame | Uno por columna | Un conjunto de datos: filas = observaciones, columnas = variables | Los 60 ensayos de concreto |
+
+: Estructuras de datos de R. {#tbl-obj-estructuras}
+
 
 ### Matrices
 

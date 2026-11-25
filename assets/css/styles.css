@@ -1262,6 +1262,58 @@ body.quarto-dark .doc-simulado .doc-mensaje { color: #f0b46b; }
 body.quarto-dark .interactivo button.archivo { background: transparent; }
 body.quarto-dark .interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 25%, transparent); }
 
+/* Capítulo 5: partes de un bloque de código */
+.anatomia-bloque { text-align: left; max-width: 720px; margin: 0 auto; }
+.anatomia-bloque pre { font-size: 0.85rem; padding: 0.6rem; border-radius: 6px; background: #f6f8fa; white-space: pre-wrap; }
+.anatomia-bloque ol { font-size: 0.92rem; margin-top: 0.5rem; }
+.anatomia-bloque .ab-1 { color: #6c757d; font-weight: 700; }
+.anatomia-bloque .ab-2 { color: #a26800; font-weight: 700; }
+.anatomia-bloque .ab-3 { color: #0f5560; font-weight: 700; }
+.anatomia-bloque .ab-4 { color: #7b3fa0; font-weight: 700; }
+.anatomia-bloque .ab-5 { color: #b5361c; }
+.anatomia-bloque .ab-6 { color: #1b5e20; }
+body.quarto-dark .anatomia-bloque pre { background: #2b2e33; }
+body.quarto-dark .anatomia-bloque .ab-1 { color: #aab2bd; }
+body.quarto-dark .anatomia-bloque .ab-2 { color: #ffc357; }
+body.quarto-dark .anatomia-bloque .ab-3 { color: #7fd0da; }
+body.quarto-dark .anatomia-bloque .ab-4 { color: #d0a8f0; }
+body.quarto-dark .anatomia-bloque .ab-5 { color: #ff9e85; }
+body.quarto-dark .anatomia-bloque .ab-6 { color: #9ad89e; }
+.interactivo input[type=text] { padding: 0.15rem 0.35rem; }
+body.quarto-dark .interactivo input[type=text], body.quarto-dark .interactivo select { background: #2e3135; color: #e6e6e6; border: 1px solid #4d5055; }
+
+/* Diagramas en SVG de la Parte I (se adaptan al modo oscuro) */
+svg.diagrama { width: 100%; max-width: 720px; height: auto; display: block; margin: 0 auto; font-family: Roboto, "Segoe UI", system-ui, sans-serif; }
+svg.diagrama .d-caja { fill: #e4f0f1; stroke: #0f5560; stroke-width: 1.5; }
+svg.diagrama .d-acento { fill: #fbf3e3; stroke: #d9b56a; }
+svg.diagrama .d-gris { fill: #ffffff; stroke: #a9cdd1; }
+svg.diagrama .d-naranja { fill: #f9d9c4; stroke: #D55E00; }
+svg.diagrama .d-titulo { font-size: 15px; font-weight: 600; text-anchor: middle; fill: #1d2327; }
+svg.diagrama .d-texto { font-size: 13px; text-anchor: middle; fill: #1d2327; font-family: ui-monospace, monospace; }
+svg.diagrama .d-nota { font-size: 12px; text-anchor: middle; fill: #58626c; }
+svg.diagrama .d-linea { stroke: #7d8a94; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+svg.diagrama .d-punta { fill: #7d8a94; }
+body.quarto-dark svg.diagrama .d-caja { fill: #173a40; stroke: #7fd0da; }
+body.quarto-dark svg.diagrama .d-acento { fill: #2b2414; stroke: #8f6a1c; }
+body.quarto-dark svg.diagrama .d-gris { fill: #1f2429; stroke: #3f7178; }
+body.quarto-dark svg.diagrama .d-naranja { fill: #4a2e20; stroke: #ff9e6b; }
+body.quarto-dark svg.diagrama .d-titulo, body.quarto-dark svg.diagrama .d-texto { fill: #e8eaed; }
+body.quarto-dark svg.diagrama .d-nota { fill: #aab2bb; }
+body.quarto-dark svg.diagrama .d-linea { stroke: #8d98a3; }
+body.quarto-dark svg.diagrama .d-punta { fill: #8d98a3; }
+
+/* Consola simplificada del capítulo 1 */
+.consola-pantalla { font-family: ui-monospace, monospace; font-size: 0.85rem; background: #fff; border: 1px solid #d5dbe3; border-radius: 4px; height: 13rem; overflow-y: auto; padding: 0.4rem 0.6rem; text-align: left; white-space: pre-wrap; }
+.consola-pantalla .c-cmd { color: #0f5560; }
+.consola-pantalla .c-err { color: #b5361c; }
+.consola-pantalla .c-info { color: #6c757d; font-style: italic; }
+.consola-linea { display: flex; align-items: center; gap: 0.4rem; margin: 0.4rem 0; font-family: ui-monospace, monospace; }
+.consola-linea input { flex: 1; font-family: ui-monospace, monospace; padding: 0.25rem 0.4rem; }
+.consola-prompt { color: #0f5560; font-weight: 700; }
+body.quarto-dark .consola-pantalla { background: #1e2023; border-color: #3d4045; }
+body.quarto-dark .consola-pantalla .c-cmd, body.quarto-dark .consola-prompt { color: #7fd0da; }
+body.quarto-dark .consola-pantalla .c-err { color: #ff9e85; }
+body.quarto-dark .consola-linea input { background: #2e3135; color: #e6e6e6; border: 1px solid #4d5055; }
 /* Selección de texto y barras de desplazamiento con la paleta del libro */
 ::selection { background: color-mix(in srgb, var(--acento-2) 28%, transparent); }
 body.quarto-dark ::selection { background: color-mix(in srgb, #ffc357 35%, transparent); color: #fff; }

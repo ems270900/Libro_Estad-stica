@@ -12,3 +12,8 @@ Fecha: 2026-11-25. Estado: borrador.
 
 - Agregado: Funciones matemáticas (`sqrt`, `abs`, `exp`, `log`, `log10`, `pi`) y notación científica; nombres y secciones de un script; configuración recomendada de RStudio (no restaurar `.RData`, UTF-8); cuadro de atajos; rutas absolutas y relativas con el interactivo del árbol de carpetas; advertencia sobre `setwd()`; cuadro de errores frecuentes; ejercicios 8 a 12.
 - Pendiente: revisión del autor.
+
+## Segunda ampliación (2026-11-25, rama `claude/parte-1-didactica`)
+
+- Agregado: Consola de R simplificada e interactiva (operaciones, funciones, asignación, mensajes de error, signo + y Esc, historial); explicación del signo + de la consola; diagrama del camino de una instrucción (`fig-r-camino`); cuadro de consola y script.
+- Pies de figura y títulos de cuadro acortados. Pendiente: revisión del autor.

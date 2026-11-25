@@ -1,0 +1,86 @@
+---
+title: "Tarea 1: análisis descriptivo"
+subtitle: "Probabilidad y Estadística"
+author: "Nombre Apellido (carné B00000)"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    code_folding: show
+    df_print: paged
+---
+
+```{r setup, include = FALSE}
+# Opciones para todos los bloques: se muestra el código y se ocultan
+# los mensajes de los paquetes al cargarse
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      fig.width = 6, fig.height = 4, fig.align = "center")
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+```
+
+# Enunciado
+
+Escriba aquí el enunciado de la tarea. Por ejemplo: con el conjunto
+`airquality` de R, describa el ozono diario de Nueva York en 1973 y
+compare los meses.
+
+# Datos
+
+El conjunto `airquality` tiene `r nrow(airquality)` días y
+`r ncol(airquality)` variables. Faltan `r sum(is.na(airquality$Ozone))`
+mediciones de ozono.
+
+```{r datos}
+head(airquality)
+```
+
+# Solución
+
+## Resumen por mes
+
+```{r resumen}
+resumen <- airquality %>%
+  group_by(Month) %>%
+  summarise(dias = n(),
+            mediana = median(Ozone, na.rm = TRUE),
+            media = mean(Ozone, na.rm = TRUE))
+
+kbl(resumen, digits = 1,
+    col.names = c("Mes", "Días", "Mediana (ppb)", "Media (ppb)"),
+    caption = "Ozono diario por mes.") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+El mes con mayor ozono mediano fue el mes
+`r resumen$Month[which.max(resumen$mediana)]`, con
+`r max(resumen$mediana)` ppb.
+
+## Gráficos {.tabset}
+
+### Diagrama de caja
+
+```{r caja, fig.cap = "Ozono diario por mes."}
+ggplot(airquality, aes(factor(Month), Ozone)) +
+  geom_boxplot(fill = "#cfe0ee", na.rm = TRUE) +
+  labs(x = "Mes", y = "Ozono (ppb)") +
+  theme_minimal()
+```
+
+### Histograma
+
+```{r histograma, fig.cap = "Histograma del ozono diario."}
+hist(airquality$Ozone, col = "#1C6BA0", border = "white", main = "",
+     xlab = "Ozono (ppb)", ylab = "Frecuencia")
+```
+
+# Conclusiones
+
+Escriba aquí, en dos o tres oraciones, qué responden los resultados a la
+pregunta del enunciado.

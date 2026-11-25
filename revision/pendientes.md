@@ -12,6 +12,9 @@
 - Revisión del autor de los capítulos 1 a 6, ampliados el 2026-11-25 (más contenido, cinco interactivos nuevos y ejemplos resueltos).
 - Los interactivos usan HTML y JavaScript propios; conviene probarlos en el navegador del autor y en modo oscuro.
 
+- Referencias agregadas en la segunda ampliación de la Parte I que no estaban en la lista base del autor: `mcgill1978variations`, `hintze1998violin`, `cleveland1984graphical`, `wickham2014tidy`, `wickham2011split`, `broman2018data`, `xie2016bookdown` y `zhu2024kableextra`. Confirmar si se mantienen.
+- La Parte I usa conjuntos de datos que vienen con R (`airquality`, `faithful`, `mtcars` y otros), citados con `rcoreteam2025r`.
+
 ## Parte II (estadística descriptiva)
 
 - Cita del Código Sísmico de Costa Rica en el capítulo 7 (CITA PENDIENTE).
