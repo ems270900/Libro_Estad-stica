@@ -66,6 +66,12 @@ book:
         - 11-tecnicas_conteo.qmd
         - 12-probabilidad_condicional.qmd
 
+    - part: "Diseño de experimentos"
+      chapters:
+        - 28-anova_un_factor.qmd
+        - 29-comparaciones_bloques.qmd
+        - 30-factoriales.qmd
+
     - epilogo.qmd
     - 99-Referencias.qmd
 
