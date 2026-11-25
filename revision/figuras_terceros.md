@@ -21,3 +21,4 @@ El texto se publica con CC BY-NC-SA 4.0 y el código con MIT. Esas licencias no 
 | Portada | `assets/img/ciclo_h.png` | USGS, igual que el libro de hidrología | Dominio público | Mantener con cita; provisional, el autor ajustará la estética |
 | 1 | `assets/img/cap01/paneles_rstudio.png` | Esquema propio de la ventana de RStudio | Propia | Mantener |
 | 1 | `assets/img/cap01/flujo_analisis.png` | Con base en Wickham y Grolemund (2017) | Propia (redibujada) | Mantener con cita "con base en" |
+| 7 | `fig-est-metodo` (generada en R) | Con base en Montgomery y Runger (2014), fig. 1-1 | Propia (redibujada) | Mantener con cita "con base en" |
