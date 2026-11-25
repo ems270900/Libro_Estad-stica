@@ -119,7 +119,7 @@ Las dos dan el mismo contenido. `read_csv()` devuelve un *tibble*, que es un dat
 
 RStudio también tiene un asistente para importar datos sin escribir código: File > Import Dataset > From Text (readr) (@fig-datos-importar). El asistente muestra una vista previa y, abajo a la derecha, el código que va a ejecutar. Conviene copiar ese código al script para que la lectura quede registrada.
 
-![Asistente para importar un archivo CSV. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_importar.png){#fig-datos-importar fig-alt="Diálogo Import Text Data de RStudio con la vista previa de los datos y el código de importación" width="85%"}
+![Asistente para importar un archivo CSV. Fuente: RStudio (Posit).](assets/img/cap03/rstudio_importar.png){#fig-datos-importar fig-alt="Diálogo Import Text Data de RStudio con la vista previa de los datos y el código de importación" width="85%"}
 
 ### Archivos con punto y coma y coma decimal
 
@@ -233,7 +233,7 @@ table(ensayos$proyecto, ensayos$edad_dias)
 
 La columna de asentamiento tiene dos datos faltantes. Para ver el data frame completo como una hoja de cálculo se usa `View(ensayos)`, con V mayúscula, que lo abre en una pestaña del editor (@fig-datos-view). En esa vista se puede ordenar por una columna haciendo clic en su encabezado y filtrar con el botón Filter, sin cambiar los datos.
 
-![Data frame abierto con `View()`. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_view.png){#fig-datos-view fig-alt="Pestaña del editor de RStudio que muestra el data frame de ensayos como una hoja de cálculo con encabezados ordenables" width="85%"}
+![Data frame abierto con `View()`. Fuente: RStudio (Posit).](assets/img/cap03/rstudio_view.png){#fig-datos-view fig-alt="Pestaña del editor de RStudio que muestra el data frame de ensayos como una hoja de cálculo con encabezados ordenables" width="85%"}
 
 ## Seleccionar y transformar con R base {#sec-datos-base}
 

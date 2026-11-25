@@ -64,13 +64,13 @@ Si se olvida este paso, RStudio muestra un aviso amarillo en la parte de arriba 
 
 Se usa el menú File > New File > R Markdown. Se abre la ventana de la @fig-rmd-nuevo, donde se escribe el título y el autor y se elige HTML como formato de salida. Al presionar OK, RStudio crea un archivo de ejemplo que ya tiene las tres partes. Conviene compilarlo una vez tal como está para comprobar que todo funciona; luego se borra el contenido de ejemplo, desde la primera línea después del encabezado, y se escribe el propio.
 
-![Creación de un documento de R Markdown. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_nuevo_rmd.png){#fig-rmd-nuevo fig-alt="Ventana New R Markdown de RStudio con los campos Title y Author y la opción HTML seleccionada como formato de salida" width="70%"}
+![Creación de un documento de R Markdown. Fuente: RStudio (Posit).](assets/img/cap05/rstudio_nuevo_rmd.png){#fig-rmd-nuevo fig-alt="Ventana New R Markdown de RStudio con los campos Title y Author y la opción HTML seleccionada como formato de salida" width="70%"}
 
 ### Paso 3: guardar y compilar
 
 Antes de compilar se guarda el archivo (Ctrl + S) dentro de la carpeta del proyecto, junto a la carpeta de datos. El nombre del archivo no debe tener espacios ni tildes: `informe_cilindros.Rmd` funciona en cualquier computadora, `Informe de cilindros.Rmd` a veces no. Luego se presiona el botón Knit de la barra del editor, o el atajo Ctrl + Shift + K. RStudio ejecuta todos los bloques en orden, genera un archivo `.html` con el mismo nombre en la misma carpeta y lo muestra en una ventana aparte o en el panel Viewer, según la configuración (@fig-rmd-knit).
 
-![Documento compilado en el panel Viewer. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="RStudio con el archivo informe_cilindros.Rmd abierto en el editor, el botón Knit en la barra del editor y, en el panel Viewer de la derecha, el documento HTML compilado" width="85%"}
+![Documento compilado en el panel Viewer. Fuente: RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="RStudio con el archivo informe_cilindros.Rmd abierto en el editor, el botón Knit en la barra del editor y, en el panel Viewer de la derecha, el documento HTML compilado" width="85%"}
 
 El archivo `.html` que se genera es un documento terminado: se puede abrir con doble clic en cualquier navegador, enviar por correo o subir a una plataforma de cursos, y quien lo recibe no necesita tener R.
 
@@ -394,7 +394,7 @@ Equipo necesario:
 
 ::::
 
-Una lista numerada y una lista con viñetas en Markdown (izquierda) y su resultado (derecha).
+Listas en Markdown.
 
 :::
 
@@ -436,7 +436,7 @@ Un cuadro pequeño, que no viene de los datos, se puede escribir directamente en
 
 ::::
 
-Un cuadro escrito en Markdown (izquierda) y su resultado (derecha). Los valores son hipotéticos.
+Cuadro escrito en Markdown.
 
 :::
 
@@ -545,7 +545,7 @@ Datos en `ensayos.csv`:
 </script>
 ```
 
-Vista previa de Markdown: el texto de la izquierda se muestra con formato a la derecha.
+Vista previa de Markdown.
 
 :::
 

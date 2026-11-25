@@ -75,7 +75,7 @@ Pruebe con la @fig-fac-int-interaccion. Los controles fijan el efecto de A, el d
 </script>
 ```
 
-Gráfico de interacción de un diseño con dos factores de dos niveles. La media general es 50.
+Gráfico de interacción con dos factores.
 
 :::
 
@@ -177,7 +177,7 @@ ver_datos("datos/adherencia_pintura_hipotetica.csv",
 
 ```{r}
 #| label: tbl-fac-medias
-#| tbl-cap: "Adherencia (puntos) por método y pintura: observaciones y media de cada combinación."
+#| tbl-cap: "Adherencia por método y pintura."
 #| echo: false
 
 pintura <- read.csv("datos/adherencia_pintura_hipotetica.csv")
@@ -247,7 +247,7 @@ summary(modelo)
 
 ```{r}
 #| label: fig-fac-pintura
-#| fig-cap: "Gráfico de interacción: adherencia media por pintura y método de aplicación."
+#| fig-cap: "Interacción entre pintura y método."
 #| fig-alt: "Dos líneas que suben de P1 a P3; la de rociado se separa mucho de la de inmersión en P3"
 
 # 6) Gráfico de interacción con ggplot2
@@ -274,7 +274,7 @@ Cuando hay interacción, se compara un factor dentro de cada nivel del otro. En 
 
 ```{r}
 #| label: tbl-fac-simples
-#| tbl-cap: "Efectos simples del método de aplicación dentro de cada pintura (rociado menos inmersión)."
+#| tbl-cap: "Efectos simples del método por pintura."
 #| echo: false
 
 format_p <- function(p) ifelse(p < 0.001, "< 0.001", sprintf("%.3f", p))
@@ -457,7 +457,7 @@ round(efectos, 3)
 
 ```{r}
 #| label: fig-fac-efectos
-#| fig-cap: "Gráfico cuantil-cuantil normal de los efectos del diseño 2³ de mortero."
+#| fig-cap: "Gráfico Q-Q de los efectos del diseño 2³."
 #| fig-alt: "Siete puntos; AB, BC y ABC quedan alineados cerca de cero y A, B, C y AC se apartan"
 
 # 4) Gráfico de efectos
@@ -491,7 +491,7 @@ Un informe de un experimento debe dejar claros cinco puntos: qué unidades se us
 
 ## Ejercicios propuestos
 
-1. Se ensayan dos tipos de cemento (I y II) con tres temperaturas de curado (10, 20 y 30 °C), con tres cilindros por combinación. La resistencia a 7 días (MPa) fue: cemento I: 10 °C: 18, 20, 19; 20 °C: 24, 25, 23; 30 °C: 27, 28, 29; cemento II: 10 °C: 16, 17, 15; 20 °C: 23, 24, 22; 30 °C: 30, 32, 31. Construya el cuadro ANOVA a mano y con `aov()`, dibuje el gráfico de interacción e interprete con $\alpha = 0.05$.
+1. En reactores anaerobios de laboratorio que tratan agua residual se prueban dos inóculos (I, aclimatado a agua fría, y II, tomado de un digestor que opera a 35 °C) con tres temperaturas (10, 20 y 30 °C), con tres reactores por combinación. La producción de metano (mL/d) fue, con datos hipotéticos: inóculo I: 10 °C: 18, 20, 19; 20 °C: 24, 25, 23; 30 °C: 27, 28, 29; inóculo II: 10 °C: 16, 17, 15; 20 °C: 23, 24, 22; 30 °C: 30, 32, 31. Construya el cuadro ANOVA a mano y con `aov()`, dibuje el gráfico de interacción e interprete con $\alpha = 0.05$.
 2. Complete el cuadro ANOVA de un factorial con $a = 3$, $b = 2$ y $r = 4$, si $SC_A = 96$, $SC_B = 45$, $SC_{AB} = 30$ y $SC_E = 72$. Plantee las tres hipótesis y decida con $\alpha = 0.05$ usando `qf()`.
 3. En un diseño $2^2$ con dos repeticiones, los totales fueron $T_{(1)} = 40$, $T_a = 52$, $T_b = 44$ y $T_{ab} = 64$, y $SC_E = 12$. Estime los efectos, calcule sus sumas de cuadrados y el cuadro ANOVA, y decida qué efectos son significativos.
 4. Con la @fig-fac-int-interaccion, encuentre una combinación de controles en la que el efecto principal de A sea cero pero A cambie la respuesta en 10 unidades con cada nivel de B. Explique por qué en ese caso el ANOVA diría que A "no tiene efecto" y por qué esa lectura es engañosa.

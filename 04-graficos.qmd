@@ -1052,7 +1052,7 @@ Histograma según el ancho de clase.
 
 ```{r}
 #| label: fig-graf-ejemplo
-#| fig-cap: "Histograma de la resistencia a 28 días con clases de 2 MPa."
+#| fig-cap: "Histograma de la resistencia a 28 días."
 #| fig-alt: "Histograma con ocho barras entre 26 y 42 MPa; las más altas están entre 30 y 34 y entre 36 y 38 MPa"
 
 # 1) Resistencias a 28 días

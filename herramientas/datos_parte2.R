@@ -36,3 +36,10 @@ mezclas <- data.frame(mezcla = 1:25, relacion_ac = ac, resistencia_mpa = fc)
 mezclas <- mezclas[order(mezclas$relacion_ac), ]
 mezclas$mezcla <- 1:25
 write.csv(mezclas, "datos/relacion_ac_resistencia_hipotetica.csv", row.names = FALSE)
+
+# 4) Velocidades de punto de 40 vehículos (capítulo 9) ------------------------
+# Semilla propia para no cambiar los conjuntos anteriores
+set.seed(85)
+velocidad <- round(rnorm(40, 62, 8))
+velocidades <- data.frame(vehiculo = 1:40, velocidad_kmh = velocidad)
+write.csv(velocidades, "datos/velocidades_punto_hipoteticas.csv", row.names = FALSE)

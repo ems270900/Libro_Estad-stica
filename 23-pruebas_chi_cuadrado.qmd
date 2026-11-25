@@ -14,7 +14,7 @@ options(knitr.kable.NA = "")
 knitr::knit_meta_add(list(rmarkdown::html_dependency_jquery()))
 ```
 
-Las pruebas de los capítulos anteriores trabajan con medias, proporciones y varianzas. Muchas preguntas de ingeniería, en cambio, se responden contando: cuántos accidentes ocurren cada día de la semana, cuántos camiones llegan en cada intervalo, qué tipo de falla presenta cada cilindro según la planta que lo despachó. Las pruebas chi-cuadrado comparan esos conteos observados con los que se esperarían si una hipótesis fuera cierta. Se usan para dos preguntas: si los datos siguen una distribución propuesta (bondad de ajuste) y si dos variables categóricas están relacionadas (independencia). Ambas vienen del mismo estadístico, propuesto por Pearson [-@pearson1900criterion].
+Las pruebas de los capítulos anteriores trabajan con medias, proporciones y varianzas. Muchas preguntas de ingeniería, en cambio, se responden contando: cuántos accidentes ocurren cada día de la semana, cuántos camiones llegan en cada intervalo, qué mecanismo de falla presenta cada deslizamiento según el material del talud. Las pruebas chi-cuadrado comparan esos conteos observados con los que se esperarían si una hipótesis fuera cierta. Se usan para dos preguntas: si los datos siguen una distribución propuesta (bondad de ajuste) y si dos variables categóricas están relacionadas (independencia). Ambas vienen del mismo estadístico, propuesto por Pearson [-@pearson1900criterion].
 
 ## El estadístico chi-cuadrado {#sec-chi-estadistico}
 
@@ -171,7 +171,7 @@ prueba$statistic
 
 ```{r}
 #| label: tbl-chi-poisson
-#| tbl-cap: "Camiones por intervalo: conteos observados y esperados con el modelo de Poisson."
+#| tbl-cap: "Camiones por intervalo: observados y esperados."
 #| echo: false
 
 tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = esperados,
@@ -185,7 +185,7 @@ tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = espe
 
 ```{r}
 #| label: fig-chi-poisson
-#| fig-cap: "Intervalos observados y esperados según el número de camiones que llegan."
+#| fig-cap: "Frecuencias observadas y esperadas de camiones."
 #| fig-alt: "Barras de conteos observados junto a puntos de los esperados por la Poisson; las mayores diferencias están en 3 y en 4 o más."
 #| echo: false
 
@@ -210,7 +210,7 @@ No rechazar $H_0$ en una prueba de bondad de ajuste no demuestra que los datos s
 ## Independencia en cuadros de contingencia {#sec-chi-independencia}
 
 ::: {.pregunta}
-¿El tipo de falla de un cilindro depende de la planta que despachó el concreto?
+¿El mecanismo de falla de un talud depende del material en que ocurre?
 :::
 
 Cuando cada elemento se clasifica según dos variables categóricas, los conteos se ordenan en un cuadro de contingencia, con $r$ filas para las categorías de una variable y $c$ columnas para las de la otra. La prueba de independencia contrasta:
@@ -230,27 +230,27 @@ $$
 \nu = (r - 1)(c - 1)
 $$ {#eq-chi-gl-independencia}
 
-grados de libertad [@montgomery2014applied]. La misma prueba sirve para la pregunta de homogeneidad, que compara la distribución de una variable en varias poblaciones muestreadas por separado: por ejemplo, si la distribución de los tipos de falla es la misma en las tres plantas. Los cálculos son idénticos.
+grados de libertad [@montgomery2014applied]. La misma prueba sirve para la pregunta de homogeneidad, que compara la distribución de una variable en varias poblaciones muestreadas por separado: por ejemplo, si la distribución de los mecanismos de falla es la misma en los tres materiales. Los cálculos son idénticos.
 
-::: {.callout-note title="Ejemplo: tipo de falla de los cilindros según la planta"}
+::: {.callout-note title="Ejemplo: mecanismo de falla de taludes según el material"}
 
-**Planteamiento.** Se registró el tipo de falla (cónica, columnar o cortante) de 180 cilindros hipotéticos despachados por tres plantas de concreto. Con $\alpha = 0.05$, ¿hay evidencia de que el tipo de falla depende de la planta?
+**Planteamiento.** En el inventario de deslizamientos de una carretera de montaña se clasificaron 180 eventos según el material del talud (suelo residual, coluvio o roca meteorizada) y el mecanismo de falla (traslacional, rotacional o flujo). Los datos son hipotéticos. Con $\alpha = 0.05$, ¿hay evidencia de que el mecanismo de falla depende del material?
 
 ```{r}
 #| echo: false
-ver_datos("datos/tipo_falla_cilindros_hipotetico.csv",
-          nombres = c("Cilindro", "Planta", "Tipo de falla"))
+ver_datos("datos/deslizamientos_material_hipotetico.csv",
+          nombres = c("Deslizamiento", "Material", "Mecanismo"))
 ```
 
 **Solución:**
 
-1. Cuadro de contingencia: al contar los cilindros por planta y tipo de falla se obtiene el @tbl-chi-contingencia.
-2. Hipótesis: $H_0$: el tipo de falla es independiente de la planta. $H_1$: hay relación.
-3. Esperados con la @eq-chi-esperado: para la planta A y falla cónica, $E = 70 \times 88/180 = 34.22$. Las demás celdas se calculan igual y aparecen entre paréntesis en el cuadro. Todos los esperados son mayores que 5.
-4. Estadístico: el término de la planta A con falla cónica es $(43 - 34.22)^2/34.22 = 2.251$. Al sumar los nueve términos, $\chi^2 = 2.251 + 0.655 + 1.786 + 0.379 + 0.095 + 0.333 + 1.213 + 0.384 + 0.900 = 7.997$.
+1. Cuadro de contingencia: al contar los deslizamientos por material y mecanismo se obtiene el @tbl-chi-contingencia.
+2. Hipótesis: $H_0$: el mecanismo de falla es independiente del material. $H_1$: hay relación.
+3. Esperados con la @eq-chi-esperado: para el suelo residual y la falla traslacional, $E = 70 \times 88/180 = 34.22$. Las demás celdas se calculan igual y aparecen entre paréntesis en el cuadro. Todos los esperados son mayores que 5.
+4. Estadístico: el término del suelo residual con falla traslacional es $(43 - 34.22)^2/34.22 = 2.251$. Al sumar los nueve términos, $\chi^2 = 2.251 + 0.655 + 1.786 + 0.379 + 0.095 + 0.333 + 1.213 + 0.384 + 0.900 = 7.997$.
 5. Grados de libertad: $\nu = (3 - 1)(3 - 1) = 4$.
 6. Decisión: $\chi^2_{0.05,\,4} = 9.488$. Como $7.997 < 9.488$, no se rechaza $H_0$. El valor $p$ es 0.092.
-7. Conclusión: con 5 % de significancia, no hay evidencia suficiente de que el tipo de falla dependa de la planta.
+7. Conclusión: con 5 % de significancia, no hay evidencia suficiente de que el mecanismo de falla dependa del material.
 
 **Pseudocódigo**
 
@@ -261,9 +261,12 @@ ver_datos("datos/tipo_falla_cilindros_hipotetico.csv",
 
 ```{r}
 # 1) Datos y cuadro de contingencia
-fallas <- read.csv("datos/tipo_falla_cilindros_hipotetico.csv", fileEncoding = "UTF-8")
-fallas$tipo_falla <- factor(fallas$tipo_falla, levels = c("Cónica", "Columnar", "Cortante"))
-cuadro <- table(fallas$planta, fallas$tipo_falla)
+fallas <- read.csv("datos/deslizamientos_material_hipotetico.csv", fileEncoding = "UTF-8")
+# factor() fija el orden de filas y columnas (si no, R las ordena alfabéticamente)
+fallas$material <- factor(fallas$material,
+                          levels = c("Suelo residual", "Coluvio", "Roca meteorizada"))
+fallas$mecanismo <- factor(fallas$mecanismo, levels = c("Traslacional", "Rotacional", "Flujo"))
+cuadro <- table(fallas$material, fallas$mecanismo)
 addmargins(cuadro)                    # agrega los totales
 
 # 2) Esperados: total de fila por total de columna entre n
@@ -284,38 +287,39 @@ round(prueba$stdres, 2)               # residuos estandarizados por celda
 
 ```{r}
 #| label: tbl-chi-contingencia
-#| tbl-cap: "Cilindros por planta y tipo de falla: observados y, entre paréntesis, esperados."
+#| tbl-cap: "Deslizamientos por material: observados y esperados."
 #| echo: false
 
 celdas <- matrix(sprintf("%d (%.2f)", cuadro, esperados), nrow = nrow(cuadro))
-tibble(planta = rownames(cuadro)) %>%
+tibble(material = rownames(cuadro)) %>%
   bind_cols(as_tibble(celdas, .name_repair = ~ colnames(cuadro))) %>%
   mutate(total = as.character(rowSums(cuadro))) %>%
-  bind_rows(tibble(planta = "Total", !!!setNames(as.list(as.character(colSums(cuadro))), colnames(cuadro)),
+  bind_rows(tibble(material = "Total", !!!setNames(as.list(as.character(colSums(cuadro))), colnames(cuadro)),
                    total = as.character(n))) %>%
-  kbl(col.names = c("Planta", colnames(cuadro), "Total"), align = c("l", "c", "c", "c", "c")) %>%
+  kbl(col.names = c("Material", colnames(cuadro), "Total"), align = c("l", "c", "c", "c", "c")) %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
   row_spec(4, bold = TRUE)
 ```
 
 ```{r}
 #| label: fig-chi-fallas
-#| fig-cap: "Proporción de cada tipo de falla en los cilindros de cada planta."
-#| fig-alt: "Barras apiladas al 100 % para las plantas A, B y C; la planta A tiene más fallas cónicas que las otras dos."
+#| fig-cap: "Mecanismo de falla por material."
+#| fig-alt: "Barras apiladas al 100 % para suelo residual, coluvio y roca meteorizada; el suelo residual tiene más fallas traslacionales que los otros dos."
 #| echo: false
 
-as_tibble(cuadro, .name_repair = ~ c("planta", "tipo", "n")) %>%
-  group_by(planta) %>%
+as_tibble(cuadro, .name_repair = ~ c("material", "tipo", "n")) %>%
+  mutate(material = factor(material, levels = rownames(cuadro))) %>%
+  group_by(material) %>%
   mutate(prop = n / sum(n)) %>%
-  ggplot(aes(planta, prop, fill = factor(tipo, levels = c("Cortante", "Columnar", "Cónica")))) +
+  ggplot(aes(material, prop, fill = factor(tipo, levels = c("Flujo", "Rotacional", "Traslacional")))) +
   geom_col(width = 0.6) +
-  scale_fill_manual(values = c("Cónica" = "#1C6BA0", "Columnar" = "#56B4E9", "Cortante" = "#E69F00")) +
+  scale_fill_manual(values = c("Traslacional" = "#1C6BA0", "Rotacional" = "#56B4E9", "Flujo" = "#E69F00")) +
   scale_y_continuous(labels = function(v) paste0(v * 100, " %")) +
-  labs(x = NULL, y = "Proporción de cilindros", fill = "Tipo de falla") +
+  labs(x = NULL, y = "Proporción de deslizamientos", fill = "Mecanismo") +
   theme_minimal(base_size = 13)
 ```
 
-**Interpretación.** La @fig-chi-fallas sugiere que la planta A tiene más fallas cónicas (61 %) que la B (43 %) y la C (38 %), y el residuo estandarizado de esa celda es 2.7. Sin embargo, al considerar el cuadro completo, el valor $p$ de 0.092 no alcanza el 5 %. Con estos datos no se puede afirmar que el tipo de falla dependa de la planta; si la diferencia de la planta A es real, una muestra mayor lo mostraría.
+**Interpretación.** La @fig-chi-fallas sugiere que en el suelo residual hay más fallas traslacionales (61 %) que en el coluvio (43 %) y en la roca meteorizada (38 %), y el residuo estandarizado de esa celda es 2.7. Sin embargo, al considerar el cuadro completo, el valor $p$ de 0.092 no alcanza el 5 %. Con estos datos no se puede afirmar que el mecanismo de falla dependa del material; si la diferencia del suelo residual es real, un inventario más grande lo mostraría.
 
 :::
 
@@ -386,7 +390,7 @@ La @fig-chi-calculadora repite la prueba de independencia con cualquier cuadro d
 </script>
 ```
 
-Calculadora de la prueba de independencia. Viene cargada con el cuadro de las plantas y los tipos de falla.
+Calculadora de la prueba de independencia.
 
 :::
 
@@ -394,15 +398,15 @@ Calculadora de la prueba de independencia. Viene cargada con el cuadro de las pl
 
 Un cuadro de 2 × 2 tiene un solo grado de libertad, y la prueba de independencia es equivalente a la prueba $z$ para dos proporciones de la @sec-dos-proporciones: el $\chi^2$ es igual a $z^2$. En estos cuadros, `chisq.test()` aplica por omisión la corrección por continuidad de Yates [-@yates1934contingency], que resta 0.5 a cada $|O - E|$ antes de elevar al cuadrado y da un valor $p$ algo mayor. Con conteos esperados pequeños se prefiere la prueba exacta de Fisher, `fisher.test()`, que no depende de la aproximación $\chi^2$.
 
-Con los bloques defectuosos de las dos plantas del capítulo anterior (21 de 150 y 9 de 160), las tres versiones dan:
+Con los trabajadores sin equipo de protección de las dos obras del capítulo anterior (21 de 150 y 9 de 160), las tres versiones dan:
 
 ```{r}
-bloques <- matrix(c(21, 129,
-                     9, 151), nrow = 2, byrow = TRUE,
-                  dimnames = list(c("Planta 1", "Planta 2"), c("Defectuoso", "Sin defecto")))
-chisq.test(bloques, correct = FALSE)$statistic   # igual a z² = 2.492²
-chisq.test(bloques)$p.value                      # con corrección de Yates
-fisher.test(bloques)$p.value                     # prueba exacta
+obras <- matrix(c(21, 129,
+                   9, 151), nrow = 2, byrow = TRUE,
+                dimnames = list(c("Obra 1", "Obra 2"), c("Sin equipo", "Con equipo")))
+chisq.test(obras, correct = FALSE)$statistic   # igual a z² = 2.492²
+chisq.test(obras)$p.value                      # con corrección de Yates
+fisher.test(obras)$p.value                     # prueba exacta
 ```
 
 Las tres llevan a rechazar la igualdad de proporciones con $\alpha = 0.05$ ($p$ entre 0.013 y 0.021).
@@ -415,10 +419,10 @@ Las pruebas chi-cuadrado se aplican a conteos de elementos independientes, nunca
 
 1. Un proveedor afirma que sus agregados tienen la siguiente composición por tamaño: 30 % grava gruesa, 45 % grava fina y 25 % arena. En una muestra de 200 partículas se contaron 70, 92 y 38. Con $\alpha = 0.05$, ¿los datos contradicen la composición declarada?
 2. Se registró el número de fallas por mes en una red de tuberías durante 60 meses: 0 fallas en 12 meses, 1 en 20, 2 en 15, 3 en 8, 4 en 3 y 5 en 2. Pruebe si el número de fallas mensuales sigue una distribución de Poisson. Agrupe las categorías que lo necesiten y calcule bien los grados de libertad.
-3. Con los datos de `datos/tipo_falla_cilindros_hipotetico.csv`, compare solo las plantas A y C. ¿Cambia la conclusión? ¿Por qué esto no autoriza a reportar la comparación que salió significativa?
+3. Con los datos de `datos/deslizamientos_material_hipotetico.csv`, compare solo el suelo residual y la roca meteorizada. ¿Cambia la conclusión? ¿Por qué esto no autoriza a reportar la comparación que salió significativa?
 4. En una encuesta a 250 conductores se cruzó el tipo de vehículo (liviano, pesado) con el uso del cinturón (sí, no). Los conteos fueron: livianos 160 sí y 40 no; pesados 30 sí y 20 no. Pruebe la independencia con y sin corrección de Yates y con la prueba de Fisher.
-5. Con la calculadora de la @fig-chi-calculadora, multiplique por 2 todos los conteos del cuadro de las plantas. ¿Qué pasa con el estadístico y con el valor $p$? Explique por qué, con la @eq-chi-pearson.
-6. Simule en R 2000 cuadros de 3 × 3 con 180 cilindros en los que el tipo de falla sea independiente de la planta. Aplique `chisq.test()` a cada uno y calcule la fracción de valores $p$ menores que 0.05. ¿Se acerca al 5 %?
+5. Con la calculadora de la @fig-chi-calculadora, multiplique por 2 todos los conteos del cuadro de los deslizamientos. ¿Qué pasa con el estadístico y con el valor $p$? Explique por qué, con la @eq-chi-pearson.
+6. Simule en R 2000 cuadros de 3 × 3 con 180 deslizamientos en los que el mecanismo de falla sea independiente del material. Aplique `chisq.test()` a cada uno y calcule la fracción de valores $p$ menores que 0.05. ¿Se acerca al 5 %?
 
 ## Lecturas recomendadas
 

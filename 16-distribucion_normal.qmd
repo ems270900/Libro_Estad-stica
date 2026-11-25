@@ -74,7 +74,7 @@ La @fig-normal-regla la muestra para una resistencia con $\mu = 35$ MPa y $\sigm
 
 ```{r}
 #| label: fig-normal-regla
-#| fig-cap: "Regla empírica para una normal con μ = 35 MPa y σ = 5 MPa."
+#| fig-cap: "Regla empírica de la normal."
 #| fig-alt: "Campana normal con tres bandas sombreadas centradas en 35: de 30 a 40 con 68 por ciento, de 25 a 45 con 95 por ciento y de 20 a 50 con 99.7 por ciento"
 #| echo: false
 #| fig-width: 6.5
@@ -127,7 +127,7 @@ La FDA de la normal no tiene una fórmula con funciones elementales: la integral
 
 ```{r}
 #| label: tbl-normal-extracto
-#| tbl-cap: "Fragmento de la tabla de la normal estándar: valores de Φ(z) = P(Z ≤ z)."
+#| tbl-cap: "Fragmento de la tabla normal estándar."
 #| echo: false
 
 filas <- seq(0.8, 1.3, by = 0.1)
@@ -150,7 +150,7 @@ Con eso salen los tres casos que aparecen en la práctica, que se resumen en el 
 
 ```{r}
 #| label: tbl-normal-casos
-#| tbl-cap: "Cálculo de probabilidades normales con la tabla Z y con R."
+#| tbl-cap: "Probabilidades normales con la tabla y con R."
 #| echo: false
 
 tibble(
@@ -166,13 +166,13 @@ tibble(
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-::: {.callout-note title="Ejemplo: resistencia del concreto de una planta de prefabricados"}
+::: {.callout-note title="Ejemplo: presión en un nodo de una red de agua potable"}
 
-**Planteamiento.** En una planta de prefabricados, la resistencia a compresión del concreto a 28 días sigue una distribución normal con $\mu = 35$ MPa y $\sigma = 5$ MPa (valores hipotéticos). Calcule la probabilidad de que un cilindro tenga:
+**Planteamiento.** En un nodo de una red de distribución de agua potable, la presión registrada cada hora sigue una distribución normal con $\mu = 35$ m y $\sigma = 5$ m de columna de agua (valores hipotéticos). Calcule la probabilidad de que, en una hora cualquiera, la presión sea:
 
-a) una resistencia menor que 30 MPa;
-b) una resistencia mayor que 42 MPa;
-c) una resistencia entre 40 y 50 MPa.
+a) menor que 30 m;
+b) mayor que 42 m;
+c) entre 40 y 50 m.
 
 **Solución:**
 
@@ -200,7 +200,7 @@ pnorm(z[1])                    # a) P(X < 30)
 1 - pnorm(z[2])                # b) P(X > 42)
 pnorm(z[4]) - pnorm(z[3])      # c) P(40 < X < 50)
 
-# 4) Directamente en MPa
+# 4) Directamente en metros de columna de agua
 pnorm(30, mean = mu, sd = sigma)
 pnorm(42, mean = mu, sd = sigma, lower.tail = FALSE)
 pnorm(50, mean = mu, sd = sigma) - pnorm(40, mean = mu, sd = sigma)
@@ -208,7 +208,7 @@ pnorm(50, mean = mu, sd = sigma) - pnorm(40, mean = mu, sd = sigma)
 
 La pequeña diferencia en c) (0.1574 contra 0.1573) se debe al redondeo de la tabla a cuatro decimales.
 
-**Interpretación.** Cerca de uno de cada seis cilindros (16 %) queda por debajo de 30 MPa. Si 30 MPa fuera la resistencia especificada, esa proporción sería demasiado alta para un concreto estructural: la planta tendría que subir la media o, mejor, reducir la variabilidad.
+**Interpretación.** Cerca de una hora de cada seis (16 %) la presión queda por debajo de 30 m. Si 30 m fuera la presión mínima de servicio fijada para ese sector, esa proporción sería demasiado alta: habría que subir la presión media o, mejor, reducir la variación con una válvula reguladora. Al otro lado, el 16 % de las horas con más de 40 m también importa, porque las presiones altas aumentan las fugas.
 
 :::
 
@@ -216,7 +216,7 @@ La pequeña diferencia en c) (0.1574 contra 0.1573) se debe al redondeo de la ta
 Antes de buscar en la tabla conviene hacer un dibujo rápido de la campana, marcar el valor y sombrear el área que se pide. La mayoría de los errores con la normal no son de cálculo, sino de tomar el área equivocada: la de la izquierda cuando se pedía la de la derecha, o $\Phi(z)$ cuando se pedía la diferencia entre dos valores.
 :::
 
-## Cuantiles: del área al valor {#sec-normal-cuantiles}
+## Cuantiles: el valor que corresponde a un área {#sec-normal-cuantiles}
 
 Muchas preguntas de ingeniería van en sentido contrario: se conoce la probabilidad y se busca el valor. ¿Qué resistencia supera el 95 % de los cilindros? ¿Qué caudal se excede solo el 1 % de los años? Ese valor es un cuantil. Para la normal se despeja $x$ de la @eq-normal-z:
 
@@ -294,7 +294,7 @@ La @fig-normal-cilindros muestra los dos gráficos hechos con ggplot2.
 
 ```{r}
 #| label: fig-normal-cilindros
-#| fig-cap: "Histograma con la curva normal ajustada y gráfico Q-Q de la resistencia de 60 cilindros."
+#| fig-cap: "Histograma y gráfico Q-Q de 60 cilindros."
 #| fig-alt: "A la izquierda, histograma con forma de campana y la curva normal encima; a la derecha, puntos alineados cerca de una recta"
 #| echo: false
 #| fig-subcap:
@@ -355,7 +355,7 @@ y $P(X = k)$ se aproxima con el área entre $k - 0.5$ y $k + 0.5$. La @fig-norma
 
 ```{r}
 #| label: fig-normal-continuidad
-#| fig-cap: "Binomial con n = 50 y p = 0.35 y la normal que la aproxima."
+#| fig-cap: "Binomial y su aproximación normal."
 #| fig-alt: "Barras de la binomial de 8 a 28 con una curva normal centrada en 17.5 que pasa por la parte alta de las barras; las barras de 20 en adelante están resaltadas"
 #| echo: false
 #| fig-width: 6.5
@@ -423,7 +423,7 @@ La Poisson con $\lambda$ grande también toma forma de campana, y se aproxima co
 
 ```{r}
 #| label: tbl-normal-aprox-poisson
-#| tbl-cap: "Error de la aproximación normal (con corrección por continuidad) a la Poisson."
+#| tbl-cap: "Error de la aproximación normal a la Poisson."
 #| echo: false
 
 map_dfr(c(2, 5, 10, 20, 50), function(l) {
@@ -515,7 +515,7 @@ En el interactivo de la @fig-normal-int-area se mueven la media, la desviación 
 </script>
 ```
 
-Área bajo la curva normal. Mueva los parámetros y los límites $a$ y $b$.
+Área bajo la curva normal.
 
 :::
 
@@ -596,7 +596,7 @@ El interactivo de la @fig-normal-int-binomial compara la binomial con su aproxim
 </script>
 ```
 
-Binomial y aproximación normal. Mueva $n$, $p$ y el umbral $k$.
+Binomial y aproximación normal.
 
 :::
 

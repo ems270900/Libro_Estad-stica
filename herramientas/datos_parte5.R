@@ -57,20 +57,21 @@ iri <- data.frame(
 )
 write.csv(iri, "datos/iri_mantenimiento_hipotetico.csv", row.names = FALSE)
 
-# 7) Tipo de falla de 180 cilindros ensayados, según la planta que despachó
-#    el concreto (capítulo 23). Una fila por cilindro.
+# 7) Mecanismo de falla de 180 deslizamientos de un inventario vial, según el
+#    material del talud (capítulo 23). Una fila por deslizamiento.
 prob_falla <- list(
-  "Planta A" = c(0.55, 0.30, 0.15),
-  "Planta B" = c(0.45, 0.30, 0.25),
-  "Planta C" = c(0.35, 0.35, 0.30)
+  "Suelo residual" = c(0.55, 0.30, 0.15),
+  "Coluvio" = c(0.45, 0.30, 0.25),
+  "Roca meteorizada" = c(0.35, 0.35, 0.30)
 )
-tipos <- c("Cónica", "Columnar", "Cortante")
-plantas <- rep(names(prob_falla), times = c(70, 60, 50))
-tipo_falla <- unlist(lapply(names(prob_falla), function(p) {
-  sample(tipos, size = sum(plantas == p), replace = TRUE, prob = prob_falla[[p]])
+tipos <- c("Traslacional", "Rotacional", "Flujo")
+materiales <- rep(names(prob_falla), times = c(70, 60, 50))
+mecanismo <- unlist(lapply(names(prob_falla), function(p) {
+  sample(tipos, size = sum(materiales == p), replace = TRUE, prob = prob_falla[[p]])
 }))
-fallas <- data.frame(cilindro = seq_along(plantas), planta = plantas, tipo_falla = tipo_falla)
-write.csv(fallas, "datos/tipo_falla_cilindros_hipotetico.csv", row.names = FALSE,
+fallas <- data.frame(deslizamiento = seq_along(materiales), material = materiales,
+                     mecanismo = mecanismo)
+write.csv(fallas, "datos/deslizamientos_material_hipotetico.csv", row.names = FALSE,
           fileEncoding = "UTF-8")
 
 # 8) Camiones que llegan a una planta de concreto en 80 intervalos de 15 minutos
@@ -80,3 +81,9 @@ camiones <- data.frame(
   camiones = rpois(80, lambda = 2.2)
 )
 write.csv(camiones, "datos/llegada_camiones_hipotetica.csv", row.names = FALSE)
+
+# 9) Grado de compactación (%) de 25 ensayos de densidad de campo en una base
+#    granular (capítulo 19). Semilla propia para no alterar los bloques anteriores.
+set.seed(1925)
+base <- data.frame(ensayo = 1:25, compactacion_pct = round(rnorm(25, 97.6, 1.4), 1))
+write.csv(base, "datos/compactacion_campo_hipotetica.csv", row.names = FALSE)
