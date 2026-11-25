@@ -45,3 +45,4 @@ Cada archivo de datos de los ejemplos se describe aquí: qué contiene, columnas
 - `llegada_camiones_hipotetica.csv`: camiones que llegan a una planta de concreto en 80 intervalos de 15 minutos, Poisson con media 2.2. Columnas `intervalo` y `camiones`. Capítulo 23.
 
 Los ocho archivos de la Parte V se generan con `herramientas/datos_parte5.R`, semilla `20261125` (correr con una sesión en UTF-8).
+- `velocidades_ruta_rural_hipoteticas.csv`: velocidad de 100 vehículos en flujo libre medida con radar en un punto de una ruta rural (datos hipotéticos). Columnas: `vehiculo` (1 a 100) y `velocidad_km_h` (km/h). Generados con `round(rnorm(100, 78, 9), 1)`, semilla `2302`. Capítulo 23.

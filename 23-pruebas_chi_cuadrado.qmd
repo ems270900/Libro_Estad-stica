@@ -36,6 +36,78 @@ Si $H_0$ es cierta y los conteos esperados no son muy pequeños, el estadístico
 La aproximación $\chi^2$ necesita conteos esperados suficientemente grandes. La regla habitual, de Cochran [-@cochran1954some], es que ningún $E_i$ sea menor que 1 y que no más del 20 % de ellos sea menor que 5. Si no se cumple, se agrupan categorías vecinas o, en cuadros de 2 × 2, se usa la prueba exacta de Fisher. La regla se aplica a los esperados, no a los observados: un conteo observado de 0 no es un problema si su esperado es 6.
 :::
 
+### De dónde sale la distribución chi-cuadrado
+
+::: {.pregunta}
+Si los accidentes de verdad se repartieran por igual, ¿qué valores de $\chi^2$ saldrían?
+:::
+
+Para responderlo basta con simular. Se reparten 140 accidentes al azar entre seis días, cada uno con probabilidad 1/6, se calcula el estadístico de la @eq-chi-pearson y se repite muchas veces. La @fig-chi-int-simulacion hace ese experimento. El histograma de los valores simulados se parece cada vez más a la curva de la distribución $\chi^2$ con 5 grados de libertad, que es la que usa la prueba.
+
+::: {#fig-chi-int-simulacion}
+
+```{=html}
+<div class="interactivo" id="int-chi-simulacion">
+  <button type="button" data-n="1">Simular 1 año</button>
+  <button type="button" data-n="100">Simular 100 años</button>
+  <button type="button" data-n="1000">Simular 1000 años</button>
+  <button type="button" data-n="0">Reiniciar</button>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Histograma de valores chi-cuadrado simulados con la densidad chi-cuadrado de 5 grados de libertad"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-chi-simulacion");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 280, m = 40, xmax = 25, nb = 50, k = 6, N = 140, obs = 14.71;
+  var valores = [], ultimo = null;
+  function simular() {
+    var c = [0, 0, 0, 0, 0, 0];
+    for (var i = 0; i < N; i++) c[Math.floor(Math.random() * k)]++;
+    var E = N / k, x2 = 0; c.forEach(function (o) { x2 += (o - E) * (o - E) / E; });
+    ultimo = c; return x2;
+  }
+  // Densidad chi-cuadrado con 5 g. l.: x^(3/2) e^(-x/2) / (2^(5/2) Γ(5/2)), Γ(5/2) = 1.32934
+  function dchi5(x) { return x <= 0 ? 0 : Math.pow(x, 1.5) * Math.exp(-x / 2) / (5.656854 * 1.329340); }
+  var sx = function (x) { return m + x / xmax * (w - 2 * m); };
+  function dibujar() {
+    var ancho = xmax / nb, cnt = new Array(nb).fill(0), mayores = 0;
+    valores.forEach(function (v) { var j = Math.floor(v / ancho); if (j < nb) cnt[j]++; if (v >= obs) mayores++; });
+    var B = valores.length, ymax = 0.17, g = "";
+    var sy = function (y) { return h - m - y / ymax * (h - 2 * m); };
+    if (B > 0) for (var j = 0; j < nb; j++) {
+      var dens = cnt[j] / (B * ancho), y0 = sy(Math.min(dens, ymax));
+      g += '<rect class="barra" x="' + sx(j * ancho).toFixed(1) + '" width="' + (sx(ancho) - sx(0) - 1).toFixed(1) + '" y="' + y0.toFixed(1) + '" height="' + (h - m - y0).toFixed(1) + '"/>';
+    }
+    var d = ""; for (var x = 0.05; x <= xmax; x += 0.1) d += (d ? "L" : "M") + sx(x).toFixed(1) + "," + sy(dchi5(x)).toFixed(1);
+    var ejes = ""; for (var t = 0; t <= 25; t += 5) ejes += '<text class="eje-texto" x="' + sx(t) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + t + '</text>';
+    svg.innerHTML = g + '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' + ejes +
+      '<path class="curva-2" d="' + d + '"/>' +
+      '<line class="guia" x1="' + sx(obs) + '" x2="' + sx(obs) + '" y1="24" y2="' + (h - m) + '"/>' +
+      '<text class="eje-texto" x="' + (sx(obs) + 4) + '" y="22">observado: 14.71</text>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Estadístico χ²</text>';
+    if (B === 0) { texto.innerHTML = "Pulse un botón para simular años en los que cada día tiene probabilidad 1/6."; return; }
+    texto.innerHTML = "Años simulados: <b>" + B + "</b>. Último año, lunes a sábado: " + ultimo.join(", ") +
+      " (χ² = " + valores[B - 1].toFixed(2) + "). Fracción con χ² ≥ 14.71: <b>" + (mayores / B).toFixed(3) + "</b> (la prueba da 0.012).";
+  }
+  raiz.querySelectorAll("button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var n = parseInt(b.dataset.n, 10);
+      if (n === 0) valores = []; else for (var i = 0; i < n; i++) valores.push(simular());
+      dibujar();
+    });
+  });
+  dibujar();
+})();
+</script>
+```
+
+Valores de $\chi^2$ simulados bajo $H_0$ y la densidad $\chi^2$ con 5 grados de libertad.
+
+:::
+
+Después de unos mil años simulados, la fracción de valores iguales o mayores que el observado ronda 0.012, que es el valor $p$ de la prueba. La simulación también muestra por qué la prueba se hace por la cola derecha: los valores pequeños de $\chi^2$ indican que lo observado se parece mucho a lo esperado, que es justo lo que dice $H_0$. Y muestra el papel de los grados de libertad: con seis días, una vez conocidos cinco conteos el sexto queda fijado por el total, así que solo cinco diferencias varían libremente.
+
 ## Bondad de ajuste {#sec-chi-bondad}
 
 Una prueba de bondad de ajuste contrasta si los datos de una variable vienen de una distribución dada:
@@ -207,6 +279,97 @@ tibble(cat = factor(c("0", "1", "2", "3", "4 o más"), levels = c("0", "1", "2",
 No rechazar $H_0$ en una prueba de bondad de ajuste no demuestra que los datos sigan la distribución propuesta, solo que no hay evidencia en contra. Con pocos datos, varias distribuciones distintas pasan la prueba. Los resultados de pruebas de bondad de ajuste de varias distribuciones no se promedian ni se usan para escoger "la mejor" solo por su valor $p$; la elección se apoya también en el mecanismo físico del fenómeno.
 :::
 
+### Bondad de ajuste a una distribución normal {#sec-chi-normal}
+
+La prueba también sirve para variables continuas, si se agrupan en clases. Una forma práctica es usar clases equiprobables: se escogen los límites de modo que, bajo la distribución propuesta, cada clase tenga la misma probabilidad. Así todos los esperados son iguales y ninguno queda pequeño. Para una normal con $k$ clases, los límites son $\bar{x} + z_j\,s$, donde $z_j$ es el cuantil de la normal estándar que deja $j/k$ a la izquierda. Como se estiman $\mu$ y $\sigma$, se pierden dos grados de libertad: $\nu = k - 3$ [@montgomery2014applied].
+
+::: {.callout-note title="Ejemplo: ¿son normales las velocidades de punto en una ruta rural?"}
+
+**Planteamiento.** Con un radar se midió la velocidad de 100 vehículos que pasaron libremente por un punto de una ruta rural (datos hipotéticos). Para calcular el percentil 85, que se usa en la fijación de límites de velocidad, se quiere suponer que las velocidades son normales. Con $\alpha = 0.05$ y ocho clases equiprobables, ¿contradicen los datos ese supuesto?
+
+```{r}
+#| echo: false
+ver_datos("datos/velocidades_ruta_rural_hipoteticas.csv",
+          nombres = c("Vehículo", "Velocidad (km/h)"))
+```
+
+**Solución:**
+
+1. Hipótesis: $H_0$: las velocidades siguen una distribución normal. $H_1$: no la siguen.
+2. Estimaciones: $\bar{x} = 7756.5/100 = 77.57$ km/h y $s = 9.06$ km/h.
+3. Límites de las clases: los cuantiles $z_j$ para $j/8 = 0.125, 0.25, \dots, 0.875$ son $\pm 1.150$, $\pm 0.674$, $\pm 0.319$ y 0. Por ejemplo, el primer límite es $77.57 - 1.150 \times 9.06 = 67.14$ km/h. Los siete límites son 67.14, 71.45, 74.68, 77.57, 80.45, 83.68 y 87.99 km/h.
+4. Esperados: $E_i = 100/8 = 12.5$ en cada clase.
+5. Observados: 10, 12, 12, 17, 12, 14, 12 y 11. El estadístico es $\chi^2 = [(10 - 12.5)^2 + (12 - 12.5)^2 + \dots + (11 - 12.5)^2]/12.5 = 32/12.5 = 2.56$.
+6. Grados de libertad: $\nu = 8 - 1 - 2 = 5$.
+7. Decisión: $\chi^2_{0.05,\,5} = 11.07$. Como $2.56 < 11.07$, no se rechaza $H_0$. El valor $p$ es 0.77.
+
+**Pseudocódigo**
+
+1. Leer los datos y estimar $\bar{x}$ y $s$.
+2. Calcular los límites $\bar{x} + z_j\,s$ con `qnorm()`.
+3. Contar los datos de cada clase con `cut()` y `table()`.
+4. Calcular el estadístico con esperados iguales a $n/k$ y el valor $p$ con $k - 3$ grados de libertad.
+5. Comparar con el gráfico Q-Q y con la prueba de Shapiro-Wilk.
+
+```{r}
+# 1) Datos y estimaciones
+velocidades <- read.csv("datos/velocidades_ruta_rural_hipoteticas.csv")
+v <- velocidades$velocidad_km_h
+n <- length(v)
+media <- mean(v)
+s <- sd(v)
+
+# 2) Límites de 8 clases equiprobables
+k <- 8
+limites <- media + s * qnorm((1:(k - 1)) / k)
+round(limites, 2)
+
+# 3) Observados por clase
+observados <- table(cut(v, breaks = c(-Inf, limites, Inf)))
+observados
+
+# 4) Estadístico y valor p (se estimaron 2 parámetros)
+esperados <- rep(n / k, k)
+chi2 <- sum((observados - esperados)^2 / esperados)
+gl <- k - 1 - 2
+c(chi2 = chi2, gl = gl, critico = qchisq(0.95, gl), p = 1 - pchisq(chi2, gl))
+
+# 5) Revisiones complementarias
+shapiro.test(v)
+```
+
+```{r}
+#| label: fig-chi-velocidades
+#| fig-cap: "Velocidades de punto: histograma con la normal ajustada y gráfico Q-Q."
+#| fig-alt: "A la izquierda, histograma simétrico de velocidades entre 52 y 103 km/h con una curva normal superpuesta; a la derecha, puntos alineados sobre la recta del gráfico cuantil-cuantil."
+#| fig-width: 9
+#| fig-height: 3.6
+#| out-width: "95%"
+#| echo: false
+
+library(patchwork)
+p_hist <- ggplot(tibble(v = v), aes(v)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 4, boundary = 50, fill = "grey80", colour = "white") +
+  stat_function(fun = dnorm, args = list(mean = media, sd = s), colour = "#1C6BA0", linewidth = 1) +
+  geom_vline(xintercept = limites, linetype = "dotted", colour = "grey40") +
+  labs(x = "Velocidad (km/h)", y = "Densidad") +
+  theme_minimal(base_size = 12)
+p_qq <- ggplot(tibble(v = v), aes(sample = v)) +
+  stat_qq_line(colour = "grey40", linetype = "dashed") +
+  stat_qq(colour = "#1C6BA0", size = 1.6) +
+  labs(x = "Cuantiles teóricos", y = "Velocidad (km/h)") +
+  theme_minimal(base_size = 12)
+p_hist + p_qq
+```
+
+**Interpretación.** Con 5 % de significancia, no hay evidencia de que las velocidades se aparten de la normal ($\chi^2 = 2.56$ con 5 grados de libertad, $p = 0.77$). La @fig-chi-velocidades lo confirma: el histograma sigue la curva ajustada (las líneas punteadas son los límites de las clases) y los puntos del gráfico Q-Q quedan sobre la recta. Con esa base, el percentil 85 se puede estimar como $77.57 + 1.036 \times 9.06 = 87.0$ km/h. No rechazar $H_0$ no prueba que la distribución sea normal, pero sí que con 100 datos la normal es un modelo razonable para este fin.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Para la normalidad de una variable continua, la prueba chi-cuadrado pierde información al agrupar y depende del número de clases. Con datos individuales se prefieren el gráfico Q-Q y la prueba de Shapiro-Wilk, que no agrupan [@shapiro1965analysis]. La prueba chi-cuadrado es la indicada cuando los datos ya vienen agrupados en clases, como en muchos informes de tránsito o de granulometría, o cuando la variable es discreta, como los conteos de camiones.
+:::
+
 ## Independencia en cuadros de contingencia {#sec-chi-independencia}
 
 ::: {.pregunta}
@@ -325,6 +488,49 @@ as_tibble(cuadro, .name_repair = ~ c("material", "tipo", "n")) %>%
 
 Los residuos estandarizados que entrega `chisq.test()` ayudan a ver qué celdas se apartan más de lo esperado. Valores mayores que 2 en valor absoluto señalan celdas que vale la pena mirar, pero solo después de una prueba global significativa, o como pista para un estudio posterior.
 
+La @fig-chi-residuos muestra los residuos estandarizados del ejemplo de los deslizamientos como un mapa de calor. El color indica si en la celda hubo más casos de los esperados (tonos cálidos) o menos (tonos fríos), y su intensidad, qué tan grande es la diferencia en unidades de error estándar.
+
+```{r}
+#| label: fig-chi-residuos
+#| fig-cap: "Residuos estandarizados del cuadro de deslizamientos."
+#| fig-alt: "Cuadrícula de 3 por 3 con material en las filas y mecanismo en las columnas. La celda de suelo residual con falla traslacional es la más oscura en tono cálido, con 2.7; las de su misma fila en las otras columnas son frías."
+#| fig-width: 6.5
+#| fig-height: 3.6
+#| echo: false
+
+as_tibble(prueba$stdres, .name_repair = ~ c("material", "mecanismo", "residuo")) %>%
+  mutate(material = factor(material, levels = rev(levels(fallas$material))),
+         mecanismo = factor(mecanismo, levels = levels(fallas$mecanismo))) %>%
+  ggplot(aes(mecanismo, material, fill = residuo)) +
+  geom_tile(colour = "white", linewidth = 1) +
+  geom_text(aes(label = sprintf("%.2f", residuo)), size = 4.5) +
+  scale_fill_gradient2(low = "#1C6BA0", mid = "white", high = "#E69F00", midpoint = 0,
+                       limits = c(-3, 3), name = "Residuo") +
+  labs(x = NULL, y = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid = element_blank())
+```
+
+### Qué tan fuerte es la relación
+
+El estadístico $\chi^2$ crece con el tamaño de la muestra: si se duplican todos los conteos de un cuadro, $\chi^2$ se duplica aunque la relación entre las variables sea la misma. Por eso no sirve como medida de la fuerza de la relación. Para eso se usa la $V$ de Cramér,
+
+$$
+V = \sqrt{\frac{\chi^2}{n\,(k - 1)}}
+$$ {#eq-chi-cramer}
+
+donde $n$ es el total del cuadro y $k$ es el menor entre el número de filas y el de columnas. $V$ va de 0 (independencia perfecta) a 1 (una variable determina por completo a la otra). Cohen propuso como referencia, para cuadros con $k = 2$, que $V = 0.1$ es una asociación débil, 0.3 moderada y 0.5 fuerte [@cohen1988statistical]. En un cuadro de 2 × 2, $V$ se llama coeficiente $\phi$.
+
+En el ejemplo de los deslizamientos, $V = \sqrt{7.997/(180 \times 2)} = 0.149$, una asociación débil.
+
+```{r}
+# V de Cramér del cuadro de deslizamientos (usa chi2, n y cuadro del ejemplo)
+k <- min(dim(cuadro))
+sqrt(chi2 / (n * (k - 1)))
+```
+
+Junto con el valor $p$ de 0.092, la conclusión es doble: la relación entre el material y el mecanismo de falla, si existe, es débil, y con 180 eventos no se distingue con claridad del azar. Para un estudio de amenaza no justificaría tratar los tres materiales por separado, pero sí seguir registrando el mecanismo en el inventario.
+
 La @fig-chi-calculadora repite la prueba de independencia con cualquier cuadro de 3 × 3. Si se deja una fila o una columna completa en cero, se trata como si no existiera, de modo que también sirve para cuadros de 2 × 2, 2 × 3 o 3 × 2.
 
 ::: {#fig-chi-calculadora}
@@ -415,6 +621,16 @@ Las tres llevan a rechazar la igualdad de proporciones con $\alpha = 0.05$ ($p$ 
 Las pruebas chi-cuadrado se aplican a conteos de elementos independientes, nunca a porcentajes, promedios ni mediciones continuas. Si se ingresa el cuadro en porcentajes, el estadístico cambia con la escala y el resultado no tiene sentido. Tampoco sirven cuando un mismo elemento se cuenta en varias celdas o se mide dos veces, como antes y después de una intervención; para eso hay pruebas específicas para datos pareados.
 :::
 
+## Errores comunes {#sec-chi-errores}
+
+1. **Aplicar la prueba a porcentajes o promedios.** El estadístico solo tiene sentido con conteos de elementos. Un cuadro en porcentajes da un $\chi^2$ que depende de la escala.
+2. **Usar `chisq.test()` sin corregir los grados de libertad cuando se estimaron parámetros.** La función no sabe que $\lambda$, $\mu$ o $\sigma$ salieron de los mismos datos; hay que recalcular el valor $p$ con $k - 1 - m$ grados de libertad.
+3. **Ignorar los esperados pequeños.** Si más del 20 % de los esperados es menor que 5, se agrupan categorías o se usa la prueba exacta de Fisher.
+4. **Leer un $\chi^2$ grande como una relación fuerte.** Con muchos datos, una asociación débil da un $\chi^2$ grande. La fuerza se mide con la $V$ de Cramér.
+5. **Interpretar la independencia como causalidad, o la dependencia como causa.** Que el mecanismo de falla dependa del material no dice que el material lo cause; puede haber una tercera variable, como la pendiente.
+6. **Contar un mismo elemento en varias celdas.** Si un deslizamiento se clasifica a la vez como rotacional y como flujo, los conteos dejan de ser independientes y la prueba no aplica.
+7. **Concluir que los datos siguen una distribución porque no se rechazó la bondad de ajuste.** Solo indica que no hay evidencia en contra; con pocos datos casi cualquier distribución pasa.
+
 ## Ejercicios propuestos
 
 1. Un proveedor afirma que sus agregados tienen la siguiente composición por tamaño: 30 % grava gruesa, 45 % grava fina y 25 % arena. En una muestra de 200 partículas se contaron 70, 92 y 38. Con $\alpha = 0.05$, ¿los datos contradicen la composición declarada?
@@ -423,6 +639,10 @@ Las pruebas chi-cuadrado se aplican a conteos de elementos independientes, nunca
 4. En una encuesta a 250 conductores se cruzó el tipo de vehículo (liviano, pesado) con el uso del cinturón (sí, no). Los conteos fueron: livianos 160 sí y 40 no; pesados 30 sí y 20 no. Pruebe la independencia con y sin corrección de Yates y con la prueba de Fisher.
 5. Con la calculadora de la @fig-chi-calculadora, multiplique por 2 todos los conteos del cuadro de los deslizamientos. ¿Qué pasa con el estadístico y con el valor $p$? Explique por qué, con la @eq-chi-pearson.
 6. Simule en R 2000 cuadros de 3 × 3 con 180 deslizamientos en los que el mecanismo de falla sea independiente del material. Aplique `chisq.test()` a cada uno y calcule la fracción de valores $p$ menores que 0.05. ¿Se acerca al 5 %?
+7. Con el interactivo de la @fig-chi-int-simulacion, simule 1000 años y compare la fracción de valores mayores que 11.07 con 0.05. ¿Por qué deberían parecerse?
+8. Repita el ejemplo de las velocidades con cinco clases equiprobables y con diez. ¿Cambia la conclusión? ¿Cuántos grados de libertad tiene cada versión?
+9. En una encuesta de movilidad a 400 hogares se cruzó la zona (urbana, periurbana, rural) con el modo principal de viaje al trabajo (automóvil, bus, a pie o bicicleta). Los conteos fueron: urbana 60, 70, 40; periurbana 50, 60, 15; rural 45, 35, 25. Pruebe la independencia, calcule la $V$ de Cramér y dibuje el mapa de residuos estandarizados.
+10. Multiplique por 10 todos los conteos del cuadro de los deslizamientos. Calcule $\chi^2$, el valor $p$ y la $V$ de Cramér. ¿Qué cambió y qué no? Explíquelo con la @eq-chi-cramer.
 
 ## Lecturas recomendadas
 
