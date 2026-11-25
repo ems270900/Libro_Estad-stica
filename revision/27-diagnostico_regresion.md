@@ -26,3 +26,9 @@ Fecha: 2026-11-25. Estado: borrador.
 
 - La intuición de los residuos (qué son, residuo contra error, ruido sin estructura) se trasladó al capítulo 25, junto a la recta movible. La sección de residuos (`#sec-diag-residuos`) abre con un resumen y una referencia cruzada a `@sec-rls-residuos-intuicion`, y conserva los residuos estandarizados y estudentizados, que dependen del apalancamiento.
 - Las figuras no se anuncian como interactivas.
+
+## Cambios (2026-11-25): transformación de Box-Cox
+
+- A pedido del autor, Box-Cox pasa de un párrafo a una subsección completa (`#sec-diag-boxcox`): intuición, familia (`@eq-diag-boxcox`), cuadro de valores de λ con la dispersión que corrigen (λ = 1 − α si σ ∝ μ^α), versión normalizada con la media geométrica, perfil de verosimilitud e intervalo del 95 % (máximo − 1.92), redondeo, vuelta a la escala original, cuándo no usarla y variantes (dos parámetros, Yeo-Johnson con `car::powerTransform()`).
+- Ejemplo de caudales ampliado: cálculo a mano de ℓ(0.5), cuadro y figura del perfil, código a mano y con `MASS::boxcox()`. Cifras verificadas con R: ẏ = 3.753, λ̂ = 0.24, IC −0.03 a 0.49; con √Q, Breusch-Pagan p = 0.016.
+- Referencia nueva: `yeo2000new` (Biometrika, DOI verificado).

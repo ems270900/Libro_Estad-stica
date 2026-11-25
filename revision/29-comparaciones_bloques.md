@@ -36,3 +36,7 @@
 - Cuatro ejercicios nuevos (pavimento permeable, formaletas con carpinteros como bloques, lectura del valor p ajustado).
 - Verificado con R: valores p sin ajuste, Holm, Bonferroni y Tukey de las seis parejas; Friedman χ² = 15, p = 0.002; η²p = 0.977.
 - Referencias nuevas: Holm (1979), Friedman (1937).
+
+## Cambios (2026-11-25): Box-Cox en el ANOVA
+
+- "Qué hacer si no se cumplen" agrega Box-Cox (`MASS::boxcox(y ~ tratamiento)`, con referencia a `@sec-diag-boxcox`) y el método empírico de la pendiente de ln s contra ln ȳ (λ = 1 − α), con cita a Montgomery (2017, sec. 3.4).
