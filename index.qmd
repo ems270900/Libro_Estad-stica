@@ -18,7 +18,8 @@ format:
 <p class="portada-subtitulo">Fundamentos, métodos y aplicaciones con R</p>
 </div>
 <div class="portada-banda-autor">
-<p class="portada-autor">Ing. Edwin Matarrita Segura, M.Sc.</p>
+<p class="portada-autor">Ing. Edwin Matarrita Segura</p>
+<p class="portada-correo"><a href="mailto:edwin.matarrita@ucr.ac.cr">edwin.matarrita@ucr.ac.cr</a></p>
 </div>
 </div>
 

@@ -19,12 +19,16 @@ book:
   title: "Probabilidad e Inferencia Estadística Aplicada a la Ingeniería Civil"
   subtitle: "Fundamentos, métodos y aplicaciones con R"
   author:
-    - name: "Ing. Edwin Matarrita Segura, M.Sc."
+    - name: "Ing. Edwin Matarrita Segura"
+      email: edwin.matarrita@ucr.ac.cr
       affiliation: "Escuela de Ingeniería Civil, Universidad de Costa Rica"
   favicon: assets/img/favicon.png
   date: today
 
   reader-mode: true
+  search:
+    location: sidebar
+    type: overlay
 
   page-footer:
     left: |

@@ -1,3 +1,29 @@
+/* =============================================================================
+   PALETA DE COLORES DE LA INTERFAZ
+   Todos los colores de acento del libro salen de estas variables. Para cambiar
+   la paleta basta con editar este bloque (y assets/css/paleta-*.scss, que da el
+   color de los enlaces y botones de Bootstrap).
+     --acento          capítulo seleccionado, rótulos de partes, h4, fichas
+     --acento-hover    color al pasar el mouse por la tabla de contenidos
+     --acento-2        botones, deslizadores y serie principal de los interactivos
+     --portada-1..3    degradado de la banda de la portada (igual en ambos modos)
+   ============================================================================= */
+:root {
+  --acento: #10199e;
+  --acento-hover: #87cefa;
+  --acento-2: #1c6ba0;
+  --acento-2-hover: #15557f;
+  --portada-1: #081a40;
+  --portada-2: #10199e;
+  --portada-3: #1f6fb2;
+}
+body.quarto-dark {
+  --acento: #8fb8ff;
+  --acento-hover: #b9d4ff;
+  --acento-2: #8fb8ff;
+  --acento-2-hover: #b9d4ff;
+}
+
 /* Tipografía y ancho del contenido */
 body {
   font-family: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -170,7 +196,7 @@ li > p {
 
 /* Bloque de cita estilo R4DS */
 .quote-block {
-  border-left: 4px solid #2574A9;   /* color elegante */
+  border-left: 4px solid var(--acento);   /* color elegante */
   background: #f9fbfd;
   padding: 1.2em 1.5em;
   margin: 1.5em 0;
@@ -187,7 +213,7 @@ li > p {
 /* ------- TIMELINE HIDROLOGÍA ------- */
 
 .timeline {
-  border-left: 4px solid #1a73e8;
+  border-left: 4px solid var(--acento);
   margin: 2rem 0;
   padding-left: 1.5rem;
 }
@@ -201,7 +227,7 @@ li > p {
   content: "";
   width: 14px;
   height: 14px;
-  background: #1a73e8;
+  background: var(--acento);
   border-radius: 50%;
   position: absolute;
   left: -31px;
@@ -211,7 +237,7 @@ li > p {
 .timeline-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0d47a1;
+  color: var(--acento);
   margin-bottom: 0.3rem;
 }
 
@@ -230,7 +256,7 @@ li > p {
 .timeline {
   margin: 1.5rem 0 2rem;
   padding-left: 1.75rem;
-  border-left: 3px solid #0d6efd;        /* línea vertical */
+  border-left: 3px solid var(--acento);        /* línea vertical */
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -252,7 +278,7 @@ li > p {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: #0d6efd;
+  background: var(--acento);
   border: 2px solid #ffffff;
   box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
 }
@@ -262,7 +288,7 @@ li > p {
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.06em;
-  color: #0d6efd;
+  color: var(--acento);
   margin-bottom: 0.1rem;
 }
 
@@ -294,7 +320,7 @@ li > p {
 .inst-card h3 {
   margin-top: 0;
   margin-bottom: .4rem;
-  color: #003366;
+  color: var(--acento);
   font-weight: 700;
   text-align: center;
 }
@@ -369,7 +395,7 @@ li > p {
 }
 
 .sidebar-title {
-  color: #10199e;
+  color: var(--acento);
 }
 
 div.sidebar-item-container .active {
@@ -453,7 +479,7 @@ footer.footer .nav-footer-right {
 .sidebar .sidebar-item-container .active,
 .sidebar nav[role=doc-toc] ul > li > a.active,
 .sidebar nav[role=doc-toc] ul > li > ul > li > a.active {
-  color: #10199e !important;      /* tu azul */
+  color: var(--acento) !important;      /* tu azul */
   font-weight: 700 !important;    /* más grueso */
 }
 
@@ -515,7 +541,7 @@ footer.footer .nav-footer-right {
 }
 
 .highlight-blue {
-  color: #10199e;
+  color: var(--acento);
 }
 
 /* Cuadros escritos en Markdown (| a | b |): Quarto solo les pone la clase
@@ -534,10 +560,10 @@ main table.table:not(.table-sm) > tbody > tr:nth-of-type(odd) > * {
    filas alternas (striped), para que no se pierda. Cubre los cuadros de
    kableExtra/Bootstrap, los de datos de ejemplo (DT) y los paginados. */
 :root {
-  --hover-cuadro: #d4e5fb;
+  --hover-cuadro: color-mix(in srgb, var(--acento) 14%, #ffffff);
 }
 body.quarto-dark {
-  --hover-cuadro: rgba(143, 184, 255, 0.22);
+  --hover-cuadro: color-mix(in srgb, var(--acento) 22%, transparent);
 }
 .table {
   --bs-table-hover-bg: var(--hover-cuadro);
@@ -565,9 +591,9 @@ table.dataTable.display > tbody > tr:hover > *,
 
 #TOC a:hover,
 #TOC a:focus {
-  background-color: rgba(31, 120, 180, 0.10);
-  color: #1f78b4;
-  border-left-color: #1f78b4;
+  background-color: color-mix(in srgb, var(--acento) 10%, transparent);
+  color: var(--acento);
+  border-left-color: var(--acento);
   outline: none;
 }
 
@@ -601,7 +627,7 @@ table.dataTable.display > tbody > tr:hover > *,
 #quarto-sidebar .sidebar-item-container a:focus .sidebar-item-text {
   background: transparent !important;
   background-color: transparent !important;
-  color: #87CEFA !important;
+  color: var(--acento-hover) !important;
   text-decoration: none !important;
   outline: none !important;
 }
@@ -613,14 +639,14 @@ table.dataTable.display > tbody > tr:hover > *,
 
 #quarto-sidebar .sidebar-item-container a:hover .sidebar-item-text * ,
 #quarto-sidebar .sidebar-item-container a:focus .sidebar-item-text * {
-  color: #87CEFA !important;
+  color: var(--acento-hover) !important;
 }
 
 /* opcional: si querés un resaltado solo-tipográfico (sin fondo) */
 #quarto-sidebar .sidebar-item-container a:hover .sidebar-item-text,
 #quarto-sidebar .sidebar-item-container a:focus .sidebar-item-text {
   text-decoration: underline !important;
-  text-decoration-color: #87CEFA !important;
+  text-decoration-color: var(--acento-hover) !important;
   text-decoration-thickness: 0.08em !important;
   text-underline-offset: 0.16em !important;
 }
@@ -720,7 +746,7 @@ a.video-enlace:hover {
   font-weight: 700 !important;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #10199e !important;
+  color: var(--acento) !important;
   line-height: 1.35;
 }
 
@@ -752,7 +778,7 @@ a.video-enlace:hover {
   font-size: 0.74rem !important;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #10199e !important;
+  color: var(--acento) !important;
 }
 
 /* === Portada === */
@@ -776,7 +802,7 @@ a.video-enlace:hover {
   flex-direction: column;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(11, 31, 77, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 }
 .portada p { hyphens: manual; -webkit-hyphens: manual; }
 
@@ -787,7 +813,7 @@ a.video-enlace:hover {
   justify-content: space-between;
   align-items: flex-end;
   gap: 2rem;
-  background: linear-gradient(120deg, #081a40 0%, #10199e 60%, #1f6fb2 100%);
+  background: linear-gradient(120deg, var(--portada-1) 0%, var(--portada-2) 60%, var(--portada-3) 100%);
   color: #ffffff;
   padding: 1.8rem 2.2rem 1.6rem;
 }
@@ -812,15 +838,26 @@ a.video-enlace:hover {
   opacity: 0.9;
   margin-bottom: 0 !important;
 }
-.portada-banda-autor { flex: 0 0 auto; }
-.portada-autor {
-  font-size: 1.05rem;
-  letter-spacing: 0.06em;
-  text-align: right !important;
+.portada-banda-autor {
+  flex: 0 0 auto;
   padding-left: 1.2rem;
   border-left: 2px solid rgba(255, 255, 255, 0.55);
+}
+.portada-banda .portada-autor {
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-align: right;
+  margin-bottom: 0.35rem !important;
+}
+.portada-banda .portada-correo {
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  text-align: right;
   margin-bottom: 0.1rem !important;
 }
+.portada-correo a,
+.portada-correo a:visited { color: #ffffff !important; text-decoration: none; opacity: 0.92; }
+.portada-correo a:hover { text-decoration: underline; opacity: 1; }
 
 /* Imagen: su alto se ajusta para que toda la portada quepa en la pantalla */
 .portada-imagen {
@@ -857,7 +894,7 @@ a.video-enlace:hover {
   align-items: start;
   flex: 0 0 auto;
   background: #f5f7fa;
-  border-top: 3px solid #10199e;
+  border-top: 3px solid var(--acento);
   padding: 0.9rem 1.4rem;
   font-size: 0.78rem;
   line-height: 1.4;
@@ -877,7 +914,7 @@ a.video-enlace:hover {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #10199e;
+  color: var(--acento);
   margin-bottom: 0.15rem !important;
 }
 .portada-cc {
@@ -891,14 +928,14 @@ a.video-enlace:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-body.quarto-dark .portada-pie { background: #1f2430; border-top-color: #6c8cff; }
+body.quarto-dark .portada-pie { background: #1f2430; border-top-color: var(--acento); }
 body.quarto-dark .portada-logos { border-right-color: #3a4050; }
 
 @media (max-width: 900px) {
   .portada { width: 100%; height: auto; min-height: 0; }
   .portada-imagen { flex: 0 0 auto; }
   .portada-banda { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.5rem 1.4rem; }
-  .portada-autor { text-align: left !important; }
+  .portada-banda .portada-autor, .portada-banda .portada-correo { text-align: left; }
   .portada-imagen img { height: auto; }
   .portada-pie { grid-template-columns: 1fr; gap: 0.9rem; }
   .portada-logos { border-right: none; padding-right: 0; justify-content: center; }
@@ -909,8 +946,8 @@ body.quarto-dark .portada-logos { border-right-color: #3a4050; }
   margin: 1.2rem 0 1.4rem;
   padding: 0.9rem 1.1rem 0.9rem 3.2rem;
   position: relative;
-  border-left: 4px solid #1C6BA0;
-  background: rgba(28, 107, 160, 0.07);
+  border-left: 4px solid var(--acento-2);
+  background: color-mix(in srgb, var(--acento-2) 7%, transparent);
   border-radius: 0 0.4rem 0.4rem 0;
   font-size: 1.08em;
   font-weight: 600;
@@ -921,7 +958,7 @@ body.quarto-dark .portada-logos { border-right-color: #3a4050; }
   content: "?";
   position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%);
   width: 1.7rem; height: 1.7rem; line-height: 1.7rem; text-align: center;
-  border-radius: 50%; background: #1C6BA0; color: #fff; font-weight: 700;
+  border-radius: 50%; background: var(--acento-2); color: #fff; font-weight: 700;
 }
 .pregunta p { margin: 0; }
 
@@ -931,14 +968,14 @@ body.quarto-dark .portada-logos { border-right-color: #3a4050; }
   display: inline-block;
   margin-bottom: 0.5rem;
   padding: 0.3rem 0.8rem;
-  border: 1px solid #10199e;
+  border: 1px solid var(--acento);
   border-radius: 6px;
-  color: #10199e;
+  color: var(--acento);
   font-size: 0.9rem;
   text-decoration: none;
 }
 .datos-ejemplo a.boton-datos code { color: inherit; background: transparent; padding: 0; }
-.datos-ejemplo a.boton-datos:hover { background: #10199e; color: #fff; }
+.datos-ejemplo a.boton-datos:hover { background: var(--acento); color: #fff; }
 .datos-ejemplo .dataTables_wrapper { font-size: 0.85rem; }
 .datos-ejemplo table.dataTable td,
 .datos-ejemplo table.dataTable th { text-align: center !important; }
@@ -950,22 +987,22 @@ body.quarto-dark .portada-logos { border-right-color: #3a4050; }
 #quarto-sidebar .sidebar-item-container a.active .menu-text,
 #quarto-sidebar .sidebar-item-container a.active .chapter-number,
 #quarto-sidebar .sidebar-item-container a.active .chapter-title {
-  color: #10199e !important;
+  color: var(--acento) !important;
   font-weight: 700 !important;
 }
 #quarto-sidebar .sidebar-item-container a.active {
-  border-left: 3px solid #10199e !important;
+  border-left: 3px solid var(--acento) !important;
   padding-left: 0.4rem !important;
-  background-color: rgba(16, 25, 158, 0.07) !important;
+  background-color: color-mix(in srgb, var(--acento) 7%, transparent) !important;
 }
 /* HTML de un solo archivo: assets/js/paginas.html marca el capítulo visible */
 #TOC > ul > li.toc-actual > a {
-  color: #10199e !important;
+  color: var(--acento) !important;
   font-weight: 700 !important;
-  background-color: rgba(16, 25, 158, 0.07);
-  border-left-color: #10199e !important;
+  background-color: color-mix(in srgb, var(--acento) 7%, transparent);
+  border-left-color: var(--acento) !important;
 }
-#TOC > ul > li.toc-actual > a > .header-section-number { color: #10199e; }
+#TOC > ul > li.toc-actual > a > .header-section-number { color: var(--acento); }
 
 /* === Modo oscuro: el azul oscuro del libro no se lee sobre fondo negro === */
 body.quarto-dark .sidebar-title,
@@ -983,30 +1020,30 @@ body.quarto-dark #TOC > ul > li.toc-actual > a > .header-section-number,
 body.quarto-dark #toc-capitulo a:hover,
 body.quarto-dark #toc-capitulo a.activo,
 body.quarto-dark .datos-ejemplo a.boton-datos {
-  color: #8fb8ff !important;
+  color: var(--acento) !important;
 }
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active,
 body.quarto-dark #TOC > ul > li.toc-actual > a,
 body.quarto-dark #toc-capitulo a.activo {
-  border-left-color: #8fb8ff !important;
-  background-color: rgba(143, 184, 255, 0.12) !important;
+  border-left-color: var(--acento) !important;
+  background-color: color-mix(in srgb, var(--acento) 12%, transparent) !important;
 }
 body.quarto-dark #toc-capitulo a { color: #c3c7cf; border-left-color: #444; }
-body.quarto-dark .datos-ejemplo a.boton-datos { border-color: #8fb8ff; }
-body.quarto-dark .datos-ejemplo a.boton-datos:hover { background: #8fb8ff; color: #111 !important; }
+body.quarto-dark .datos-ejemplo a.boton-datos { border-color: var(--acento); }
+body.quarto-dark .datos-ejemplo a.boton-datos:hover { background: var(--acento); color: #111 !important; }
 
 /* Subtítulos de cuarto nivel (por ejemplo, 35.6.1.1): se destacan del texto
    con color y una línea a la izquierda para que no se confundan con un párrafo. */
 main h4 {
-  color: #003366;
+  color: var(--acento);
   font-weight: 600;
-  border-left: 3px solid #003366;
+  border-left: 3px solid var(--acento);
   padding-left: 0.5rem;
   margin-top: 1.6rem;
 }
 body.quarto-dark main h4 {
-  color: #8fb8ff;
-  border-left-color: #8fb8ff;
+  color: var(--acento);
+  border-left-color: var(--acento);
 }
 
 /* === Interactivos propios (HTML + JavaScript sin bibliotecas externas) ===
@@ -1020,20 +1057,20 @@ body.quarto-dark main h4 {
   background: #fafbfd;
 }
 .interactivo label { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; flex-wrap: wrap; }
-.interactivo input[type=range] { flex: 1 1 12rem; accent-color: #1C6BA0; }
+.interactivo input[type=range] { flex: 1 1 12rem; accent-color: var(--acento-2); }
 .interactivo output { min-width: 2.5rem; font-variant-numeric: tabular-nums; font-weight: 600; }
 .interactivo svg { width: 100%; height: auto; display: block; }
-.interactivo .curva { fill: none; stroke: #1C6BA0; stroke-width: 2.5; }
+.interactivo .curva { fill: none; stroke: var(--acento-2); stroke-width: 2.5; }
 .interactivo .eje { stroke: #6c757d; stroke-width: 1; }
 .interactivo .eje-texto { fill: #495057; font-size: 12px; font-family: system-ui, sans-serif; }
 body.quarto-dark .interactivo { background: #1f2430; border-color: #3a4050; }
-body.quarto-dark .interactivo .curva { stroke: #8fb8ff; }
+body.quarto-dark .interactivo .curva { stroke: var(--acento); }
 body.quarto-dark .interactivo .eje { stroke: #9aa3ad; }
 body.quarto-dark .interactivo .eje-texto { fill: #c3c7cf; }
-.interactivo button { margin: 0.5rem 0 0.2rem; padding: 0.3rem 0.9rem; font-size: 0.9rem; color: #fff; background: #1C6BA0; border: none; border-radius: 4px; cursor: pointer; }
-.interactivo button:hover, .interactivo button:focus-visible { background: #15557f; }
+.interactivo button { margin: 0.5rem 0 0.2rem; padding: 0.3rem 0.9rem; font-size: 0.9rem; color: #fff; background: var(--acento-2); border: none; border-radius: 4px; cursor: pointer; }
+.interactivo button:hover, .interactivo button:focus-visible { background: var(--acento-2-hover); }
 .interactivo .resultado { margin: 0.4rem 0 0.2rem; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
-body.quarto-dark .interactivo button { background: #2f7fb8; }
+body.quarto-dark .interactivo button { background: var(--acento-2); color: #111111; }
 
 /* Portada con título largo (tres líneas): el bloque del título ocupa el ancho
    libre de la banda y, si con el autor al lado no cabe, el autor baja a la
@@ -1049,50 +1086,152 @@ body.quarto-dark .interactivo button { background: #2f7fb8; }
 
 /* Interactivos de la Parte V (inferencia): intervalos que aciertan o fallan,
    áreas de error tipo I y II, segunda curva y casillas para escribir números. */
-.interactivo .ic-cubre { stroke: #1C6BA0; fill: #1C6BA0; stroke-width: 2; }
+.interactivo .ic-cubre { stroke: var(--acento-2); fill: var(--acento-2); stroke-width: 2; }
 .interactivo .ic-falla { stroke: #D55E00; fill: #D55E00; stroke-width: 2.5; }
 .interactivo .area-alfa { fill: #E69F00; opacity: 0.75; }
 .interactivo .area-beta { fill: #9aa3ad; opacity: 0.45; }
 .interactivo .curva-2 { stroke: #009E73; stroke-dasharray: 6 3; }
-.interactivo .barra-obs { fill: #1C6BA0; }
+.interactivo .barra-obs { fill: var(--acento-2); }
 .interactivo .barra-esp { fill: #E69F00; opacity: 0.8; }
 .interactivo input[type=number] { width: 5.5rem; padding: 0.15rem 0.3rem; font-variant-numeric: tabular-nums; }
 .interactivo table.entrada { border-collapse: collapse; margin: 0.4rem 0; }
 .interactivo table.entrada td, .interactivo table.entrada th { padding: 0.2rem 0.5rem; text-align: center; }
-body.quarto-dark .interactivo .ic-cubre { stroke: #8fb8ff; fill: #8fb8ff; }
+body.quarto-dark .interactivo .ic-cubre { stroke: var(--acento); fill: var(--acento); }
 body.quarto-dark .interactivo .curva-2 { stroke: #5fd3a8; }
 body.quarto-dark .interactivo input[type=number] { background: #2a3040; color: #e6e6e6; border: 1px solid #4a5060; }
 
 /* Interactivos de la Parte VII (diseño de experimentos) */
 .interactivo .int-resultado { margin: 0.5rem 0 0; font-size: 0.93rem; }
-.interactivo .barra { fill: #9ec3de; }
-.interactivo .barra-activa { fill: #1C6BA0; }
-.interactivo .punto { fill: #1C6BA0; fill-opacity: 0.75; }
+.interactivo .barra { fill: color-mix(in srgb, var(--acento-2) 38%, #ffffff); }
+.interactivo .barra-activa { fill: var(--acento-2); }
+.interactivo .punto { fill: var(--acento-2); fill-opacity: 0.75; }
 .interactivo .punto-b { fill: #E69F00; fill-opacity: 0.85; }
 .interactivo .media-grupo { stroke: #B3541E; stroke-width: 3; }
 .interactivo .media-general { stroke: #6c757d; stroke-width: 1.5; stroke-dasharray: 6,4; }
-.interactivo .linea-a { fill: none; stroke: #1C6BA0; stroke-width: 3; }
+.interactivo .linea-a { fill: none; stroke: var(--acento-2); stroke-width: 3; }
 .interactivo .linea-b { fill: none; stroke: #E69F00; stroke-width: 3; }
 .interactivo .linea-lote { fill: none; stroke: #6c757d; stroke-width: 1.2; stroke-opacity: 0.7; }
 .interactivo table.int-cuadro { margin: 0.5rem auto 0; font-size: 0.9rem; border-collapse: collapse; }
 .interactivo table.int-cuadro th, .interactivo table.int-cuadro td { padding: 0.15rem 0.6rem; border-bottom: 1px solid #d5dbe3; text-align: center; }
-body.quarto-dark .interactivo .barra { fill: #4a6f8f; }
-body.quarto-dark .interactivo .barra-activa { fill: #8fb8ff; }
-body.quarto-dark .interactivo .punto { fill: #8fb8ff; }
-body.quarto-dark .interactivo .linea-a { stroke: #8fb8ff; }
+body.quarto-dark .interactivo .barra { fill: color-mix(in srgb, var(--acento-2) 45%, #222222); }
+body.quarto-dark .interactivo .barra-activa { fill: var(--acento); }
+body.quarto-dark .interactivo .punto { fill: var(--acento); }
+body.quarto-dark .interactivo .linea-a { stroke: var(--acento); }
 body.quarto-dark .interactivo .media-grupo { stroke: #f0a06a; }
 body.quarto-dark .interactivo table.int-cuadro th, body.quarto-dark .interactivo table.int-cuadro td { border-color: #3a4050; }
 
 /* --- Interactivos de la Parte IV: barras, áreas, selectores --- */
 .interactivo .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.3rem 1.2rem; margin-bottom: 0.4rem; }
 .interactivo select { font-size: 0.95rem; padding: 0.15rem 0.5rem; border: 1px solid #b8c2cc; border-radius: 5px; background: #fff; color: #212529; }
-.interactivo .barra-p4 { fill: #b9d3e6; stroke: #1C6BA0; stroke-width: 0.8; }
-.interactivo .barra-sel { fill: #1C6BA0; }
-.interactivo .area { fill: #1C6BA0; fill-opacity: 0.3; stroke: none; }
+.interactivo .barra-p4 { fill: color-mix(in srgb, var(--acento-2) 38%, #ffffff); stroke: var(--acento-2); stroke-width: 0.8; }
+.interactivo .barra-sel { fill: var(--acento-2); }
+.interactivo .area { fill: var(--acento-2); fill-opacity: 0.3; stroke: none; }
 .interactivo .curva-2 { fill: none; stroke: #E69F00; stroke-width: 2.5; }
 .interactivo .guia { stroke: #6c757d; stroke-width: 1; stroke-dasharray: 4 3; }
 body.quarto-dark .interactivo select { background: #2b3140; color: #e6e6e6; border-color: #4a5263; }
-body.quarto-dark .interactivo .barra-p4 { fill: #33506b; stroke: #8fb8ff; }
-body.quarto-dark .interactivo .barra-sel { fill: #8fb8ff; }
-body.quarto-dark .interactivo .area { fill: #8fb8ff; fill-opacity: 0.35; }
+body.quarto-dark .interactivo .barra-p4 { fill: color-mix(in srgb, var(--acento-2) 45%, #222222); stroke: var(--acento); }
+body.quarto-dark .interactivo .barra-sel { fill: var(--acento); }
+body.quarto-dark .interactivo .area { fill: var(--acento); fill-opacity: 0.35; }
 body.quarto-dark .interactivo .curva-2 { stroke: #f0b84a; }
+
+/* =============================================================================
+   TABLA DE CONTENIDOS DEL LIBRO WEB (varias páginas)
+   Misma forma que la del HTML de un solo archivo y la del libro de hidrología:
+   rótulo "Tabla de contenidos", prefacio e introducción en cursiva, partes en
+   mayúsculas con color y separadas por una línea, y el número del capítulo en
+   una columna aparte. El título del libro, la búsqueda y el modo oscuro pasan a
+   la barra de botones de arriba a la derecha (assets/js/accesibilidad.html).
+   ============================================================================= */
+#quarto-sidebar .sidebar-header,
+#quarto-sidebar .sidebar-search { display: none !important; }
+
+#quarto-sidebar .sidebar-menu-container::before {
+  content: "Tabla de contenidos";
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6c757d;
+  margin: 1.2rem 0 0.9rem;
+}
+
+/* La portada no se repite en la lista: se llega con el botón de inicio */
+#quarto-sidebar .sidebar-menu-container > ul > li:first-child { display: none; }
+
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item {
+  margin-left: 0.5rem;
+}
+/* Prefacio, introducción, palabras finales y referencias: cursiva, sin número */
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item:not(.sidebar-item-section) .menu-text {
+  font-style: italic;
+}
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item:not(.sidebar-item-section) {
+  padding: 0.12rem 0;
+}
+
+/* Partes: rótulo en mayúsculas con el color de acento y una línea encima */
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item-section {
+  margin: 1.1rem 0 0.2rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--bs-border-color, #e5e7eb);
+}
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item-section + li.sidebar-item:not(.sidebar-item-section) {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--bs-border-color, #e5e7eb);
+}
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item-section > .sidebar-item-container > a.sidebar-item-text {
+  pointer-events: none;
+  cursor: default;
+}
+#quarto-sidebar .sidebar-menu-container > ul > li.sidebar-item-section > .sidebar-item-container .menu-text {
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--acento) !important;
+  font-style: normal;
+}
+/* Las partes siempre abiertas, sin flecha para plegarlas */
+#quarto-sidebar .sidebar-item-toggle { display: none !important; }
+#quarto-sidebar ul.sidebar-section.collapse { display: block !important; height: auto !important; }
+#quarto-sidebar ul.sidebar-section { padding-left: 0 !important; margin-top: 0.45rem; }
+
+/* Capítulos: número en una columna fija y sangría francesa */
+#quarto-sidebar ul.sidebar-section > li.sidebar-item { padding: 0.18rem 0; }
+#quarto-sidebar ul.sidebar-section .menu-text {
+  display: flex;
+  align-items: baseline;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+#quarto-sidebar ul.sidebar-section .chapter-number {
+  flex: 0 0 2rem;
+  margin-right: -0.35em;   /* compensa el espacio duro que Quarto pone después */
+  color: #6c757d;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+#quarto-sidebar ul.sidebar-section .chapter-title { flex: 1 1 auto; }
+
+/* Capítulo actual: color de acento, sin cambiar la columna del número */
+#quarto-sidebar .sidebar-item-container a.active {
+  border-left: 0 !important;
+  padding-left: 0 !important;
+  background-color: transparent !important;
+}
+#quarto-sidebar .sidebar-item-container a.active .menu-text {
+  box-shadow: -0.5rem 0 0 color-mix(in srgb, var(--acento) 10%, transparent), 0.3rem 0 0 color-mix(in srgb, var(--acento) 10%, transparent);
+  background-color: color-mix(in srgb, var(--acento) 10%, transparent);
+  border-radius: 2px;
+}
+/* Modo oscuro: el gris de los capítulos (#444) no se leía sobre fondo negro */
+body.quarto-dark #quarto-sidebar .sidebar-item-text,
+body.quarto-dark #quarto-sidebar .sidebar-link,
+body.quarto-dark #quarto-sidebar .sidebar-item-text .chapter-title { color: #c3c7cf !important; }
+body.quarto-dark #quarto-sidebar ul.sidebar-section .chapter-number { color: #8a929c; }
+body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .menu-text,
+body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-title,
+body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-number { color: var(--acento) !important; }
