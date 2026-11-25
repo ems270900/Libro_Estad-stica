@@ -25,6 +25,11 @@ Dos variables tienen asociación estadística cuando conocer el valor de una da 
 
 En casi todos los problemas de ingeniería una de las dos variables es la que interesa explicar o predecir. Se llama variable respuesta y se escribe $Y$: la resistencia, el asentamiento, el caudal. La otra se llama variable predictora (o explicativa) y se escribe $X$: la relación agua/cemento, la carga, el área de la cuenca. En la correlación los papeles de $X$ y $Y$ son intercambiables. En la regresión (capítulo 25) no lo son.
 
+
+Una asociación estadística no es una ley exacta. Según la ley de Hooke, en el rango elástico el alargamiento de una barra es proporcional a la carga: conocida la carga, el alargamiento queda determinado. Esa es una relación funcional. La relación entre la lluvia de un mes y el caudal medio del río es de otro tipo. Los meses más lluviosos suelen tener más caudal, pero dos meses con la misma lluvia pueden tener caudales distintos, porque el suelo estaba más o menos húmedo o porque el agua cayó en un solo aguacero o en varios. La estadística estudia este segundo tipo de relación: una tendencia y, alrededor de ella, una dispersión que la variable conocida no explica.
+
+Para estudiar la asociación entre dos variables numéricas se necesitan datos pareados, es decir, que cada observación aporte los dos valores medidos sobre la misma unidad: la misma mezcla, el mismo tramo, el mismo mes. Si se ensayan 20 cilindros para la resistencia y otros 20 distintos para el módulo de elasticidad, no se puede calcular la correlación entre las dos propiedades, porque no hay forma de emparejar los datos.
+
 ### El diagrama de dispersión
 
 El primer paso para estudiar una asociación es el diagrama de dispersión: un punto por cada par de valores $(x_i, y_i)$, con $X$ en el eje horizontal y $Y$ en el vertical. La @sec-graf-base explica cómo hacerlo con `plot()` y la @sec-graf-ggplot con `geom_point()`. En el diagrama se miran cuatro cosas [@laneintroduction, cap. 4]:
@@ -62,6 +67,66 @@ ggplot(patrones, aes(x, y)) +
 
 El panel de la curva tiene una asociación muy clara, porque conocer $X$ dice mucho sobre $Y$. Sin embargo, como se verá en la @sec-cor-pearson, el coeficiente de Pearson de esos datos es casi cero. Por eso el gráfico va siempre antes que el número.
 
+
+### Variantes del diagrama de dispersión
+
+El diagrama básico funciona bien con unas decenas de puntos que no se tapan entre sí. Cuando los datos son muchos, se repiten o abarcan varios órdenes de magnitud, se usan algunas variantes [@wilke2019fundamentals, caps. 12 y 18]. La @fig-cor-variantes muestra las cuatro más útiles.
+
+```{r}
+#| label: fig-cor-variantes
+#| fig-cap: "Cuatro variantes del diagrama de dispersión (datos hipotéticos, salvo el panel c, que usa las cuencas del capítulo 27)."
+#| fig-alt: "Cuatro paneles: una nube de dos mil puntos semitransparentes; conteos enteros separados con ruido horizontal; caudal contra área en ejes logarítmicos; una nube curva con una línea suavizada"
+#| fig-width: 8
+#| fig-height: 6.5
+#| echo: false
+
+library(patchwork)
+set.seed(2401)
+
+# a) Muchos puntos: transparencia
+densidad <- runif(2000, 5, 120)
+flujo <- pmax(0, 95 * densidad * (1 - densidad / 130) + rnorm(2000, 0, 450))
+va <- ggplot(data.frame(densidad, flujo), aes(densidad, flujo)) +
+  geom_point(color = azul, alpha = 0.15, size = 1.2) +
+  labs(x = "Densidad (veh/km)", y = "Flujo (veh/h)", subtitle = "a) Muchos puntos: transparencia") +
+  theme_minimal(base_size = 11)
+
+# b) Valores repetidos: desplazamiento aleatorio pequeño
+edad_puente <- sample(5:45, 80, replace = TRUE)
+fisuras <- rpois(80, 0.12 * edad_puente)
+vb <- ggplot(data.frame(edad_puente, fisuras), aes(edad_puente, fisuras)) +
+  geom_jitter(color = azul, width = 0, height = 0.2, alpha = 0.7, size = 1.6) +
+  labs(x = "Edad del puente (años)", y = "Fisuras en la losa", subtitle = "b) Conteos repetidos: jitter") +
+  theme_minimal(base_size = 11)
+
+# c) Varios órdenes de magnitud: escala logarítmica
+cuencas_v <- read.csv("datos/cuencas_caudal_hipoteticas.csv")
+vc <- ggplot(cuencas_v, aes(area_km2, caudal_m3s)) +
+  geom_point(color = azul, size = 1.8) +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Área (km², escala log)", y = "Caudal (m³/s, escala log)", subtitle = "c) Rango amplio: escala logarítmica") +
+  theme_minimal(base_size = 11)
+
+# d) Tendencia curva: línea suavizada
+humedad <- runif(60, 8, 22)
+densidad_seca <- 1.95 - 0.004 * (humedad - 15)^2 + rnorm(60, 0, 0.025)
+vd <- ggplot(data.frame(humedad, densidad_seca), aes(humedad, densidad_seca)) +
+  geom_point(color = azul, size = 1.6) +
+  geom_smooth(method = "loess", se = FALSE, color = "#E69F00", linewidth = 1) +
+  labs(x = "Humedad (%)", y = "Densidad seca (g/cm³)", subtitle = "d) Forma curva: suavizado") +
+  theme_minimal(base_size = 11)
+(va + vb) / (vc + vd)
+```
+
+- **Transparencia** (panel a). Con miles de datos, como las lecturas de un detector de tránsito cada minuto, los puntos se tapan y la zona más densa parece igual a la más vacía. Con `alpha = 0.15` en `geom_point()` (o `col = rgb(0, 0, 1, 0.15)` en `plot()`), las zonas oscuras son las que tienen más datos.
+- **Desplazamiento aleatorio o *jitter*** (panel b). Cuando una variable es un conteo o se midió redondeada, muchos puntos caen en el mismo lugar. `geom_jitter()` los separa un poco al azar para que se vean todos. El desplazamiento debe ser pequeño y en el eje de la variable repetida, para no inventar una tendencia.
+- **Escala logarítmica** (panel c). Si los datos van de 5 a 900 km², las cuencas pequeñas quedan apretadas en una esquina. Con los dos ejes en logaritmo se reparten y, si la relación es potencial ($y = a\,x^b$), se ve como una recta. El capítulo 27 vuelve sobre esta transformación.
+- **Curva suavizada** (panel d). Una curva de suavizado local (*loess*) sigue la tendencia sin suponer una forma, y ayuda a decidir si una recta es razonable. En el ensayo Proctor de la figura, la densidad seca sube y luego baja con la humedad, y la curva lo hace evidente.
+
+::: {.callout-tip title="En la práctica"}
+Un buen diagrama de dispersión lleva la variable respuesta en el eje vertical, los dos ejes con magnitud y unidad, y una escala que no empiece en cero por obligación: se elige el rango de los datos. Si hay grupos (dos plantas, dos tipos de suelo), se distinguen con color o forma, porque una tendencia dentro de los grupos puede ser distinta de la tendencia total (@sec-cor-simpson).
+:::
+
 ## Covarianza {#sec-cor-covarianza}
 
 La covarianza mide si las dos variables tienden a alejarse de sus medias en la misma dirección. Para cada dato se calcula cuánto se aleja $x_i$ de su media ($x_i - \bar{x}$) y cuánto se aleja $y_i$ de la suya ($y_i - \bar{y}$), y se multiplican esas dos distancias:
@@ -70,6 +135,34 @@ La covarianza mide si las dos variables tienden a alejarse de sus medias en la m
 - Si los dos están por debajo, el producto también es positivo (menos por menos).
 - Si uno está arriba y el otro abajo, el producto es negativo.
 
+
+La @fig-cor-cuadrantes ayuda a verlo. Las dos líneas punteadas pasan por $\bar{x}$ y por $\bar{y}$ y dividen el plano en cuatro cuadrantes. Los puntos de los cuadrantes superior derecho e inferior izquierdo aportan productos positivos a la suma; los otros dos, productos negativos. Si la nube sube de izquierda a derecha, casi todos los puntos están en los cuadrantes positivos y la suma es grande y positiva. Si la nube no tiene tendencia, los puntos se reparten en los cuatro y los productos se cancelan.
+
+```{r}
+#| label: fig-cor-cuadrantes
+#| fig-cap: "Los cuatro cuadrantes que forman las medias y el signo de cada producto (datos hipotéticos)."
+#| fig-alt: "Nube de puntos que sube, dividida por una línea vertical y una horizontal en las medias; los puntos de arriba a la derecha y abajo a la izquierda son azules y los otros naranjas"
+#| echo: false
+
+set.seed(2402)
+xq <- runif(30, 20, 80)
+yq <- 10 + 0.5 * xq + rnorm(30, 0, 7)
+cuad <- data.frame(xq, yq, signo = ifelse((xq - mean(xq)) * (yq - mean(yq)) > 0, "Producto positivo", "Producto negativo"))
+ggplot(cuad, aes(xq, yq, color = signo)) +
+  geom_vline(xintercept = mean(xq), linetype = "dashed", color = "grey40") +
+  geom_hline(yintercept = mean(yq), linetype = "dashed", color = "grey40") +
+  geom_point(size = 2.6) +
+  annotate("text", x = c(78, 22, 22, 78), y = c(58, 58, 14, 14),
+           label = c("(+)(+) = +", "(−)(+) = −", "(−)(−) = +", "(+)(−) = −"), size = 4.2, color = "grey25") +
+  annotate("text", x = mean(xq) + 1, y = 12, label = "x̄", hjust = 0, size = 4.5) +
+  annotate("text", x = 21, y = mean(yq) + 1.5, label = "ȳ", size = 4.5) +
+  scale_color_manual(values = c("Producto positivo" = azul, "Producto negativo" = "#D55E00"), name = NULL) +
+  labs(x = "Variable X", y = "Variable Y") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+Un solo punto muy alejado en las dos variables aporta un producto enorme y puede dominar toda la suma. Por eso la covarianza, y la correlación de Pearson que se construye con ella, son sensibles a los valores atípicos.
 La covarianza muestral es el promedio de esos productos, dividido entre $n - 1$ como la varianza del capítulo 9 [@illowsky2018introductory, cap. 12]:
 
 $$
@@ -105,6 +198,135 @@ Con ellas, $r = S_{xy} / \sqrt{S_{xx} \, S_{yy}}$. El coeficiente tiene estas pr
 - Es simétrico: la correlación de $X$ con $Y$ es la misma que la de $Y$ con $X$.
 
 Un $r = -0.80$ indica una asociación lineal más fuerte que un $r = 0.35$, aunque sea negativa: el signo y la magnitud responden preguntas distintas.
+
+
+### Una lectura intuitiva de r
+
+Hay una forma equivalente de escribir $r$ que ayuda a entender qué mide. Si cada dato se convierte en puntaje $z$ (capítulo 9), es decir, en cuántas desviaciones estándar está por encima o por debajo de su media, el coeficiente de Pearson es casi el promedio de los productos de esos puntajes [@rodgers1988thirteen]:
+
+$$
+r = \frac{1}{n - 1} \sum_{i=1}^{n} z_{x,i} \, z_{y,i}, \qquad z_{x,i} = \frac{x_i - \bar{x}}{s_x}, \quad z_{y,i} = \frac{y_i - \bar{y}}{s_y}
+$$ {#eq-cor-z}
+
+donde $z_{x,i}$ y $z_{y,i}$ son los puntajes estándar del par $i$. Al estandarizar, las unidades desaparecen: da igual medir en MPa o en kg/cm², en metros o en pies. Lo que queda es la pregunta de fondo de la correlación: cuando un dato está alto en $X$ (en desviaciones estándar), ¿suele estar alto también en $Y$, y por cuánto?
+
+La @fig-cor-galeria ayuda a calibrar el ojo. Cada panel tiene 80 puntos generados con la correlación indicada. Con $|r| = 0.2$ la tendencia casi no se ve, con $|r| = 0.5$ se adivina, y solo desde $|r| = 0.8$ la nube parece una banda.
+
+```{r}
+#| label: fig-cor-galeria
+#| fig-cap: "Nubes de 80 puntos con distintas correlaciones de Pearson (datos simulados)."
+#| fig-alt: "Ocho diagramas de dispersión ordenados de r igual a menos 0.95 hasta 0.95; las nubes van de una banda angosta que baja a una nube redonda y a una banda angosta que sube"
+#| fig-width: 8
+#| fig-height: 4.6
+#| echo: false
+
+set.seed(2403)
+valores_r <- c(-0.95, -0.8, -0.5, -0.2, 0.2, 0.5, 0.8, 0.95)
+galeria <- do.call(rbind, lapply(valores_r, function(rho) {
+  z1 <- rnorm(80); z2 <- rnorm(80)
+  z2 <- resid(lm(z2 ~ z1)); z2 <- z2 / sd(z2); z1 <- (z1 - mean(z1)) / sd(z1)
+  data.frame(x = z1, y = rho * z1 + sqrt(1 - rho^2) * z2, panel = sprintf("r = %.2f", rho))
+}))
+galeria$panel <- factor(galeria$panel, levels = sprintf("r = %.2f", valores_r))
+ggplot(galeria, aes(x, y)) +
+  geom_point(color = azul, size = 1, alpha = 0.8) +
+  facet_wrap(~ panel, nrow = 2) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(axis.text = element_blank(), panel.grid.minor = element_blank())
+```
+
+Dos detalles de la figura sorprenden a quien empieza. El primero es que $r = 0.5$ parece poco: la nube es casi redonda. El segundo es que el valor de $r$ no es la pendiente de la nube. Una banda angosta casi horizontal puede tener $r = 0.95$ y una banda ancha muy inclinada, $r = 0.5$. La pendiente depende de las unidades y la responde la regresión del capítulo 25; $r$ solo dice qué tan cerca de una recta están los puntos.
+
+### Interactivo: adivine la correlación
+
+Antes de calcular un coeficiente conviene adivinarlo mirando el gráfico, porque así se aprende a leer los diagramas de dispersión. El interactivo genera una nube al azar. Mueva el control hasta el valor de $r$ que crea que tiene, pulse "Revisar" y compare con el valor calculado. El promedio del error de sus intentos aparece debajo.
+
+::: {#fig-cor-adivine}
+
+```{=html}
+<div class="interactivo" id="int-adivine">
+  <svg viewBox="0 0 640 300" role="img" aria-label="Nube de puntos al azar para estimar su correlación"></svg>
+  <label><span>Su estimación de <i>r</i>:</span> <output>0.00</output>
+    <input type="range" min="-1" max="1" step="0.05" value="0"></label>
+  <button type="button" class="revisar">Revisar</button>
+  <button type="button" class="nueva">Nueva nube</button>
+  <p class="resultado" aria-live="polite">Mueva el control y pulse "Revisar".</p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-adivine");
+  var ctl = raiz.querySelector("input"), sal = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var w = 640, h = 300, m = 30, n = 50, xs = [], ys = [], rReal = 0, revisado = false;
+  var intentos = 0, sumaError = 0;
+  function normal() {
+    var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  function pearson(a, b) {
+    var k = a.length, ma = 0, mb = 0, sab = 0, saa = 0, sbb = 0;
+    for (var i = 0; i < k; i++) { ma += a[i] / k; mb += b[i] / k; }
+    for (var j = 0; j < k; j++) {
+      sab += (a[j] - ma) * (b[j] - mb); saa += Math.pow(a[j] - ma, 2); sbb += Math.pow(b[j] - mb, 2);
+    }
+    return sab / Math.sqrt(saa * sbb);
+  }
+  function nueva() {
+    var rho = Math.random() * 1.9 - 0.95;
+    xs = []; ys = [];
+    for (var i = 0; i < n; i++) {
+      var z1 = normal(), z2 = normal();
+      xs.push(z1); ys.push(rho * z1 + Math.sqrt(1 - rho * rho) * z2);
+    }
+    rReal = pearson(xs, ys); revisado = false;
+    dibujar();
+    texto.textContent = "Mueva el control y pulse \"Revisar\".";
+  }
+  function dibujar() {
+    var minx = Math.min.apply(null, xs), maxx = Math.max.apply(null, xs);
+    var miny = Math.min.apply(null, ys), maxy = Math.max.apply(null, ys);
+    var sx = function (x) { return m + (x - minx) / (maxx - minx) * (w - 2 * m); };
+    var sy = function (y) { return h - m - (y - miny) / (maxy - miny) * (h - 2 * m); };
+    var g = '<line class="eje" x1="' + (m - 10) + '" x2="' + (w - m + 10) + '" y1="' + (h - m + 10) + '" y2="' + (h - m + 10) + '"/>' +
+      '<line class="eje" x1="' + (m - 10) + '" x2="' + (m - 10) + '" y1="' + (m - 10) + '" y2="' + (h - m + 10) + '"/>';
+    for (var i = 0; i < n; i++) {
+      g += '<circle class="punto" cx="' + sx(xs[i]).toFixed(1) + '" cy="' + sy(ys[i]).toFixed(1) + '" r="4.5"/>';
+    }
+    svg.innerHTML = g;
+  }
+  ctl.addEventListener("input", function () { sal.textContent = parseFloat(ctl.value).toFixed(2); });
+  raiz.querySelector(".revisar").addEventListener("click", function () {
+    var est = parseFloat(ctl.value), err = Math.abs(est - rReal);
+    if (!revisado) { intentos += 1; sumaError += err; revisado = true; }
+    var juicio = err < 0.1 ? "muy bien" : (err < 0.2 ? "bastante cerca" : "lejos; mire otra vez la forma de la nube");
+    texto.textContent = "r calculado = " + rReal.toFixed(2) + "   |   su estimación = " + est.toFixed(2) +
+      "   |   error = " + err.toFixed(2) + " (" + juicio + ")   |   error promedio en " + intentos +
+      (intentos === 1 ? " intento: " : " intentos: ") + (sumaError / intentos).toFixed(2);
+  });
+  raiz.querySelector(".nueva").addEventListener("click", nueva);
+  nueva();
+})();
+</script>
+```
+
+Nube de 50 puntos con una correlación al azar. Estime $r$ y compruebe.
+
+:::
+
+Casi todas las personas, al principio, subestiman las correlaciones altas y sobrestiman las bajas: una nube con $r = 0.6$ parece más débil de lo que es. Después de diez o quince intentos el error promedio suele bajar a menos de 0.15.
+
+### Cuándo usar el coeficiente de Pearson
+
+El coeficiente de Pearson es la medida adecuada cuando se cumplen tres condiciones, que se revisan en el diagrama de dispersión:
+
+1. **Las dos variables son numéricas** y se midieron en escala de intervalo o de razón (capítulo 7). Con calificaciones ordinales se usa Spearman o Kendall (@sec-cor-spearman).
+2. **La tendencia es aproximadamente recta.** Si la nube forma una curva, $r$ subestima la asociación, y conviene transformar una variable o usar Spearman.
+3. **No hay valores atípicos que dominen el resultado.** Un solo punto puede subir o bajar $r$ varias décimas (@sec-cor-interactivo).
+
+Para la prueba de hipótesis de la @sec-cor-prueba se agrega una cuarta: que los pares vengan, aproximadamente, de una distribución normal bivariada. En la práctica eso significa que la nube tiene forma de elipse, sin colas largas en ninguna dirección.
+
+No se usa Pearson para decidir si dos métodos de medición dan lo mismo (@sec-cor-concordancia), ni con datos en el tiempo que tienen tendencia, porque dos series que crecen con los años salen correlacionadas aunque no tengan nada que ver entre sí.
 
 ::: {.callout-warning title="Cuidado"}
 Pearson mide solo asociación lineal. Los datos en forma de U de la @fig-cor-patrones tienen $r$ casi igual a cero y, sin embargo, $Y$ depende mucho de $X$. Un $r$ cercano a cero dice "no hay tendencia en línea recta", no "no hay relación".
@@ -289,11 +511,93 @@ cor.test(x, y)
 :::
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
-El intervalo de confianza de `cor.test()` usa la transformación $z$ de Fisher. La cantidad $z = \tfrac{1}{2}\ln\!\left(\tfrac{1+r}{1-r}\right)$ tiene, aproximadamente, distribución normal con desviación estándar $1/\sqrt{n-3}$ [@laneintroduction, cap. 10]. Se calcula el intervalo $z \pm 1.96/\sqrt{n-3}$ y se devuelve a la escala de $r$ con la tangente hiperbólica. En R: `tanh(atanh(r) + c(-1, 1) * qnorm(0.975) / sqrt(n - 3))`, que da los mismos límites que `cor.test()`.
+Si $\rho = 0$, la distribución de $r$ es simétrica alrededor de cero, y por eso la prueba $t$ de la @eq-cor-t funciona bien. Si $\rho$ no es cero, la distribución de $r$ se vuelve asimétrica, más cuanto más cerca está $\rho$ de $\pm 1$ y cuanto menor es $n$. La transformación de @fisher1915frequency "estira" la escala cerca de los extremos (cuando $r \to 1$, $z_r \to \infty$) y deja casi igual la zona central, de modo que la distribución de $z_r$ queda casi normal y con la misma varianza para cualquier $\rho$. En R, `tanh(atanh(r) + c(-1, 1) * qnorm(0.975) / sqrt(n - 3))` reproduce el intervalo que entrega `cor.test()` (@sec-cor-ic).
 :::
 
 ::: {.callout-warning title="Cuidado"}
 Que una correlación sea estadísticamente significativa no quiere decir que sea grande ni útil. Con 500 pares, un $r = 0.09$ ya da $p < 0.05$, y sin embargo la variable $X$ explica menos del 1 % de la variación de $Y$. La prueba responde si $\rho$ es distinto de cero; la magnitud de $r$ y el gráfico responden si importa.
+:::
+
+## Intervalo de confianza para la correlación {#sec-cor-ic}
+
+La prueba de la @sec-cor-prueba solo responde si $\rho$ es cero o no. En ingeniería casi siempre interesa más saber entre qué valores puede estar $\rho$. Por ejemplo, para usar una medición barata y rápida en lugar de otra cara y lenta, se exige que la correlación entre las dos sea muy alta, y no basta con saber que es distinta de cero.
+
+Armar ese intervalo con la fórmula de siempre, "estimación más o menos dos errores estándar", no funciona bien, porque la distribución de $r$ es asimétrica cuando $\rho$ está lejos de cero: $r$ no puede pasar de 1, así que, si $\rho = 0.95$, los valores de $r$ se amontonan cerca de 1 y tienen una cola larga hacia abajo. @fisher1915frequency encontró una transformación que corrige esa asimetría:
+
+$$
+z_r = \frac{1}{2} \ln\!\left(\frac{1 + r}{1 - r}\right)
+$$ {#eq-cor-fisher}
+
+donde $z_r$ es la transformada de Fisher de $r$ (en R, `atanh(r)`). Para cualquier $\rho$, la cantidad $z_r$ tiene distribución aproximadamente normal, con media igual a la transformada de $\rho$ y desviación estándar [@laneintroduction, cap. 10]
+
+$$
+SE(z_r) = \frac{1}{\sqrt{n - 3}}
+$$ {#eq-cor-fisher-se}
+
+donde $n$ es el número de pares. El intervalo se arma en tres pasos: se transforma $r$, se suma y se resta $z_{\alpha/2}\,SE(z_r)$, y los dos límites se devuelven a la escala de la correlación con la función inversa, la tangente hiperbólica:
+
+$$
+r = \frac{e^{2 z} - 1}{e^{2 z} + 1} = \tanh(z)
+$$ {#eq-cor-fisher-inversa}
+
+La misma transformación sirve para probar si $\rho$ es igual a un valor distinto de cero, $H_0: \rho = \rho_0$, con el estadístico $Z = (z_r - z_{\rho_0})\sqrt{n - 3}$, que se compara con la normal estándar.
+
+::: {.callout-note title="Ejemplo: turbiedad como sustituto de los sólidos suspendidos en un río"}
+
+**Planteamiento.** Medir los sólidos suspendidos totales (SST) de una muestra de agua exige filtrar, secar y pesar en el laboratorio. La turbiedad, en cambio, se mide en el campo en un minuto. Para ocho muestras hipotéticas de un río se midieron las dos variables. Calcule la correlación de Pearson, su intervalo de confianza del 95 % y pruebe con $\alpha = 0.05$ si $\rho$ es mayor que 0.90, valor que se fijó como mínimo para usar la turbiedad como sustituto.
+
+```{r}
+#| echo: false
+ver_datos("datos/turbiedad_sst_hipotetica.csv", filas = 8,
+          nombres = c("Muestra", "Turbiedad (NTU)", "SST (mg/L)"))
+```
+
+**Solución:**
+
+1. Medias: $\bar{x} = 140/8 = 17.5$ NTU y $\bar{y} = 256/8 = 32.0$ mg/L.
+2. Sumas: $S_{xx} = 830$, $S_{yy} = 2450$ y $S_{xy} = 1421$ (se calculan como en el @tbl-cor-mano).
+3. Correlación (@eq-cor-pearson): $r = 1421/\sqrt{(830)(2450)} = 1421/1426.0 = 0.9965$.
+4. Transformada de Fisher (@eq-cor-fisher): $z_r = \tfrac{1}{2}\ln(1.9965/0.0035) = 3.171$.
+5. Error estándar (@eq-cor-fisher-se): $1/\sqrt{8 - 3} = 0.4472$.
+6. Intervalo en la escala $z$: $3.171 \pm 1.96(0.4472) = 3.171 \pm 0.877$, de 2.295 a 4.048.
+7. De vuelta a la escala de $r$ (@eq-cor-fisher-inversa): $\tanh(2.295) = 0.980$ y $\tanh(4.048) = 0.9994$.
+8. Prueba unilateral de $H_0: \rho \le 0.90$ contra $H_1: \rho > 0.90$. La transformada de 0.90 es $z_{0.90} = \tfrac{1}{2}\ln(1.9/0.1) = 1.472$, así que $Z = (3.171 - 1.472)\sqrt{5} = 3.80$. Como $3.80 > z_{0.05} = 1.645$, se rechaza $H_0$ ($p < 0.001$).
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular $r$.
+2. Transformar con `atanh()`, sumar y restar $1.96/\sqrt{n-3}$ y volver con `tanh()`.
+3. Comparar el intervalo con el de `cor.test()`.
+4. Calcular $Z$ para $\rho_0 = 0.90$ y su valor $p$ con `pnorm()`.
+
+```{r}
+# 1) Datos y correlación
+agua <- read.csv("datos/turbiedad_sst_hipotetica.csv")
+x <- agua$turbiedad_ntu
+y <- agua$sst_mg_l
+n <- length(x)
+r <- cor(x, y)
+
+# 2) Intervalo de Fisher a mano
+z_r <- atanh(r)                       # 0.5 * log((1 + r) / (1 - r))
+se_z <- 1 / sqrt(n - 3)
+limites_z <- z_r + c(-1, 1) * qnorm(0.975) * se_z
+c(r = r, z_r = z_r, inferior = tanh(limites_z[1]), superior = tanh(limites_z[2]))
+
+# 3) cor.test() usa el mismo método
+cor.test(x, y)$conf.int
+
+# 4) Prueba de H0: rho <= 0.90 contra H1: rho > 0.90
+Z <- (z_r - atanh(0.90)) * sqrt(n - 3)
+c(Z = Z, p = pnorm(Z, lower.tail = FALSE))
+```
+
+**Interpretación.** Con 95 % de confianza, la correlación entre la turbiedad y los SST en este río está entre 0.980 y 0.999, y hay evidencia de que supera el mínimo de 0.90. La turbiedad sirve, entonces, para seguir los sólidos en el campo. Falta un paso que la correlación no da: la ecuación para convertir NTU en mg/L, que es una regresión (capítulo 25). Además, la relación vale para este río y para el rango medido, de 4 a 35 NTU; en una creciente con otro tipo de sedimento puede cambiar.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+El intervalo de Fisher no es simétrico alrededor de $r$: en el ejemplo, $r = 0.9965$ está mucho más cerca del límite superior que del inferior. Eso es correcto y no un error de cálculo. Tampoco conviene usarlo con menos de unos 10 pares, porque la aproximación normal de $z_r$ empeora; con ocho muestras, como aquí, el resultado es orientativo.
 :::
 
 ## Interactivo: cómo se ve una correlación {#sec-cor-interactivo}
@@ -393,6 +697,41 @@ Spearman mide asociación monótona: si al crecer $X$ la variable $Y$ siempre cr
 
 Cuando hay empates, a los valores empatados se les da el promedio de los puestos que ocupan. Si dos datos empatan en los puestos 3 y 4, los dos reciben 3.5. En ese caso la @eq-cor-spearman deja de ser exacta y se calcula Pearson sobre los rangos, que es lo que hace R.
 
+
+La @fig-cor-rangos muestra qué hace el paso a rangos. A la izquierda están los valores originales de diez ensayos hipotéticos, con un dato muy alto. A la derecha, los mismos datos convertidos en puestos: el dato alto pasa a ser simplemente el puesto 10, a la misma distancia del puesto 9 que cualquier otro par vecino. Pearson calculado con los valores originales queda dominado por ese punto; calculado con los rangos, que es lo que hace Spearman, no.
+
+```{r}
+#| label: fig-cor-rangos
+#| fig-cap: "Los mismos diez pares en sus valores originales (izquierda) y convertidos en rangos (derecha) (datos hipotéticos)."
+#| fig-alt: "A la izquierda, nueve puntos agrupados abajo y uno muy arriba a la derecha; a la derecha, diez puntos repartidos en una rejilla de 1 a 10 que suben casi en línea"
+#| fig-width: 8
+#| fig-height: 3.6
+#| echo: false
+
+xr <- c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+yr <- c(1.1, 1.6, 1.4, 2.0, 2.3, 2.1, 2.7, 3.0, 2.8, 12)
+g_val <- ggplot(data.frame(xr, yr), aes(xr, yr)) +
+  geom_point(color = azul, size = 2.5) +
+  labs(x = "X", y = "Y", subtitle = sprintf("Valores: Pearson = %.2f", cor(xr, yr))) +
+  theme_minimal(base_size = 12)
+g_ran <- ggplot(data.frame(rx = rank(xr), ry = rank(yr)), aes(rx, ry)) +
+  geom_point(color = azul, size = 2.5) +
+  scale_x_continuous(breaks = 1:10) + scale_y_continuous(breaks = 1:10) +
+  labs(x = "Rango de X", y = "Rango de Y",
+       subtitle = sprintf("Rangos: Spearman = %.2f", cor(xr, yr, method = "spearman"))) +
+  theme_minimal(base_size = 12)
+g_val + g_ran
+```
+
+Se usa Spearman en estos casos:
+
+- **Datos ordinales**: calificaciones de estado de un puente (1 a 5), órdenes de prioridad de proyectos, escalas de percepción de una encuesta de usuarios.
+- **Relación monótona pero curva**, como la resistencia contra la edad o la infiltración contra el tiempo.
+- **Valores atípicos que no se pueden descartar**, porque son datos reales.
+- **Muestras pequeñas en que no se puede suponer normalidad bivariada** para la prueba de Pearson.
+
+No se usa cuando la relación sube y luego baja (como la densidad seca contra la humedad del ensayo Proctor, @fig-cor-variantes), porque Spearman también da un valor cercano a cero en una relación en forma de U. Para la prueba de $H_0: \rho_s = 0$, R calcula un valor $p$ exacto cuando $n$ es pequeño y no hay empates, y una aproximación $t$ en los demás casos [@helsel2020statistical, cap. 8].
+
 ## Correlación de Kendall {#sec-cor-kendall}
 
 La correlación de Kendall [@kendall1938new] compara los datos de dos en dos. Para cada par de observaciones $i$ y $j$ se pregunta si las dos variables las ordenan igual:
@@ -415,6 +754,34 @@ $$
 $$ {#eq-cor-kendall-b}
 
 donde $T_x$ es el número de pares empatados solo en $X$ y $T_y$ el número de pares empatados solo en $Y$. Es la que calcula R con `method = "kendall"`.
+
+
+La @fig-cor-pares muestra el conteo con cinco puntos. Cada segmento une un par de observaciones. Los segmentos que suben de izquierda a derecha son pares concordantes y los que bajan son discordantes. De los $\binom{5}{2} = 10$ pares, 8 suben y 2 bajan, así que $\tau = (8 - 2)/10 = 0.6$.
+
+```{r}
+#| label: fig-cor-pares
+#| fig-cap: "Pares concordantes (azul, continuos) y discordantes (naranja, punteados) entre cinco observaciones (datos hipotéticos)."
+#| fig-alt: "Cinco puntos unidos todos con todos por diez segmentos; ocho segmentos suben y son azules; dos bajan y son naranjas punteados"
+#| echo: false
+
+px <- c(1, 2, 3, 4, 5)
+py <- c(1, 3, 2, 5, 4)
+pares <- do.call(rbind, combn(5, 2, function(k) {
+  data.frame(x = px[k[1]], y = py[k[1]], xend = px[k[2]], yend = py[k[2]],
+             tipo = ifelse(sign(px[k[2]] - px[k[1]]) * sign(py[k[2]] - py[k[1]]) > 0,
+                           "Concordante", "Discordante"))
+}, simplify = FALSE))
+ggplot() +
+  geom_segment(data = pares, aes(x, y, xend = xend, yend = yend, color = tipo, linetype = tipo), linewidth = 0.9) +
+  geom_point(aes(px, py), size = 4) +
+  scale_color_manual(values = c("Concordante" = azul, "Discordante" = "#D55E00"), name = NULL) +
+  scale_linetype_manual(values = c("Concordante" = "solid", "Discordante" = "dashed"), name = NULL) +
+  labs(x = "X", y = "Y") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+Kendall tiene una interpretación más directa que Spearman, como diferencia de probabilidades: si se toman dos observaciones al azar, $\tau$ es la probabilidad de que estén en el mismo orden en las dos variables menos la probabilidad de que estén en orden opuesto. Por eso @helsel2020statistical [cap. 8] lo prefieren en datos de recursos hídricos, donde son comunes los empates y las muestras pequeñas.
 
 ::: {.callout-note title="Ejemplo: Spearman y Kendall para dos inspectores de carreteras"}
 
@@ -526,6 +893,15 @@ data.frame(
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
+Una guía rápida para decidir:
+
+1. Si las dos variables son numéricas, la nube es aproximadamente recta y no hay atípicos que dominen, se usa Pearson.
+2. Si la relación es monótona pero curva, hay atípicos reales o una variable es ordinal, se usa Spearman.
+3. Si la muestra es pequeña o hay muchos empates, o si se quiere una lectura como probabilidad de concordancia, se usa Kendall.
+4. Si la nube sube y baja, ningún coeficiente sirve: se describe la forma o se ajusta un modelo con curvatura (capítulo 27).
+
+Informar dos coeficientes no es un error. Si Pearson y Spearman dan valores parecidos, la relación es casi lineal y sin atípicos. Si se separan mucho, el gráfico dirá por qué.
+
 La @fig-cor-monotona muestra por qué conviene calcular más de uno. Los puntos siguen una curva siempre creciente, del tipo de la resistencia del concreto contra la edad. Spearman detecta que el orden se conserva casi perfecto, mientras que Pearson baja porque la curva no es una recta.
 
 ```{r}
@@ -602,6 +978,48 @@ ggplot(confusion, aes(caudal, deslizamientos, color = lluvia)) +
 
 Para afirmar una relación de causa y efecto se necesita más que una correlación: un experimento en el que se controle $X$ (como los de la Parte VII), una secuencia en el tiempo que tenga sentido y un mecanismo físico que la explique, además de descartar las variables de confusión.
 
+### Paradoja de Simpson {#sec-cor-simpson}
+
+Una variable de confusión puede hacer algo peor que inflar una correlación: puede invertir su signo. A esto se le llama paradoja de Simpson [@simpson1951interpretation]. La @fig-cor-simpson muestra un caso hipotético de calidad del agua. En cada uno de tres ríos, los días de más caudal tienen menos nitratos, porque el agua de lluvia diluye la carga. Pero el río más grande drena la zona agrícola y tiene, en promedio, más nitratos y más caudal. Si se juntan los datos de los tres ríos, la correlación total sale positiva.
+
+```{r}
+#| label: fig-cor-simpson
+#| fig-cap: "Nitratos contra caudal en tres ríos: la tendencia dentro de cada río es negativa y la de los datos juntos es positiva (datos hipotéticos)."
+#| fig-alt: "Tres grupos de puntos de colores, cada uno con una recta que baja; una recta gris punteada que atraviesa los tres grupos sube"
+#| echo: false
+
+set.seed(2404)
+rios <- data.frame(rio = rep(c("Río A", "Río B", "Río C"), each = 15),
+                   base_q = rep(c(4, 10, 16), each = 15), base_n = rep(c(2, 4.5, 7), each = 15))
+rios$caudal <- rios$base_q + runif(45, -2.5, 2.5)
+rios$nitratos <- rios$base_n - 0.35 * (rios$caudal - rios$base_q) + rnorm(45, 0, 0.35)
+r_total <- cor(rios$caudal, rios$nitratos)
+r_dentro <- sapply(split(rios, rios$rio), function(d) cor(d$caudal, d$nitratos))
+ggplot(rios, aes(caudal, nitratos, color = rio)) +
+  geom_smooth(aes(group = 1), method = "lm", se = FALSE, color = "grey50", linetype = "dashed") +
+  geom_point(size = 2.2) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1) +
+  scale_color_viridis_d(end = 0.8, name = NULL) +
+  annotate("label", x = 3, y = 8, hjust = 0, size = 3.8,
+           label = sprintf("r de los tres juntos = %.2f\nr dentro de cada río: %.2f, %.2f y %.2f",
+                           r_total, r_dentro[1], r_dentro[2], r_dentro[3])) +
+  labs(x = "Caudal (m³/s)", y = "Nitratos (mg/L)") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+La lección práctica es que, si los datos vienen de grupos distintos (ríos, plantas, laboratorios, tipos de suelo), se grafican con un color por grupo antes de calcular nada. Con la regresión múltiple del capítulo 26 se estima la relación dentro de los grupos, con el grupo como predictor.
+
+### Otras correlaciones engañosas
+
+Además de la confusión y la paradoja de Simpson, hay otras tres situaciones frecuentes en que una correlación dice algo distinto de lo que parece.
+
+**Correlación entre promedios.** Si en vez de los datos individuales se correlacionan promedios por grupo (por cantón, por mes, por proyecto), la variación dentro de cada grupo desaparece y la correlación sale mucho más alta. @robinson1950ecological mostró que una correlación entre promedios de regiones puede ser muy distinta de la correlación entre las personas de esas regiones. Una correlación de 0.9 entre la lluvia media anual y el caudal medio anual de varias cuencas no implica que, en una cuenca y un día cualquiera, la lluvia prediga bien el caudal.
+
+**Correlación entre cocientes.** Si dos variables se dividen entre una misma cantidad, aparece una correlación aunque las variables originales sean independientes. @pearson1897mathematical la llamó correlación espuria. Por ejemplo, si para varios proyectos se calculan el costo por kilómetro y los accidentes por kilómetro, los proyectos cortos tienden a tener valores altos en los dos cocientes solo porque el denominador es pequeño.
+
+**Series de tiempo con tendencia.** Dos variables que crecen con los años, como el parque vehicular del país y la población de una especie invasora, salen con $r$ cercano a 1 aunque no tengan relación. Con datos en el tiempo, la correlación se calcula sobre los cambios de un año al otro o sobre los residuos de la tendencia, no sobre las series crudas.
+
 ### El cuarteto de Anscombe
 
 @anscombe1973graphs construyó cuatro conjuntos de 11 pares con casi la misma media de $X$, la misma media de $Y$, las mismas varianzas, la misma recta de regresión y la misma correlación ($r = 0.82$). Sus gráficos (@fig-cor-anscombe) son muy distintos: una relación lineal con ruido, una curva perfecta, una recta con un atípico y un caso en que un único punto crea toda la correlación. Los datos vienen incluidos en R como `anscombe`.
@@ -635,9 +1053,101 @@ c(I = cor(anscombe$x1, anscombe$y1), II = cor(anscombe$x2, anscombe$y2),
 
 Los cuatro números coinciden hasta el tercer decimal, y solo el conjunto I es un caso en que el coeficiente de Pearson resume bien la relación.
 
+
+El cuarteto tiene una versión moderna. @matejka2017same generaron con un algoritmo una docena de conjuntos de datos con las mismas medias, desviaciones estándar y correlación (hasta dos decimales) que forman figuras tan distintas como una estrella, unas líneas paralelas o un dinosaurio. La conclusión es la misma: los resúmenes numéricos no reemplazan al gráfico.
+
+### Correlación no es concordancia {#sec-cor-concordancia}
+
+::: {.pregunta}
+Si dos equipos que miden la densidad de un suelo compactado tienen una correlación de 0.98, ¿se puede usar uno en lugar del otro?
+:::
+
+No necesariamente. Una correlación alta dice que, cuando un equipo marca más, el otro también, pero no que marquen lo mismo. Si un densímetro nuclear lee siempre 0.04 g/cm³ más que el cono de arena, la correlación entre los dos puede ser casi perfecta y, sin embargo, el densímetro aprobaría compactaciones que el cono rechazaría. La @fig-cor-concordancia muestra ese caso con datos hipotéticos: los puntos siguen una recta, pero no la recta de igualdad.
+
+```{r}
+#| label: fig-cor-concordancia
+#| fig-cap: "Densidad seca medida con dos métodos en 25 puntos de un terraplén: correlación alta con un sesgo constante (datos hipotéticos)."
+#| fig-alt: "Puntos alineados en una banda angosta que sube, todos por encima de la recta de igualdad gris punteada"
+#| echo: false
+
+set.seed(2405)
+cono <- runif(25, 1.70, 1.95)
+nuclear <- cono + 0.04 + rnorm(25, 0, 0.008)
+ggplot(data.frame(cono, nuclear), aes(cono, nuclear)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "grey45") +
+  geom_point(color = azul, size = 2.4) +
+  annotate("text", x = 1.90, y = 1.88, label = "Recta de igualdad", color = "grey35", size = 3.8, hjust = 0) +
+  annotate("label", x = 1.70, y = 1.98, hjust = 0, size = 3.8,
+           label = sprintf("r = %.3f\ndiferencia media = %.3f g/cm³", cor(cono, nuclear), mean(nuclear - cono))) +
+  coord_equal(xlim = c(1.68, 2.0), ylim = c(1.68, 2.0)) +
+  labs(x = "Densidad seca con cono de arena (g/cm³)", y = "Densidad seca con densímetro nuclear (g/cm³)") +
+  theme_minimal(base_size = 12)
+```
+
+Para comparar dos métodos que miden lo mismo, @bland1986statistical proponen estudiar las diferencias entre ellos: su promedio (el sesgo) y su desviación estándar, y graficar la diferencia contra el promedio de los dos métodos. La correlación no sirve para eso, porque además depende del rango: si los puntos cubren desde suelos muy sueltos hasta muy densos, $r$ sale alto aunque los equipos discrepen bastante.
+
+### Rango restringido
+
+Una correlación también depende del rango de los datos.
+La @fig-cor-rango lo muestra con 60 puntos hipotéticos. Con todo el rango, la correlación es alta. Si solo se miran los puntos de la franja sombreada, la tendencia casi desaparece.
+
+```{r}
+#| label: fig-cor-rango
+#| fig-cap: "Efecto de restringir el rango de X sobre la correlación (datos hipotéticos)."
+#| fig-alt: "Nube de puntos que sube; una franja vertical sombreada en el centro contiene puntos naranjas sin tendencia clara"
+#| echo: false
+
+set.seed(2406)
+xg <- runif(60, 0, 10)
+yg <- 5 + 2 * xg + rnorm(60, 0, 3)
+dentro <- xg > 4 & xg < 6
+ggplot(data.frame(xg, yg, dentro), aes(xg, yg, color = dentro)) +
+  annotate("rect", xmin = 4, xmax = 6, ymin = -Inf, ymax = Inf, fill = "#FCE5C8", alpha = 0.7) +
+  geom_point(size = 2.2) +
+  scale_color_manual(values = c("FALSE" = azul, "TRUE" = "#D55E00"), guide = "none") +
+  annotate("label", x = 0.2, y = 27, hjust = 0, size = 3.8,
+           label = sprintf("Todo el rango: r = %.2f\nSolo la franja: r = %.2f", cor(xg, yg), cor(xg[dentro], yg[dentro]))) +
+  labs(x = "Variable X", y = "Variable Y") +
+  theme_minimal(base_size = 13)
+```
+
 ::: {.callout-warning title="Cuidado"}
 Si los datos cubren solo una parte del rango de $X$, la correlación sale más baja que en la población completa. Por ejemplo, si solo se ensayan mezclas con relación agua/cemento entre 0.50 y 0.55, el efecto de la relación queda escondido entre la variación propia de los ensayos y $r$ puede salir cercano a cero. Antes de concluir que "no hay relación" hay que revisar si el rango estudiado era suficiente.
 :::
+
+## Errores comunes con la correlación {#sec-cor-errores}
+
+Los errores de este cuadro aparecen una y otra vez en informes técnicos y tesis. Todos se evitan con dos hábitos: graficar antes de calcular y preguntarse de dónde vienen los datos.
+
+```{r}
+#| label: tbl-cor-errores
+#| tbl-cap: "Errores frecuentes al calcular o interpretar una correlación."
+#| echo: false
+
+data.frame(
+  error = c("Calcular <i>r</i> sin mirar el diagrama", "Concluir \"no hay relación\" porque <i>r</i> ≈ 0",
+            "Leer <i>r</i> como pendiente", "Confundir significancia con magnitud",
+            "Concluir causa a partir de <i>r</i>", "Juntar grupos distintos",
+            "Usar <i>r</i> para comparar dos métodos de medición", "Correlacionar promedios o cocientes",
+            "Correlacionar series de tiempo con tendencia"),
+  por_que = c("Curvas, atípicos y grupos cambian el valor sin que el número lo avise",
+              "Pearson solo mide tendencia lineal; puede haber una curva fuerte",
+              "La pendiente tiene unidades y depende de la escala; <i>r</i> no",
+              "Con muchos datos, un <i>r</i> pequeño da <i>p</i> < 0.05",
+              "Puede haber una variable de confusión o el efecto inverso",
+              "La tendencia total puede tener el signo contrario (Simpson)",
+              "Un sesgo constante no baja <i>r</i>",
+              "Los promedios inflan <i>r</i>; los cocientes la crean",
+              "Dos tendencias en el tiempo dan <i>r</i> alto sin relación"),
+  remedio = c("Graficar primero (cuarteto de Anscombe)", "Ver la forma; usar Spearman o un modelo curvo",
+              "Usar la regresión del capítulo 25", "Informar <i>r</i>, su intervalo y <i>n</i>",
+              "Experimento, mecanismo físico y control de confusores", "Graficar por grupo; regresión con el grupo",
+              "Analizar las diferencias (Bland y Altman)", "Trabajar con los datos individuales",
+              "Usar cambios anuales o residuos de la tendencia")
+) %>%
+  kbl(col.names = c("Error", "Por qué engaña", "Qué hacer"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
 
 ## Ejercicios propuestos
 
@@ -650,9 +1160,17 @@ Si los datos cubren solo una parte del rango de $X$, la correlación sale más b
 7. Un informe afirma que "las ciudades con más kilómetros de ciclovía tienen menos muertes por accidentes de tránsito, así que construir ciclovías salva vidas". Proponga dos variables de confusión que podrían explicar la correlación y un estudio que ayudaría a separar los efectos.
 8. Busque un conjunto de datos de ingeniería que conozca (por ejemplo, lluvia anual y caudal de varias estaciones) y diga qué coeficiente usaría y por qué, antes de calcularlo.
 
+9. Con las ocho muestras de `turbiedad_sst_hipotetica.csv`, calcule a mano el intervalo de confianza del 90 % para $\rho$ con la transformación de Fisher y compruébelo con `cor.test(x, y, conf.level = 0.90)`.
+10. En 30 puntos de un terraplén se midió la humedad con un horno (método de referencia) y con un medidor rápido, y se obtuvo $r = 0.97$. La diferencia media entre los dos fue de 1.8 puntos de humedad. Explique por qué el medidor rápido no se puede usar tal cual y qué haría para corregirlo.
+11. Para 12 edificios de una ciudad se registraron la altura (m) y el periodo fundamental de vibración medido (s). Proponga cómo se vería el diagrama de dispersión, qué coeficiente usaría y por qué, y qué variable de confusión (por ejemplo, el sistema estructural) convendría distinguir con color.
+12. Simule en R tres grupos de 20 puntos que muestren la paradoja de Simpson: tendencia negativa dentro de cada grupo y positiva en el total. Calcule las correlaciones por grupo y total.
+
 ## Lecturas recomendadas
 
 - @illowsky2018introductory, capítulo 12: explica con muchos ejemplos el diagrama de dispersión, el coeficiente $r$ y su prueba, a nivel muy introductorio y con licencia abierta.
 - @laneintroduction, capítulo 4: muestra con gráficos cómo se ven distintos valores de $r$ y cómo se calcula paso a paso.
 - @helsel2020statistical, capítulo 8: compara Pearson, Spearman y Kendall con datos de recursos hídricos y recomienda cuándo usar cada uno.
 - @anscombe1973graphs: el artículo original del cuarteto, corto y fácil de leer, sobre por qué graficar antes de calcular.
+
+- @rodgers1988thirteen: trece formas de ver el coeficiente de correlación, entre ellas la de los puntajes estándar, con figuras sencillas.
+- @bland1986statistical: el artículo que explica por qué la correlación no sirve para comparar dos métodos de medición y qué hacer en su lugar.

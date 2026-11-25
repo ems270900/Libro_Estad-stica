@@ -63,3 +63,43 @@ caudal <- round(0.065 * area^0.95 * exp(rnorm(20, 0, 0.30)), 2)
 cuencas <- data.frame(cuenca = sprintf("Q%02d", 1:20), area_km2 = area,
                       caudal_m3s = caudal)
 write.csv(cuencas, "datos/cuencas_caudal_hipoteticas.csv", row.names = FALSE)
+
+# 6) Ocho muestras de agua de un río: turbiedad y sólidos suspendidos totales.
+#    Escrito a mano (capítulo 24, correlación e intervalo de Fisher).
+turbiedad <- data.frame(
+  muestra = sprintf("A%02d", 1:8),
+  turbiedad_ntu = c(4, 7, 10, 14, 18, 23, 29, 35),
+  sst_mg_l = c(9, 13, 21, 24, 35, 41, 50, 63)
+)
+write.csv(turbiedad, "datos/turbiedad_sst_hipotetica.csv", row.names = FALSE)
+
+# 7) Ocho aguaceros sobre una parcela urbana de 0.5 ha: intensidad y caudal pico.
+#    Escrito a mano (capítulo 25, regresión por el origen y método racional).
+escorrentia <- data.frame(
+  evento = sprintf("E%02d", 1:8),
+  intensidad_mm_h = c(12, 18, 25, 30, 38, 45, 52, 60),
+  caudal_l_s = c(9.5, 16.1, 20.2, 26.4, 30.8, 38.9, 42.5, 51.3)
+)
+write.csv(escorrentia, "datos/escorrentia_parcela_hipotetica.csv", row.names = FALSE)
+
+# 8) Doce tramos de pavimento: tránsito acumulado, espesor de la carpeta y
+#    ahuellamiento. Los tramos con más tránsito se diseñaron más gruesos.
+#    Escrito a mano (capítulo 26, coeficiente parcial contra pendiente simple).
+ahuellamiento <- data.frame(
+  tramo = sprintf("T%02d", 1:12),
+  transito_mesal = c(0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0),
+  espesor_cm = c(5, 5, 6, 7, 7, 8, 9, 9, 10, 11, 12, 13),
+  ahuellamiento_mm = c(3.9, 4.0, 4.2, 4.3, 5.2, 5.5, 5.6, 7.4, 7.7, 8.0, 9.2, 10.8)
+)
+write.csv(ahuellamiento, "datos/ahuellamiento_tramos_hipotetico.csv", row.names = FALSE)
+
+# 9) Doce meses de lluvia y nivel piezométrico en un talud. Los errores tienen
+#    autocorrelación (el talud drena despacio), para la prueba de Durbin-Watson.
+set.seed(2771)
+lluvia <- c(20, 35, 60, 150, 260, 240, 180, 230, 310, 340, 190, 70)
+error <- numeric(12)
+error[1] <- 0.1
+for (i in 2:12) error[i] <- 0.8 * error[i - 1] + rnorm(1, 0, 0.12)
+piezometro <- data.frame(mes = 1:12, lluvia_mm = lluvia,
+                         nivel_m = round(2.0 + 0.004 * lluvia + error, 2))
+write.csv(piezometro, "datos/piezometro_talud_hipotetico.csv", row.names = FALSE)
