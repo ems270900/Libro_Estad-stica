@@ -26,7 +26,7 @@ Por definir. El orden oficial de los capítulos está en `_quarto.yml`.
 | `R/` | Funciones de R que usan los capítulos: vista paginada y descarga de los datos (`ver_datos.R`) y resultados lentos guardados en disco (`resultado_guardado.R`). |
 | `resultados/` | Resultados de cálculos lentos en `.rds`, descritos en [`resultados/LEEME.md`](resultados/LEEME.md). |
 | `_freeze/` | Resultados congelados de cada capítulo (los crea Quarto; van en git). |
-| `herramientas/` | Scripts de apoyo: `publicar.R` (libro en un solo archivo HTML), `revisar_estilo.sh` (revisión de estilo) , `partir_html.py` y `portada.js` con `portada_png.js` (generan la imagen de portada: `node herramientas/portada.js B2 petroleo_ambar portada.svg` y luego `node herramientas/portada_png.js portada.svg assets/img/portada.png`). |
+| `herramientas/` | Scripts de apoyo: `publicar.R` (libro en un solo archivo HTML), `revisar_estilo.sh` (revisión de estilo), `partir_html.py` y `portada.js` con `portada_png.js` (generan la imagen de portada: `node herramientas/portada.js B2 petroleo_ambar portada.svg` y luego `node herramientas/portada_png.js portada.svg assets/img/portada.png`). |
 | `_plantillas/` | Plantilla para capítulos nuevos. |
 | `revision/` | Bitácora por capítulo, trabajo pendiente e inventario de figuras de terceros. |
 | `GUIA_ESTILO.md` | Guía de estilo del libro. |
