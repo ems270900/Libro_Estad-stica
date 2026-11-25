@@ -166,7 +166,9 @@ library(dplyr)
 
 El nombre del paquete va entre comillas en `install.packages()` y sin comillas en `library()`. También se puede instalar desde el menú Tools > Install Packages, escribiendo el nombre en el diálogo (@fig-r-instalar).
 
-![Instalación de un paquete desde el menú Tools > Install Packages. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_instalar_paquete.png){#fig-r-instalar fig-alt="Diálogo Install Packages de RStudio con el nombre dplyr escrito en el campo Packages" width="60%"} Los paquetes que se usan en la Parte I son pocos y se pueden instalar de una vez:
+![Instalación de un paquete desde el menú Tools > Install Packages. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_instalar_paquete.png){#fig-r-instalar fig-alt="Diálogo Install Packages de RStudio con el nombre dplyr escrito en el campo Packages" width="60%"}
+
+Los paquetes que se usan en la Parte I son pocos y se pueden instalar de una vez:
 
 ```{r}
 #| eval: false
