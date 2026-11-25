@@ -26,6 +26,42 @@ La estimación puntual es el centro del intervalo ($\bar{x}$, $\hat{p}$). El err
 
 El nivel de confianza se escribe $100(1 - \alpha)$ %, donde $\alpha$ es la probabilidad de que el método falle. Para un intervalo del 95 %, $\alpha = 0.05$. Como el intervalo es bilateral, esa probabilidad de fallar se reparte entre las dos colas: $\alpha/2 = 0.025$ en cada una.
 
+### Anatomía de un intervalo {#sec-ic-anatomia}
+
+Una forma de imaginar un intervalo de confianza es el juego de la herradura. En el suelo hay una estaca clavada, que es el parámetro: no se mueve y no se ve, porque está tapada. Quien juega lanza una herradura, que es el intervalo, y la herradura cae alrededor de la estaca o no. Un buen jugador no garantiza acertar en cada tiro, pero sí acierta en una fracción conocida de sus tiros. Para acertar más veces hay dos caminos: usar una herradura más ancha (más confianza, intervalo más largo) o lanzar con más puntería (más datos, menor error estándar).
+
+La @fig-ic-anatomia pone nombre a cada parte con los números del lote de concreto del capítulo anterior.
+
+```{r}
+#| label: fig-ic-anatomia
+#| fig-cap: "Partes de un intervalo de confianza."
+#| fig-alt: "Una barra horizontal de 31.17 a 33.13 MPa con un punto central en 32.15; flechas indican la estimación puntual, el margen de error a cada lado y los límites inferior y superior."
+#| fig-height: 3
+#| echo: false
+
+li <- 31.17; ls <- 33.13; xc <- 32.15
+ggplot() +
+  geom_segment(aes(x = li, xend = ls, y = 0, yend = 0), linewidth = 2.2, colour = "#1C6BA0") +
+  geom_segment(aes(x = c(li, ls), xend = c(li, ls), y = -0.12, yend = 0.12), linewidth = 1.2, colour = "#1C6BA0") +
+  geom_point(aes(x = xc, y = 0), size = 5, colour = "#E69F00") +
+  annotate("segment", x = xc, xend = li, y = 0.32, yend = 0.32,
+           arrow = arrow(length = unit(0.18, "cm"), ends = "both")) +
+  annotate("segment", x = xc, xend = ls, y = 0.32, yend = 0.32,
+           arrow = arrow(length = unit(0.18, "cm"), ends = "both")) +
+  annotate("text", x = (xc + li) / 2, y = 0.45, label = "margen E = 0.98", size = 3.8) +
+  annotate("text", x = (xc + ls) / 2, y = 0.45, label = "margen E = 0.98", size = 3.8) +
+  annotate("text", x = xc, y = -0.35, label = "estimación puntual\nx̄ = 32.15", size = 3.8) +
+  annotate("text", x = li, y = -0.35, label = "límite inferior\n31.17", size = 3.8) +
+  annotate("text", x = ls, y = -0.35, label = "límite superior\n33.13", size = 3.8) +
+  scale_y_continuous(limits = c(-0.6, 0.6)) +
+  scale_x_continuous(limits = c(30.7, 33.6)) +
+  labs(x = "Resistencia media a compresión (MPa)", y = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor = element_blank())
+```
+
+El margen de error es lo que más interesa al diseñar un muestreo, porque resume la precisión en las unidades del problema. En los informes técnicos se ve escrito de dos maneras equivalentes: "$32.15 \pm 0.98$ MPa (95 %)" o "entre 31.17 y 33.13 MPa con 95 % de confianza". Las dos indican el nivel de confianza; sin él, el intervalo no se puede interpretar.
+
 ### Qué significa el 95 %
 
 ::: {.pregunta}
@@ -349,6 +385,85 @@ tibble(
 Los tres intervalos del @tbl-ic-proporcion responden a la misma pregunta con supuestos distintos, y sus límites no se promedian. Se escoge un método antes de ver los resultados: el de Wilson para uso general, el exacto cuando hay pocos éxitos o se necesita garantizar al menos la confianza nominal, y el de Wald solo para cálculos rápidos a mano con muestras grandes.
 :::
 
+### Por qué falla el intervalo de Wald {#sec-ic-cobertura}
+
+::: {.pregunta}
+Si un intervalo dice ser del 95 %, ¿contiene al parámetro el 95 % de las veces?
+:::
+
+Para la media con datos normales, sí. Para una proporción con el intervalo de Wald, muchas veces no. La razón es que $\hat{p}$ solo puede tomar los valores $0, 1/n, 2/n, \dots, 1$, y la aproximación normal es mala cuando $p$ está cerca de 0 o de 1. El caso extremo es $x = 0$: el intervalo de Wald da $[0,\ 0]$, un intervalo de ancho cero que afirma que la proporción es exactamente cero.
+
+La probabilidad real de que el intervalo contenga a $p$ se llama cobertura, y para una proporción se puede calcular exactamente: se suma la probabilidad binomial de cada resultado $x$ cuyo intervalo contiene a $p$. La @fig-ic-int-cobertura hace ese cálculo para los intervalos de Wilson (azul) y de Wald (naranja) en función del valor verdadero de $p$; los valores menores que 0.5 se dibujan en 0.5 [@agresti1998approximate].
+
+::: {#fig-ic-int-cobertura}
+
+```{=html}
+<div class="interactivo" id="int-cobertura">
+  <label><span>Tamaño de muestra <i>n</i>:</span> <output>30</output>
+    <input type="range" min="5" max="200" step="1" value="30"></label>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Cobertura real de los intervalos de Wald y de Wilson en función de la proporción verdadera"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-cobertura");
+  var cn = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 300, m = 40, z = 1.959964;
+  function lfact(k) { var s = 0; for (var i = 2; i <= k; i++) s += Math.log(i); return s; }
+  var sx = function (p) { return m + p * (w - 2 * m); };
+  var sy = function (c) { return h - m - (c - 0.5) / 0.5 * (h - 2 * m); };
+  function dibujar() {
+    var n = parseInt(cn.value, 10); salida.textContent = n;
+    var lf = []; for (var k = 0; k <= n; k++) lf.push(lfact(k));
+    var wald = [], wil = [];
+    for (var x = 0; x <= n; x++) {
+      var ph = x / n, e = z * Math.sqrt(ph * (1 - ph) / n);
+      wald.push([ph - e, ph + e]);
+      var den = 1 + z * z / n, cen = (ph + z * z / (2 * n)) / den,
+          mar = z * Math.sqrt(ph * (1 - ph) / n + z * z / (4 * n * n)) / den;
+      wil.push([cen - mar, cen + mar]);
+    }
+    var dW = "", dV = "", sW = 0, sV = 0, k = 0;
+    for (var p = 0.005; p < 0.9951; p += 0.005) {
+      var cW = 0, cV = 0, lp = Math.log(p), lq = Math.log(1 - p);
+      for (var x2 = 0; x2 <= n; x2++) {
+        var pr = Math.exp(lf[n] - lf[x2] - lf[n - x2] + x2 * lp + (n - x2) * lq);
+        if (wald[x2][0] <= p && p <= wald[x2][1]) cW += pr;
+        if (wil[x2][0] <= p && p <= wil[x2][1]) cV += pr;
+      }
+      sW += cW; sV += cV; k++;
+      dW += (dW ? "L" : "M") + sx(p).toFixed(1) + "," + sy(Math.max(cW, 0.5)).toFixed(1);
+      dV += (dV ? "L" : "M") + sx(p).toFixed(1) + "," + sy(Math.max(cV, 0.5)).toFixed(1);
+    }
+    var ejes = "";
+    for (var i = 0; i <= 10; i += 2) ejes += '<text class="eje-texto" x="' + sx(i / 10) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + (i / 10).toFixed(1) + '</text>';
+    [0.5, 0.6, 0.7, 0.8, 0.9, 1].forEach(function (c) { ejes += '<text class="eje-texto" x="' + (m - 6) + '" y="' + (sy(c) + 4) + '" text-anchor="end">' + c.toFixed(1) + '</text>'; });
+    svg.innerHTML = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + sy(1) + '" y2="' + (h - m) + '"/>' + ejes +
+      '<line class="guia" x1="' + m + '" x2="' + (w - m) + '" y1="' + sy(0.95) + '" y2="' + sy(0.95) + '"/>' +
+      '<path class="curva-2" d="' + dW + '"/><path class="curva" d="' + dV + '"/>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Proporción verdadera p</text>' +
+      '<text class="eje-texto" x="' + (m + 8) + '" y="' + (sy(1) + 4) + '">Cobertura real</text>';
+    texto.innerHTML = "Cobertura promedio sobre todos los valores de <i>p</i>: Wilson (azul) = <b>" + (sV / k).toFixed(3) +
+      "</b>; Wald (naranja) = <b>" + (sW / k).toFixed(3) + "</b>. Nominal: 0.950 (línea discontinua).";
+  }
+  cn.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Cobertura real de los intervalos de Wilson y de Wald.
+
+:::
+
+Con $n = 30$, la cobertura del intervalo de Wald cae por debajo de 0.90 cuando $p$ es menor que 0.15 o mayor que 0.85, y se desploma cerca de los extremos. La del intervalo de Wilson oscila alrededor de 0.95 en todo el rango. Las curvas son dentadas porque $\hat{p}$ es discreta: al mover $p$ un poco, un resultado $x$ entra o sale del conjunto de intervalos que lo contienen. Aun con $n = 200$ el intervalo de Wald sigue fallando cerca de los extremos, que es justo donde caen las proporciones de defectuosos que interesan en control de calidad.
+
+::: {.callout-tip title="En la práctica"}
+Para una proporción se recomienda el intervalo de Wilson, `prop.test(x, n, correct = FALSE)`. Cuando hay cero éxitos, como en una inspección de 40 soldaduras sin defectos, hay una regla rápida: el límite superior de un intervalo del 95 % es aproximadamente $3/n$, en este caso $3/40 = 0.075$. Se conoce como regla del tres [@hanley1983nothing]. La da el intervalo exacto unilateral de `binom.test(0, 40, alternative = "less")`, que devuelve 0.072.
+:::
+
 ## Intervalo para la varianza y la desviación estándar {#sec-ic-varianza}
 
 En control de calidad interesa tanto la variabilidad como la media: un concreto con la media correcta pero muy disperso produce muchos cilindros bajo la especificación. Si la población es normal, la cantidad $(n-1)S^2/\sigma^2$ sigue una distribución $\chi^2$ con $n - 1$ grados de libertad, y de ahí sale el intervalo
@@ -432,6 +547,136 @@ R base no tiene una función que dé este intervalo directamente; el cálculo co
 
 ::: {.callout-warning title="Cuidado"}
 El intervalo de la @eq-ic-varianza depende mucho del supuesto de normalidad. Si los datos tienen colas pesadas o valores atípicos, el intervalo real puede contener a $\sigma^2$ muchas menos veces que el 95 % nominal, aun con muestras grandes. Antes de usarlo se revisa la forma de los datos con un histograma o un gráfico cuantil-cuantil.
+:::
+
+## Intervalo para el tiempo medio entre fallas {#sec-ic-exponencial}
+
+En el capítulo anterior se estimó por máxima verosimilitud que el tiempo medio entre fallas de un grupo de bombas es $\hat{\theta} = \bar{x} = 385.75$ h, y se anticipó que el intervalo de confianza sería ancho. Los tiempos hasta la falla son muy asimétricos, así que el intervalo con la $t$ no es adecuado con 20 datos. Si los tiempos siguen una distribución exponencial, se usa una propiedad exacta: la cantidad $2\sum X_i/\theta$ sigue una distribución $\chi^2$ con $2n$ grados de libertad. De ahí sale el intervalo
+
+$$
+\frac{2\sum x_i}{\chi^2_{\alpha/2,\,2n}} \;\le\; \theta \;\le\; \frac{2\sum x_i}{\chi^2_{1-\alpha/2,\,2n}}
+$$ {#eq-ic-exponencial}
+
+donde $\sum x_i$ es la suma de los $n$ tiempos observados (h) y los valores críticos siguen la convención de área a la derecha. La forma es la misma del intervalo para la varianza: el valor crítico grande da el límite inferior.
+<!-- CITA PENDIENTE: fuente de referencia para el intervalo exacto de la media exponencial con chi-cuadrado de 2n grados de libertad. -->
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**De dónde sale la chi-cuadrado.** Si $X$ es exponencial con media $\theta$, la variable $2X/\theta$ es exponencial con media 2, que es una $\chi^2$ con 2 grados de libertad. La suma de $n$ variables $\chi^2$ independientes con 2 grados de libertad cada una es una $\chi^2$ con $2n$ grados de libertad. Por eso $2\sum X_i/\theta \sim \chi^2_{2n}$, y basta despejar $\theta$ de $\chi^2_{1-\alpha/2,\,2n} \le 2\sum X_i/\theta \le \chi^2_{\alpha/2,\,2n}$.
+:::
+
+::: {.callout-note title="Ejemplo: intervalo para el tiempo medio entre fallas de bombas"}
+
+**Planteamiento.** Con los tiempos hasta la falla de las 20 bombas hipotéticas del capítulo anterior ($\sum x_i = 7715$ h), construya un intervalo de confianza del 95 % para el tiempo medio entre fallas $\theta$ y para la tasa de fallas $\lambda = 1/\theta$. Suponga que los tiempos son exponenciales.
+
+```{r}
+#| echo: false
+ver_datos("datos/tiempo_falla_bombas_hipotetico.csv",
+          nombres = c("Falla", "Tiempo hasta la falla (h)"))
+```
+
+**Solución:**
+
+1. Grados de libertad: $2n = 40$, y $2\sum x_i = 15\,430$ h.
+2. Valores críticos: $\chi^2_{0.025,\,40} = 59.342$ y $\chi^2_{0.975,\,40} = 24.433$.
+3. Límites para $\theta$ con la @eq-ic-exponencial: $15\,430/59.342 = 260.0$ h y $15\,430/24.433 = 631.5$ h.
+4. Límites para $\lambda$: se invierten y se intercambian, $1/631.5 = 0.00158$ y $1/260.0 = 0.00385$ fallas por hora.
+
+**Pseudocódigo**
+
+1. Leer los tiempos y calcular $n$ y $\sum x_i$.
+2. Calcular los valores críticos con `qchisq()` y $2n$ grados de libertad.
+3. Aplicar la @eq-ic-exponencial e invertir los límites para la tasa.
+4. Comprobar por simulación que el intervalo contiene a $\theta$ cerca del 95 % de las veces.
+
+```{r}
+# 1) Datos
+bombas <- read.csv("datos/tiempo_falla_bombas_hipotetico.csv")
+x <- bombas$tiempo_h
+n <- length(x)
+suma <- sum(x)
+
+# 2) Valores críticos con 2n grados de libertad
+chi_grande <- qchisq(0.975, df = 2 * n)
+chi_pequeno <- qchisq(0.025, df = 2 * n)
+
+# 3) Intervalo para theta (h) y para la tasa lambda (fallas por hora)
+ic_theta <- c(2 * suma / chi_grande, 2 * suma / chi_pequeno)
+ic_theta
+rev(1 / ic_theta)
+
+# 4) Comprobación por simulación: 10 000 muestras exponenciales con theta = 400 h
+set.seed(19)
+cubre <- replicate(10000, {
+  y <- rexp(n, rate = 1 / 400)
+  2 * sum(y) / chi_grande <= 400 && 400 <= 2 * sum(y) / chi_pequeno
+})
+mean(cubre)
+
+# Para comparar: el intervalo con la t, que supone normalidad
+t.test(x)$conf.int
+```
+
+R base no tiene una función para este intervalo. La simulación del paso 4 muestra que el método cumple lo que promete: cerca del 95 % de los intervalos contiene a $\theta$.
+
+**Interpretación.** Con 95 % de confianza, el tiempo medio entre fallas está entre 260 y 632 h. El intervalo es asimétrico alrededor de $\hat{\theta} = 386$ h, más largo hacia arriba, como los propios tiempos. El intervalo con la $t$, de 211 a 561 h, queda corrido hacia abajo porque supone una simetría que estos datos no tienen. Para planificar el mantenimiento conviene usar el límite inferior: con 95 % de confianza, las bombas fallan en promedio cada 260 h o más.
+
+:::
+
+## Intervalos unilaterales {#sec-ic-unilaterales}
+
+Muchas preguntas de ingeniería solo tienen una dirección peligrosa. Interesa que la resistencia media no sea demasiado baja, que el asentamiento medio no sea demasiado alto o que la concentración de un contaminante no pase de un máximo. En esos casos se usa un intervalo unilateral, que tiene un solo límite: toda la probabilidad de fallar, $\alpha$, se pone en una cola.
+
+Para la media con $\sigma$ desconocida, el límite superior de confianza y el límite inferior de confianza del $100(1-\alpha)$ % son
+
+$$
+\mu \le \bar{x} + t_{\alpha,\,n-1}\,\frac{s}{\sqrt{n}} \qquad\qquad \mu \ge \bar{x} - t_{\alpha,\,n-1}\,\frac{s}{\sqrt{n}}
+$$ {#eq-ic-unilateral}
+
+donde $t_{\alpha,\,n-1}$ deja un área $\alpha$ a la derecha, no $\alpha/2$ [@montgomery2014applied]. Como $t_{0.05,\,n-1}$ es menor que $t_{0.025,\,n-1}$, el límite unilateral del 95 % queda más cerca de $\bar{x}$ que el límite correspondiente del intervalo bilateral. Es el mismo intervalo bilateral del 90 %, al que se le quita un extremo.
+
+::: {.callout-note title="Ejemplo: límite superior del asentamiento medio de un terraplén"}
+
+**Planteamiento.** Un terraplén de acceso a un puente se instrumentó con ocho placas de asentamiento. Seis meses después de construido, los asentamientos hipotéticos fueron 18.2, 21.5, 19.8, 23.1, 20.4, 22.7, 19.1 y 21.9 mm. El diseño admite un asentamiento medio de 25 mm en ese plazo. Calcule un límite superior de confianza del 95 % para el asentamiento medio.
+
+**Solución:**
+
+1. Estadísticos: $\sum x_i = 166.7$ mm, $\bar{x} = 166.7/8 = 20.84$ mm. La suma de cuadrados es $\sum (x_i - \bar{x})^2 = 21.40$ mm², así que $s = \sqrt{21.40/7} = 1.748$ mm.
+2. Valor crítico unilateral: $t_{0.05,\,7} = 1.895$.
+3. Error estándar: $1.748/\sqrt{8} = 0.618$ mm.
+4. Límite superior con la @eq-ic-unilateral: $20.84 + 1.895 \times 0.618 = 20.84 + 1.17 = 22.01$ mm.
+
+**Pseudocódigo**
+
+1. Guardar los datos y calcular $n$, $\bar{x}$ y $s$.
+2. Calcular $t_{\alpha,\,n-1}$ con `qt(1 - alfa, n - 1)`.
+3. Sumar el margen a $\bar{x}$.
+4. Comprobar con `t.test(..., alternative = "less")`, que da el intervalo $(-\infty,\ \text{límite superior}]$.
+
+```{r}
+# 1) Datos
+asentamiento <- c(18.2, 21.5, 19.8, 23.1, 20.4, 22.7, 19.1, 21.9)   # mm
+n <- length(asentamiento)
+media <- mean(asentamiento)
+s <- sd(asentamiento)
+
+# 2) Valor crítico con toda alfa en una cola
+alfa <- 0.05
+t_crit <- qt(1 - alfa, df = n - 1)
+
+# 3) Límite superior de confianza
+limite_sup <- media + t_crit * s / sqrt(n)
+c(media = media, s = s, t = t_crit, limite_superior = limite_sup)
+
+# 4) Con la función de R: alternative = "less" da el límite superior
+t.test(asentamiento, alternative = "less", conf.level = 0.95)$conf.int
+```
+
+**Interpretación.** Con 95 % de confianza, el asentamiento medio del terraplén no pasa de 22.0 mm, por debajo de los 25 mm admisibles. Si se hubiera usado el intervalo bilateral del 95 %, el límite superior sería 22.30 mm: la conclusión es la misma, pero el unilateral responde mejor la pregunta, que solo tiene una dirección peligrosa. Este límite habla del asentamiento medio, no de cada placa. Para asegurar que ninguna placa pase de 25 mm haría falta un intervalo de tolerancia unilateral.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+La dirección del intervalo se decide antes de ver los datos, con la pregunta de ingeniería. Calcular el intervalo bilateral, ver que no alcanza para una conclusión y pasar al unilateral para que sí alcance equivale a usar un nivel de confianza menor sin decirlo.
 :::
 
 ## Intervalos de predicción y de tolerancia {#sec-ic-prediccion-tolerancia}
@@ -555,6 +800,87 @@ ggplot() +
 El error más común con estos tres intervalos es usar el de confianza para hablar de cilindros individuales. "La resistencia está entre 31.2 y 33.1 MPa con 95 % de confianza" no quiere decir que el 95 % de los cilindros caiga en ese rango; en este lote, la mayoría de los cilindros cae fuera de él.
 :::
 
+La @fig-ic-int-tres muestra por qué el intervalo de predicción nunca se vuelve tan angosto como el de confianza. Se fija la desviación estándar del lote, $s = 2.375$ MPa, y se cambia el número de cilindros ensayados. La curva azul es el margen del intervalo de confianza y la naranja, el del intervalo de predicción.
+
+::: {#fig-ic-int-tres}
+
+```{=html}
+<div class="interactivo" id="int-tres-intervalos">
+  <label><span>Cilindros ensayados <i>n</i>:</span> <output>25</output>
+    <input type="range" min="2" max="100" step="1" value="25"></label>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Margen de error de los intervalos de confianza y de predicción en función del tamaño de muestra"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-tres-intervalos");
+  var cn = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 300, m = 44, s = 2.375, nmax = 100, Emax = 16;
+  function lgamma(x) {
+    var g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, tmp = x + 5.5; tmp -= (x + 0.5) * Math.log(tmp); var ser = 1.000000000190015;
+    for (var j = 0; j < 6; j++) ser += g[j] / ++y;
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+  }
+  function betacf(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d; var hh = d;
+    for (var k = 1; k <= 200; k++) {
+      var k2 = 2 * k, aa = k * (b - k) * x / ((qam + k2) * (a + k2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30; d = 1 / d; hh *= d * c;
+      aa = -(a + k) * (qab + k) * x / ((a + k2) * (qap + k2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30; d = 1 / d;
+      var del = d * c; hh *= del; if (Math.abs(del - 1) < 3e-14) break;
+    }
+    return hh;
+  }
+  function ibeta(a, b, x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
+  }
+  function pt(t, v) { var cola = 0.5 * ibeta(v / 2, 0.5, v / (v + t * t)); return t >= 0 ? 1 - cola : cola; }
+  function qt(p, v) { var lo = 0, hi = 50; for (var i = 0; i < 60; i++) { var mid = (lo + hi) / 2; if (pt(mid, v) < p) lo = mid; else hi = mid; } return (lo + hi) / 2; }
+  var tq = [0, 0]; for (var k = 1; k <= nmax; k++) tq.push(qt(0.975, k));
+  var sx = function (n) { return m + (n - 2) / (nmax - 2) * (w - 2 * m); };
+  var sy = function (E) { return h - m - Math.min(E, Emax) / Emax * (h - 2 * m); };
+  function dibujar() {
+    var n = parseInt(cn.value, 10); salida.textContent = n;
+    var dC = "", dP = "";
+    for (var k2 = 2; k2 <= nmax; k2++) {
+      var tt = tq[k2 - 1];
+      dC += (dC ? "L" : "M") + sx(k2).toFixed(1) + "," + sy(tt * s / Math.sqrt(k2)).toFixed(1);
+      dP += (dP ? "L" : "M") + sx(k2).toFixed(1) + "," + sy(tt * s * Math.sqrt(1 + 1 / k2)).toFixed(1);
+    }
+    var t0 = tq[n - 1], Ec = t0 * s / Math.sqrt(n), Ep = t0 * s * Math.sqrt(1 + 1 / n), Ez = 1.96 * s;
+    var ejes = "";
+    [2, 20, 40, 60, 80, 100].forEach(function (k) { ejes += '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + k + '</text>'; });
+    [0, 4, 8, 12, 16].forEach(function (e) { ejes += '<text class="eje-texto" x="' + (m - 6) + '" y="' + (sy(e) + 4) + '" text-anchor="end">' + e + '</text>'; });
+    svg.innerHTML = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + sy(Emax) + '" y2="' + (h - m) + '"/>' + ejes +
+      '<line class="guia" x1="' + m + '" x2="' + (w - m) + '" y1="' + sy(Ez) + '" y2="' + sy(Ez) + '"/>' +
+      '<path class="curva" d="' + dC + '"/><path class="curva-2" d="' + dP + '"/>' +
+      '<line class="guia" x1="' + sx(n) + '" x2="' + sx(n) + '" y1="' + sy(Emax) + '" y2="' + (h - m) + '"/>' +
+      '<circle class="punto" r="5" cx="' + sx(n) + '" cy="' + sy(Ec) + '"/><circle class="punto-b" r="5" cx="' + sx(n) + '" cy="' + sy(Ep) + '"/>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Número de cilindros n</text>' +
+      '<text class="eje-texto" x="' + (w - m) + '" y="' + (sy(Emax) + 12) + '" text-anchor="end">Margen de error (MPa)</text>' +
+      '<text class="eje-texto" x="' + (w - m) + '" y="' + (sy(Ez) - 6) + '" text-anchor="end">límite 1.96 s = ' + Ez.toFixed(2) + '</text>';
+    texto.innerHTML = "Con <i>n</i> = " + n + ": margen del intervalo de confianza (azul) = <b>±" + Ec.toFixed(2) +
+      "</b> MPa; margen del intervalo de predicción (naranja) = <b>±" + Ep.toFixed(2) + "</b> MPa.";
+  }
+  cn.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Márgenes de error de los intervalos de confianza y de predicción.
+
+:::
+
+El margen del intervalo de confianza baja hacia cero, porque con más cilindros la media se conoce cada vez mejor. El del intervalo de predicción baja al principio y después se estanca cerca de $1.96\,s = 4.66$ MPa: por muchos cilindros que se ensayen, el próximo seguirá variando como varían los cilindros. Con dos o tres cilindros los dos márgenes son enormes, porque $t_{0.025,\,1} = 12.71$ y $t_{0.025,\,2} = 4.30$.
+
 ## Tamaño de muestra {#sec-ic-tamano}
 
 Antes de un muestreo conviene decidir cuántos datos hacen falta. Si se fija el margen de error máximo $E$ que se acepta, se despeja $n$ de la fórmula del intervalo.
@@ -659,6 +985,21 @@ Calculadora del tamaño de muestra.
 La @eq-ic-n-media necesita $\sigma$, que todavía no se conoce porque no se ha muestreado. Se usa una estimación de un estudio anterior, de un muestreo piloto o, como último recurso, el rango esperado de los datos dividido entre 4. Si al final se usa $s$ y la $t$ en lugar de $\sigma$ y la $z$, el $n$ calculado queda un poco corto en muestras pequeñas; conviene sumarle unos cuantos datos.
 :::
 
+## Errores comunes al interpretar un intervalo {#sec-ic-errores}
+
+Las frases del @tbl-ic-errores aparecen con frecuencia en informes y exámenes. La columna de la derecha dice lo que corresponde.
+
+| Se dice | Lo correcto |
+|:--|:--|
+| "Hay 95 % de probabilidad de que $\mu$ esté entre 31.17 y 33.13 MPa." | El 95 % describe el método: el 95 % de los intervalos construidos así contiene a $\mu$. Este intervalo concreto lo contiene o no. |
+| "El 95 % de los cilindros cae entre 31.17 y 33.13 MPa." | Eso lo dice un intervalo de tolerancia. El de confianza habla de la media, no de los cilindros. |
+| "El 95 % de las medias muestrales cae en este intervalo." | El intervalo está centrado en una media muestral, no en $\mu$; no describe dónde caen otras medias. |
+| "Un intervalo del 99 % es mejor que uno del 95 %." | Es más seguro, pero más ancho. El nivel se escoge según el costo de equivocarse. |
+| "Como los intervalos de dos grupos se traslapan, sus medias no difieren." | Dos intervalos del 95 % pueden traslaparse un poco y aun así la diferencia ser significativa al 5 %. Para comparar se calcula el intervalo de la diferencia (capítulo de dos poblaciones). |
+| "Con más datos el intervalo corrige cualquier error." | Más datos reducen el error aleatorio, no el sesgo de un muestreo mal hecho o de un equipo mal calibrado. |
+
+: Interpretaciones equivocadas de un intervalo de confianza. {#tbl-ic-errores}
+
 ## Resumen de fórmulas {#sec-ic-resumen}
 
 El @tbl-ic-resumen reúne los intervalos del capítulo.
@@ -671,8 +1012,10 @@ El @tbl-ic-resumen reúne los intervalos del capítulo.
 | Varianza $\sigma^2$ | Población normal | $\chi^2$ con $n-1$ g. l. | $\left[\dfrac{(n-1)s^2}{\chi^2_{\alpha/2,\,n-1}},\ \dfrac{(n-1)s^2}{\chi^2_{1-\alpha/2,\,n-1}}\right]$ |
 | Observación futura | Población normal | $t$ con $n-1$ g. l. | $\bar{x} \pm t_{\alpha/2,\,n-1}\,s\sqrt{1+1/n}$ |
 | Proporción $P$ de la población | Población normal | Factor $k$ | $\bar{x} \pm k\,s$ |
+| Media exponencial $\theta$ | Tiempos exponenciales | $\chi^2$ con $2n$ g. l. | $\left[\dfrac{2\sum x_i}{\chi^2_{\alpha/2,\,2n}},\ \dfrac{2\sum x_i}{\chi^2_{1-\alpha/2,\,2n}}\right]$ |
+| Límite superior para $\mu$ | $\sigma$ desconocida | $t$ con $n-1$ g. l. | $\mu \le \bar{x} + t_{\alpha,\,n-1}\,s/\sqrt{n}$ |
 
-: Intervalos bilaterales del capítulo. {#tbl-ic-resumen}
+: Intervalos del capítulo. {#tbl-ic-resumen}
 
 ## Ejercicios propuestos
 
@@ -683,6 +1026,10 @@ El @tbl-ic-resumen reúne los intervalos del capítulo.
 5. Con los diez esfuerzos de fluencia de las varillas, calcule un intervalo de predicción del 95 % para la próxima varilla y un intervalo de tolerancia que contenga el 95 % de las varillas con 95 % de confianza.
 6. Se quiere estimar la proporción de viviendas de un cantón que tienen conexión al alcantarillado, con un margen de 3 % y 95 % de confianza. ¿Cuántas viviendas hay que visitar?
 7. En el interactivo de la @fig-ic-interactivo, fije el nivel de confianza en 80 % y tome diez tandas de 50 muestras. Anote cuántos intervalos fallan en cada tanda y compare el promedio con el valor esperado.
+8. Una inspección de 50 conexiones de agua potable no encontró ninguna con fugas. Calcule el límite superior de confianza del 95 % para la proporción de conexiones con fuga con la regla del tres y con `binom.test()`. ¿Por qué el intervalo de Wald no sirve aquí?
+9. En el interactivo de la @fig-ic-int-cobertura, busque para $n = 50$ un valor de $p$ en el que la cobertura del intervalo de Wald baje de 0.90. Compruebe en R el resultado simulando 10 000 muestras binomiales con esos $n$ y $p$.
+10. La concentración de sólidos suspendidos en diez muestras de la salida de una laguna de estabilización fue de 62, 75, 58, 81, 69, 72, 66, 90, 64 y 71 mg/L. Calcule un límite superior de confianza del 95 % para la concentración media. Si el permiso de vertido fija un máximo de 80 mg/L para la media, ¿qué concluye?
+11. Los tiempos entre fallas (días) de un semáforo fueron 12, 45, 3, 28, 61, 9, 17 y 33. Suponga que son exponenciales y construya un intervalo de confianza del 95 % para el tiempo medio entre fallas con la @eq-ic-exponencial.
 
 ## Lecturas recomendadas
 

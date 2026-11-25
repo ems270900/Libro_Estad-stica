@@ -14,6 +14,34 @@ options(knitr.kable.NA = "")
 
 Una fábrica de varillas de acero tiene como objetivo un esfuerzo de fluencia medio de 300 MPa. En el último control, diez varillas dieron una media de 296.35 MPa. ¿Bajó la calidad, o la diferencia de 3.65 MPa es la variación normal de una muestra a otra? Si se ajusta el proceso cada vez que una muestra sale baja, se pierde dinero en correcciones innecesarias; si nunca se ajusta, se entregan varillas débiles. Una prueba de hipótesis es una regla para tomar esa decisión con los datos y con un riesgo de error conocido. Este capítulo presenta la lógica común a todas las pruebas; los tres capítulos siguientes la aplican a casos concretos [@montgomery2014applied; @walpole2012probabilidad].
 
+## La lógica de una prueba {#sec-ph-logica}
+
+Una prueba de hipótesis razona como un buen inspector de obra. Un proveedor asegura que sus varillas tienen un esfuerzo de fluencia medio de 300 MPa. El inspector no puede demostrar que eso es cierto, porque para eso tendría que ensayar todas las varillas. Lo que sí puede hacer es suponer que el proveedor tiene razón y preguntarse: si la media fuera de verdad 300 MPa, ¿qué tan raro sería obtener una muestra como la que tengo en la mano? Si el resultado sería muy raro, la suposición pierde credibilidad. Si sería común, no hay motivo para dudar del proveedor.
+
+Es el mismo razonamiento de una demostración por contradicción en matemáticas, con una diferencia: aquí la contradicción nunca es total, porque cualquier muestra es posible, solo que algunas son muy improbables. Por eso la conclusión siempre lleva un riesgo de error, y ese riesgo se fija de antemano.
+
+La @fig-ph-simulacion-h0 hace el razonamiento con una simulación. Se supuso que la producción tiene media 300 MPa y desviación estándar 3.3 MPa, y se simularon 10 000 controles de diez varillas. Cada barra cuenta cuántos controles dieron una media en ese rango, y la línea vertical marca la media del control real.
+
+```{r}
+#| label: fig-ph-simulacion-h0
+#| fig-cap: "Medias de 10 000 controles simulados con μ = 300 MPa."
+#| fig-alt: "Histograma en forma de campana centrado en 300 MPa, entre 296 y 304 aproximadamente; la línea de 296.35 MPa queda en el extremo izquierdo, donde casi no hay barras."
+#| cache: true
+#| echo: false
+
+set.seed(20)
+medias_h0 <- replicate(10000, mean(rnorm(10, mean = 300, sd = 3.3)))
+ggplot(tibble(m = medias_h0), aes(m, fill = m <= 296.35 | m >= 303.65)) +
+  geom_histogram(binwidth = 0.25, boundary = 300, colour = "white") +
+  geom_vline(xintercept = 296.35, linetype = "dashed", linewidth = 0.8) +
+  annotate("text", x = 296.5, y = 700, label = "Control real:\n296.35 MPa", hjust = 0, size = 3.8) +
+  scale_fill_manual(values = c("grey70", "#E69F00"), guide = "none") +
+  labs(x = "Media de diez varillas (MPa)", y = "Número de controles simulados") +
+  theme_minimal(base_size = 13)
+```
+
+De los 10 000 controles simulados, solo `r sum(medias_h0 <= 296.35)` dieron una media de 296.35 MPa o menos, y `r sum(medias_h0 <= 296.35 | medias_h0 >= 303.65)` quedaron a 3.65 MPa o más de 300 hacia cualquiera de los dos lados (barras naranjas). Si la producción siguiera centrada en 300 MPa, un control como el real sería rarísimo. Hay dos explicaciones posibles: o se tuvo muchísima mala suerte, o la media ya no es 300 MPa. La prueba de hipótesis escoge la segunda cuando la primera es suficientemente improbable. El resto del capítulo formaliza cada pieza de este razonamiento: la suposición de partida ($H_0$), la medida de qué tan raro es el resultado (el estadístico y el valor $p$) y el umbral de "suficientemente improbable" ($\alpha$).
+
 ## Hipótesis nula y alternativa {#sec-ph-hipotesis}
 
 Una hipótesis estadística es una afirmación sobre un parámetro de la población, como "la media es 300 MPa" o "la proporción de defectuosos es menor que 5 %". Toda prueba enfrenta dos hipótesis.
@@ -42,6 +70,136 @@ Según lo que se quiera demostrar, la alternativa puede tener tres formas, que s
 La forma de $H_1$ se decide con la pregunta de ingeniería, antes de ver los datos. Si un contratista debe colocar una carpeta asfáltica de al menos 50 mm y se quiere demostrar que no cumplió, la alternativa es $H_1: \mu < 50$ mm. Si se quiere demostrar que un aditivo aumenta la resistencia, es $H_1: \mu > \mu_0$. Si solo se quiere saber si un proceso se salió de su valor objetivo, en cualquier dirección, la prueba es bilateral. Escoger la forma después de mirar los datos, para que el resultado salga significativo, invalida la prueba.
 :::
 
+## Cómo plantear una prueba {#sec-ph-plantear}
+
+Plantear bien las hipótesis es la parte más difícil de una prueba, y la más importante: si las hipótesis están mal, todos los cálculos que siguen responden otra pregunta. La buena noticia es que se puede hacer con un procedimiento fijo, que se repite igual en todos los capítulos de esta parte.
+
+### Cinco preguntas para plantear las hipótesis
+
+1. **¿De qué parámetro se habla?** Una media $\mu$ si el dato es una medición (espesor, caudal, resistencia); una proporción $p$ si el dato es sí o no (cumple o no cumple, defectuoso o no); una varianza $\sigma^2$ si la pregunta es por la uniformidad; una diferencia $\mu_1 - \mu_2$ o $p_1 - p_2$ si se comparan dos grupos.
+2. **¿Cuál es el valor de referencia?** Es el número que aparece en el enunciado: la especificación, la norma, el valor nominal, el valor histórico. Se escribe $\mu_0$, $p_0$ o $\sigma_0^2$. Si se comparan dos grupos, casi siempre es 0.
+3. **¿Qué se quiere demostrar?** Eso va en $H_1$. La alternativa es la afirmación que necesita evidencia: que la obra no cumple, que el método nuevo es mejor, que el proceso cambió.
+4. **¿En qué dirección?** Si importa un desvío hacia un solo lado, la prueba es unilateral y $H_1$ lleva $>$ o $<$. Si importan los dos lados, es bilateral y $H_1$ lleva $\neq$.
+5. **¿Qué queda para $H_0$?** El complemento de $H_1$, que siempre contiene la igualdad: $=$, $\le$ o $\ge$.
+
+### Por qué la igualdad va en la hipótesis nula
+
+Hay dos razones, una práctica y otra de fondo. La práctica es que para calcular el valor $p$ hace falta un valor concreto del parámetro: con $H_0: \mu = 300$ MPa se sabe exactamente qué distribución tiene el estadístico. Con "$\mu \ne 300$" no habría un valor único con el cual calcular. En las pruebas unilaterales se calcula en el borde, $\mu = \mu_0$, que es el caso más difícil de rechazar dentro de $H_0$.
+
+La razón de fondo es la carga de la prueba. $H_0$ representa la situación que se mantiene mientras no haya evidencia en contra: el producto cumple, el método no cambió nada, el acusado es inocente. Quien afirma lo contrario debe aportar los datos. Por eso la elección de $H_1$ depende de quién tiene que demostrar algo.
+
+::: {.callout-tip title="En la práctica"}
+Un mismo enunciado puede dar hipótesis distintas según quién pregunte. Si una municipalidad quiere demostrar que el contratista colocó una carpeta de menos de 50 mm para cobrarle una multa, la carga es de la municipalidad: $H_1: \mu < 50$ mm. Si el contrato dice que el contratista debe demostrar que cumplió para recibir el pago, la carga es del contratista: $H_1: \mu > 50$ mm. Con los mismos datos, una prueba puede no rechazar $H_0$ en los dos planteamientos: no hay evidencia de incumplimiento, pero tampoco de cumplimiento. Por eso los contratos y las normas de aceptación deberían decir de quién es la carga.
+:::
+
+### Las palabras del enunciado
+
+Las frases del enunciado indican la dirección. El @tbl-ph-frases reúne las más comunes. Una regla útil: las frases que incluyen la igualdad ("al menos", "como máximo", "no supera") describen casi siempre lo que se afirma o se exige, y van en $H_0$; lo que se quiere demostrar contra ellas va en $H_1$.
+
+| Frase del enunciado | Símbolo | Dónde va | Ejemplo |
+|:--|:-:|:--|:--|
+| "es distinto de", "difiere de", "cambió", "se apartó de" | $\neq$ | $H_1$ (bilateral) | ¿El coeficiente del vertedero difiere de 0.62? |
+| "es mayor que", "excede", "supera", "aumentó", "más de" | $>$ | $H_1$ (derecha) | ¿El ruido medio supera los 65 dB(A)? |
+| "es menor que", "no alcanza", "disminuyó", "redujo", "menos de" | $<$ | $H_1$ (izquierda) | ¿El mantenimiento redujo el IRI? |
+| "al menos", "como mínimo", "no menos de" | $\ge$ | $H_0$ (y $H_1$ lleva $<$) | El proveedor afirma que la resistencia es de al menos 28 MPa. |
+| "como máximo", "no supera", "no más de", "a lo sumo" | $\le$ | $H_0$ (y $H_1$ lleva $>$) | La norma exige que el plomo no supere 0.01 mg/L. |
+| "es igual a", "es de", "tiene un valor nominal de" | $=$ | $H_0$ (y $H_1$ lleva $\neq$) | Los sacos son de 50 kg. |
+
+: Frases del enunciado y su lugar en las hipótesis. {#tbl-ph-frases}
+
+### Ejemplos de planteamiento
+
+Los casos del @tbl-ph-planteamientos vienen de distintas ramas de la ingeniería civil. En cada uno se aplicaron las cinco preguntas.
+
+| Enunciado | Parámetro | $H_0$ | $H_1$ | Colas |
+|:--|:-:|:-:|:-:|:-:|
+| La norma exige que la DBO media del efluente no supere 50 mg/L; se sospecha que la planta incumple. | $\mu$ | $\mu \le 50$ | $\mu > 50$ | Derecha |
+| El diseño supone una densidad seca media de 1.85 g/cm³ en el relleno; se quiere saber si el relleno colocado se aparta de ese valor. | $\mu$ | $\mu = 1.85$ | $\mu \neq 1.85$ | Dos |
+| Se quiere demostrar que menos del 5 % de los pilotes tiene defectos, para aceptar el lote. | $p$ | $p \ge 0.05$ | $p < 0.05$ | Izquierda |
+| Un aforo indica que más del 12 % de los vehículos son pesados, cuando el diseño del pavimento supuso 12 %. ¿Hay evidencia de que el porcentaje es mayor? | $p$ | $p \le 0.12$ | $p > 0.12$ | Derecha |
+| Se quiere saber si el tiempo medio de ciclo de las vagonetas cambió después de reorganizar el frente de trabajo. | $\mu_1 - \mu_2$ | $\mu_1 - \mu_2 = 0$ | $\mu_1 - \mu_2 \neq 0$ | Dos |
+| La especificación pide que la desviación estándar del espesor no pase de 2 mm; ¿la supera? | $\sigma^2$ | $\sigma^2 \le 4$ | $\sigma^2 > 4$ | Derecha |
+| Se quiere demostrar que un nuevo tratamiento reduce la deflexión media de las vigas, medida en las mismas vigas antes y después. | $\mu_D$ | $\mu_D \le 0$ | $\mu_D > 0$ | Derecha, con $d = \text{antes} - \text{después}$ |
+| ¿La proporción de muestras de agua con coliformes es distinta en época seca y lluviosa? | $p_1 - p_2$ | $p_1 = p_2$ | $p_1 \neq p_2$ | Dos |
+
+: Planteamiento de hipótesis en casos de distintas ramas. {#tbl-ph-planteamientos}
+
+### Errores típicos al plantear
+
+1. **Poner lo que se quiere demostrar en $H_0$.** Si se quiere demostrar que la obra incumple y se escribe $H_0$: "la obra incumple", el procedimiento nunca podrá demostrarlo, porque solo se rechaza $H_0$.
+2. **Escribir las hipótesis con estadísticos.** $H_0: \bar{x} = 50$ es un error: $\bar{x}$ ya se conoce. Las hipótesis hablan de $\mu$, $p$ o $\sigma^2$.
+3. **Usar el valor de la muestra como referencia.** Si la muestra dio 48.4 mm, la hipótesis no es $\mu = 48.4$; el valor de referencia sale de la especificación, no de los datos.
+4. **Escoger la dirección mirando los datos.** "La media salió menor, así que pruebo $\mu < \mu_0$" duplica en la práctica el error tipo I. La dirección se decide con la pregunta, antes de medir.
+5. **Poner la igualdad en $H_1$.** $H_1: \mu \ge 28$ no es una alternativa válida; la igualdad siempre va en $H_0$.
+6. **Confundir la variable con el parámetro.** "$H_0$: los cilindros resisten 28 MPa" mezcla los cilindros individuales con la media. Lo correcto es "$H_0$: la resistencia media es de 28 MPa".
+7. **Usar una prueba de una muestra cuando hay dos grupos.** Si la pregunta compara dos plantas, dos métodos o un antes y un después, el parámetro es una diferencia.
+
+### Práctica
+
+La @fig-ph-int-plantear propone enunciados para practicar. En cada uno se escoge la hipótesis alternativa y se comprueba la respuesta.
+
+::: {#fig-ph-int-plantear}
+
+```{=html}
+<div class="interactivo" id="int-plantear">
+  <p class="resultado" data-parte="enunciado"></p>
+  <label><span>Hipótesis alternativa <i>H</i><sub>1</sub>:</span>
+    <select data-parte="opcion"></select></label>
+  <button type="button" data-parte="comprobar">Comprobar</button>
+  <button type="button" data-parte="siguiente">Siguiente enunciado</button>
+  <p class="resultado" data-parte="respuesta"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-plantear");
+  var q = function (s) { return raiz.querySelector('[data-parte="' + s + '"]'); };
+  var casos = [
+    { e: "Una norma exige que la concentración media de plomo en el agua potable no supere 0.01 mg/L. Se quiere saber si un acueducto incumple.",
+      o: ["μ ≠ 0.01 mg/L", "μ > 0.01 mg/L", "μ < 0.01 mg/L"], r: 1,
+      x: "«No supere» describe la exigencia e incluye la igualdad: va en H₀: μ ≤ 0.01. Lo que se quiere demostrar, el incumplimiento, va en H₁: μ > 0.01. Prueba de cola derecha." },
+    { e: "Un contratista asegura que el grado de compactación medio de un relleno es al menos 95 % del Proctor. La inspección sospecha que es menor.",
+      o: ["μ < 95 %", "μ > 95 %", "μ ≠ 95 %"], r: 0,
+      x: "«Al menos» es la afirmación del contratista: H₀: μ ≥ 95 %. La sospecha de la inspección va en H₁: μ < 95 %. Prueba de cola izquierda." },
+    { e: "Se quiere saber si un perfilador acústico da caudales medios distintos a los de un molinete, aforando las mismas secciones con los dos.",
+      o: ["μ_D > 0", "μ_D < 0", "μ_D ≠ 0"], r: 2,
+      x: "«Distintos» no indica dirección y un sesgo hacia cualquier lado importa: H₀: μ_D = 0 y H₁: μ_D ≠ 0, con muestras pareadas. Prueba bilateral." },
+    { e: "El diseño de un pavimento supuso que el 12 % de los vehículos son pesados. Se quiere saber si el porcentaje real es mayor.",
+      o: ["p ≠ 0.12", "p < 0.12", "p > 0.12"], r: 2,
+      x: "El parámetro es una proporción y la pregunta tiene dirección: H₀: p ≤ 0.12 y H₁: p > 0.12. Si fuera mayor, el pavimento estaría subdiseñado." },
+    { e: "Un fabricante quiere demostrar que menos del 5 % de sus pilotes prefabricados tiene defectos, para que el lote sea aceptado.",
+      o: ["p < 0.05", "p > 0.05", "p ≠ 0.05"], r: 0,
+      x: "Lo que el fabricante quiere demostrar va en H₁: p < 0.05, y H₀: p ≥ 0.05. La carga de la prueba es del fabricante." },
+    { e: "El tiempo medio de colado de una losa se ha mantenido en 45 min. Después de cambiar de bomba, se quiere saber si cambió.",
+      o: ["μ > 45 min", "μ ≠ 45 min", "μ < 45 min"], r: 1,
+      x: "«Cambió» no dice en qué dirección: H₀: μ = 45 min y H₁: μ ≠ 45 min. Prueba bilateral." },
+    { e: "Se quiere demostrar que una nueva mezcla asfáltica reduce la profundidad media de ahuellamiento, que con la mezcla actual es de 8 mm.",
+      o: ["μ ≠ 8 mm", "μ > 8 mm", "μ < 8 mm"], r: 2,
+      x: "«Reduce» indica dirección y es lo que se quiere demostrar: H₀: μ ≥ 8 mm y H₁: μ < 8 mm. Cola izquierda." },
+    { e: "La especificación pide que la desviación estándar del espesor de una carpeta no pase de 2 mm. Se quiere saber si la supera.",
+      o: ["σ² > 4 mm²", "σ² < 4 mm²", "σ² ≠ 4 mm²"], r: 0,
+      x: "El parámetro es la varianza. «No pase de» va en H₀: σ² ≤ 4 mm², y «la supera» en H₁: σ² > 4 mm². Cola derecha." }
+  ];
+  var i = 0;
+  function mostrar() {
+    var c = casos[i];
+    q("enunciado").innerHTML = "<b>Enunciado " + (i + 1) + " de " + casos.length + ".</b> " + c.e;
+    q("opcion").innerHTML = c.o.map(function (t, k) { return '<option value="' + k + '">' + t + '</option>'; }).join("");
+    q("respuesta").textContent = "";
+  }
+  q("comprobar").addEventListener("click", function () {
+    var c = casos[i], k = parseInt(q("opcion").value, 10);
+    q("respuesta").innerHTML = (k === c.r ? "<b>Correcto.</b> " : "<b>No.</b> ") + c.x;
+  });
+  q("siguiente").addEventListener("click", function () { i = (i + 1) % casos.length; mostrar(); });
+  mostrar();
+})();
+</script>
+```
+
+Práctica de planteamiento de hipótesis.
+
+:::
+
 ## Estadístico de prueba y región de rechazo {#sec-ph-estadistico}
 
 Para decidir hace falta medir qué tan lejos están los datos de lo que dice $H_0$. Esa medida es el estadístico de prueba. En el caso de las varillas, lo natural es comparar $\bar{x}$ con $\mu_0 = 300$, en unidades de error estándar:
@@ -50,7 +208,7 @@ $$
 t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}
 $$ {#eq-ph-t}
 
-donde $\bar{x}$ es la media muestral, $\mu_0$ es el valor de $H_0$, $s$ es la desviación estándar muestral y $n$ es el tamaño de la muestra. Si $H_0$ es cierta y la población es normal, $t$ sigue una distribución $t$ con $n - 1$ grados de libertad. Eso es lo que hace útil al estadístico: se sabe qué valores son esperables cuando $H_0$ es cierta y cuáles serían raros.
+donde $\bar{x}$ es la media muestral, $\mu_0$ es el valor de $H_0$, $s$ es la desviación estándar muestral y $n$ es el tamaño de la muestra. Si $H_0$ es cierta y la población es normal, $t$ sigue una distribución $t$ con $n - 1$ grados de libertad. Eso es lo que hace útil al estadístico: se sabe qué valores son esperables cuando $H_0$ es cierta y cuáles serían raros. Observe que el denominador es el error estándar $s/\sqrt{n}$ y no la desviación estándar $s$: el estadístico cuenta errores estándar, no desviaciones estándar de los datos. La diferencia se explica con detalle en la @sec-una-z-dato-prueba.
 
 La región de rechazo, o región crítica, es el conjunto de valores del estadístico que son tan raros bajo $H_0$ que llevan a rechazarla. Se escoge de modo que la probabilidad de caer en ella cuando $H_0$ es cierta sea un valor pequeño $\alpha$, el nivel de significancia. Los valores que separan la región de rechazo del resto son los valores críticos. La @fig-ph-regiones muestra las regiones para las tres formas de $H_1$ con $\alpha = 0.05$.
 
@@ -125,6 +283,90 @@ Las pruebas de hipótesis funcionan igual. Quien analiza fija $\alpha$ de antema
 "No se rechaza $H_0$" no es lo mismo que "$H_0$ es cierta". Puede que $H_0$ sea falsa y que la muestra fuera muy pequeña para detectarlo. Por eso en este libro se escribe "no se rechaza $H_0$" y no "se acepta $H_0$". Una conclusión correcta es: "con estos datos no hay evidencia suficiente para afirmar que la media cambió".
 :::
 
+### Los dos errores en problemas de ingeniería {#sec-ph-errores-ingenieria}
+
+Cuál de los dos errores es más grave depende del problema, y eso guía la elección de $\alpha$. El @tbl-ph-errores-ingenieria da algunos casos.
+
+| Situación | $H_0$ | Error tipo I | Error tipo II |
+|:--|:--|:--|:--|
+| Control de varillas | La media es 300 MPa | Detener la producción sin necesidad | Entregar varillas débiles |
+| Agua potable | La concentración de arsénico cumple la norma | Cerrar un pozo bueno | Servir agua contaminada |
+| Monitoreo de una presa | Las filtraciones no aumentaron | Vaciar el embalse por una falsa alarma | No advertir una filtración creciente |
+| Recepción de una carpeta asfáltica | El espesor medio cumple | Rechazar un trabajo bien hecho | Aceptar una carpeta delgada |
+| Nuevo método constructivo | El método nuevo no es más rápido | Adoptar un método que no ahorra tiempo | Descartar un método que sí lo ahorra |
+
+: Ejemplos de errores tipo I y II en ingeniería civil. {#tbl-ph-errores-ingenieria}
+
+En los casos de agua potable y de la presa, el error tipo II puede costar vidas, así que conviene una prueba con mucha potencia: más muestras o un $\alpha$ mayor, como 0.10. En el método constructivo, un error tipo I lleva a invertir en equipo y capacitación sin beneficio, así que se puede preferir un $\alpha$ pequeño, como 0.01. No existe un $\alpha$ correcto para todo; 0.05 es una convención que funciona bien cuando no hay razones para otra cosa [@montgomery2014applied].
+
+La @fig-ph-int-simulador repite el control de las varillas cien veces con una media real que se escoge con el control. Cuando la media real es 300 MPa, $H_0$ es cierta y cada rechazo es un error tipo I. Cuando es distinta, cada rechazo es un acierto y la fracción de rechazos estima la potencia. Cada punto es el valor $p$ de un control con $\sigma = 3.3$ MPa y prueba bilateral; los puntos naranjas rechazan $H_0$.
+
+::: {#fig-ph-int-simulador}
+
+```{=html}
+<div class="interactivo" id="int-simulador-pruebas">
+  <div class="controles">
+    <label><span>Media real <i>μ</i> (MPa):</span> <output>300.0</output>
+      <input type="range" min="296" max="304" step="0.5" value="300" data-ctrl="mu"></label>
+    <label><span>Varillas por control <i>n</i>:</span> <output>10</output>
+      <input type="range" min="3" max="50" step="1" value="10" data-ctrl="n"></label>
+    <label><span>Nivel de significancia <i>α</i>:</span> <output>0.05</output>
+      <input type="range" min="0.01" max="0.20" step="0.01" value="0.05" data-ctrl="a"></label>
+  </div>
+  <button type="button">Hacer otros 100 controles</button>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 230" role="img" aria-label="Cien valores p de pruebas simuladas; los menores que alfa se marcan en naranja"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-simulador-pruebas");
+  var c = {}; raiz.querySelectorAll("[data-ctrl]").forEach(function (el) { c[el.dataset.ctrl] = el; });
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado");
+  var svg = raiz.querySelector("svg"), boton = raiz.querySelector("button"), z = [];
+  var w = 640, h = 230, m = 30, sigma = 3.3, mu0 = 300;
+  function rnorm() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function pnorm(x) {
+    var t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2), e = Math.exp(-x * x / 2);
+    var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * e;
+    return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+  }
+  // 100 controles x 50 varillas N(0, 1); cada control usa sus primeras n
+  function nuevos() { z = []; for (var i = 0; i < 100; i++) { var f = []; for (var j = 0; j < 50; j++) f.push(rnorm()); z.push(f); } }
+  var sx = function (p) { return m + p * (w - 2 * m); };
+  function dibujar() {
+    var mu = parseFloat(c.mu.value), n = parseInt(c.n.value, 10), a = parseFloat(c.a.value);
+    salidas[0].textContent = mu.toFixed(1); salidas[1].textContent = n; salidas[2].textContent = a.toFixed(2);
+    var rech = 0, g = "";
+    for (var i = 0; i < 100; i++) {
+      var s = 0; for (var j = 0; j < n; j++) s += mu + sigma * z[i][j];
+      var zz = (s / n - mu0) / (sigma / Math.sqrt(n)), p = 2 * (1 - pnorm(Math.abs(zz)));
+      var r = p <= a; if (r) rech++;
+      var fila = i % 10, col = Math.floor(i / 10);
+      g += '<circle class="' + (r ? "ic-falla" : "punto") + '" r="4.5" cx="' + sx(p).toFixed(1) + '" cy="' + (30 + fila * 14 + (col % 2) * 7) + '"/>';
+    }
+    var ejes = "";
+    for (var k = 0; k <= 10; k += 2) ejes += '<text class="eje-texto" x="' + sx(k / 10) + '" y="' + (h - 8) + '" text-anchor="middle">' + (k / 10).toFixed(1) + '</text>';
+    svg.innerHTML = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - 26) + '" y2="' + (h - 26) + '"/>' + ejes +
+      '<line class="guia" x1="' + sx(a) + '" x2="' + sx(a) + '" y1="14" y2="' + (h - 26) + '"/>' +
+      '<text class="eje-texto" x="' + (sx(a) + 4) + '" y="16">α</text>' + g +
+      '<text class="eje-texto" x="' + (w - m) + '" y="16" text-anchor="end">valor p de cada control</text>';
+    var tipo = (mu === mu0) ? "H₀ es cierta: cada rechazo es un <b>error tipo I</b>. Se esperan cerca de " + Math.round(100 * a) + "."
+      : "H₀ es falsa: cada rechazo es un acierto, y la fracción estima la <b>potencia</b>.";
+    texto.innerHTML = "Controles que rechazan <i>H</i><sub>0</sub>: <b>" + rech + " de 100</b>. " + tipo;
+  }
+  Object.keys(c).forEach(function (k) { c[k].addEventListener("input", dibujar); });
+  boton.addEventListener("click", function () { nuevos(); dibujar(); });
+  nuevos(); dibujar();
+})();
+</script>
+```
+
+Cien controles simulados de varillas.
+
+:::
+
+Con la media real en 300 MPa, los valores $p$ se reparten de manera pareja entre 0 y 1, y alrededor de $100\alpha$ caen bajo la línea: son las falsas alarmas que se aceptaron al fijar $\alpha$. Al mover la media real a 297 MPa, los puntos se amontonan cerca de 0 y casi todos los controles rechazan. Con una media real de 299 MPa y diez varillas, la mayoría de los controles no detecta el cambio: es el error tipo II.
+
 ## El valor *p* {#sec-ph-valor-p}
 
 Comparar el estadístico con el valor crítico da una respuesta de sí o no. El valor $p$ da más información: es la probabilidad de obtener, si $H_0$ fuera cierta, un estadístico tan extremo o más que el observado, en la dirección de $H_1$ [@wasserstein2016asa]. Según la forma de la prueba:
@@ -143,6 +385,141 @@ donde $T$ es una variable con la distribución del estadístico bajo $H_0$ y $t_
 El valor $p$ no es la probabilidad de que $H_0$ sea cierta, ni la probabilidad de que el resultado se deba al azar. Es una probabilidad calculada suponiendo que $H_0$ es cierta. Tampoco mide el tamaño del efecto: con una muestra enorme, una diferencia de 0.1 MPa, sin importancia práctica, puede dar $p < 0.001$. La Asociación Estadounidense de Estadística recomienda no basar una conclusión solo en si $p$ pasa o no de un umbral, y reportar siempre la estimación del efecto con su intervalo de confianza [@wasserstein2016asa].
 :::
 
+La @fig-ph-int-valor-p muestra el valor $p$ como un área. Se escoge el valor observado del estadístico $t$, los grados de libertad y la forma de $H_1$; el área sombreada es el valor $p$.
+
+::: {#fig-ph-int-valor-p}
+
+```{=html}
+<div class="interactivo" id="int-valor-p">
+  <div class="controles">
+    <label><span>Estadístico observado <i>t</i>:</span> <output>-1.80</output>
+      <input type="range" min="-4.5" max="4.5" step="0.05" value="-1.8" data-ctrl="t"></label>
+    <label><span>Grados de libertad <i>ν</i>:</span> <output>9</output>
+      <input type="range" min="1" max="60" step="1" value="9" data-ctrl="v"></label>
+    <label><span>Hipótesis alternativa:</span>
+      <select data-ctrl="alt">
+        <option value="dos" selected>bilateral (≠)</option>
+        <option value="menor">izquierda (&lt;)</option>
+        <option value="mayor">derecha (&gt;)</option>
+      </select></label>
+  </div>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Distribución t con el área del valor p sombreada"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-valor-p");
+  var c = {}; raiz.querySelectorAll("[data-ctrl]").forEach(function (el) { c[el.dataset.ctrl] = el; });
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 260, m = 34, xmin = -5, xmax = 5;
+  function lgamma(x) {
+    var g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, tmp = x + 5.5; tmp -= (x + 0.5) * Math.log(tmp); var ser = 1.000000000190015;
+    for (var j = 0; j < 6; j++) ser += g[j] / ++y;
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+  }
+  function betacf(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, cc = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d; var hh = d;
+    for (var k = 1; k <= 200; k++) {
+      var k2 = 2 * k, aa = k * (b - k) * x / ((qam + k2) * (a + k2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; cc = 1 + aa / cc; if (Math.abs(cc) < 1e-30) cc = 1e-30; d = 1 / d; hh *= d * cc;
+      aa = -(a + k) * (qab + k) * x / ((a + k2) * (qap + k2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; cc = 1 + aa / cc; if (Math.abs(cc) < 1e-30) cc = 1e-30; d = 1 / d;
+      var del = d * cc; hh *= del; if (Math.abs(del - 1) < 3e-14) break;
+    }
+    return hh;
+  }
+  function ibeta(a, b, x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
+  }
+  function pt(t, v) { var cola = 0.5 * ibeta(v / 2, 0.5, v / (v + t * t)); return t >= 0 ? 1 - cola : cola; }
+  function dt(t, v) { return Math.exp(lgamma((v + 1) / 2) - lgamma(v / 2) - 0.5 * Math.log(v * Math.PI) - (v + 1) / 2 * Math.log(1 + t * t / v)); }
+  var sx = function (x) { return m + (x - xmin) / (xmax - xmin) * (w - 2 * m); };
+  var sy = function (y) { return h - m - y / 0.42 * (h - 2 * m); };
+  function area(a, b, v) {
+    a = Math.max(a, xmin); b = Math.min(b, xmax); if (b <= a) return "";
+    var d = "M" + sx(a).toFixed(1) + "," + sy(0).toFixed(1);
+    for (var x = a; x <= b + 1e-9; x += 0.02) d += "L" + sx(x).toFixed(1) + "," + sy(dt(x, v)).toFixed(1);
+    return d + "L" + sx(b).toFixed(1) + "," + sy(0).toFixed(1) + "Z";
+  }
+  function dibujar() {
+    var t = parseFloat(c.t.value), v = parseInt(c.v.value, 10), alt = c.alt.value;
+    salidas[0].textContent = t.toFixed(2); salidas[1].textContent = v;
+    var p, sombra;
+    if (alt === "dos") { p = 2 * (1 - pt(Math.abs(t), v)); sombra = area(xmin, -Math.abs(t), v) + area(Math.abs(t), xmax, v); }
+    else if (alt === "menor") { p = pt(t, v); sombra = area(xmin, t, v); }
+    else { p = 1 - pt(t, v); sombra = area(t, xmax, v); }
+    var dcur = ""; for (var x = xmin; x <= xmax + 1e-9; x += 0.02) dcur += (dcur ? "L" : "M") + sx(x).toFixed(1) + "," + sy(dt(x, v)).toFixed(1);
+    var ejes = "";
+    for (var k = -4; k <= 4; k += 2) ejes += '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + k + '</text>';
+    var partes = sombra.split("Z").filter(function (s) { return s; }).map(function (s) { return '<path class="area-alfa" d="' + s + 'Z"/>'; }).join("");
+    svg.innerHTML = partes + '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' + ejes +
+      '<path class="curva" d="' + dcur + '"/>' +
+      '<line class="guia" x1="' + sx(t) + '" x2="' + sx(t) + '" y1="20" y2="' + (h - m) + '"/>' +
+      '<text class="eje-texto" x="' + sx(t) + '" y="16" text-anchor="middle">t observado</text>';
+    var lectura = p < 0.01 ? "evidencia muy fuerte contra <i>H</i><sub>0</sub>" : p < 0.05 ? "evidencia fuerte contra <i>H</i><sub>0</sub>" :
+      p < 0.10 ? "evidencia débil contra <i>H</i><sub>0</sub>" : "poca o ninguna evidencia contra <i>H</i><sub>0</sub>";
+    texto.innerHTML = "Valor <i>p</i> = área sombreada = <b>" + (p < 0.0001 ? "< 0.0001" : p.toFixed(4)) + "</b>: " + lectura + ".";
+  }
+  Object.keys(c).forEach(function (k) { c[k].addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+El valor $p$ como área bajo la distribución $t$.
+
+:::
+
+Con el control en la opción bilateral, el área se reparte en las dos colas; al pasar a una sola cola, el valor $p$ se reduce a la mitad si el estadístico va en la dirección de $H_1$, y se acerca a 1 si va en la contraria. Con pocos grados de libertad las colas son más pesadas y el mismo $t$ da un valor $p$ mayor.
+
+### Cómo leer un valor *p*
+
+Además de compararlo con $\alpha$, el valor $p$ se puede leer como una escala de evidencia. El @tbl-ph-escala-p reproduce la que propone @wasserman2004all, que es orientativa y no reemplaza al juicio sobre el problema.
+
+| Valor $p$ | Evidencia contra $H_0$ |
+|:-:|:--|
+| menor que 0.01 | Muy fuerte |
+| entre 0.01 y 0.05 | Fuerte |
+| entre 0.05 y 0.10 | Débil |
+| mayor que 0.10 | Poca o ninguna |
+
+: Escala orientativa para leer un valor $p$. {#tbl-ph-escala-p}
+
+Un valor $p$ grande no es evidencia a favor de $H_0$. Puede ser grande porque $H_0$ es cierta o porque la muestra es pequeña y la prueba tiene poca potencia; el valor $p$ solo no distingue entre las dos situaciones.
+
+### Qué dice y qué no dice un valor *p* {#sec-ph-que-es-p}
+
+El valor $p$ es probablemente el número más malinterpretado de la estadística aplicada. En 2016 la Asociación Estadounidense de Estadística publicó una declaración con seis principios para usarlo bien [@wasserstein2016asa]. Resumidos, son estos:
+
+1. Los valores $p$ indican qué tan incompatibles son los datos con un modelo estadístico dado, que incluye a $H_0$ y a los supuestos de la prueba.
+2. Los valores $p$ no miden la probabilidad de que la hipótesis sea cierta, ni la probabilidad de que los datos se deban solo al azar.
+3. Las conclusiones científicas y las decisiones técnicas no deben basarse solo en si un valor $p$ pasa un umbral.
+4. Una inferencia correcta exige informar todo: cuántas pruebas se hicieron, cuáles se escogieron y por qué.
+5. Un valor $p$, o la significancia estadística, no mide el tamaño de un efecto ni la importancia de un resultado.
+6. Por sí solo, un valor $p$ no es una buena medida de la evidencia sobre un modelo o una hipótesis.
+
+El primer principio menciona algo que se olvida con facilidad: el valor $p$ se calcula suponiendo $H_0$ y también todos los supuestos de la prueba (independencia, normalidad, muestreo aleatorio). Un valor $p$ pequeño dice que algo de ese conjunto no encaja con los datos, pero no dice qué. Puede ser que la media cambió, o que las varillas no se escogieron al azar, o que los datos no son independientes. Por eso los supuestos se revisan antes de interpretar.
+
+Con el ejemplo de las varillas ($p = 0.0073$), el @tbl-ph-lecturas-p compara lecturas correctas e incorrectas.
+
+| Lectura | ¿Correcta? |
+|:--|:-:|
+| Si la media de la producción fuera 300 MPa, un control tan alejado como este o más saldría en menos del 1 % de los controles. | Sí |
+| Los datos son poco compatibles con una media de 300 MPa (y con los supuestos de la prueba). | Sí |
+| Hay 0.73 % de probabilidad de que la media sea 300 MPa. | No |
+| Hay 99.27 % de probabilidad de que la producción haya cambiado. | No |
+| Hay 0.73 % de probabilidad de que el resultado se deba al azar. | No |
+| La caída de la media es grande. | No: eso lo dice la estimación, no el valor $p$. |
+| Si se repitiera el control, se rechazaría $H_0$ con 99.27 % de probabilidad. | No: eso depende de la potencia. |
+
+: Lecturas correctas e incorrectas de un valor p de 0.0073. {#tbl-ph-lecturas-p}
+
+Las lecturas incorrectas tienen algo en común: dan vuelta a la probabilidad condicional. El valor $p$ es una probabilidad de los datos dado $H_0$, $P(\text{datos tan extremos} \mid H_0)$. Las frases incorrectas hablan de la probabilidad de $H_0$ dados los datos, $P(H_0 \mid \text{datos})$, que es otra cosa, como se vio con el teorema de Bayes en la parte de probabilidad.
+
 ## Procedimiento paso a paso {#sec-ph-procedimiento}
 
 Todas las pruebas de los capítulos siguientes siguen los mismos pasos:
@@ -153,6 +530,28 @@ Todas las pruebas de los capítulos siguientes siguen los mismos pasos:
 4. Calcular el estadístico con los datos.
 5. Decidir: comparar el estadístico con el valor crítico, o el valor $p$ con $\alpha$.
 6. Escribir la conclusión en el lenguaje del problema, con las unidades.
+
+Los pasos 1 y 6 son los que más cuestan; se explican en detalle en la @sec-ph-plantear y en la @sec-ph-redactar. Los ejemplos de los capítulos 21 a 23 siguen siempre estos seis pasos.
+
+La @fig-ph-diagrama resume el procedimiento. En el paso 5 hay dos caminos, comparar el estadístico con el valor crítico o el valor $p$ con $\alpha$, y los dos llevan siempre a la misma decisión.
+
+```{r}
+#| label: fig-ph-diagrama
+#| fig-cap: "Pasos de una prueba de hipótesis."
+#| fig-alt: "Seis cajas numeradas unidas por flechas en dos filas: plantear H0 y H1, fijar alfa, escoger el estadístico y revisar supuestos, calcular, decidir con el valor crítico o con el valor p, y concluir en el lenguaje del problema con unidades e intervalo."
+#| echo: false
+
+source("R/diagramas.R")
+dg_flujo(
+  list(list(c("Plantear", "t1"), c("H₀ y H₁", "t1"), c("con la pregunta", "t2")),
+       list(c("Fijar α", "t1"), c("antes de", "t2"), c("ver los datos", "t2")),
+       list(c("Escoger el", "t1"), c("estadístico", "t1"), c("y revisar supuestos", "t2")),
+       list(c("Calcular", "t1"), c("el estadístico", "t1"), c("con los datos", "t2")),
+       list(c("Decidir", "t1"), c("valor crítico o", "t2"), c("valor p frente a α", "t2")),
+       list(c("Concluir", "t1"), c("en el lenguaje", "t2"), c("del problema", "t2"))),
+  notas = c("", "", "", "", "rechazar o no", "con unidades e IC"),
+  por_fila = 3, titulo = "Pasos de una prueba de hipótesis")
+```
 
 ::: {.callout-note title="Ejemplo: control del esfuerzo de fluencia de varillas de acero"}
 
@@ -226,6 +625,85 @@ ggplot(curva, aes(t, d)) +
 
 **Interpretación.** La @fig-ph-varillas muestra que el estadístico queda bien adentro de la cola izquierda. Si la media de la producción siguiera en 300 MPa, una muestra tan baja como esta saldría menos de una vez en cien controles. Lo razonable es revisar el proceso. La estimación del efecto completa la conclusión: el esfuerzo medio está entre 294.0 y 298.7 MPa con 95 % de confianza, es decir, entre 1.3 y 6.0 MPa por debajo del objetivo.
 
+:::
+
+## Prueba unilateral o bilateral {#sec-ph-una-o-dos-colas}
+
+La forma de $H_1$ cambia la decisión cuando el resultado está cerca del límite. El ejemplo siguiente lo muestra con un problema ambiental, y sirve también para repasar cuándo se justifica cada forma.
+
+::: {.callout-note title="Ejemplo: nivel de ruido de una obra frente al límite del permiso"}
+
+**Planteamiento.** El permiso de una obra urbana fija un nivel de ruido medio máximo hipotético de 65 dB(A) en el límite del terreno durante el día. Se hicieron 12 mediciones de nivel equivalente de 15 minutos en días y horas escogidos al azar: 65.7, 64.3, 67.0, 65.4, 67.6, 63.2, 66.3, 66.7, 64.9, 66.4, 64.0 y 67.3 dB(A). Con $\alpha = 0.05$, ¿hay evidencia de que el nivel medio supera el límite? Compare con lo que daría una prueba bilateral.
+
+**Solución:**
+
+1. Hipótesis: a la autoridad solo le interesa si el ruido supera el límite, así que $H_0: \mu \le 65$ dB(A) y $H_1: \mu > 65$ dB(A). La forma se decide por la pregunta, antes de medir.
+2. Estadísticos: $\sum x_i = 788.8$, $\bar{x} = 788.8/12 = 65.73$ dB(A). La suma de cuadrados es 21.53, así que $s = \sqrt{21.53/11} = 1.399$ dB(A) y el error estándar es $1.399/\sqrt{12} = 0.404$ dB(A).
+3. Estadístico: $t = (65.73 - 65)/0.404 = 1.816$, con 11 grados de libertad.
+4. Decisión unilateral: $t_{0.05,\,11} = 1.796$. Como $1.816 > 1.796$, se rechaza $H_0$. El valor $p$ es $P(T_{11} \ge 1.816) = 0.048$.
+5. Si la prueba hubiera sido bilateral: $t_{0.025,\,11} = 2.201$ y $1.816 < 2.201$, de modo que no se rechazaría $H_0$. El valor $p$ sería el doble, 0.097.
+
+**Pseudocódigo**
+
+1. Guardar las mediciones y el límite $\mu_0$.
+2. Calcular $\bar{x}$, $s$ y el estadístico $t$.
+3. Calcular el valor $p$ de la cola derecha y el bilateral.
+4. Comprobar con `t.test()` con `alternative = "greater"` y `"two.sided"`.
+
+```{r}
+# 1) Datos (dB(A)) y límite del permiso
+ruido <- c(65.7, 64.3, 67.0, 65.4, 67.6, 63.2, 66.3, 66.7, 64.9, 66.4, 64.0, 67.3)
+mu0 <- 65
+
+# 2) Estadístico t
+n <- length(ruido)
+t_obs <- (mean(ruido) - mu0) / (sd(ruido) / sqrt(n))
+
+# 3) Valores p de una cola (derecha) y de dos colas
+p_derecha <- 1 - pt(t_obs, df = n - 1)
+p_dos <- 2 * (1 - pt(abs(t_obs), df = n - 1))
+c(media = mean(ruido), s = sd(ruido), t = t_obs, p_derecha = p_derecha, p_dos = p_dos)
+
+# 4) Con la función de R
+t.test(ruido, mu = mu0, alternative = "greater")
+t.test(ruido, mu = mu0, alternative = "two.sided")$p.value
+```
+
+**Interpretación.** Con la prueba unilateral, que es la que corresponde a la pregunta, hay evidencia al 5 % de que el ruido medio supera el límite; el límite inferior de confianza del 95 % para la media es 65.01 dB(A), apenas por encima de 65. La evidencia es justa: un valor $p$ de 0.048 está en el borde. Una decisión razonable sería exigir medidas de mitigación y repetir las mediciones, no multar con base en una sola campaña de 12 datos.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Con la prueba bilateral la conclusión cambia, y eso tienta a escoger la forma que conviene. La regla es escoger la unilateral solo cuando un resultado en la dirección contraria no cambiaría ninguna decisión: aquí, un ruido medio de 60 dB(A) no tiene consecuencia para el permiso. Si cualquiera de los dos desvíos importa, como en el control de las varillas, la prueba es bilateral. Y nunca se cambia de bilateral a unilateral después de ver que el resultado no alcanzó.
+:::
+
+## Cómo redactar la conclusión {#sec-ph-redactar}
+
+La conclusión es lo que lee quien toma la decisión, que casi nunca mira el valor $p$. Tiene que decir tres cosas: la decisión estadística, lo que significa en el lenguaje del problema y qué tan grande es el efecto. Estas plantillas sirven para casi todos los casos.
+
+Cuando se rechaza $H_0$:
+
+> Con un nivel de significancia de [α], hay evidencia suficiente para afirmar que [$H_1$ en palabras del problema] ([estadístico] = [valor], $p$ = [valor]). [Estimación del efecto con unidades e intervalo]. [Consecuencia para la decisión de ingeniería].
+
+Cuando no se rechaza $H_0$:
+
+> Con un nivel de significancia de [α], no hay evidencia suficiente para afirmar que [$H_1$ en palabras del problema] ([estadístico] = [valor], $p$ = [valor]). [Estimación con su intervalo, que muestra qué valores siguen siendo posibles]. [Qué haría falta para decidir: más datos, otra prueba].
+
+El @tbl-ph-conclusiones muestra conclusiones bien y mal escritas para los ejemplos de esta parte.
+
+| Mal escrita | Bien escrita |
+|:--|:--|
+| "Se acepta $H_0$." | "Con 5 % de significancia, no hay evidencia suficiente para afirmar que el mecanismo de falla depende del material del talud ($p = 0.092$)." |
+| "Se rechaza $H_0$." | "Con 5 % de significancia, hay evidencia de que el esfuerzo de fluencia medio es distinto de 300 MPa ($t = -3.45$, $p = 0.007$); está entre 1.3 y 6.0 MPa por debajo del objetivo." |
+| "El efluente cumple." | "Con 10 muestras no hay evidencia de que más del 20 % supere el límite ($p = 0.12$), pero tampoco se demuestra que se cumpla: la proporción podría estar entre 0.15 y 1." |
+| "Hay 99 % de probabilidad de que el ruido supere el límite." | "Hay evidencia, justa, de que el ruido medio supera los 65 dB(A) ($p = 0.048$); el límite inferior de confianza del 95 % es 65.01 dB(A)." |
+| "La diferencia es significativa, así que el aditivo es muy bueno." | "El aditivo aumentó la resistencia media en 2.8 MPa (IC del 95 %: 1.1 a 4.4 MPa; $p = 0.001$). Si ese aumento compensa su costo es una decisión económica." |
+| "$p = 0.000$." | "$p < 0.001$." Un valor $p$ nunca es exactamente cero. |
+
+: Conclusiones mal y bien escritas. {#tbl-ph-conclusiones}
+
+::: {.callout-warning title="Cuidado"}
+"No se rechaza $H_0$" no autoriza a escribir "se comprobó que el producto cumple". La ausencia de evidencia no es evidencia de ausencia. Si lo que se necesita es demostrar que algo cumple, la afirmación de cumplimiento debe ir en $H_1$, como en el ejemplo de los pilotes del @tbl-ph-planteamientos.
 :::
 
 ## Relación con los intervalos de confianza {#sec-ph-intervalos}
@@ -393,6 +871,189 @@ Por eso un informe completo incluye tres cosas: la decisión de la prueba con su
 Si se hacen muchas pruebas con $\alpha = 0.05$, alrededor de una de cada veinte saldrá significativa por azar, aunque ningún efecto sea real. Revisar 20 propiedades de un material y reportar solo la que dio $p < 0.05$ es una forma de engañarse. Las comparaciones múltiples se tratan en la parte de diseño de experimentos.
 :::
 
+## Tamaño del efecto {#sec-ph-tamano-efecto}
+
+::: {.pregunta}
+Si dos estudios dan $p = 0.001$, ¿encontraron el mismo efecto?
+:::
+
+No necesariamente. El valor $p$ mezcla dos cosas: qué tan grande es el efecto y cuántos datos hay. Para la prueba $t$ de una muestra, el estadístico se puede escribir como
+
+$$
+t = \frac{\bar{x} - \mu_0}{s}\,\sqrt{n} = d\,\sqrt{n}
+$$ {#eq-ph-t-d}
+
+donde $d = (\bar{x} - \mu_0)/s$ es el tamaño del efecto estandarizado, la diferencia medida en desviaciones estándar de los datos. La @eq-ph-t-d dice que un mismo $t$, y por tanto un mismo valor $p$, puede venir de un efecto grande con pocos datos o de un efecto pequeño con muchos. Con $n = 9$, un $t$ de 3 pide $d = 1$; con $n = 900$, basta $d = 0.1$. El tamaño del efecto separa las dos piezas y por eso se reporta junto con el valor $p$.
+
+### Tamaño del efecto en las unidades del problema
+
+La medida más útil en ingeniería es la diferencia en las unidades originales, con su intervalo de confianza: "el esfuerzo medio está 3.65 MPa por debajo del objetivo, entre 1.3 y 6.0 MPa con 95 % de confianza". Quien diseña puede compararla directamente con los márgenes y los factores de seguridad. Este es el tamaño del efecto que se debe reportar siempre.
+
+### Tamaño del efecto estandarizado
+
+Cuando se comparan estudios con unidades distintas, o no hay un criterio de ingeniería para juzgar la diferencia, se usa una medida sin unidades. La más común es la $d$ de Cohen [@cohen1988statistical], que divide la diferencia entre una desviación estándar. El @tbl-ph-efectos reúne las versiones que se usan en este libro.
+
+| Situación | Tamaño del efecto | Fórmula |
+|:--|:--|:-:|
+| Una media | $d$ | $(\bar{x} - \mu_0)/s$ |
+| Dos medias independientes | $d$ | $(\bar{x}_1 - \bar{x}_2)/s_p$ |
+| Muestras pareadas | $d_z$ | $\bar{d}/s_d$ |
+| Dos proporciones | $h$ | $2\arcsin\sqrt{\hat{p}_1} - 2\arcsin\sqrt{\hat{p}_2}$ |
+| Cuadro de contingencia | $V$ de Cramér | $\sqrt{\chi^2/[n\,(k-1)]}$ |
+
+: Medidas de tamaño del efecto. {#tbl-ph-efectos}
+
+En la $V$ de Cramér, $k$ es el menor entre el número de filas y el de columnas. Cohen propuso como referencia que $d = 0.2$ es un efecto pequeño, 0.5 mediano y 0.8 grande, con los mismos valores para $h$ [@cohen1988statistical]. Él mismo advirtió que son convenciones para cuando no hay nada mejor. En ingeniería casi siempre hay algo mejor: una caída de $d = 0.2$ en la resistencia de un cable puede ser grave, y una de $d = 1$ en el color de una pintura puede no importar.
+
+Para las varillas, $d = (296.35 - 300)/3.344 = -1.09$: la media de la muestra quedó a algo más de una desviación estándar por debajo del objetivo, un efecto grande según la convención de Cohen.
+
+### Valor p, efecto y tamaño de muestra
+
+La @fig-ph-int-efecto-n fija un tamaño del efecto y deja cambiar el número de datos. Muestra el valor $p$ que se obtendría si la muestra diera exactamente ese efecto, y el intervalo de confianza del 95 % para el efecto.
+
+::: {#fig-ph-int-efecto-n}
+
+```{=html}
+<div class="interactivo" id="int-efecto-n">
+  <div class="controles">
+    <label><span>Efecto observado <i>d</i>:</span> <output>0.30</output>
+      <input type="range" min="0" max="1.5" step="0.05" value="0.3" data-ctrl="d"></label>
+    <label><span>Tamaño de muestra <i>n</i>:</span> <output>20</output>
+      <input type="range" min="0" max="3" step="0.01" value="1.301" data-ctrl="n"></label>
+  </div>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 330" role="img" aria-label="Valor p en función del tamaño de muestra e intervalo de confianza del efecto"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-efecto-n");
+  var c = {}; raiz.querySelectorAll("[data-ctrl]").forEach(function (el) { c[el.dataset.ctrl] = el; });
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, m = 50;
+  function pnorm(x) {
+    var t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2), e = Math.exp(-x * x / 2);
+    var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * e;
+    return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+  }
+  var sxn = function (ln) { return m + (ln - Math.log10(2)) / (3 - Math.log10(2)) * (w - 2 * m); };
+  var syp = function (p) { var lp = Math.max(Math.log10(Math.max(p, 1e-6)), -6); return 30 + (-lp) / 6 * 150; };
+  var sxd = function (d) { return m + (d + 1) / 3 * (w - 2 * m); };
+  function dibujar() {
+    var d = parseFloat(c.d.value), n = Math.max(2, Math.round(Math.pow(10, parseFloat(c.n.value))));
+    salidas[0].textContent = d.toFixed(2); salidas[1].textContent = n;
+    var curva = "";
+    for (var ln = Math.log10(2); ln <= 3.0001; ln += 0.01) {
+      var nn = Math.pow(10, ln), p = 2 * (1 - pnorm(d * Math.sqrt(nn)));
+      curva += (curva ? "L" : "M") + sxn(ln).toFixed(1) + "," + syp(p).toFixed(1);
+    }
+    var p0 = 2 * (1 - pnorm(d * Math.sqrt(n))), E = 1.96 / Math.sqrt(n);
+    var g = '<text class="eje-texto" x="' + m + '" y="18">Valor p (escala logarítmica)</text>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="30" y2="180"/><line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="180" y2="180"/>';
+    [1, 0.05, 0.001, 0.000001].forEach(function (p) { g += '<text class="eje-texto" x="' + (m - 6) + '" y="' + (syp(p) + 4) + '" text-anchor="end">' + p + '</text>'; });
+    [2, 10, 100, 1000].forEach(function (k) { g += '<text class="eje-texto" x="' + sxn(Math.log10(k)) + '" y="196" text-anchor="middle">' + k + '</text>'; });
+    g += '<line class="guia" x1="' + m + '" x2="' + (w - m) + '" y1="' + syp(0.05) + '" y2="' + syp(0.05) + '"/>' +
+      '<path class="curva" d="' + curva + '"/>' +
+      '<circle class="punto-b" r="6" cx="' + sxn(Math.log10(n)) + '" cy="' + syp(p0) + '"/>' +
+      '<text class="eje-texto" x="' + (w - m) + '" y="172" text-anchor="end">n</text>';
+    g += '<text class="eje-texto" x="' + m + '" y="232">Intervalo de confianza del 95 % para el efecto d</text>' +
+      '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="290" y2="290"/>';
+    [-1, -0.5, 0, 0.5, 1, 1.5, 2].forEach(function (k) { g += '<text class="eje-texto" x="' + sxd(k) + '" y="306" text-anchor="middle">' + k + '</text>'; });
+    g += '<line class="guia" x1="' + sxd(0) + '" x2="' + sxd(0) + '" y1="245" y2="290"/>' +
+      '<line class="ic-cubre" x1="' + sxd(Math.max(d - E, -1)) + '" x2="' + sxd(Math.min(d + E, 2)) + '" y1="268" y2="268"/>' +
+      '<circle class="punto-b" r="6" cx="' + sxd(d) + '" cy="268"/>';
+    svg.innerHTML = g;
+    texto.innerHTML = "<i>z</i> = <i>d</i>√<i>n</i> = " + (d * Math.sqrt(n)).toFixed(2) + "; valor <i>p</i> bilateral = <b>" +
+      (p0 < 0.0001 ? "< 0.0001" : p0.toFixed(4)) + "</b>; IC del 95 % para <i>d</i>: [" + (d - E).toFixed(2) + ", " + (d + E).toFixed(2) + "].";
+  }
+  Object.keys(c).forEach(function (k) { c[k].addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Valor $p$ e intervalo del efecto según el tamaño de muestra.
+
+:::
+
+Con un efecto de 0.3 y 20 datos, el valor $p$ es 0.18 y el intervalo para $d$ va de −0.14 a 0.74: incluye el cero, pero también efectos grandes. La conclusión correcta no es "no hay efecto", sino "con 20 datos no se sabe". Con el mismo efecto y 200 datos, el valor $p$ baja a 0.00002 y el intervalo, de 0.16 a 0.44, ya excluye el cero. El efecto no cambió; cambió la precisión. Por eso el intervalo de confianza informa más que el valor $p$: muestra a la vez el tamaño del efecto y la incertidumbre que lo rodea. El interactivo usa la aproximación normal con $\sigma$ conocida, para que las cuentas se vean más claras.
+
+### Cómo reportar una prueba
+
+Un informe técnico completo incluye la estimación con su intervalo, el tamaño del efecto, el estadístico con sus grados de libertad y el valor $p$ exacto. Para el control de las varillas:
+
+> El esfuerzo de fluencia medio de las diez varillas fue de 296.35 MPa ($s = 3.34$ MPa), 3.65 MPa por debajo del objetivo de 300 MPa (IC del 95 % para la diferencia: 1.3 a 6.0 MPa; $d = -1.09$). La diferencia es estadísticamente significativa, $t(9) = -3.45$, $p = 0.007$. Una caída de esa magnitud reduce el margen sobre el esfuerzo de fluencia nominal, por lo que se recomienda revisar el proceso.
+
+Esa redacción permite que otra persona juzgue el resultado aunque use otro $\alpha$, y que lo compare con otros estudios.
+
+## Guía para escoger la prueba o el intervalo {#sec-ph-guia}
+
+::: {.pregunta}
+¿Cómo se sabe si toca $z$, $t$, $\chi^2$ o $F$?
+:::
+
+La distribución del estadístico no se escoge por gusto: la dictan el parámetro, lo que se sabe de la población y la forma en que se tomaron los datos. Las distribuciones de la parte anterior describen los datos (la guía para escogerlas está en la @sec-guia-distribuciones, con detalle en la @sec-disc-elegir y en la @sec-cont-elegir); las de esta parte describen estadísticos, como se vio en el capítulo de distribuciones muestrales. La @fig-ph-guia resume la elección para todos los métodos de los capítulos 19 a 23, y el @tbl-ph-guia da la función de R y el capítulo de cada uno.
+
+```{r}
+#| label: fig-ph-guia
+#| fig-cap: "Cómo escoger la prueba o el intervalo."
+#| fig-alt: "Tres árboles, uno por tipo de dato. Medición continua: una muestra (z si sigma es conocida, t si se estima), dos muestras (t de las diferencias si son pareadas, Welch si son independientes) o variabilidad (chi-cuadrado para una, F para dos). Conteo de sí o no: una proporción (z o binomial) o dos proporciones (z o chi-cuadrado con 1 g. l.). Conteos en categorías: chi-cuadrado de bondad de ajuste o de independencia."
+#| echo: false
+
+source("R/diagramas.R")
+h <- function(...) lapply(list(...), function(t) c(t, "t2"))
+r <- function(pregunta, ...) list(caja = list(c(pregunta, "t1")), hojas = list(h(...)))
+knitr::asis_output(paste(
+  dg_jerarquia(list(c("Medición continua", "t0")),
+               list(r("Una muestra", "σ conocida: z", "σ estimada: t"),
+                    r("Dos muestras", "pareadas: t de d", "independientes:", "t de Welch"),
+                    r("Variabilidad", "una: χ²", "dos: F")),
+               titulo = "Pruebas para una medición continua"),
+  dg_jerarquia(list(c("Conteo de sí/no", "t0")),
+               list(r("Una proporción", "grande: z", "pequeña: binomial"),
+                    r("Dos proporciones", "z o χ²", "con 1 g. l.")),
+               titulo = "Pruebas para un conteo de sí o no"),
+  dg_jerarquia(list(c("Conteos en categorías", "t0")),
+               list(r("Una variable", "χ² de bondad", "de ajuste"),
+                    r("Dos variables", "χ² de", "independencia")),
+               titulo = "Pruebas para conteos en categorías"),
+  sep = "\n"))
+```
+
+| Pregunta | Datos y condición | Estadístico | Intervalo en R | Prueba en R | Cap. |
+|:--|:--|:-:|:--|:--|:-:|
+| ¿Cuánto vale la media? | $\sigma$ conocida | $z$ | Fórmula con `qnorm()` | Fórmula con `pnorm()` | 19, 21 |
+| ¿Cuánto vale la media? | $\sigma$ desconocida | $t$, $n-1$ g. l. | `t.test(x)` | `t.test(x, mu = )` | 19, 21 |
+| ¿Cuánto vale la proporción? | $np_0 \ge 5$ y $n(1-p_0) \ge 5$ | $z$ | `prop.test(x, n, correct = FALSE)` | `prop.test(x, n, p = )` | 19, 21 |
+| ¿Cuánto vale la proporción? | Muestra pequeña | Binomial | `binom.test(x, n)` | `binom.test(x, n, p = )` | 19, 21 |
+| ¿Cuánto varía? | Población normal | $\chi^2$, $n-1$ g. l. | Fórmula con `qchisq()` | Fórmula con `pchisq()` | 19, 21 |
+| ¿Difieren dos medias? | Independientes | $t$ de Welch | `t.test(x1, x2)` | `t.test(x1, x2)` | 22 |
+| ¿Difieren dos medias? | Pareadas | $t$, $n-1$ g. l. | `t.test(x1, x2, paired = TRUE)` | ídem | 22 |
+| ¿Difieren dos variabilidades? | Poblaciones normales | $F$ | `var.test(x1, x2)` | ídem | 22 |
+| ¿Difieren dos proporciones? | Muestras grandes | $z$ o $\chi^2$ | `prop.test(c(x1, x2), c(n1, n2))` | ídem | 22, 23 |
+| ¿Siguen los datos una distribución? | Esperados $\ge 5$ | $\chi^2$, $k-1-m$ g. l. | | `chisq.test(o, p = )` | 23 |
+| ¿Están relacionadas dos variables categóricas? | Esperados $\ge 5$ | $\chi^2$, $(r-1)(c-1)$ g. l. | | `chisq.test(cuadro)` | 23 |
+| ¿Dónde caerá la próxima observación? | Población normal | $t$, $n-1$ g. l. | Fórmula (@eq-ic-prediccion) | | 19 |
+| ¿Dónde cae el 90 % de la población? | Población normal | Factor $k$ | `tolerance::normtol.int()` | | 19 |
+
+: Métodos de la Parte V y sus funciones de R. {#tbl-ph-guia}
+
+::: {.callout-tip title="En la práctica"}
+Ante un problema nuevo, conviene hacerse las preguntas en este orden: ¿el dato es una medición, un sí/no o una categoría? ¿Hay uno o dos grupos? Si hay dos, ¿cada dato de un grupo tiene pareja en el otro? ¿Se pregunta por el centro (media, proporción) o por la dispersión (varianza)? ¿Se conoce $\sigma$ de verdad o se estima con $s$? Con esas cinco respuestas el método queda determinado. Las dudas más comunes son confundir pareadas con independientes y usar $z$ cuando $\sigma$ se estimó. Si el método usa $t$, falta revisar la normalidad con un gráfico Q-Q; si falla con una muestra pequeña, se transforman los datos o se usa la prueba de Wilcoxon (@sec-una-no-normal).
+:::
+
+## Errores comunes {#sec-ph-errores-comunes}
+
+Los errores de interpretación de las pruebas de hipótesis son tan frecuentes que hay artículos dedicados solo a ellos [@wasserstein2016asa; @greenland2016statistical]. Los más comunes en ingeniería son estos:
+
+1. **Decir que se acepta $H_0$.** Lo correcto es "no se rechaza". Un ensayo con tres cilindros casi nunca rechaza nada; eso no demuestra que el concreto cumpla.
+2. **Leer el valor $p$ como la probabilidad de que $H_0$ sea cierta.** Un $p = 0.03$ no significa que haya 3 % de probabilidad de que la media sea 300 MPa. Significa que, si lo fuera, un resultado tan extremo saldría en el 3 % de las muestras.
+3. **Tratar 0.05 como una frontera mágica.** Un $p = 0.049$ y un $p = 0.051$ son prácticamente la misma evidencia. Conviene reportar el valor $p$ exacto, además de la palabra "significativo".
+4. **Confundir significancia estadística con importancia práctica.** Ver la @sec-ph-practica.
+5. **Escoger la forma de $H_1$ o el valor de $\alpha$ después de ver los datos.** Cambia el riesgo real de error tipo I sin que nadie lo note.
+6. **Hacer muchas pruebas y reportar solo la que salió significativa.** Con 20 pruebas al 5 % se espera una falsa alarma aunque nada haya cambiado.
+7. **Olvidar los supuestos.** La prueba $t$ supone datos independientes. Diez mediciones tomadas el mismo día en el mismo punto no son diez datos independientes del mes.
+8. **No calcular la potencia antes de muestrear.** Un estudio con potencia de 0.3 tiene más probabilidad de no detectar un efecto real que de detectarlo; si no rechaza, no se aprende casi nada.
+
 ## Ejercicios propuestos
 
 1. Para cada caso, plantee $H_0$ y $H_1$ e indique si la prueba es bilateral o unilateral: a) un proveedor afirma que sus sacos de cemento pesan en promedio 50 kg y se sospecha que pesan menos; b) se quiere saber si una nueva mezcla asfáltica cambia el contenido de vacíos de 4 %; c) se quiere demostrar que un tratamiento reduce la permeabilidad de un suelo.
@@ -401,6 +1062,10 @@ Si se hacen muchas pruebas con $\alpha = 0.05$, alrededor de una de cada veinte 
 4. Con el interactivo de la @fig-ph-interactivo, encuentre el $n$ mínimo para tener potencia de 0.80 con $\delta/\sigma = 0.5$ y $\alpha = 0.05$. Compruebe el resultado con la @eq-ph-n-potencia y con `power.t.test()`.
 5. Simule en R 5000 muestras de diez varillas de una población normal con $\mu = 300$ y $\sigma = 3.3$, y aplique a cada una `t.test(x, mu = 300)`. ¿Qué fracción de las pruebas rechaza $H_0$ con $\alpha = 0.05$? ¿Qué error es ese?
 6. Repita la simulación del ejercicio anterior con $\mu = 297$. ¿Qué fracción rechaza ahora? Compare con la potencia del ejemplo.
+7. Para cada caso, escriba cuál sería el error tipo I, cuál el tipo II y cuál considera más grave: a) $H_0$: el puente soporta la carga de diseño; b) $H_0$: la tasa de accidentes de una intersección no cambió después de instalar un semáforo; c) $H_0$: el contenido de humedad de los agregados es el especificado.
+8. En el interactivo de la @fig-ph-int-valor-p, fije $t = 2.0$ y compare el valor $p$ bilateral con 3, 10 y 60 grados de libertad. Explique por qué cambia.
+9. Repita el ejemplo del ruido con la mitad de las mediciones (las seis primeras). ¿Qué pasa con el estadístico y con la decisión? ¿Qué tipo de error podría estar cometiéndose?
+10. Con el simulador de la @fig-ph-int-simulador, fije la media real en 298 MPa y busque el número de varillas por control con el que cerca de 80 de cada 100 controles rechazan $H_0$. Compare con la @eq-ph-n-potencia.
 
 ## Lecturas recomendadas
 
