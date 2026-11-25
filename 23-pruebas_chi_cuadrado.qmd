@@ -171,7 +171,7 @@ prueba$statistic
 
 ```{r}
 #| label: tbl-chi-poisson
-#| tbl-cap: "Camiones por intervalo: conteos observados y esperados con el modelo de Poisson."
+#| tbl-cap: "Camiones por intervalo: observados y esperados."
 #| echo: false
 
 tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = esperados,
@@ -185,7 +185,7 @@ tibble(cat = c("0", "1", "2", "3", "4 o más"), o = observados, p = p0, e = espe
 
 ```{r}
 #| label: fig-chi-poisson
-#| fig-cap: "Intervalos observados y esperados según el número de camiones que llegan."
+#| fig-cap: "Frecuencias observadas y esperadas de camiones."
 #| fig-alt: "Barras de conteos observados junto a puntos de los esperados por la Poisson; las mayores diferencias están en 3 y en 4 o más."
 #| echo: false
 
@@ -284,7 +284,7 @@ round(prueba$stdres, 2)               # residuos estandarizados por celda
 
 ```{r}
 #| label: tbl-chi-contingencia
-#| tbl-cap: "Cilindros por planta y tipo de falla: observados y, entre paréntesis, esperados."
+#| tbl-cap: "Fallas por planta: observadas y esperadas."
 #| echo: false
 
 celdas <- matrix(sprintf("%d (%.2f)", cuadro, esperados), nrow = nrow(cuadro))
@@ -300,7 +300,7 @@ tibble(planta = rownames(cuadro)) %>%
 
 ```{r}
 #| label: fig-chi-fallas
-#| fig-cap: "Proporción de cada tipo de falla en los cilindros de cada planta."
+#| fig-cap: "Proporción de cada tipo de falla por planta."
 #| fig-alt: "Barras apiladas al 100 % para las plantas A, B y C; la planta A tiene más fallas cónicas que las otras dos."
 #| echo: false
 
@@ -386,7 +386,7 @@ La @fig-chi-calculadora repite la prueba de independencia con cualquier cuadro d
 </script>
 ```
 
-Calculadora de la prueba de independencia. Viene cargada con el cuadro de las plantas y los tipos de falla.
+Calculadora de la prueba de independencia.
 
 :::
 

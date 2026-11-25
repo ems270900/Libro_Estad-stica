@@ -32,6 +32,7 @@ reglas=(
   '\bTabla\b|Terminología: Cuadro'
   '^#+ ([^:]*: )?[Dd](e|el|esde) .+ (a|al|hasta) |Título del tipo "De X a Y"'
   '(fig|tbl)-cap: "[Dd](e|el|esde) .+ (a|al|hasta) |Leyenda del tipo "De X a Y"'
+  '(fig|tbl)-cap: "([^ "]+ ){12,}|Leyenda larga: dejarla en unas pocas palabras'
   '^[^-*|#].+[a-záéíóú,] \*\*[^*]+\*\*|Negrita dentro de un párrafo'
   '[Vv]eremos|[Vv]amos a|Primera persona: usar "se"'
   'Matarrita|Nombre del autor en tercera persona: voz impersonal con la cita'

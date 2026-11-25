@@ -41,7 +41,7 @@ mean(resistencia)
 ```
 ````
 
-Archivo mínimo de R Markdown: encabezado, texto y un bloque de código.
+Archivo mínimo de R Markdown.
 
 :::
 
@@ -64,13 +64,13 @@ Si se olvida este paso, RStudio muestra un aviso amarillo en la parte de arriba 
 
 Se usa el menú File > New File > R Markdown. Se abre la ventana de la @fig-rmd-nuevo, donde se escribe el título y el autor y se elige HTML como formato de salida. Al presionar OK, RStudio crea un archivo de ejemplo que ya tiene las tres partes. Conviene compilarlo una vez tal como está para comprobar que todo funciona; luego se borra el contenido de ejemplo, desde la primera línea después del encabezado, y se escribe el propio.
 
-![Ventana para crear un documento de R Markdown. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_nuevo_rmd.png){#fig-rmd-nuevo fig-alt="Ventana New R Markdown de RStudio con los campos Title y Author y la opción HTML seleccionada como formato de salida" width="70%"}
+![Nuevo documento de R Markdown. Fuente: RStudio (Posit).](assets/img/cap05/rstudio_nuevo_rmd.png){#fig-rmd-nuevo fig-alt="Ventana New R Markdown de RStudio con los campos Title y Author y la opción HTML seleccionada como formato de salida" width="70%"}
 
 ### Paso 3: guardar y compilar
 
 Antes de compilar se guarda el archivo (Ctrl + S) dentro de la carpeta del proyecto, junto a la carpeta de datos. El nombre del archivo no debe tener espacios ni tildes: `informe_cilindros.Rmd` funciona en cualquier computadora, `Informe de cilindros.Rmd` a veces no. Luego se presiona el botón Knit de la barra del editor, o el atajo Ctrl + Shift + K. RStudio ejecuta todos los bloques en orden, genera un archivo `.html` con el mismo nombre en la misma carpeta y lo muestra en una ventana aparte o en el panel Viewer, según la configuración (@fig-rmd-knit).
 
-![Archivo de R Markdown y el documento compilado en el panel Viewer. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="RStudio con el archivo informe_cilindros.Rmd abierto en el editor, el botón Knit en la barra del editor y, en el panel Viewer de la derecha, el documento HTML compilado" width="85%"}
+![Documento de R Markdown compilado. Fuente: RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="RStudio con el archivo informe_cilindros.Rmd abierto en el editor, el botón Knit en la barra del editor y, en el panel Viewer de la derecha, el documento HTML compilado" width="85%"}
 
 El archivo `.html` que se genera es un documento terminado: se puede abrir con doble clic en cualquier navegador, enviar por correo o subir a una plataforma de cursos, y quien lo recibe no necesita tener R.
 
@@ -134,7 +134,7 @@ Markdown usa unos pocos símbolos para dar formato. El @tbl-rmd-markdown muestra
 | `[Página de R](https://www.r-project.org)` | [Página de R](https://www.r-project.org) |
 | `> Nota del laboratorio.` | [Nota del laboratorio.]{.md-cita} |
 
-: Lo que se escribe en Markdown y lo que se ve al compilar. {#tbl-rmd-markdown}
+: Markdown escrito y compilado. {#tbl-rmd-markdown}
 
 Las listas y los párrafos se entienden mejor con un ejemplo de varias líneas. A la izquierda de la @fig-rmd-listas está el texto como se escribe y a la derecha, como se ve.
 
@@ -181,7 +181,7 @@ Equipo necesario:
 
 ::::
 
-Una lista numerada y una lista con viñetas en Markdown (izquierda) y su resultado (derecha).
+Listas en Markdown.
 
 :::
 
@@ -223,7 +223,7 @@ Un cuadro pequeño, que no viene de los datos, se puede escribir directamente en
 
 ::::
 
-Un cuadro escrito en Markdown (izquierda) y su resultado (derecha). Los valores son hipotéticos.
+Cuadro escrito en Markdown.
 
 :::
 
@@ -291,7 +291,7 @@ Datos en `ensayos.csv`:
 </script>
 ```
 
-Vista previa de Markdown: el texto de la izquierda se muestra con formato a la derecha.
+Vista previa de Markdown.
 
 :::
 
@@ -316,7 +316,7 @@ El nombre (`caja-proyectos`) es opcional, pero ayuda: si la compilación falla, 
 | `message = FALSE` | Sí | Sí | Sí, sin mensajes | Ocultar los avisos que aparecen al cargar un paquete |
 | `warning = FALSE` | Sí | Sí | Sí, sin advertencias | Ocultar advertencias ya revisadas |
 
-: Opciones frecuentes de los bloques de código y su efecto. {#tbl-rmd-opciones}
+: Opciones de los bloques de código. {#tbl-rmd-opciones}
 
 Para los gráficos hay tres opciones más: `fig.cap` agrega el pie de la figura, `fig.width` y `fig.height` fijan el tamaño en pulgadas (por defecto 7 × 5), y `out.width = "70%"` fija el ancho con que se muestra en la página.
 
@@ -368,7 +368,7 @@ mean(resistencia)</pre>
 </script>
 ```
 
-Efecto de las opciones `echo`, `eval`, `include` y `message` sobre lo que aparece en el documento compilado.
+Efecto de las opciones de los bloques de código.
 
 :::
 

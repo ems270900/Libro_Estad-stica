@@ -190,7 +190,7 @@ Se usa siempre el mismo término para el mismo concepto. En la primera aparició
 
   En los capítulos existentes, los bloques `knitr::include_graphics()` se pueden dejar como están. No hace falta convertirlos.
 
-- **Leyenda**: muy concisa, una oración corta, empieza con mayúscula y termina con punto. Si la figura es ajena o adaptada, la leyenda cierra con "Fuente: …" y la cita. Si es propia, no se pone fuente.
+- **Leyenda**: muy concisa, unas pocas palabras (como máximo unas diez), empieza con mayúscula y termina con punto. Dice qué muestra la figura o el cuadro; no lleva explicaciones, instrucciones de uso de los interactivos ni conclusiones, que van en el texto. Si la figura es ajena o adaptada, la leyenda cierra con una fuente corta ("Fuente: CRAN.", "Fuente: con base en @clave."). Si es propia, no se pone fuente.
 - `fig-alt` describe la figura para quien no la ve. Es obligatorio en las figuras nuevas.
 - Gráficos de R: **sin título dentro del gráfico** (`labs(title = …)`) cuando ya hay `fig-cap`, porque se repite. Los ejes llevan magnitud y unidad: "Precipitación máxima anual (mm)".
 - Figuras de tamaño uniforme: los gráficos de R usan el 70 % del ancho (configurado en `_quarto.yml`) y cada imagen fija lleva su `width`, elegido mirando la figura para que todas se vean de tamaño parecido.
