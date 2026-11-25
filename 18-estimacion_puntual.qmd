@@ -165,38 +165,20 @@ Que $S^2$ sea insesgado no significa que $S$ también lo sea. La raíz cuadrada 
 
 ### Sesgo y varianza en una diana {#sec-est-diana}
 
-Una diana de tiro ayuda a separar las dos ideas. El centro es el parámetro $\theta$ y cada disparo es la estimación que da una muestra distinta. Un tirador puede fallar por dos razones: porque su mira está desviada, y entonces todos los disparos caen corridos hacia un lado (sesgo), o porque su pulso tiembla, y entonces los disparos quedan dispersos (varianza). La @fig-est-dianas muestra las cuatro combinaciones.
+La diana de tiro que se usó en la @sec-est-obtencion para hablar de mediciones sirve también aquí. El centro es el parámetro $\theta$ y cada disparo es la estimación que da una muestra distinta. Un tirador puede fallar por dos razones: porque su mira está desviada, y entonces todos los disparos caen corridos hacia un lado (sesgo), o porque su pulso tiembla, y entonces los disparos quedan dispersos (varianza). La @fig-est-dianas muestra las cuatro combinaciones.
 
 ```{r}
 #| label: fig-est-dianas
-#| fig-cap: "Sesgo y varianza de un estimador representados como disparos a una diana."
+#| fig-cap: "Sesgo y varianza de un estimador."
 #| fig-alt: "Cuatro dianas. Arriba a la izquierda, disparos agrupados en el centro; arriba a la derecha, disparos dispersos alrededor del centro; abajo a la izquierda, disparos agrupados pero corridos; abajo a la derecha, disparos dispersos y corridos."
-#| fig-width: 7
-#| fig-height: 6.5
-#| out-width: "75%"
 #| echo: false
 
-set.seed(181)
-casos <- tibble(
-  panel = factor(c("Sin sesgo, poca varianza", "Sin sesgo, mucha varianza",
-                   "Con sesgo, poca varianza", "Con sesgo, mucha varianza"),
-                 levels = c("Sin sesgo, poca varianza", "Sin sesgo, mucha varianza",
-                            "Con sesgo, poca varianza", "Con sesgo, mucha varianza")),
-  dx = c(0, 0, 1.5, 1.5), dy = c(0, 0, 1.0, 1.0), sd = c(0.3, 1.1, 0.3, 1.1)
-)
-disparos <- casos %>%
-  rowwise() %>%
-  reframe(panel = panel, x = rnorm(25, dx, sd), y = rnorm(25, dy, sd))
-anillos <- tidyr::crossing(r = c(1, 2, 3), ang = seq(0, 2 * pi, length.out = 200), panel = casos$panel) %>%
-  mutate(x = r * cos(ang), y = r * sin(ang))
-ggplot() +
-  geom_path(data = anillos, aes(x, y, group = r), colour = "grey70") +
-  geom_point(data = tibble(x = 0, y = 0), aes(x, y), shape = 3, size = 4, stroke = 1.2) +
-  geom_point(data = disparos, aes(x, y), colour = "#1C6BA0", alpha = 0.8, size = 1.8) +
-  facet_wrap(~panel, ncol = 2) +
-  coord_equal(xlim = c(-3.2, 3.2), ylim = c(-3.2, 3.2)) +
-  theme_void(base_size = 12) +
-  theme(strip.text = element_text(margin = margin(b = 4)))
+source("R/diagramas.R")
+dg_dianas(data.frame(
+  caso = c("Sin sesgo, poca varianza", "Sin sesgo, mucha varianza",
+           "Con sesgo, poca varianza", "Con sesgo, mucha varianza"),
+  dx = c(0, 0, 1.6, 1.6), dy = c(0, 0, 1.2, 1.2), sd = c(0.35, 1.3, 0.35, 1.3)),
+  titulo = "Sesgo y varianza de un estimador")
 ```
 
 El mejor estimador es el de arriba a la izquierda, insesgado y con poca varianza. El peor es el de abajo a la derecha. Los otros dos plantean la pregunta interesante: ¿qué es preferible, un tirador centrado pero tembloroso o uno firme con la mira un poco corrida? Depende de qué tan lejos del centro caen los disparos en promedio, y eso es justo lo que mide el error cuadrático medio de la @sec-est-ecm. En la @fig-est-int-diana se mueven el sesgo y la dispersión para ver cómo cambia ese promedio.

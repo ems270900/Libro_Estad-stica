@@ -18,3 +18,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Diagrama de elección con `R/diagramas.R`. Ejercicios 7 a 10.
 - Fuentes nuevas: Wilcoxon (1945); Helsel et al. (2020).
 - Leyendas cortas, títulos sin la forma "De X a Y", ejemplos nuevos fuera del concreto.
+- Elección de la prueba (pedido de Edwin: a los estudiantes les cuesta saber qué aplicar): diagrama de decisión con `dg_decision`, cuadro con palabras clave y ejemplo por fila, cuatro casos resueltos de "¿qué prueba es?", cuestionario interactivo de nueve enunciados y ejercicios 11 a 13.

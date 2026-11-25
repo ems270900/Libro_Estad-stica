@@ -18,3 +18,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejercicios 7 a 10.
 - Fuentes nuevas: Chow, Maidment y Mays (1988); Gumbel (1958).
 - Leyendas cortas, títulos sin la forma "De X a Y", ejemplos nuevos fuera del concreto.
+- Las dianas de sesgo y varianza usan `dg_dianas` de `R/diagramas.R`, igual que el capítulo 7.
