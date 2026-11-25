@@ -465,7 +465,7 @@ ver_datos("datos/curado_concreto_hipotetico.csv",
 
 8. Estadístico: $F = 86.67/2.50 = 34.67$.
 
-9. Decisión: el valor crítico de la tabla $F$ (Apéndice A) con 3 y 16 grados de libertad es $F_{0.05;\,3,\,16} = 3.24$. Como $34.67 > 3.24$, se rechaza $H_0$.
+9. Decisión: el valor crítico de la tabla $F$ (@sec-apa-f) con 3 y 16 grados de libertad es $F_{0.05;\,3,\,16} = 3.24$. Como $34.67 > 3.24$, se rechaza $H_0$.
 
 ```{r}
 #| label: tbl-dce-calculos

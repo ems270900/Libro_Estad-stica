@@ -33,3 +33,5 @@ assets/img/Originals/
 # Salidas de herramientas/publicar.R
 /_publicar/
 /salidas/
+
+**/*.quarto_ipynb
