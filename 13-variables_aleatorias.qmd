@@ -431,7 +431,7 @@ resumen <- vigas %>%
 resumen
 ```
 
-Por último, una simulación: se "fabrican" 100 000 vigas con `sample()`, que elige valores al azar con las probabilidades dadas (capítulo 6), y se promedian. El resultado se acerca a los valores teóricos.
+Por último, una simulación: se "fabrican" 100 000 vigas con `sample()`, que elige valores al azar con las probabilidades dadas (@sec-prog-simulacion), y se promedian. El resultado se acerca a los valores teóricos.
 
 ```{r}
 set.seed(13)

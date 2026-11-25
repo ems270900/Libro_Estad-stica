@@ -1,5 +1,544 @@
 ---
-title: "Pendiente"
+title: "Distribuciones continuas"
+bibliography: references.bib
+suppress-bibliography: true
 ---
 
-En redacción.
+::: {.quote-block}
+"En esencia, todos los modelos están equivocados, pero algunos son útiles."\
+— *George E. P. Box y Norman R. Draper*, Empirical Model-Building and Response Surfaces (1987)
+:::
+
+```{r}
+#| include: false
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+naranja <- "#E69F00"
+tema_libro <- theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank())
+```
+
+El tiempo hasta la próxima tormenta intensa, la vida útil de una bomba, el porcentaje de finos de un material de préstamo o el caudal máximo de un río en un año son variables continuas. Para cada una se puede escribir una densidad a la medida, como en el capítulo 13, pero casi nunca hace falta: unas pocas familias de densidades con nombre cubren la gran mayoría de los casos de ingeniería. Este capítulo presenta seis de ellas (uniforme, exponencial, gamma, beta, log-normal y Weibull), explica de qué situación física sale cada una y muestra cómo calcular probabilidades a mano y con R. La distribución normal, la más usada de todas, tiene su propio capítulo, el 16.
+
+## Parámetros de una distribución continua {#sec-cont-parametros}
+
+Igual que en las distribuciones discretas (capítulo 14), cada familia continua tiene una fórmula y unos parámetros. Los parámetros de las densidades suelen cumplir uno de tres papeles:
+
+- **Localización.** Mueve la curva a la izquierda o a la derecha sin cambiar su forma, como la media de la normal.
+- **Escala.** Estira o comprime la curva a lo largo del eje horizontal. Si los datos pasan de horas a días, cambia la escala.
+- **Forma.** Cambia el aspecto de la curva: más o menos asimétrica, con un pico o sin él.
+
+En R, cada distribución continua tiene las mismas cuatro funciones que las discretas (`d`, `p`, `q` y `r`), con una diferencia de significado en la primera: `d` ya no da una probabilidad, sino la altura de la densidad $f_X(x)$. Las raíces de este capítulo son `unif`, `exp`, `gamma`, `beta`, `lnorm` y `weibull`. Las probabilidades se calculan siempre con `p` (la FDA) y los valores que dejan cierta probabilidad a su izquierda, con `q` (el cuantil).
+
+::: {.callout-warning title="Cuidado"}
+Un mismo modelo se puede escribir con parámetros distintos. La exponencial, por ejemplo, se escribe con la tasa $\lambda$ o con la media $1/\lambda$; la gamma, con escala o con tasa. R usa la tasa en `pexp(x, rate = ...)` y acepta las dos formas en `pgamma()` (`rate` o `scale`). Antes de copiar una fórmula de otro libro o de usar una función, conviene revisar qué significa cada parámetro, y escribir siempre el nombre del argumento en R.
+:::
+
+## Distribución uniforme continua {#sec-cont-uniforme}
+
+La uniforme continua describe una variable que puede caer en cualquier punto de un intervalo $[a, b]$ con la misma probabilidad. Su densidad es una línea horizontal, de altura constante para que el área total sea 1:
+
+$$
+f_X(x) = \frac{1}{b - a}, \qquad a \le x \le b
+$$ {#eq-cont-uniforme}
+
+y su FDA crece en línea recta desde 0 en $a$ hasta 1 en $b$:
+
+$$
+F_X(x) = \frac{x - a}{b - a}, \qquad a \le x \le b
+$$ {#eq-cont-uniforme-fda}
+
+donde $a$ y $b$ son los extremos del intervalo, en las unidades de la variable. Su media está en el centro del intervalo y su varianza depende solo del ancho [@illowsky2013introductory, cap. 5]:
+
+$$
+E(X) = \frac{a + b}{2}, \qquad \operatorname{Var}(X) = \frac{(b - a)^2}{12}
+$$ {#eq-cont-uniforme-momentos}
+
+Por ejemplo, si un bus pasa cada 15 minutos exactos y una persona llega a la parada sin conocer el horario, su tiempo de espera es $X \sim \text{U}(0, 15)$. La probabilidad de esperar más de 10 minutos es $1 - F_X(10) = 1 - 10/15 = 1/3$; la espera media es 7.5 minutos y la desviación estándar es $15/\sqrt{12} = 4.33$ minutos. En R: `punif(10, min = 0, max = 15, lower.tail = FALSE)`. La uniforme sirve también como modelo cuando solo se conocen los límites de una variable y no hay razón para preferir ningún valor dentro de ellos, y es la base de la simulación: `runif()` genera los números al azar con los que R construye todas las demás distribuciones.
+
+## Distribución exponencial {#sec-cont-exponencial}
+
+::: {.pregunta}
+Si las tormentas intensas llegan en promedio cada 45 horas, ¿qué tan probable es que la próxima llegue en los próximos tres días?
+:::
+
+En el capítulo 14 la distribución de Poisson contó cuántos eventos ocurren en un intervalo cuando los eventos llegan al azar a una tasa constante $\lambda$. La exponencial mira el mismo proceso desde otro lado: mide el tiempo que pasa entre un evento y el siguiente. Si en un tiempo $t$ no ocurre ningún evento, el tiempo de espera $T$ es mayor que $t$. Con la Poisson, la probabilidad de cero eventos en un intervalo de largo $t$ es $e^{-\lambda t}$, así que $P(T > t) = e^{-\lambda t}$. De ahí salen la FDA y, derivando, la densidad:
+
+$$
+F_T(t) = 1 - e^{-\lambda t}, \qquad f_T(t) = \lambda\, e^{-\lambda t}, \qquad t \ge 0
+$$ {#eq-cont-exponencial}
+
+donde $\lambda$ es la tasa de ocurrencia (eventos por unidad de tiempo) y $t$ es el tiempo de espera. La media y la varianza son [@illowsky2013introductory, cap. 5]
+
+$$
+E(T) = \frac{1}{\lambda}, \qquad \operatorname{Var}(T) = \frac{1}{\lambda^2}
+$$ {#eq-cont-exponencial-momentos}
+
+La media es el tiempo promedio entre eventos y la desviación estándar es igual a la media. Una tasa de $\lambda = 1/45$ tormentas por hora equivale a un tiempo medio de 45 horas entre tormentas. De la FDA salen dos fórmulas que se usan mucho:
+
+$$
+P(T > t) = e^{-\lambda t}, \qquad P(t_1 < T \le t_2) = e^{-\lambda t_1} - e^{-\lambda t_2}
+$$ {#eq-cont-exponencial-colas}
+
+::: {.callout-note title="Ejemplo: tiempo entre tormentas intensas"}
+
+**Planteamiento.** En una cuenca, el tiempo entre tormentas de alta intensidad se modela con una distribución exponencial con media de 45 horas (dato hipotético). Se programa una reparación en el vertedor de una presa.
+
+a) Calcule la probabilidad de que la próxima tormenta llegue en los próximos tres días.
+b) Calcule la probabilidad de que tarde más de cinco días.
+c) Calcule la media y la desviación estándar del tiempo de espera.
+
+**Solución:**
+
+1. La tasa es $\lambda = 1/45 = 0.0222$ tormentas por hora. Las unidades deben coincidir: tres días son 72 h y cinco días son 120 h.
+2. a) Con la @eq-cont-exponencial: $P(T \le 72) = 1 - e^{-72/45} = 1 - e^{-1.6} = 1 - 0.2019 = 0.798$.
+3. b) Con la @eq-cont-exponencial-colas: $P(T > 120) = e^{-120/45} = e^{-2.667} = 0.0695$.
+4. c) Con la @eq-cont-exponencial-momentos: $E(T) = 45$ h y $\sigma = 45$ h.
+
+**Pseudocódigo**
+
+1. Definir la tasa en las mismas unidades que los tiempos.
+2. Calcular las probabilidades con la fórmula de la FDA.
+3. Repetir con `pexp()`.
+
+```{r}
+lambda <- 1 / 45   # tormentas por hora
+
+# 2) Fórmulas a mano
+1 - exp(-lambda * 72)    # P(T <= 72 h)
+exp(-lambda * 120)       # P(T > 120 h)
+
+# 3) Con R
+pexp(72, rate = lambda)
+pexp(120, rate = lambda, lower.tail = FALSE)
+c(media = 1 / lambda, desv = 1 / lambda)
+```
+
+**Interpretación.** Si la reparación tarda tres días, hay un 80 % de probabilidad de que una tormenta intensa llegue antes de terminar. Solo en el 7 % de los casos hay cinco días seguidos sin tormenta, así que la obra debe planificarse para trabajar con el embalse expuesto o en otra época del año.
+
+:::
+
+### Falta de memoria
+
+La exponencial tiene una propiedad que la distingue de todas las demás distribuciones continuas: no tiene memoria. Si ya pasaron $s$ horas sin tormenta, la probabilidad de esperar $t$ horas más es la misma que al principio:
+
+$$
+P(T > s + t \mid T > s) = P(T > t)
+$$ {#eq-cont-sin-memoria}
+
+La demostración es corta: $P(T > s + t \mid T > s) = e^{-\lambda(s + t)}/e^{-\lambda s} = e^{-\lambda t}$. En términos físicos, el proceso no "se cansa" ni "acumula": el tiempo que ya pasó no dice nada sobre el que falta.
+
+::: {.callout-warning title="Cuidado"}
+La falta de memoria es razonable para eventos que llegan al azar (tormentas, llegadas de vehículos, fallas por causas externas como un rayo), pero no para elementos que se desgastan. Una bomba con diez años de uso no tiene la misma probabilidad de durar un año más que una nueva. Para la vida útil de elementos que envejecen se usa la distribución de Weibull (@sec-cont-weibull).
+:::
+
+::: {.callout-note title="Ejemplo: días entre fallas de las bombas de una estación"}
+
+**Planteamiento.** En una estación de bombeo de agua potable se registraron los días transcurridos entre 40 fallas consecutivas de las bombas (datos hipotéticos). Ajuste una distribución exponencial y úsela para estimar la probabilidad de que pase menos de una semana entre dos fallas, la mediana del tiempo entre fallas y el tiempo antes del cual ocurre el 10 % de las fallas.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/dias_entre_fallas_bombas_hipotetico.csv",
+          nombres = c("Falla", "Días desde la falla anterior"))
+```
+
+**Solución:**
+
+1. La media de la exponencial es $1/\lambda$, así que la tasa se estima con el inverso del promedio: $\bar{x} = 1802.4/40 = 45.06$ días y $\hat{\lambda} = 1/45.06 = 0.0222$ fallas por día.
+2. Verificación rápida: la desviación estándar de los datos es 46.5 días, parecida a la media, como predice la @eq-cont-exponencial-momentos.
+3. Menos de una semana: $P(T < 7) = 1 - e^{-7/45.06} = 1 - e^{-0.1553} = 1 - 0.8562 = 0.144$.
+4. Mediana: es el valor $m$ con $F(m) = 0.5$. Se despeja de $1 - e^{-\lambda m} = 0.5$: $m = \ln 2/\lambda = 0.6931 \times 45.06 = 31.2$ días.
+5. Cuantil del 10 %: de $1 - e^{-\lambda t} = 0.10$ se despeja $t = -\ln(0.90)/\lambda = 0.1054 \times 45.06 = 4.75$ días.
+
+**Pseudocódigo**
+
+1. Leer los datos y estimar $\lambda$ con el inverso de la media.
+2. Comparar la media con la desviación estándar.
+3. Calcular la probabilidad con la FDA y los cuantiles despejando de la FDA.
+4. Repetir con `pexp()` y `qexp()`, y comparar con las proporciones observadas.
+5. Dibujar el histograma con la densidad ajustada encima.
+
+```{r}
+library(tidyverse)
+
+# 1) Datos y estimación de lambda
+bombas <- read.csv("datos/dias_entre_fallas_bombas_hipotetico.csv")
+t_dias <- bombas$dias
+lambda <- 1 / mean(t_dias)
+
+# 2) En la exponencial, media y desviación estándar son parecidas
+c(media = mean(t_dias), desv = sd(t_dias), lambda = lambda)
+
+# 3) A mano: probabilidad y cuantiles despejados de la FDA
+1 - exp(-lambda * 7)        # P(T < 7)
+log(2) / lambda             # mediana
+-log(0.90) / lambda         # cuantil del 10 %
+
+# 4) Con R y con los datos
+pexp(7, rate = lambda)
+qexp(c(0.10, 0.50), rate = lambda)
+mean(t_dias < 7)            # proporción observada
+median(t_dias)              # mediana observada
+```
+
+La @fig-cont-bombas compara el histograma de los datos con la densidad ajustada. El histograma se dibuja en escala de densidad (`after_stat(density)`) para que su área total sea 1 y se pueda comparar con la curva.
+
+```{r}
+#| label: fig-cont-bombas
+#| fig-cap: "Histograma de los días entre fallas y densidad exponencial ajustada."
+#| fig-alt: "Histograma muy asimétrico a la derecha, con la mayoría de los valores por debajo de 60 días y una curva exponencial decreciente encima"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+ggplot(bombas, aes(dias)) +
+  geom_histogram(aes(y = after_stat(density)), breaks = seq(0, 240, 20),
+                 fill = azul, alpha = 0.6, color = "white") +
+  stat_function(fun = dexp, args = list(rate = lambda), color = naranja, linewidth = 1.2, n = 400) +
+  labs(x = "Días entre fallas", y = "Densidad") +
+  tema_libro
+```
+
+**Interpretación.** El modelo predice que el 14 % de los intervalos entre fallas dura menos de una semana; en los datos, solo 2 de 40 (5 %) lo cumplen. La mediana observada (31.1 días) coincide con la del modelo (31.2 días). Con 40 datos, una diferencia como la de la cola izquierda puede deberse al azar; en el capítulo 23 se verá cómo decidirlo con una prueba de bondad de ajuste. Para mantenimiento, el dato útil es que la mitad de las veces la siguiente falla llega antes de un mes.
+
+:::
+
+## Distribución gamma {#sec-cont-gamma}
+
+La exponencial mide la espera hasta el primer evento de un proceso de Poisson. La gamma mide la espera hasta el evento número $\alpha$. Es el equivalente continuo de la binomial negativa del capítulo 14. Con parámetro de forma $\alpha > 0$ y parámetro de escala $\theta > 0$, su densidad es [@wasserman2004all, cap. 2]
+
+$$
+f_X(x) = \frac{1}{\Gamma(\alpha)\, \theta^{\alpha}}\, x^{\alpha - 1}\, e^{-x/\theta}, \qquad x > 0
+$$ {#eq-cont-gamma}
+
+donde $\Gamma(\alpha)$ es la función gamma, que generaliza el factorial: para enteros, $\Gamma(n) = (n - 1)!$, y en general se calcula con R (`gamma()`). Su media y su varianza son
+
+$$
+E(X) = \alpha\, \theta, \qquad \operatorname{Var}(X) = \alpha\, \theta^2
+$$ {#eq-cont-gamma-momentos}
+
+Con $\alpha = 1$ la gamma es una exponencial con media $\theta$. Cuando $\alpha$ es entero, la gamma es la suma de $\alpha$ exponenciales independientes con media $\theta$ y se le llama también distribución de Erlang. Con $\alpha$ no entero sigue siendo útil como modelo flexible para variables positivas y asimétricas: lluvias diarias, tiempos de viaje, volúmenes de escorrentía. La @fig-cont-gamma-formas muestra cómo el parámetro de forma pasa de una curva decreciente, como la exponencial, a una casi simétrica.
+
+```{r}
+#| label: fig-cont-gamma-formas
+#| fig-cap: "Densidad gamma con escala θ = 1 y tres valores del parámetro de forma α."
+#| fig-alt: "Tres curvas: con alfa igual a 1 es decreciente, con 2 tiene un pico cerca de 1 y con 5 tiene un pico cerca de 4 y es casi simétrica"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+expand_grid(alfa = c(1, 2, 5), x = seq(0.01, 12, length.out = 400)) %>%
+  mutate(f = dgamma(x, shape = alfa, scale = 1), forma = factor(paste("α =", alfa))) %>%
+  ggplot(aes(x, f, color = forma)) +
+  geom_line(linewidth = 1.1) +
+  scale_color_viridis_d(end = 0.85) +
+  labs(x = "x", y = "Densidad", color = NULL) +
+  tema_libro +
+  theme(legend.position = "top")
+```
+
+Cuando $\alpha$ es entero, la FDA de la gamma se calcula a mano con la Poisson. Esperar más de $x$ hasta el evento número $\alpha$ equivale a que en el intervalo $[0, x]$ ocurran menos de $\alpha$ eventos:
+
+$$
+P(X \le x) = 1 - \sum_{k=0}^{\alpha - 1} \frac{(x/\theta)^k\, e^{-x/\theta}}{k!}
+$$ {#eq-cont-gamma-poisson}
+
+Siguiendo con las tormentas del ejemplo anterior ($\theta = 45$ h), la probabilidad de que lleguen tres tormentas en las próximas 72 h es, con $x/\theta = 1.6$:
+
+$$
+P(X \le 72) = 1 - e^{-1.6}\left(1 + 1.6 + \frac{1.6^2}{2}\right) = 1 - 0.2019 \times 3.88 = 0.217
+$$
+
+En R: `pgamma(72, shape = 3, scale = 45)`, que da el mismo valor.
+
+## Distribución beta {#sec-cont-beta}
+
+Las distribuciones anteriores sirven para variables positivas sin límite superior. Para proporciones y porcentajes, que están entre 0 y 1, se usa la beta. Con dos parámetros de forma $\alpha > 0$ y $\beta > 0$, su densidad es [@wasserman2004all, cap. 2]
+
+$$
+f_X(x) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\,\Gamma(\beta)}\, x^{\alpha - 1}\, (1 - x)^{\beta - 1}, \qquad 0 < x < 1
+$$ {#eq-cont-beta}
+
+con media y varianza
+
+$$
+E(X) = \frac{\alpha}{\alpha + \beta}, \qquad \operatorname{Var}(X) = \frac{\alpha\,\beta}{(\alpha + \beta)^2\,(\alpha + \beta + 1)}
+$$ {#eq-cont-beta-momentos}
+
+Con $\alpha = \beta = 1$ es la uniforme en $[0, 1]$. Si $\alpha = \beta$, es simétrica alrededor de 0.5. Si $\alpha < \beta$, se carga hacia 0, y si $\alpha > \beta$, hacia 1. Cuanto mayor es $\alpha + \beta$, más concentrada queda la curva alrededor de su media. Se usa para fracciones como el porcentaje de finos de un material, la proporción de vacíos de una mezcla asfáltica o el grado de avance de una actividad.
+
+Por ejemplo, si la fracción de un material de préstamo que pasa la malla N.º 200 se modela con una beta con $\alpha = 2$ y $\beta = 18$ (valores hipotéticos), su media es $2/20 = 0.10$ (10 % de finos) y su desviación estándar es $\sqrt{36/(400 \cdot 21)} = 0.065$. La probabilidad de que un banco tenga más de 15 % de finos es `pbeta(0.15, 2, 18, lower.tail = FALSE)` = 0.198. Esa integral se puede hacer a mano porque $\alpha$ y $\beta$ son enteros, pero es larga: para la beta, R es el camino práctico.
+
+## Distribución log-normal {#sec-cont-lognormal}
+
+Muchas variables de ingeniería son positivas y tienen una cola larga a la derecha: caudales máximos, conductividad hidráulica de suelos, tamaños de partículas, tiempos de reparación. Si al tomar el logaritmo natural de los datos la asimetría desaparece y el histograma queda con forma de campana, la variable es log-normal. Formalmente, $X$ es log-normal si $Y = \ln X$ sigue una distribución normal con media $\mu$ y desviación estándar $\sigma$ (capítulo 16). Su densidad es [@wasserman2004all, cap. 2]
+
+$$
+f_X(x) = \frac{1}{x\, \sigma \sqrt{2\pi}} \exp\left[-\frac{(\ln x - \mu)^2}{2\sigma^2}\right], \qquad x > 0
+$$ {#eq-cont-lognormal}
+
+donde $\mu$ y $\sigma$ son la media y la desviación estándar de $\ln X$, no de $X$. La media y la varianza de $X$ son
+
+$$
+E(X) = e^{\mu + \sigma^2/2}, \qquad \operatorname{Var}(X) = \left(e^{\sigma^2} - 1\right) e^{2\mu + \sigma^2}
+$$ {#eq-cont-lognormal-momentos}
+
+y la mediana es $e^{\mu}$, menor que la media por la cola derecha.
+
+Para calcular probabilidades no hace falta integrar la @eq-cont-lognormal: basta con pasar a logaritmos y usar la normal estándar del capítulo 16. Si el caudal máximo anual de un río, en m³/s, es log-normal con $\mu = 4$ y $\sigma = 0.5$ (valores hipotéticos, en escala de $\ln$), la probabilidad de que supere 100 m³/s en un año es
+
+$$
+P(X > 100) = P\left(Z > \frac{\ln 100 - 4}{0.5}\right) = P(Z > 1.21) = 0.113
+$$
+
+donde $Z$ es la normal estándar y el último valor sale de la tabla $Z$ del apéndice A o de `pnorm()`. Directamente en R: `plnorm(100, meanlog = 4, sdlog = 0.5, lower.tail = FALSE)`. La mediana del caudal es $e^4 = 54.6$ m³/s y la media es $e^{4.125} = 61.9$ m³/s.
+
+::: {.callout-warning title="Cuidado"}
+En `dlnorm()`, `plnorm()` y `qlnorm()`, los argumentos `meanlog` y `sdlog` son la media y la desviación estándar del logaritmo de los datos. Si se pasan la media y la desviación estándar de los datos originales, el resultado está mal y no aparece ningún aviso.
+:::
+
+## Distribución de Weibull {#sec-cont-weibull}
+
+La distribución de Weibull es el modelo más usado para la vida útil de componentes que envejecen y para la resistencia de materiales frágiles. Con parámetro de forma $\alpha > 0$ y parámetro de escala $\beta > 0$, su FDA y su densidad son
+
+$$
+F_X(x) = 1 - e^{-(x/\beta)^{\alpha}}, \qquad
+f_X(x) = \frac{\alpha}{\beta}\left(\frac{x}{\beta}\right)^{\alpha - 1} e^{-(x/\beta)^{\alpha}}, \qquad x \ge 0
+$$ {#eq-cont-weibull}
+
+donde $\alpha$ controla la forma y $\beta$, en las unidades de $x$, es la vida característica: el valor antes del cual falla el 63.2 % de los elementos, porque $F(\beta) = 1 - e^{-1} = 0.632$. La media y la varianza usan la función gamma:
+
+$$
+E(X) = \beta\, \Gamma\left(1 + \frac{1}{\alpha}\right), \qquad
+\operatorname{Var}(X) = \beta^2 \left[\Gamma\left(1 + \frac{2}{\alpha}\right) - \Gamma^2\left(1 + \frac{1}{\alpha}\right)\right]
+$$ {#eq-cont-weibull-momentos}
+
+El parámetro de forma tiene una lectura física, que es la razón de su uso en confiabilidad:
+
+- **$\alpha < 1$.** La tasa de fallas baja con el tiempo: fallas tempranas por defectos de fabricación o de instalación.
+- **$\alpha = 1$.** La tasa de fallas es constante y la Weibull es una exponencial con media $\beta$. Las fallas no dependen de la edad.
+- **$\alpha > 1$.** La tasa de fallas sube con el tiempo: desgaste, fatiga, corrosión.
+
+::: {.callout-note title="Ejemplo: vida útil de un componente de una obra"}
+
+**Planteamiento.** La vida útil $X$ (años) de un tipo de apoyo de neopreno se modela con una distribución de Weibull con $\alpha = 2$ y $\beta = 10$ años (valores hipotéticos). Calcule la vida media, la desviación estándar y la probabilidad de que un apoyo dure más de 12 años.
+
+**Solución:**
+
+1. Con la @eq-cont-weibull-momentos: $E(X) = 10\, \Gamma(1.5)$. Se sabe que $\Gamma(1.5) = \sqrt{\pi}/2 = 0.8862$, así que $E(X) = 8.86$ años.
+2. Varianza: $\Gamma(1 + 2/2) = \Gamma(2) = 1! = 1$, y $\operatorname{Var}(X) = 100\,(1 - 0.8862^2) = 100\,(1 - 0.7854) = 21.46$ años². La desviación estándar es $\sqrt{21.46} = 4.63$ años.
+3. Con la @eq-cont-weibull: $P(X > 12) = e^{-(12/10)^2} = e^{-1.44} = 0.237$.
+
+**Pseudocódigo**
+
+1. Definir $\alpha$ y $\beta$.
+2. Calcular la media y la varianza con `gamma()`.
+3. Calcular $P(X > 12)$ con la fórmula y con `pweibull()`.
+4. Comprobar la media con una simulación.
+
+```{r}
+alfa <- 2      # forma
+beta <- 10     # escala (años)
+
+# 2) Media, varianza y desviación estándar
+media <- beta * gamma(1 + 1 / alfa)
+varianza <- beta^2 * (gamma(1 + 2 / alfa) - gamma(1 + 1 / alfa)^2)
+c(media = media, varianza = varianza, desv = sqrt(varianza))
+
+# 3) P(X > 12): fórmula y función de R
+exp(-(12 / beta)^alfa)
+pweibull(12, shape = alfa, scale = beta, lower.tail = FALSE)
+
+# 4) Simulación de 100 000 apoyos
+set.seed(15)
+vidas <- rweibull(100000, shape = alfa, scale = beta)
+c(media_sim = mean(vidas), desv_sim = sd(vidas))
+```
+
+**Interpretación.** Un apoyo dura en promedio casi 9 años y uno de cada cuatro pasa de 12 años. Como $\alpha = 2 > 1$, el riesgo de falla crece con la edad, de modo que conviene reemplazarlos por programa y no esperar a que fallen.
+
+:::
+
+## Interactivo: explorar las distribuciones continuas {#sec-cont-interactivo}
+
+En el interactivo de la @fig-cont-interactivo se elige una distribución, se mueven sus parámetros y se escoge un valor $x_0$. El área sombreada es $P(X \le x_0)$, que se calcula por integración numérica de la densidad. Conviene probar la Weibull con forma 1 y compararla con la exponencial, o la gamma con forma creciente para ver cómo se vuelve casi simétrica.
+
+::: {#fig-cont-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-continuas">
+  <div class="controles">
+    <label><span>Distribución:</span>
+      <select>
+        <option value="exp">Exponencial</option>
+        <option value="gamma">Gamma</option>
+        <option value="weibull">Weibull</option>
+        <option value="lnorm">Log-normal</option>
+        <option value="beta">Beta</option>
+        <option value="unif">Uniforme</option>
+      </select></label>
+    <label><span class="et1"></span> <output class="o1"></output>
+      <input class="r1" type="range"></label>
+    <label class="fila2"><span class="et2"></span> <output class="o2"></output>
+      <input class="r2" type="range"></label>
+    <label><span>Valor <i>x</i><sub>0</sub>:</span> <output class="ox"></output>
+      <input class="rx" type="range" min="0" max="1000" step="1" value="300"></label>
+  </div>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Densidad de la distribución elegida con el área a la izquierda de x0 sombreada"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-continuas");
+  var sel = raiz.querySelector("select");
+  var r1 = raiz.querySelector(".r1"), r2 = raiz.querySelector(".r2"), rx = raiz.querySelector(".rx");
+  var o1 = raiz.querySelector(".o1"), o2 = raiz.querySelector(".o2"), ox = raiz.querySelector(".ox");
+  var et1 = raiz.querySelector(".et1"), et2 = raiz.querySelector(".et2"), fila2 = raiz.querySelector(".fila2");
+  var svg = raiz.querySelector("svg"), res = raiz.querySelector(".resultado");
+  var w = 640, h = 280, mi = 48, md = 16, ms = 14, mb = 36;
+  function lgamma(z) {
+    var c = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+             12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+    if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+    z -= 1; var a = 0.99999999999980993, t = z + 7.5;
+    for (var i = 0; i < 8; i++) a += c[i] / (z + i + 1);
+    return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+  function G(z) { return Math.exp(lgamma(z)); }
+  var conf = {
+    exp: { e1: "Media 1/<i>λ</i>:", a: [1, 100, 1, 45], e2: null,
+      rango: function (m) { return [0, 6 * m]; },
+      f: function (x, m) { return x < 0 ? 0 : Math.exp(-x / m) / m; },
+      mv: function (m) { return [m, m * m]; } },
+    gamma: { e1: "Forma <i>α</i>:", a: [0.5, 10, 0.1, 3], e2: "Escala <i>θ</i>:", b: [0.5, 50, 0.5, 10],
+      rango: function (a, t) { return [0, a * t + 6 * Math.sqrt(a) * t]; },
+      f: function (x, a, t) { return x <= 0 ? 0 : Math.exp((a - 1) * Math.log(x) - x / t - lgamma(a) - a * Math.log(t)); },
+      mv: function (a, t) { return [a * t, a * t * t]; } },
+    weibull: { e1: "Forma <i>α</i>:", a: [0.5, 5, 0.1, 2], e2: "Escala <i>β</i>:", b: [1, 50, 0.5, 10],
+      rango: function (a, b) { return [0, b * Math.pow(-Math.log(0.001), 1 / a)]; },
+      f: function (x, a, b) { return x <= 0 ? 0 : (a / b) * Math.pow(x / b, a - 1) * Math.exp(-Math.pow(x / b, a)); },
+      mv: function (a, b) { var g1 = G(1 + 1 / a), g2 = G(1 + 2 / a); return [b * g1, b * b * (g2 - g1 * g1)]; } },
+    lnorm: { e1: "<i>μ</i> de ln <i>X</i>:", a: [0, 5, 0.1, 4], e2: "<i>σ</i> de ln <i>X</i>:", b: [0.1, 1.2, 0.05, 0.5],
+      rango: function (m, s) { return [0, Math.exp(m + 3.2 * s)]; },
+      f: function (x, m, s) { return x <= 0 ? 0 : Math.exp(-Math.pow(Math.log(x) - m, 2) / (2 * s * s)) / (x * s * Math.sqrt(2 * Math.PI)); },
+      mv: function (m, s) { return [Math.exp(m + s * s / 2), (Math.exp(s * s) - 1) * Math.exp(2 * m + s * s)]; } },
+    beta: { e1: "Forma <i>α</i>:", a: [0.5, 20, 0.5, 2], e2: "Forma <i>β</i>:", b: [0.5, 20, 0.5, 18],
+      rango: function () { return [0, 1]; },
+      f: function (x, a, b) { return (x <= 0 || x >= 1) ? 0 : Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + (a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x)); },
+      mv: function (a, b) { return [a / (a + b), a * b / ((a + b) * (a + b) * (a + b + 1))]; } },
+    unif: { e1: "Mínimo <i>a</i>:", a: [0, 20, 0.5, 0], e2: "Ancho <i>b</i> − <i>a</i>:", b: [1, 30, 0.5, 15],
+      rango: function (a, d) { return [a - 0.15 * d, a + 1.15 * d]; },
+      f: function (x, a, d) { return (x >= a && x <= a + d) ? 1 / d : 0; },
+      mv: function (a, d) { return [a + d / 2, d * d / 12]; } }
+  };
+  function fijar(r, v) { r.min = v[0]; r.max = v[1]; r.step = v[2]; r.value = v[3]; }
+  function dec(r) { var s = parseFloat(r.step); return s >= 1 ? 0 : (s >= 0.1 ? 1 : 2); }
+  function cambiarDist() {
+    var c = conf[sel.value];
+    et1.innerHTML = c.e1; fijar(r1, c.a);
+    if (c.e2) { fila2.style.display = ""; et2.innerHTML = c.e2; fijar(r2, c.b); } else { fila2.style.display = "none"; }
+    rx.value = 300; dibujar();
+  }
+  function lindo(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p; return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * p; }
+  function dibujar() {
+    var c = conf[sel.value], a = parseFloat(r1.value), b = parseFloat(r2.value);
+    o1.textContent = a.toFixed(dec(r1)); o2.textContent = b.toFixed(dec(r2));
+    var rg = c.rango(a, b), x0 = rg[0], x1 = rg[1];
+    var xs = x0 + (x1 - x0) * parseInt(rx.value, 10) / 1000; ox.textContent = xs.toPrecision(3);
+    var n = 600, dx = (x1 - x0) / n, ys = [], ymax = 0;
+    for (var i = 0; i <= n; i++) { var y = c.f(x0 + i * dx, a, b); if (!isFinite(y)) y = 0; ys.push(y); }
+    var orden = ys.slice().sort(function (u, v) { return u - v; }); ymax = Math.max(orden[Math.floor(0.985 * n)], 1e-12);
+    var acum = 0, desde = Math.max(x0, sel.value === "unif" ? x0 : 0), m = 4000, hh = (xs - desde) / m;
+    if (xs > desde) { for (var k = 0; k <= m; k++) { var fk = c.f(desde + k * hh, a, b); if (!isFinite(fk)) fk = 0; acum += (k === 0 || k === m ? 1 : (k % 2 ? 4 : 2)) * fk; } acum *= hh / 3; }
+    acum = Math.min(Math.max(acum, 0), 1);
+    var sx = function (x) { return mi + (x - x0) / (x1 - x0) * (w - mi - md); };
+    var sy = function (y) { return h - mb - Math.min(y, ymax * 1.08) / (ymax * 1.1) * (h - mb - ms); };
+    var d = "", area = "M" + sx(x0).toFixed(1) + "," + sy(0).toFixed(1);
+    for (var j = 0; j <= n; j++) {
+      var xj = x0 + j * dx, p = sx(xj).toFixed(1) + "," + sy(ys[j]).toFixed(1);
+      d += (j ? "L" : "M") + p;
+      if (xj <= xs) area += "L" + p;
+    }
+    area += "L" + sx(Math.min(xs, x1)).toFixed(1) + "," + sy(0).toFixed(1) + "Z";
+    var s = '<path class="area" d="' + area + '"/><path class="curva" d="' + d + '"/>' +
+      '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+      '<line class="guia" x1="' + sx(xs) + '" x2="' + sx(xs) + '" y1="' + ms + '" y2="' + sy(0) + '"/>';
+    var paso = lindo((x1 - x0) / 7);
+    for (var t = Math.ceil(x0 / paso) * paso; t <= x1 + 1e-9; t += paso) {
+      s += '<line class="eje" x1="' + sx(t) + '" x2="' + sx(t) + '" y1="' + sy(0) + '" y2="' + (sy(0) + 5) + '"/>' +
+           '<text class="eje-texto" x="' + sx(t) + '" y="' + (sy(0) + 18) + '" text-anchor="middle">' + parseFloat(t.toPrecision(6)) + '</text>';
+    }
+    s += '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 4) + '" text-anchor="middle">x</text>';
+    svg.innerHTML = s;
+    var mv = c.mv(a, b);
+    res.innerHTML = "<i>P</i>(<i>X</i> ≤ " + xs.toPrecision(3) + ") = " + acum.toFixed(4) + " &nbsp;·&nbsp; <i>P</i>(<i>X</i> &gt; " + xs.toPrecision(3) + ") = " +
+      (1 - acum).toFixed(4) + " &nbsp;·&nbsp; <i>E</i>(<i>X</i>) = " + mv[0].toPrecision(4) + " &nbsp;·&nbsp; <i>σ</i> = " + Math.sqrt(mv[1]).toPrecision(4);
+  }
+  sel.addEventListener("change", cambiarDist);
+  [r1, r2, rx].forEach(function (r) { r.addEventListener("input", dibujar); });
+  cambiarDist();
+})();
+</script>
+```
+
+Distribuciones continuas. Elija la distribución, mueva los parámetros y el valor $x_0$.
+
+:::
+
+## Cómo elegir la distribución {#sec-cont-elegir}
+
+La elección de una distribución continua combina dos cosas: lo que se sabe de la física del problema y lo que muestran los datos. El @tbl-cont-resumen resume las distribuciones del capítulo con el tipo de variable para el que suelen servir.
+
+```{r}
+#| label: tbl-cont-resumen
+#| tbl-cap: "Resumen de las distribuciones continuas."
+#| echo: false
+
+tibble(
+  dist = c("Uniforme", "Exponencial", "Gamma", "Beta", "Log-normal", "Weibull"),
+  rango = c("[<i>a</i>, <i>b</i>]", "<i>x</i> ≥ 0", "<i>x</i> > 0", "0 < <i>x</i> < 1", "<i>x</i> > 0", "<i>x</i> ≥ 0"),
+  uso = c("Solo se conocen los límites; simulación",
+          "Tiempo entre eventos al azar (proceso de Poisson)",
+          "Tiempo hasta el evento número <i>α</i>; variables positivas asimétricas",
+          "Proporciones y porcentajes",
+          "Variables positivas con cola larga (caudales, permeabilidad)",
+          "Vida útil y resistencia de materiales frágiles"),
+  media = c("(<i>a</i> + <i>b</i>)/2", "1/<i>λ</i>", "<i>αθ</i>", "<i>α</i>/(<i>α</i> + <i>β</i>)",
+            "<i>e</i><sup><i>μ</i> + <i>σ</i><sup>2</sup>/2</sup>", "<i>β</i> Γ(1 + 1/<i>α</i>)"),
+  r = c("<code>punif(x, a, b)</code>", "<code>pexp(x, rate)</code>",
+        "<code>pgamma(x, shape, scale = )</code>", "<code>pbeta(x, a, b)</code>",
+        "<code>plnorm(x, meanlog, sdlog)</code>", "<code>pweibull(x, shape, scale)</code>")
+) %>%
+  kbl(col.names = c("Distribución", "Valores", "Uso típico", "Media", "FDA en R"),
+      escape = FALSE, align = "l") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+::: {.callout-tip title="En la práctica"}
+Un primer filtro es el rango de la variable. Si puede ser negativa, ninguna de las distribuciones de este capítulo sirve, salvo la uniforme, y suele usarse la normal. Si está acotada entre 0 y 1, la beta. Si es positiva, se mira la asimetría del histograma y el origen físico: tiempos entre eventos al azar sugieren exponencial; desgaste, Weibull; productos de muchos factores, log-normal. Después se comprueba el ajuste con gráficos como el de la @fig-cont-bombas y, en el capítulo 23, con pruebas formales.
+:::
+
+::: {.callout-warning title="Cuidado"}
+Si varias distribuciones se ajustan razonablemente bien a los mismos datos, sus resultados en las colas (por ejemplo, el caudal de 100 años) pueden ser muy distintos. Esos resultados no se promedian: cada modelo tiene sus supuestos. Se elige uno con criterio físico y con pruebas de ajuste, y se informa cuál se usó.
+:::
+
+## Ejercicios propuestos
+
+1. Un ensayo de laboratorio tarda entre 20 y 35 minutos, y cualquier duración en ese intervalo es igualmente probable. Calcule la probabilidad de que tarde más de 30 minutos, la media y la desviación estándar. Compruebe con `punif()` y con una simulación con `runif()`.
+2. Las llegadas de vehículos a una caseta de peaje siguen un proceso de Poisson con 4 vehículos por minuto. Calcule la probabilidad de que pasen más de 30 segundos sin que llegue ninguno, y el tiempo medio entre llegadas en segundos.
+3. Con el modelo del ejercicio 2, ya pasaron 20 segundos sin vehículos. ¿Cuál es la probabilidad de que pasen al menos 30 segundos más? Explique el resultado con la @eq-cont-sin-memoria.
+4. Con los datos de los días entre fallas de las bombas, calcule la proporción observada de intervalos de más de 90 días y compárela con la que da el modelo exponencial. Dibuje la FDA empírica (`ecdf()`) y la FDA exponencial en un mismo gráfico.
+5. El tiempo hasta que se acumulan 4 llegadas de camiones a una planta sigue una gamma con $\alpha = 4$ y $\theta = 3.4$ min. Calcule a mano, con la @eq-cont-gamma-poisson, la probabilidad de que las 4 llegadas ocurran en menos de 10 minutos, y compruebe con `pgamma()`.
+6. El contenido de vacíos de una mezcla asfáltica, como fracción, se modela con una beta con $\alpha = 8$ y $\beta = 92$ (hipotético). Calcule su media, su desviación estándar y la probabilidad de que quede fuera del intervalo de 3 % a 5 %.
+7. La conductividad hidráulica de un suelo es log-normal con $\mu = -11$ y $\sigma = 0.8$ ($\ln$ de m/s). Calcule la mediana, la media y la probabilidad de que supere $10^{-4}$ m/s.
+8. Los cables de un sistema de anclajes tienen una vida útil Weibull con $\alpha = 3$ y $\beta = 40$ años. Calcule la vida media, la probabilidad de que un cable falle antes de 20 años y la edad a la que ha fallado el 10 % de los cables (`qweibull()`).
+9. Use el interactivo con la Weibull y $\beta = 10$: describa cómo cambia la forma de la densidad al pasar $\alpha$ de 0.8 a 1 y a 3, y relacione cada caso con el tipo de falla que representa.
+
+## Lecturas recomendadas
+
+- @illowsky2013introductory, capítulo 5: uniforme y exponencial con muchos ejemplos resueltos, incluida la falta de memoria.
+- @ayala2026estadistica: distribuciones continuas en español, con código de R.
+- @wasserman2004all, capítulo 2: densidades de la gamma, la beta y otras distribuciones, con la notación formal.

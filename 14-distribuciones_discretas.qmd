@@ -15,11 +15,11 @@ tema_libro <- theme_minimal(base_size = 13) +
   theme(panel.grid.minor = element_blank())
 ```
 
-En el capítulo 13 cada función de probabilidad se armó desde cero, contando resultados o usando frecuencias. En la práctica muchas situaciones se repiten con la misma estructura: un número fijo de ensayos que pasan o no pasan, una espera hasta el primer éxito, conteos de eventos raros en un intervalo de tiempo. Para cada una de esas estructuras ya existe una fórmula conocida, con media y varianza deducidas una sola vez. Este capítulo presenta las siete distribuciones discretas más usadas en ingeniería civil, explica cuándo sirve cada una y muestra cómo calcular con ellas a mano y con R. La clave para usarlas bien no es memorizar las fórmulas, sino reconocer la estructura del problema.
+En el capítulo 13 cada función de probabilidad se armó desde cero, contando resultados o usando frecuencias. En la práctica muchas situaciones se repiten con la misma estructura: un número fijo de ensayos que pasan o no pasan, una espera hasta el primer éxito, conteos de eventos raros en un intervalo de tiempo. Para cada una de esas estructuras ya existe una fórmula conocida, con media y varianza deducidas una sola vez. Este capítulo presenta las siete distribuciones discretas más usadas en ingeniería civil, explica cuándo sirve cada una y muestra cómo calcular con ellas a mano y con R. Para usarlas bien no hace falta memorizar las fórmulas, sino aprender a reconocer la estructura del problema.
 
 ## Distribuciones con nombre y parámetros {#sec-disc-parametros}
 
-Una distribución con nombre (o distribución paramétrica) es una familia de funciones de probabilidad que comparten una fórmula. Lo que distingue a un miembro de otro son unos pocos números llamados parámetros. Decir "el número de cilindros que fallan sigue una distribución binomial" no dice mucho. Decir "sigue una binomial con $n = 12$ ensayos y probabilidad de falla $p = 0.10$" ya permite calcular cualquier probabilidad.
+Una distribución con nombre (o distribución paramétrica) es una familia de funciones de probabilidad que comparten una fórmula. Lo que distingue a un miembro de otro son unos pocos números llamados parámetros. Decir "el número de cilindros que fallan sigue una distribución binomial" no dice mucho. Decir "sigue una binomial con $n = 12$ ensayos y probabilidad de falla $p = 0.10$" basta para calcular cualquier probabilidad.
 
 Se usa la notación $X \sim \text{Bin}(n, p)$, que se lee "$X$ sigue una distribución binomial con parámetros $n$ y $p$". El símbolo $\sim$ significa "se distribuye como".
 
@@ -139,7 +139,7 @@ expand_grid(p = c(0.1, 0.5, 0.8), x = 0:12) %>%
 
 ::: {.callout-note title="Ejemplo: cilindros de concreto que no cumplen"}
 
-**Planteamiento.** En una obra se moldean 12 cilindros de una misma colada. Con base en el historial de la planta (hipotético), cada cilindro tiene una probabilidad de 0.10 de no alcanzar la resistencia especificada, de forma independiente de los demás. Sea $X$ el número de cilindros que no cumplen.
+**Planteamiento.** En una obra se moldean 12 cilindros de una misma colada. Con base en el historial de la planta (hipotético), cada cilindro tiene una probabilidad de 0.10 de no alcanzar la resistencia especificada, independientemente de los demás. Sea $X$ el número de cilindros que no cumplen.
 
 a) Calcule la probabilidad de que exactamente 2 cilindros no cumplan.
 b) Calcule la probabilidad de que 3 o más no cumplan.
@@ -233,7 +233,7 @@ El periodo de retorno de hidrología e ingeniería estructural sale de la distri
 
 ::: {.callout-note title="Ejemplo: sondeos hasta encontrar arcilla expansiva"}
 
-**Planteamiento.** Una empresa de geotecnia cotiza sondeos de penetración estándar (SPT) para detectar arcillas expansivas. En la zona, cada sondeo encuentra este tipo de arcilla con probabilidad 0.30 (valor hipotético), de forma independiente. Sea $X$ el número del sondeo en que se encuentra la arcilla por primera vez.
+**Planteamiento.** Una empresa de geotecnia cotiza sondeos de penetración estándar (SPT) para detectar arcillas expansivas. En la zona, cada sondeo encuentra este tipo de arcilla con probabilidad 0.30 (valor hipotético), independientemente de los demás sondeos. Sea $X$ el número del sondeo en que se encuentra la arcilla por primera vez.
 
 a) Calcule la probabilidad de que la arcilla aparezca por primera vez en el tercer sondeo.
 b) Calcule la probabilidad de que se necesiten más de 5 sondeos.
@@ -677,7 +677,7 @@ Tres preguntas ordenan casi todos los casos. ¿El número de ensayos está fijo 
 
 ## Ejercicios propuestos
 
-1. Un laboratorio ensaya 20 probetas de mortero. Cada una falla prematuramente con probabilidad 0.05, de forma independiente. Calcule la probabilidad de que ninguna falle, de que fallen exactamente 2 y de que fallen más de 3. Hágalo a mano para las dos primeras y con R para todas.
+1. Un laboratorio ensaya 20 probetas de mortero. Cada una falla prematuramente con probabilidad 0.05, independientemente de las demás. Calcule la probabilidad de que ninguna falle, de que fallen exactamente 2 y de que fallen más de 3. Hágalo a mano para las dos primeras y con R para todas.
 2. En una intersección semaforizada, el 15 % de los vehículos gira a la izquierda (dato hipotético). En un ciclo pasan 25 vehículos. Calcule la media y la desviación estándar del número que gira a la izquierda y la probabilidad de que giren 6 o más, que es la capacidad del carril de giro.
 3. Una estructura se diseña para un sismo con probabilidad anual de excedencia de 1/475. Calcule el periodo de retorno, la probabilidad de que el sismo se exceda al menos una vez en 50 años y la probabilidad de que la primera excedencia ocurra justo en el año 50.
 4. Un inspector revisa uniones soldadas hasta encontrar la tercera defectuosa. Si cada unión es defectuosa con probabilidad 0.08, calcule la probabilidad de que la tercera defectuosa sea la unión número 30 y el número esperado de uniones revisadas. Use `dnbinom()` y la fórmula a mano.

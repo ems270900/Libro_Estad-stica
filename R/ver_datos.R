@@ -18,6 +18,9 @@ ver_datos <- function(archivo, filas = 6, tabla = TRUE, nombres = NULL) {
     text = htmltools::HTML(paste0("&#11015; Descargar <code>", basename(archivo), "</code>")),
     class = "boton-datos"
   )
+  # embed_file() devuelve texto con HTML; se marca como HTML para que no se
+  # escape al meterlo en el div (pasaba dentro de los recuadros de ejemplo).
+  boton <- htmltools::HTML(as.character(boton))
   if (!tabla) return(htmltools::div(class = "datos-ejemplo", boton))
 
   datos <- utils::read.csv(archivo, check.names = FALSE, fileEncoding = "UTF-8")
