@@ -18,6 +18,12 @@
 - Cita del Código Sísmico de Costa Rica en el capítulo 7 (CITA PENDIENTE).
 - Confirmar la página del epígrafe de Box (1979) y si se quiere otro epígrafe en el capítulo 8 (repite el de Tukey del capítulo 4).
 - Revisión del autor de los capítulos 7 a 9.
+## Parte III (Probabilidad)
+
+- Revisión del autor de los capítulos 10 a 12.
+- Los datos de atrasos de obra, de varillas, de plantas de concreto y de ensayos en pilotes son hipotéticos. Si el autor tiene datos reales publicables (por ejemplo, de un informe de laboratorio con permiso), se pueden sustituir.
+- Epígrafes: el del capítulo 10 es de Laplace (*Essai philosophique sur les probabilités*, 1814) y el del capítulo 12 de Joseph Butler (*The Analogy of Religion*, 1736, introducción). El capítulo 11 no lleva epígrafe porque no se encontró uno con fuente verificable; el autor puede proponer uno.
+- `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
 
 ## Apéndices
 

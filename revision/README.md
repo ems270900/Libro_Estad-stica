@@ -17,4 +17,7 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 7. La estadística en la ingeniería civil | Borrador | [07-estadistica_ingenieria.md](07-estadistica_ingenieria.md) | Parte II |
 | 8. Presentación de datos: cuadros y gráficos | Borrador | [08-presentacion_datos.md](08-presentacion_datos.md) | Parte II |
 | 9. Medidas de tendencia central, posición y variabilidad | Borrador | [09-medidas_descriptivas.md](09-medidas_descriptivas.md) | Parte II |
+| 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
+| 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
+| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
 | Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
