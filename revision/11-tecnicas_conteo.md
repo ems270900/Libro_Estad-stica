@@ -18,3 +18,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ecuaciones nuevas: `eq-conteo-stirling`, `eq-conteo-pascal`, `eq-conteo-inspeccion`. Ejercicios nuevos 13 a 16 (ambiental, geotecnia).
 - Referencia nueva: @feller1968introduction.
 - No se tocó el recuadro "cilindros escogidos para ensayo", que el hilo de diversificación de ramas va a reemplazar.
+- Diversificación de ramas (2026-11-25): el ejemplo de combinaciones pasa de cilindros escogidos para ensayo a tramos de alcantarillado escogidos para inspección con cámara (mismos números, C(12, 4) = 495).

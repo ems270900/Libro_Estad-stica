@@ -8,3 +8,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Advertencias sobre cómo cuentan `dgeom()` y `dnbinom()` (fracasos, no ensayos) y sobre los argumentos de `dhyper()`.
 - Interactivo: binomial, Poisson, geométrica y binomial negativa con parámetros y umbral k (`#fig-disc-interactivo`); probado en el navegador contra `pbinom()`.
 - Correcciones respecto a las diapositivas: la binomial negativa se presenta como número de ensayos hasta el éxito k, con media k/p (la diapositiva daba k(1 − p)/p, que es la media del número de fracasos); el ejemplo del lago Cayuga no se usó porque mezclaba n = 230 y n = 10.
+- Diversificación de ramas (2026-11-25): el ejemplo de la binomial negativa pasa de un aditivo para concreto a pozos de monitoreo junto a un derrame de combustible (mismos números, P = 0.1866 y E(X) = 8.33).

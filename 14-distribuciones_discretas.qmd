@@ -567,16 +567,16 @@ $$ {#eq-disc-binomial-negativa-momentos}
 
 Con $k = 1$ se recupera la geométrica.
 
-::: {.callout-note title="Ejemplo: aditivo para concreto"}
+::: {.callout-note title="Ejemplo: pozos de monitoreo junto a un derrame"}
 
-**Planteamiento.** Un aditivo mejora la resistencia a compresión en el 60 % de las mezclas en que se usa (dato hipotético). Se prueban cilindros uno tras otro. Calcule la probabilidad de que el quinto cilindro con mejora sea el séptimo cilindro ensayado, y la media del número de cilindros que hay que ensayar para obtener cinco con mejora.
+**Planteamiento.** Alrededor de un tanque de combustible con fugas, el 60 % de los pozos de monitoreo que se perforan detecta hidrocarburos en el agua subterránea (dato hipotético). Para delimitar la pluma se necesitan cinco pozos con detección, y se perforan uno tras otro. Calcule la probabilidad de que el quinto pozo con detección sea el séptimo perforado, y la media del número de pozos que hay que perforar para obtener cinco con detección.
 
 **Solución:**
 
 1. Proceso de Bernoulli con $p = 0.60$, y se espera el éxito número $k = 5$: $X \sim \text{BinNeg}(k = 5, p = 0.60)$.
-2. En los primeros 6 cilindros debe haber exactamente 4 con mejora: $\binom{6}{4} = 15$ formas.
+2. En los primeros 6 pozos debe haber exactamente 4 con detección: $\binom{6}{4} = 15$ formas.
 3. Con la @eq-disc-binomial-negativa: $P(X = 7) = 15 \cdot 0.60^5 \cdot 0.40^2 = 15 \cdot 0.07776 \cdot 0.16 = 0.1866$.
-4. Con la @eq-disc-binomial-negativa-momentos: $E(X) = 5/0.60 = 8.33$ cilindros.
+4. Con la @eq-disc-binomial-negativa-momentos: $E(X) = 5/0.60 = 8.33$ pozos.
 
 **Pseudocódigo**
 
@@ -595,11 +595,11 @@ choose(x - 1, k - 1) * p^k * (1 - p)^(x - k)
 # 3) Con R: el primer argumento es el número de fracasos, x - k
 dnbinom(x - k, size = k, prob = p)
 
-# Media del número de ensayos
+# Media del número de pozos perforados
 k / p
 ```
 
-**Interpretación.** Hay un 19 % de probabilidad de completar los cinco cilindros con mejora justo en el séptimo ensayo. En promedio harán falta entre 8 y 9 cilindros, lo que sirve para planificar cuántos moldes preparar.
+**Interpretación.** Hay un 19 % de probabilidad de completar los cinco pozos con detección justo en el séptimo perforado. En promedio harán falta entre 8 y 9 pozos, lo que sirve para presupuestar la campaña de perforación.
 
 :::
 
