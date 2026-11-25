@@ -1,0 +1,58 @@
+---
+title: "Resistencia a compresión del concreto"
+subtitle: "Informe de laboratorio (datos hipotéticos)"
+author: "Nombre de quien hace el informe"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+# 1) Paquetes y datos. El archivo CSV va en la carpeta datos/ del proyecto.
+library(knitr)
+ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
+e28 <- ensayos[ensayos$edad_dias == 28, ]
+fc <- 28   # resistencia de diseño del edificio (MPa)
+edif <- e28[e28$proyecto == "Edificio", ]
+```
+
+# Objetivo
+
+Verificar si los cilindros del edificio alcanzaron a los 28 días la resistencia
+de diseño de `r fc` MPa.
+
+# Datos
+
+Se ensayaron `r nrow(edif)` cilindros a 28 días, `r sum(edif$mezcla == "A")` de la
+mezcla A y `r sum(edif$mezcla == "B")` de la mezcla B.
+
+```{r datos, echo = FALSE}
+kable(edif[, c("muestra", "mezcla", "resistencia_mpa")],
+      col.names = c("Muestra", "Mezcla", "Resistencia (MPa)"),
+      row.names = FALSE, caption = "Resultados de los ensayos a 28 días.")
+```
+
+# Resultados
+
+La resistencia media fue de `r format(round(mean(edif$resistencia_mpa), 2), nsmall = 2)` MPa
+y `r sum(edif$resistencia_mpa >= fc)` de los `r nrow(edif)` cilindros alcanzaron la
+resistencia de diseño.
+
+```{r figura, echo = FALSE, fig.cap = "Resistencia de cada cilindro y resistencia de diseño (línea roja)."}
+stripchart(resistencia_mpa ~ mezcla, data = edif, method = "jitter", pch = 19,
+           col = "#1C6BA0", vertical = TRUE,
+           xlab = "Mezcla", ylab = "Resistencia a 28 días (MPa)")
+abline(h = fc, col = "red", lty = 2)
+```
+
+```{r cuadro, echo = FALSE}
+por_mezcla <- aggregate(resistencia_mpa ~ mezcla, data = edif, FUN = mean)
+kable(por_mezcla, digits = 2, col.names = c("Mezcla", "Media (MPa)"),
+      caption = "Resistencia media por mezcla.")
+```
+
+# Conclusión
+
+Escriba aquí, con sus palabras, qué significan los resultados para la obra.

@@ -1,0 +1,9 @@
+"muestra";"sondeo";"profundidad_m";"tipo_suelo";"humedad_pct"
+"S01";"P1";0,5;"Limo";18,4
+"S02";"P1";1;"Limo";21,7
+"S03";"P1";1,5;"Arcilla";27,9
+"S04";"P1";2;"Arcilla";31,2
+"S05";"P2";0,5;"Limo";16,8
+"S06";"P2";1;"Arcilla";25,3
+"S07";"P2";1,5;"Arcilla";29,6
+"S08";"P2";2;"Arcilla";33,5
