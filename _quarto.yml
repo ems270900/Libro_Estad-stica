@@ -74,6 +74,13 @@ book:
         - 16-distribucion_normal.qmd
         - 17-distribuciones_muestrales.qmd
 
+    - part: "Correlación y regresión"
+      chapters:
+        - 24-correlacion.qmd
+        - 25-regresion_simple.qmd
+        - 26-regresion_multiple.qmd
+        - 27-diagnostico_regresion.qmd
+
     - part: "Diseño de experimentos"
       chapters:
         - 28-anova_un_factor.qmd

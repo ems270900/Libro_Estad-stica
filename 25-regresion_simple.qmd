@@ -1,0 +1,797 @@
+---
+title: "Regresión lineal simple"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"My object is to place beyond doubt the existence of a simple and far-reaching law that governs the hereditary transmission [...] that the mean filial regression towards mediocrity was directly proportional to the parental deviation from it."\
+— *Francis Galton, citado por @watkinsintroduction [tema 3].*
+:::
+
+La correlación del capítulo 24 dice que la resistencia del concreto baja cuando sube la relación agua/cemento, y que la asociación es muy fuerte. Pero quien diseña una mezcla necesita algo más concreto: cuántos MPa se pierden si la relación pasa de 0.50 a 0.55, o qué resistencia se espera con una relación de 0.62. La regresión lineal simple responde esas preguntas con la ecuación de una recta, $\hat{y} = b_0 + b_1 x$, ajustada a los datos. Este capítulo explica cómo se calcula esa recta a mano y con `lm()`, cómo se interpretan sus coeficientes, qué tan confiable es y cómo se usa para predecir sin salirse del rango de los datos.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(ggplot2)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+mod_mezclas <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+```
+
+## El modelo de regresión lineal simple {#sec-rls-modelo}
+
+::: {.pregunta}
+Si dos mezclas tienen la misma relación agua/cemento, ¿tendrán la misma resistencia?
+:::
+
+No. Aunque se prepare la misma dosificación, la resistencia varía de un cilindro a otro por la humedad de los agregados, el curado, la compactación y el propio ensayo. Por eso la regresión no dice "con esta relación la resistencia es tal", sino "con esta relación la resistencia media es tal, y los cilindros individuales se reparten alrededor de esa media".
+
+El modelo de regresión lineal simple escribe esa idea así [@montgomery2012introduction, cap. 2; @illowsky2018introductory, cap. 12]:
+
+$$
+Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
+$$ {#eq-rls-modelo}
+
+donde $Y_i$ es la respuesta de la observación $i$, $x_i$ es el valor del predictor, $\beta_0$ es el intercepto de la población (el valor medio de $Y$ cuando $x = 0$), $\beta_1$ es la pendiente de la población (cuánto cambia la media de $Y$ por cada unidad que aumenta $x$) y $\varepsilon_i$ es el error aleatorio, que reúne todo lo que hace que la observación se aparte de la media.
+
+Si los errores tienen media cero, la media de $Y$ para un valor dado de $x$ es una recta, la recta de regresión de la población:
+
+$$
+E(Y \mid x) = \beta_0 + \beta_1 x
+$$
+
+Los parámetros $\beta_0$ y $\beta_1$ no se conocen. Con una muestra se calculan sus estimaciones, $b_0$ y $b_1$, y con ellas la recta estimada:
+
+$$
+\hat{y}_i = b_0 + b_1 x_i
+$$ {#eq-rls-recta}
+
+donde $\hat{y}_i$ (se lee "y gorro") es el valor ajustado: lo que la recta predice para la observación $i$. La diferencia entre lo que se observó y lo que predice la recta es el residuo:
+
+$$
+e_i = y_i - \hat{y}_i
+$$ {#eq-rls-residuo}
+
+Un residuo positivo indica que el punto quedó por encima de la recta, y uno negativo, por debajo. La @fig-rls-residuos muestra los residuos de las diez mezclas como segmentos verticales. El residuo $e_i$ se calcula con los datos; el error $\varepsilon_i$ pertenece al modelo de la población y no se observa nunca.
+
+```{r}
+#| label: fig-rls-residuos
+#| fig-cap: "Recta ajustada a las diez mezclas y residuos como distancias verticales."
+#| fig-alt: "Diez puntos alrededor de una recta descendente, cada uno unido a la recta con un segmento vertical punteado"
+#| echo: false
+
+mezclas$ajustado <- fitted(mod_mezclas)
+ggplot(mezclas, aes(relacion_ac, resistencia_mpa)) +
+  geom_abline(intercept = coef(mod_mezclas)[1], slope = coef(mod_mezclas)[2],
+              color = azul, linewidth = 1) +
+  geom_segment(aes(xend = relacion_ac, yend = ajustado), linetype = "dashed",
+               color = "#D55E00") +
+  geom_point(size = 2.5) +
+  labs(x = "Relación agua/cemento", y = "Resistencia a 28 días (MPa)") +
+  theme_minimal(base_size = 13)
+```
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+La palabra "regresión" viene de @galton1886regression, quien estudió la estatura de padres e hijos. Encontró que los hijos de padres muy altos eran, en promedio, más altos que la media, pero menos que sus padres: su estatura "regresaba" hacia la media. El nombre quedó para todo el método, aunque hoy casi ningún problema de regresión tenga que ver con esa vuelta a la media.
+:::
+
+## Método de mínimos cuadrados {#sec-rls-mco}
+
+Por una nube de puntos pasan infinitas rectas. Hace falta un criterio para elegir una. El de mínimos cuadrados elige la recta que hace más pequeña la suma de los residuos al cuadrado [@montgomery2012introduction, cap. 2]:
+
+$$
+SSE = \sum_{i=1}^{n} e_i^2 = \sum_{i=1}^{n} \left(y_i - b_0 - b_1 x_i\right)^2
+$$ {#eq-rls-sse}
+
+donde $SSE$ es la suma de cuadrados del error (*sum of squares of errors*). Los residuos se elevan al cuadrado por dos razones: para que los positivos y los negativos no se cancelen, y para que un residuo grande pese más que varios pequeños.
+
+Para encontrar el mínimo se derivan $SSE$ con respecto a $b_0$ y a $b_1$, y las dos derivadas se igualan a cero. Resultan dos ecuaciones, llamadas ecuaciones normales:
+
+$$
+\sum y_i = n\, b_0 + b_1 \sum x_i
+\qquad\qquad
+\sum x_i y_i = b_0 \sum x_i + b_1 \sum x_i^2
+$$ {#eq-rls-normales}
+
+Al resolverlas se obtienen las fórmulas de la pendiente y el intercepto, que usan las sumas $S_{xx}$ y $S_{xy}$ de la @eq-cor-sumas:
+
+$$
+b_1 = \frac{S_{xy}}{S_{xx}} = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - \bar{x})^2}
+$$ {#eq-rls-b1}
+
+$$
+b_0 = \bar{y} - b_1 \, \bar{x}
+$$ {#eq-rls-b0}
+
+La recta de mínimos cuadrados tiene tres propiedades que sirven para revisar un cálculo a mano:
+
+1. Pasa por el punto de las medias, $(\bar{x}, \bar{y})$.
+2. Los residuos suman cero.
+3. La suma de los valores ajustados es igual a la suma de los observados.
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+Las derivadas de la @eq-rls-sse son
+
+$$
+\frac{\partial SSE}{\partial b_0} = -2 \sum \left(y_i - b_0 - b_1 x_i\right) = 0,
+\qquad
+\frac{\partial SSE}{\partial b_1} = -2 \sum x_i \left(y_i - b_0 - b_1 x_i\right) = 0.
+$$
+
+La primera, dividida entre $-2$, dice que los residuos suman cero; al despejar queda $b_0 = \bar{y} - b_1 \bar{x}$. Al sustituir ese $b_0$ en la segunda y simplificar, queda $b_1 = S_{xy}/S_{xx}$. También se puede usar la forma con sumas directas, que es la que dan muchas calculadoras:
+
+$$
+b_1 = \frac{n \sum x_i y_i - \left(\sum x_i\right)\left(\sum y_i\right)}{n \sum x_i^2 - \left(\sum x_i\right)^2}
+$$
+:::
+
+### Interactivo: ajustar una recta a ojo
+
+Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueven el intercepto y la pendiente de una recta sobre las diez mezclas. Los segmentos son los residuos y debajo aparece la suma de sus cuadrados. El objetivo es lograr el $SSE$ más pequeño posible.
+
+::: {#fig-rls-interactivo-mco}
+
+```{=html}
+<div class="interactivo" id="int-minimos">
+  <label><span>Intercepto <i>b</i><sub>0</sub>:</span> <output>60.0</output>
+    <input type="range" min="50" max="90" step="0.1" value="60"></label>
+  <label><span>Pendiente <i>b</i><sub>1</sub>:</span> <output>-45.0</output>
+    <input type="range" min="-90" max="-30" step="0.5" value="-45"></label>
+  <svg viewBox="0 0 640 320" role="img" aria-label="Diez puntos con una recta que se mueve y sus residuos"></svg>
+  <p class="resultado" aria-live="polite"></p>
+  <button type="button">Ver la recta de mínimos cuadrados</button>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-minimos");
+  var ctl = raiz.querySelectorAll("input"), sal = raiz.querySelectorAll("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var xs = [0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70];
+  var ys = [44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1];
+  var w = 640, h = 320, m = 44;
+  var sx = function (x) { return m + (x - 0.35) / 0.40 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y - 20) / 28 * (h - 2 * m); };
+  // Recta de mínimos cuadrados, para comparar
+  var n = xs.length, mx = 0, my = 0, sxx = 0, sxy = 0;
+  for (var i = 0; i < n; i++) { mx += xs[i] / n; my += ys[i] / n; }
+  for (var j = 0; j < n; j++) { sxx += Math.pow(xs[j] - mx, 2); sxy += (xs[j] - mx) * (ys[j] - my); }
+  var b1mc = sxy / sxx, b0mc = my - b1mc * mx;
+  function sse(b0, b1) {
+    var s = 0;
+    for (var k = 0; k < n; k++) s += Math.pow(ys[k] - b0 - b1 * xs[k], 2);
+    return s;
+  }
+  function dibujar() {
+    var b0 = parseFloat(ctl[0].value), b1 = parseFloat(ctl[1].value);
+    sal[0].textContent = b0.toFixed(1); sal[1].textContent = b1.toFixed(1);
+    var g = "";
+    for (var t = 20; t <= 45; t += 5) {
+      g += '<line class="eje" x1="' + (m - 5) + '" x2="' + m + '" y1="' + sy(t) + '" y2="' + sy(t) + '"/>' +
+           '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    }
+    for (var u = 0.40; u <= 0.701; u += 0.10) {
+      g += '<line class="eje" x1="' + sx(u) + '" x2="' + sx(u) + '" y1="' + (h - m) + '" y2="' + (h - m + 5) + '"/>' +
+           '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(2) + '</text>';
+    }
+    g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+         '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
+         '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>';
+    var res = "", pts = "";
+    for (var k = 0; k < n; k++) {
+      var yh = b0 + b1 * xs[k];
+      res += '<line x1="' + sx(xs[k]) + '" x2="' + sx(xs[k]) + '" y1="' + sy(ys[k]) + '" y2="' + sy(yh) +
+             '" stroke="#D55E00" stroke-dasharray="4 3" stroke-width="1.5"/>';
+      pts += '<circle cx="' + sx(xs[k]) + '" cy="' + sy(ys[k]) + '" r="4.5" fill="#1C6BA0"/>';
+    }
+    var recta = '<line class="curva" x1="' + sx(0.35) + '" x2="' + sx(0.75) + '" y1="' + sy(b0 + b1 * 0.35) +
+                '" y2="' + sy(b0 + b1 * 0.75) + '"/>';
+    svg.innerHTML = '<defs><clipPath id="int-minimos-recorte"><rect x="' + m + '" y="0" width="' + (w - 2 * m) +
+      '" height="' + (h - m) + '"/></clipPath></defs>' + g +
+      '<g clip-path="url(#int-minimos-recorte)">' + res + recta + '</g>' + pts;
+    texto.textContent = "SSE de su recta = " + sse(b0, b1).toFixed(2) + " MPa²   |   mínimo posible = " +
+      sse(b0mc, b1mc).toFixed(2) + " MPa², con b0 = " + b0mc.toFixed(2) + " y b1 = " + b1mc.toFixed(2);
+  }
+  ctl[0].addEventListener("input", dibujar);
+  ctl[1].addEventListener("input", dibujar);
+  raiz.querySelector("button").addEventListener("click", function () {
+    ctl[0].value = b0mc.toFixed(1); ctl[1].value = (Math.round(b1mc * 2) / 2).toFixed(1); dibujar();
+  });
+  dibujar();
+})();
+</script>
+```
+
+Recta movible sobre las diez mezclas y su suma de cuadrados de los residuos.
+
+:::
+
+Al probar se nota que el intercepto y la pendiente están amarrados: si se cambia la pendiente, hay que mover el intercepto para que la recta siga pasando por el centro de la nube, que es el punto $(\bar{x}, \bar{y})$. Es la propiedad 1 de la lista anterior.
+
+::: {.callout-note title="Ejemplo: recta de regresión de la resistencia contra la relación agua/cemento"}
+
+**Planteamiento.** Con las diez mezclas hipotéticas del capítulo 24, estime por mínimos cuadrados la recta que da la resistencia media a 28 días ($y$, MPa) en función de la relación agua/cemento ($x$). Calcule los valores ajustados y los residuos, y compruebe las propiedades de la recta.
+
+```{r}
+#| echo: false
+ver_datos("datos/mezclas_ac_hipoteticas.csv",
+          nombres = c("Mezcla", "Relación a/c", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Del ejemplo del capítulo 24 se tienen $\bar{x} = 0.559$, $\bar{y} = 33.79$ MPa, $S_{xx} = 0.091890$ y $S_{xy} = -5.79010$.
+2. Pendiente (@eq-rls-b1):
+   $$
+   b_1 = \frac{-5.79010}{0.091890} = -63.011 \ \mathrm{MPa}
+   $$
+3. Intercepto (@eq-rls-b0):
+   $$
+   b_0 = 33.79 - (-63.011)(0.559) = 33.79 + 35.223 = 69.013 \ \mathrm{MPa}
+   $$
+4. Recta estimada: $\hat{y} = 69.013 - 63.011\,x$.
+5. Valores ajustados y residuos. Para la primera mezcla, $\hat{y}_1 = 69.013 - 63.011(0.40) = 43.81$ MPa y $e_1 = 44.1 - 43.81 = 0.29$ MPa. Las demás siguen igual (@tbl-rls-residuos).
+6. Comprobación: los residuos suman cero (salvo el redondeo) y $SSE = \sum e_i^2 = 8.688$ MPa².
+
+```{r}
+#| label: tbl-rls-residuos
+#| tbl-cap: "Valores ajustados y residuos de la recta de mínimos cuadrados."
+#| echo: false
+
+aj <- fitted(mod_mezclas); e <- residuals(mod_mezclas)
+data.frame(
+  i = c(1:10, "Suma"),
+  x = c(sprintf("%.2f", mezclas$relacion_ac), ""),
+  y = c(sprintf("%.1f", mezclas$resistencia_mpa), sprintf("%.1f", sum(mezclas$resistencia_mpa))),
+  yh = c(sprintf("%.2f", aj), sprintf("%.1f", sum(aj))),
+  e = c(sprintf("%.2f", e), "0.00"),
+  e2 = c(sprintf("%.3f", e^2), sprintf("%.3f", sum(e^2)))
+) %>%
+  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>y<sub>i</sub></i> (MPa)",
+                    "<i>ŷ<sub>i</sub></i> (MPa)", "<i>e<sub>i</sub></i> (MPa)",
+                    "<i>e<sub>i</sub></i><sup>2</sup> (MPa<sup>2</sup>)"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(11, bold = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Leer los datos.
+2. Calcular $\bar{x}$, $\bar{y}$, $S_{xx}$ y $S_{xy}$.
+3. Calcular $b_1$ y $b_0$ con la @eq-rls-b1 y la @eq-rls-b0.
+4. Calcular los valores ajustados, los residuos y $SSE$.
+5. Ajustar el mismo modelo con `lm()` y comparar.
+
+```{r}
+# 1) Datos
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+x <- mezclas$relacion_ac
+y <- mezclas$resistencia_mpa
+
+# 2) Sumas
+Sxx <- sum((x - mean(x))^2)
+Sxy <- sum((x - mean(x)) * (y - mean(y)))
+
+# 3) Coeficientes con las fórmulas
+b1 <- Sxy / Sxx
+b0 <- mean(y) - b1 * mean(x)
+c(b0 = b0, b1 = b1)
+
+# 4) Valores ajustados, residuos y SSE
+y_aj <- b0 + b1 * x
+e <- y - y_aj
+c(suma_residuos = sum(e), SSE = sum(e^2))
+
+# 5) El mismo modelo con lm(): la fórmula se lee "resistencia en función de relación a/c"
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+coef(modelo)
+fitted(modelo)      # valores ajustados
+residuals(modelo)   # residuos
+```
+
+**Interpretación.** La recta estimada es $\widehat{\text{resistencia}} = 69.01 - 63.01\,(\text{relación a/c})$. Como la relación agua/cemento se mueve en centésimas, la pendiente se lee mejor así: por cada aumento de 0.01 en la relación, la resistencia media a 28 días baja unos 0.63 MPa. Los residuos están entre $-1.6$ y $1.2$ MPa, una dispersión pequeña comparada con los 19 MPa que separan la mezcla más fuerte de la más débil.
+
+:::
+
+En la función `lm()` (de *linear model*) la fórmula `y ~ x` se lee "$y$ en función de $x$": a la izquierda de `~` va la respuesta y a la derecha el predictor. El intercepto se incluye solo. El objeto que devuelve guarda todo el ajuste, y de él se sacan los coeficientes con `coef()`, los valores ajustados con `fitted()` y los residuos con `residuals()`.
+
+## Interpretación de los coeficientes {#sec-rls-interpretacion}
+
+La pendiente $b_1$ es el cambio estimado en la media de $Y$ cuando $X$ aumenta una unidad. Tiene las unidades de $Y$ divididas entre las de $X$. Si la unidad de $X$ es grande para el problema (como pasar la relación agua/cemento de 0 a 1), conviene reescalarla, como se hizo en el ejemplo con el cambio de 0.01.
+
+El intercepto $b_0$ es el valor estimado de $Y$ cuando $X = 0$. Solo tiene sentido práctico si $X = 0$ es posible y está dentro del rango de los datos. En el ejemplo, $b_0 = 69.0$ MPa sería la resistencia de un concreto sin agua, que no existe; el intercepto es solo la altura a la que la recta cortaría el eje, y sirve para ubicarla, no para interpretarlo.
+
+::: {.callout-warning title="Cuidado"}
+La pendiente describe una asociación en los datos observados. Decir que "si se baja la relación agua/cemento en 0.01, la resistencia sube 0.63 MPa" supone una relación de causa que la regresión, por sí sola, no demuestra (@sec-cor-causalidad). En el concreto se acepta porque hay un mecanismo físico conocido y porque las mezclas se diseñan en el laboratorio, no porque la recta lo diga.
+:::
+
+## Qué tan bien ajusta la recta {#sec-rls-ajuste}
+
+### Descomposición de la variación
+
+La variación total de la respuesta alrededor de su media se puede partir en dos: la parte que explica la recta y la parte que queda en los residuos [@montgomery2012introduction, cap. 2; @laneintroduction, cap. 14]:
+
+$$
+\underbrace{\sum (y_i - \bar{y})^2}_{SST} = \underbrace{\sum (\hat{y}_i - \bar{y})^2}_{SSR} + \underbrace{\sum (y_i - \hat{y}_i)^2}_{SSE}
+$$ {#eq-rls-descomposicion}
+
+donde $SST$ es la suma de cuadrados total (igual a $S_{yy}$), $SSR$ es la suma de cuadrados de la regresión (la variación que reproduce la recta) y $SSE$ es la suma de cuadrados del error.
+
+### Coeficiente de determinación
+
+El coeficiente de determinación es la proporción de la variación total que explica la recta:
+
+$$
+R^2 = \frac{SSR}{SST} = 1 - \frac{SSE}{SST}
+$$ {#eq-rls-r2}
+
+Va de 0 a 1. Con $R^2 = 0$ la recta no explica nada (es horizontal en $\bar{y}$) y con $R^2 = 1$ todos los puntos caen sobre ella. En la regresión simple con intercepto, $R^2$ es el cuadrado del coeficiente de correlación de Pearson: $R^2 = r^2$.
+
+### Error estándar de la estimación
+
+La varianza de los errores, $\sigma^2$, se estima con el cuadrado medio del error:
+
+$$
+MSE = s^2 = \frac{SSE}{n - 2}, \qquad s = \sqrt{MSE}
+$$ {#eq-rls-mse}
+
+donde $n - 2$ son los grados de libertad del error: se pierden dos porque se estimaron dos parámetros, $b_0$ y $b_1$. El valor $s$ se llama error estándar de la estimación (en R, *residual standard error*) y tiene las unidades de $Y$. Es el tamaño típico de un residuo: aproximadamente dos de cada tres puntos quedan a menos de $s$ de la recta.
+
+::: {.callout-note title="Ejemplo: R² y error estándar de la recta de las mezclas"}
+
+**Planteamiento.** Con la recta del ejemplo anterior, calcule $SST$, $SSR$, $R^2$ y el error estándar de la estimación. Compruebe que $R^2 = r^2$.
+
+**Solución:**
+
+1. $SST = S_{yy} = 373.529$ MPa² (capítulo 24) y $SSE = 8.688$ MPa² (@tbl-rls-residuos).
+2. $SSR = SST - SSE = 373.529 - 8.688 = 364.841$ MPa².
+3. Coeficiente de determinación (@eq-rls-r2): $R^2 = 364.841 / 373.529 = 0.977$.
+4. Comprobación: $r^2 = (-0.98830)^2 = 0.977$.
+5. Error estándar (@eq-rls-mse): $MSE = 8.688 / (10 - 2) = 1.086$ MPa² y $s = \sqrt{1.086} = 1.042$ MPa.
+
+**Pseudocódigo**
+
+1. Calcular $SST$, $SSE$ y $SSR$.
+2. Calcular $R^2$ y compararlo con $r^2$.
+3. Calcular $MSE$ y $s$.
+4. Leer los mismos valores en `summary()` del modelo.
+
+```{r}
+# 1) Sumas de cuadrados
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+y <- mezclas$resistencia_mpa
+SST <- sum((y - mean(y))^2)
+SSE <- sum(residuals(modelo)^2)
+SSR <- SST - SSE
+
+# 2) R2 y su relación con r
+R2 <- SSR / SST
+c(R2 = R2, r_al_cuadrado = cor(mezclas$relacion_ac, y)^2)
+
+# 3) Error estándar de la estimación
+n <- nrow(mezclas)
+s <- sqrt(SSE / (n - 2))
+s
+
+# 4) summary() muestra "Residual standard error" y "Multiple R-squared"
+summary(modelo)
+```
+
+**Interpretación.** La recta explica el 97.7 % de la variación de la resistencia entre las diez mezclas, y el resto queda en los residuos. El error típico de la recta es de 1.04 MPa: si se usa para estimar la resistencia de una mezcla nueva, es razonable esperar desviaciones del orden de 1 a 2 MPa.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Un $R^2$ alto no demuestra que la recta sea el modelo correcto ni que haya relación de causa. Los cuatro conjuntos de Anscombe (@fig-cor-anscombe) tienen el mismo $R^2 = 0.67$ y solo uno es una relación lineal. Tampoco asegura buenas predicciones fuera del rango de los datos (@sec-rls-extrapolacion). Al revés, un $R^2$ moderado puede ser normal en problemas con mucha variación natural, como el tránsito o los caudales.
+:::
+
+## Inferencia sobre la pendiente {#sec-rls-inferencia}
+
+Con otras diez mezclas se obtendría otra recta. La pendiente $b_1$ es, entonces, una estimación con incertidumbre, y se puede calcular su error estándar, probar hipótesis y armar un intervalo de confianza, como en los capítulos 19 a 21. Para eso se suponen errores independientes, con media cero, varianza constante $\sigma^2$ y distribución normal. El capítulo 27 explica cómo revisar esos supuestos.
+
+El error estándar de la pendiente es [@montgomery2012introduction, cap. 2; @laneintroduction, cap. 14]
+
+$$
+SE(b_1) = \frac{s}{\sqrt{S_{xx}}}
+$$ {#eq-rls-se-b1}
+
+donde $s$ es el error estándar de la estimación y $S_{xx}$ la suma de cuadrados de $x$. La pendiente se estima con más precisión cuando los residuos son pequeños ($s$ chico) y cuando los valores de $x$ están bien repartidos ($S_{xx}$ grande). Por eso, al planear ensayos conviene cubrir todo el rango de interés y no concentrar los puntos en el centro.
+
+Para saber si existe relación lineal se prueba
+
+$$
+H_0: \beta_1 = 0 \qquad \text{contra} \qquad H_1: \beta_1 \neq 0
+$$
+
+con el estadístico
+
+$$
+t = \frac{b_1 - 0}{SE(b_1)}
+$$ {#eq-rls-t}
+
+que sigue una distribución $t$ con $n - 2$ grados de libertad si $H_0$ es cierta. El intervalo de confianza de $100(1 - \alpha)\,\%$ para la pendiente es
+
+$$
+b_1 \pm t_{1-\alpha/2,\, n-2} \, SE(b_1)
+$$ {#eq-rls-ic-b1}
+
+Para el intercepto se usan las mismas ideas con su error estándar:
+
+$$
+SE(b_0) = s \, \sqrt{\frac{1}{n} + \frac{\bar{x}^2}{S_{xx}}}
+$$ {#eq-rls-se-b0}
+
+En la regresión simple, la prueba $t$ de la pendiente y la prueba de la correlación de la @eq-cor-t dan el mismo estadístico y el mismo valor $p$.
+
+::: {.callout-note title="Ejemplo: prueba e intervalo para la pendiente de las mezclas"}
+
+**Planteamiento.** Con el modelo de las diez mezclas ($b_1 = -63.011$, $b_0 = 69.013$, $s = 1.042$ MPa), pruebe con $\alpha = 0.05$ si la pendiente es distinta de cero y calcule intervalos de confianza del 95 % para $\beta_1$ y $\beta_0$.
+
+**Solución:**
+
+1. Error estándar de la pendiente (@eq-rls-se-b1): $SE(b_1) = 1.0421 / \sqrt{0.091890} = 1.0421 / 0.30313 = 3.438$ MPa.
+2. Estadístico (@eq-rls-t): $t = -63.011 / 3.438 = -18.33$.
+3. Valor crítico: $t_{0.975,\,8} = 2.306$. Como $|t| = 18.33 > 2.306$, se rechaza $H_0$.
+4. Intervalo para la pendiente (@eq-rls-ic-b1): $-63.011 \pm (2.306)(3.438) = -63.011 \pm 7.928$, es decir, de $-70.94$ a $-55.08$ MPa.
+5. Error estándar del intercepto (@eq-rls-se-b0):
+   $$
+   SE(b_0) = 1.0421 \, \sqrt{\frac{1}{10} + \frac{0.559^2}{0.091890}} = 1.0421 \, \sqrt{3.5006} = 1.950 \ \mathrm{MPa}
+   $$
+6. Intervalo para el intercepto: $69.013 \pm (2.306)(1.950) = 69.013 \pm 4.496$, de 64.52 a 73.51 MPa.
+
+**Pseudocódigo**
+
+1. Ajustar el modelo y obtener $s$ y $S_{xx}$.
+2. Calcular $SE(b_1)$, $t$, el valor $p$ y el intervalo con las fórmulas.
+3. Repetir para el intercepto.
+4. Comparar con `summary()` y `confint()`.
+
+```{r}
+# 1) Modelo y cantidades básicas
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+x <- mezclas$relacion_ac
+n <- length(x)
+Sxx <- sum((x - mean(x))^2)
+s <- sqrt(sum(residuals(modelo)^2) / (n - 2))
+b0 <- coef(modelo)[1]
+b1 <- coef(modelo)[2]
+
+# 2) Pendiente: error estándar, t, valor p e intervalo del 95 %
+se_b1 <- s / sqrt(Sxx)
+t_b1 <- b1 / se_b1
+p_b1 <- 2 * pt(-abs(t_b1), df = n - 2)
+t_crit <- qt(0.975, df = n - 2)
+ic_b1 <- b1 + c(-1, 1) * t_crit * se_b1
+
+# 3) Intercepto
+se_b0 <- s * sqrt(1 / n + mean(x)^2 / Sxx)
+ic_b0 <- b0 + c(-1, 1) * t_crit * se_b0
+
+c(se_b1 = se_b1, t = t_b1, p = p_b1, se_b0 = se_b0)
+rbind(intercepto = ic_b0, pendiente = ic_b1)
+
+# 4) Las funciones de R
+summary(modelo)$coefficients
+confint(modelo, level = 0.95)
+```
+
+**Interpretación.** Con un nivel de significancia del 5 %, hay evidencia de una relación lineal entre la relación agua/cemento y la resistencia ($p < 0.001$). Con 95 % de confianza, cada aumento de 0.01 en la relación baja la resistencia media entre 0.55 y 0.71 MPa. El intervalo del intercepto se calcula igual, pero, como se dijo en la @sec-rls-interpretacion, no tiene interpretación física en este problema.
+
+:::
+
+## Cuadro de análisis de varianza {#sec-rls-anova}
+
+La descomposición de la @eq-rls-descomposicion se suele presentar en un cuadro de análisis de varianza (ANOVA), con la estructura del @tbl-rls-anova-general. El mismo cuadro aparece en la regresión múltiple (capítulo 26) y en el diseño de experimentos (Parte VII).
+
+```{r}
+#| label: tbl-rls-anova-general
+#| tbl-cap: "Cuadro ANOVA de la regresión lineal simple."
+#| echo: false
+
+data.frame(
+  fuente = c("Regresión", "Error", "Total"),
+  sc = c("<i>SSR</i>", "<i>SSE</i>", "<i>SST</i>"),
+  gl = c("1", "<i>n</i> − 2", "<i>n</i> − 1"),
+  cm = c("<i>MSR</i> = <i>SSR</i>/1", "<i>MSE</i> = <i>SSE</i>/(<i>n</i> − 2)", ""),
+  f = c("<i>F</i> = <i>MSR</i>/<i>MSE</i>", "", "")
+) %>%
+  kbl(col.names = c("Fuente", "Suma de cuadrados", "Grados de libertad", "Cuadrado medio", "<i>F</i>"),
+      escape = FALSE, align = "lcccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+El estadístico $F$ compara la variación que explica la recta con la que queda sin explicar. Si $H_0: \beta_1 = 0$ es cierta, sigue una distribución $F$ con 1 y $n - 2$ grados de libertad, y se rechaza $H_0$ si $F > F_{1-\alpha;\,1,\,n-2}$. En la regresión simple esta prueba es la misma que la prueba $t$ de la pendiente, porque $F = t^2$.
+
+::: {.callout-note title="Ejemplo: cuadro ANOVA del modelo de las mezclas"}
+
+**Planteamiento.** Arme la cuadro ANOVA del modelo de las diez mezclas y haga la prueba $F$ con $\alpha = 0.05$.
+
+**Solución:**
+
+1. Sumas de cuadrados del ejemplo de la @sec-rls-ajuste: $SSR = 364.841$, $SSE = 8.688$ y $SST = 373.529$ MPa².
+2. Grados de libertad: 1 para la regresión, $10 - 2 = 8$ para el error y $10 - 1 = 9$ en total.
+3. Cuadrados medios: $MSR = 364.841/1 = 364.841$ y $MSE = 8.688/8 = 1.086$ MPa².
+4. $F = 364.841 / 1.086 = 336.0$. Se comprueba que $t^2 = (-18.33)^2 = 336.0$.
+5. Valor crítico: $F_{0.95;\,1,\,8} = 5.32$. Como $336.0 > 5.32$, se rechaza $H_0$. El resultado se resume en el @tbl-rls-anova.
+
+```{r}
+#| label: tbl-rls-anova
+#| tbl-cap: "Cuadro ANOVA de la regresión de la resistencia contra la relación agua/cemento."
+#| echo: false
+
+av <- anova(mod_mezclas)
+data.frame(
+  fuente = c("Regresión", "Error", "Total"),
+  sc = sprintf("%.3f", c(av$`Sum Sq`, sum(av$`Sum Sq`))),
+  gl = c(av$Df, sum(av$Df)),
+  cm = c(sprintf("%.3f", av$`Mean Sq`), ""),
+  f = c(sprintf("%.1f", av$`F value`[1]), "", ""),
+  p = c("< 0.001", "", "")
+) %>%
+  kbl(col.names = c("Fuente", "SC (MPa<sup>2</sup>)", "gl", "CM (MPa<sup>2</sup>)", "<i>F</i>", "Valor <i>p</i>"),
+      escape = FALSE, align = "lccccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Pseudocódigo**
+
+1. Calcular las sumas de cuadrados y sus grados de libertad.
+2. Calcular los cuadrados medios, $F$ y su valor $p$.
+3. Comparar con `anova()`.
+
+```{r}
+# 1) Sumas de cuadrados y grados de libertad
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+y <- mezclas$resistencia_mpa
+n <- length(y)
+SST <- sum((y - mean(y))^2)
+SSE <- sum(residuals(modelo)^2)
+SSR <- SST - SSE
+
+# 2) Cuadrados medios, F y valor p
+MSR <- SSR / 1
+MSE <- SSE / (n - 2)
+F_calc <- MSR / MSE
+c(F = F_calc, F_critico = qf(0.95, 1, n - 2), p = pf(F_calc, 1, n - 2, lower.tail = FALSE))
+
+# 3) La tabla con la función de R
+anova(modelo)
+```
+
+**Interpretación.** La variación explicada por la recta es 336 veces mayor que la variación residual por grado de libertad, así que la relación agua/cemento explica una parte real de la variación de la resistencia. La conclusión es la misma de la prueba $t$, como debe ser en una regresión con un solo predictor.
+
+:::
+
+## Estimación de la media y predicción de un valor nuevo {#sec-rls-prediccion}
+
+::: {.pregunta}
+Si se prepara una mezcla con relación agua/cemento de 0.55, ¿qué resistencia se espera?
+:::
+
+La respuesta tiene dos versiones, que dan el mismo número central pero distinta incertidumbre:
+
+- **La resistencia media** de todas las mezclas que se hagan con relación 0.55. Se estima con un intervalo de confianza para la media.
+- **La resistencia de una mezcla en particular** con relación 0.55. Se estima con un intervalo de predicción, que es más ancho porque suma la variación propia de cada mezcla.
+
+En los dos casos el valor central es $\hat{y}_0 = b_0 + b_1 x_0$. Los errores estándar son [@montgomery2012introduction, cap. 2]
+
+$$
+SE\left(\hat{\mu}_{Y \mid x_0}\right) = s \, \sqrt{\frac{1}{n} + \frac{(x_0 - \bar{x})^2}{S_{xx}}}
+$$ {#eq-rls-se-media}
+
+$$
+SE_{\text{pred}} = s \, \sqrt{1 + \frac{1}{n} + \frac{(x_0 - \bar{x})^2}{S_{xx}}}
+$$ {#eq-rls-se-pred}
+
+donde $x_0$ es el valor del predictor en el que se estima. El intervalo es $\hat{y}_0 \pm t_{1-\alpha/2,\,n-2}$ por el error estándar que corresponda. El "1" de más dentro de la raíz es la variación de una observación individual alrededor de la media. El término $(x_0 - \bar{x})^2$ hace que los dos intervalos se ensanchen al alejarse del centro de los datos.
+
+::: {.callout-note title="Ejemplo: resistencia esperada para una relación agua/cemento de 0.55"}
+
+**Planteamiento.** Con el modelo de las diez mezclas, estime la resistencia para $x_0 = 0.55$. Calcule el intervalo de confianza del 95 % para la resistencia media y el intervalo de predicción del 95 % para una mezcla individual.
+
+**Solución:**
+
+1. Valor central: $\hat{y}_0 = 69.013 - 63.011(0.55) = 34.36$ MPa.
+2. Distancia al centro: $(0.55 - 0.559)^2 / 0.091890 = 0.000081 / 0.091890 = 0.00088$.
+3. Error estándar de la media (@eq-rls-se-media): $1.0421 \sqrt{0.1 + 0.00088} = 1.0421 (0.31762) = 0.331$ MPa.
+4. Intervalo de confianza: $34.36 \pm (2.306)(0.331) = 34.36 \pm 0.76$, de 33.59 a 35.12 MPa.
+5. Error estándar de predicción (@eq-rls-se-pred): $1.0421 \sqrt{1 + 0.1 + 0.00088} = 1.0421 (1.04923) = 1.093$ MPa.
+6. Intervalo de predicción: $34.36 \pm (2.306)(1.093) = 34.36 \pm 2.52$, de 31.84 a 36.88 MPa.
+
+**Pseudocódigo**
+
+1. Calcular $\hat{y}_0$.
+2. Calcular los dos errores estándar con la @eq-rls-se-media y la @eq-rls-se-pred.
+3. Armar los intervalos con el valor crítico de $t$.
+4. Comparar con `predict()` usando `interval = "confidence"` y `interval = "prediction"`.
+
+```{r}
+# 1) Modelo y valor central
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+x <- mezclas$relacion_ac
+n <- length(x)
+x0 <- 0.55
+y0 <- coef(modelo)[1] + coef(modelo)[2] * x0
+
+# 2) Errores estándar
+s <- sigma(modelo)                       # error estándar de la estimación
+Sxx <- sum((x - mean(x))^2)
+se_media <- s * sqrt(1 / n + (x0 - mean(x))^2 / Sxx)
+se_pred <- s * sqrt(1 + 1 / n + (x0 - mean(x))^2 / Sxx)
+
+# 3) Intervalos del 95 %
+t_crit <- qt(0.975, df = n - 2)
+rbind(media = y0 + c(-1, 1) * t_crit * se_media,
+      prediccion = y0 + c(-1, 1) * t_crit * se_pred)
+
+# 4) Con predict(): el valor nuevo va en un data frame con el mismo nombre de columna
+nuevo <- data.frame(relacion_ac = 0.55)
+predict(modelo, newdata = nuevo, interval = "confidence", level = 0.95)
+predict(modelo, newdata = nuevo, interval = "prediction", level = 0.95)
+```
+
+**Interpretación.** Con 95 % de confianza, la resistencia media de las mezclas con relación 0.55 está entre 33.6 y 35.1 MPa. Una mezcla individual, en cambio, puede quedar entre 31.8 y 36.9 MPa. Si el diseño pide una resistencia mínima de 32 MPa, la media cumple con holgura, pero una mezcla particular podría quedar justo en el límite. Para decisiones sobre elementos individuales se usa el intervalo de predicción.
+
+:::
+
+La @fig-rls-bandas muestra las dos bandas para todo el rango de los datos. La banda de la media es angosta y se abre poco en los extremos. La de predicción es mucho más ancha y contiene a casi todos los puntos.
+
+```{r}
+#| label: fig-rls-bandas
+#| fig-cap: "Bandas de confianza para la media y de predicción del 95 % del modelo de las mezclas."
+#| fig-alt: "Recta descendente con una banda angosta azul alrededor y una banda ancha gris más afuera que contiene los diez puntos"
+#| echo: false
+
+rejilla <- data.frame(relacion_ac = seq(0.40, 0.70, length.out = 100))
+media <- predict(mod_mezclas, rejilla, interval = "confidence")
+pred <- predict(mod_mezclas, rejilla, interval = "prediction")
+rejilla <- cbind(rejilla, ajuste = media[, 1], lm_inf = media[, 2], lm_sup = media[, 3],
+                 lp_inf = pred[, 2], lp_sup = pred[, 3])
+ggplot(rejilla, aes(relacion_ac)) +
+  geom_ribbon(aes(ymin = lp_inf, ymax = lp_sup, fill = "Predicción de una mezcla"), alpha = 0.6) +
+  geom_ribbon(aes(ymin = lm_inf, ymax = lm_sup, fill = "Confianza para la media"), alpha = 0.8) +
+  geom_line(aes(y = ajuste), color = azul, linewidth = 1) +
+  geom_point(data = mezclas, aes(relacion_ac, resistencia_mpa), size = 2.3) +
+  scale_fill_manual(values = c("Predicción de una mezcla" = "grey85",
+                               "Confianza para la media" = "#9ECAE1"), name = NULL) +
+  labs(x = "Relación agua/cemento", y = "Resistencia a 28 días (MPa)") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+### Interactivo: los dos intervalos
+
+Con el control se elige la relación agua/cemento $x_0$. El interactivo calcula $\hat{y}_0$ y los dos intervalos del 95 % con las fórmulas de esta sección, y marca en gris la zona fuera del rango de los datos.
+
+::: {#fig-rls-interactivo-bandas}
+
+```{=html}
+<div class="interactivo" id="int-bandas">
+  <label><span>Relación agua/cemento <i>x</i><sub>0</sub>:</span> <output>0.55</output>
+    <input type="range" min="0.25" max="0.85" step="0.01" value="0.55"></label>
+  <svg viewBox="0 0 640 320" role="img" aria-label="Recta con bandas de confianza y predicción y los intervalos en el valor elegido"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-bandas");
+  var ctl = raiz.querySelector("input"), sal = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var xs = [0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70];
+  var ys = [44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1];
+  var n = xs.length, mx = 0, my = 0, sxx = 0, sxy = 0, sse = 0, tc = 2.306; // t(0.975, 8)
+  for (var i = 0; i < n; i++) { mx += xs[i] / n; my += ys[i] / n; }
+  for (var j = 0; j < n; j++) { sxx += Math.pow(xs[j] - mx, 2); sxy += (xs[j] - mx) * (ys[j] - my); }
+  var b1 = sxy / sxx, b0 = my - b1 * mx;
+  for (var k = 0; k < n; k++) sse += Math.pow(ys[k] - b0 - b1 * xs[k], 2);
+  var s = Math.sqrt(sse / (n - 2));
+  var w = 640, h = 320, m = 44;
+  var sx = function (x) { return m + (x - 0.25) / 0.60 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y - 10) / 50 * (h - 2 * m); };
+  function semed(x) { return s * Math.sqrt(1 / n + Math.pow(x - mx, 2) / sxx); }
+  function sepred(x) { return s * Math.sqrt(1 + 1 / n + Math.pow(x - mx, 2) / sxx); }
+  function banda(f, color) {
+    var arriba = "", abajo = "";
+    for (var x = 0.25; x <= 0.8501; x += 0.01) {
+      var yh = b0 + b1 * x;
+      arriba += (arriba ? "L" : "M") + sx(x).toFixed(1) + "," + sy(yh + tc * f(x)).toFixed(1);
+      abajo = "L" + sx(x).toFixed(1) + "," + sy(yh - tc * f(x)).toFixed(1) + abajo;
+    }
+    return '<path d="' + arriba + abajo + 'Z" fill="' + color + '" fill-opacity="0.55"/>';
+  }
+  var fondo = '<rect x="' + sx(0.25) + '" y="' + m / 2 + '" width="' + (sx(0.40) - sx(0.25)) + '" height="' + (h - 1.5 * m) +
+    '" fill="#999" fill-opacity="0.15"/><rect x="' + sx(0.70) + '" y="' + m / 2 + '" width="' + (sx(0.85) - sx(0.70)) +
+    '" height="' + (h - 1.5 * m) + '" fill="#999" fill-opacity="0.15"/>' + banda(sepred, "#cccccc") + banda(semed, "#9ECAE1") +
+    '<line class="curva" x1="' + sx(0.25) + '" x2="' + sx(0.85) + '" y1="' + sy(b0 + b1 * 0.25) + '" y2="' + sy(b0 + b1 * 0.85) + '"/>';
+  for (var t = 10; t <= 60; t += 10) {
+    fondo += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+  }
+  for (var u = 0.3; u <= 0.801; u += 0.1) {
+    fondo += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(1) + '</text>';
+  }
+  fondo += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+    '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
+    '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>';
+  for (var q = 0; q < n; q++) fondo += '<circle cx="' + sx(xs[q]) + '" cy="' + sy(ys[q]) + '" r="3.5" fill="#222"/>';
+  function dibujar() {
+    var x0 = parseFloat(ctl.value); sal.textContent = x0.toFixed(2);
+    var y0 = b0 + b1 * x0, am = tc * semed(x0), ap = tc * sepred(x0);
+    var marca = '<line x1="' + sx(x0) + '" x2="' + sx(x0) + '" y1="' + sy(y0 - ap) + '" y2="' + sy(y0 + ap) +
+      '" stroke="#555" stroke-width="5" stroke-opacity="0.6"/><line x1="' + sx(x0) + '" x2="' + sx(x0) + '" y1="' + sy(y0 - am) +
+      '" y2="' + sy(y0 + am) + '" stroke="#1C6BA0" stroke-width="5"/><circle cx="' + sx(x0) + '" cy="' + sy(y0) + '" r="5" fill="#D55E00"/>';
+    svg.innerHTML = fondo + marca;
+    var aviso = (x0 < 0.40 || x0 > 0.70) ? "   (fuera del rango de los datos, de 0.40 a 0.70: es una extrapolación)" : "";
+    texto.textContent = "ŷ0 = " + y0.toFixed(2) + " MPa   |   media: " + (y0 - am).toFixed(2) + " a " + (y0 + am).toFixed(2) +
+      " MPa   |   una mezcla: " + (y0 - ap).toFixed(2) + " a " + (y0 + ap).toFixed(2) + " MPa" + aviso;
+  }
+  ctl.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Intervalos del 95 % para la media (azul) y para una mezcla (gris) en la relación elegida.
+
+:::
+
+## Extrapolación {#sec-rls-extrapolacion}
+
+Usar la recta fuera del rango de $x$ en que se ajustó se llama extrapolar. La ecuación sigue dando números, pero los datos no dicen nada sobre si la relación se mantiene. Con el modelo de las mezclas, una relación de 0.90 daría $69.0 - 63.0(0.90) = 12.3$ MPa, y una de 1.10 daría un valor negativo, que es imposible. En la realidad, la resistencia del concreto baja con la relación agua/cemento siguiendo una curva, no una recta, y la recta solo es una buena aproximación en el tramo ensayado.
+
+La @fig-rls-extrapolacion muestra un caso estructural. Una viga hipotética se ensayó con cargas de 10 a 60 kN, en su rango elástico, y la deflexión siguió una recta. Si con esa recta se estima la deflexión con 90 kN, se subestima mucho, porque después de la fisuración la viga pierde rigidez.
+
+```{r}
+#| label: fig-rls-extrapolacion
+#| fig-cap: "Recta ajustada en el rango elástico de una viga y su extrapolación (datos hipotéticos)."
+#| fig-alt: "Seis puntos en línea recta hasta 60 kN; más allá, una curva que sube cada vez más rápido y una recta punteada que queda muy por debajo"
+#| echo: false
+
+viga <- data.frame(carga = c(10, 20, 30, 40, 50, 60),
+                   deflexion = c(0.8, 1.6, 2.5, 3.1, 4.1, 4.9))
+mod_viga <- lm(deflexion ~ carga, data = viga)
+real <- data.frame(carga = seq(0, 100, 1))
+real$deflexion <- ifelse(real$carga <= 60, 0.082 * real$carga,
+                         4.92 + 0.14 * (real$carga - 60) + 0.003 * (real$carga - 60)^2)
+recta <- data.frame(carga = seq(60, 100, 1))
+recta$deflexion <- predict(mod_viga, recta)
+ggplot() +
+  annotate("rect", xmin = 10, xmax = 60, ymin = -Inf, ymax = Inf, fill = "#DDEBF7", alpha = 0.6) +
+  geom_line(data = real, aes(carga, deflexion), color = "#E69F00", linewidth = 1.1) +
+  geom_line(data = recta, aes(carga, deflexion), color = azul, linetype = "dashed", linewidth = 1) +
+  geom_point(data = viga, aes(carga, deflexion), size = 2.5) +
+  annotate("text", x = 35, y = 15, label = "Rango ensayado", size = 4) +
+  annotate("text", x = 84, y = 16, label = "Comportamiento real\ndespués de fisurar", size = 3.6, color = "#B07000") +
+  annotate("text", x = 86, y = 5, label = "Recta extrapolada", size = 3.6, color = azul) +
+  labs(x = "Carga aplicada (kN)", y = "Deflexión al centro del claro (mm)") +
+  theme_minimal(base_size = 13)
+```
+
+::: {.callout-warning title="Cuidado"}
+Una recta con $R^2 = 0.99$ no autoriza a extrapolar. Antes de usar el modelo hay que comprobar que el $x_0$ está dentro del rango de los datos y que las condiciones son las mismas del ensayo (materiales, edad, tipo de elemento). Si hace falta estimar fuera del rango, lo correcto es ensayar en ese rango o usar un modelo físico que explique el cambio de comportamiento.
+:::
+
+## Ejercicios propuestos
+
+1. Para seis observaciones se tiene $n = 6$, $\sum x = 21$, $\sum y = 72$, $\sum x^2 = 91$, $\sum xy = 287$ y $\sum y^2 = 938$. Calcule a mano $b_1$, $b_0$, la predicción para $x = 4.5$, $r$ y $R^2$.
+2. Con los datos de la viga del capítulo 24, ejercicio 2, ajuste a mano la recta de deflexión contra carga, interprete la pendiente en mm por cada 10 kN y diga si el intercepto tiene sentido físico. Compruebe con `lm()`.
+3. Complete la cuadro ANOVA de una regresión simple con $n = 12$: $SST = 200$ y $SSE = 20$. Calcule $MSR$, $MSE$, $F$ y $R^2$, y decida con $\alpha = 0.05$.
+4. En una regresión con $n = 10$ se obtuvo $b_1 = -3.2$ y $SE(b_1) = 0.8$. Pruebe $H_0: \beta_1 = 0$ con $\alpha = 0.05$ y calcule el intervalo del 95 % para $\beta_1$.
+5. En una regresión simple con $n = 10$ se sabe que $SST = 250$ y $R^2 = 0.84$. Calcule $SSR$, $SSE$, $MSE$, $s$ y $F$.
+6. Con el modelo de las mezclas, calcule con `predict()` los intervalos del 95 % para $x_0 = 0.40$, $0.55$ y $0.70$. ¿Dónde es más angosto el intervalo para la media? Explique con la @eq-rls-se-media por qué.
+7. Repita el ajuste de las mezclas usando como predictor la relación agua/cemento multiplicada por 100 (por ejemplo, 55 en vez de 0.55). ¿Qué pasa con $b_0$, $b_1$, $R^2$ y el valor $p$? Explique.
+8. Use el interactivo de la @fig-rls-interactivo-bandas para encontrar la relación agua/cemento con la que el límite inferior del intervalo de predicción es 30 MPa. Compruebe el resultado con `predict()`.
+
+## Lecturas recomendadas
+
+- @illowsky2018introductory, capítulo 12: presenta la recta de mínimos cuadrados, la predicción y los valores atípicos con ejemplos sencillos.
+- @laneintroduction, capítulo 14: explica la partición de las sumas de cuadrados, el error estándar de la estimación y la inferencia sobre $b$ y $r$, con buenos gráficos.
+- @montgomery2012introduction, capítulo 2: el desarrollo completo de la regresión simple, con las demostraciones que aquí se resumen. Es la referencia para quien quiera ir más a fondo.
+- @ayala2026estadistica, capítulo 8: regresión lineal simple con R, en español.

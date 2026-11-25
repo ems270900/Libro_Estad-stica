@@ -1,0 +1,624 @@
+---
+title: "Regresión lineal múltiple"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+<!-- EPÍGRAFE PENDIENTE: no se encontró una frase con fuente verificada para este capítulo. -->
+
+La resistencia del concreto no depende solo de la relación agua/cemento. También cambia con la edad del ensayo, con el tipo de cemento y con los aditivos. El asentamiento de un relleno depende de su altura y del espesor de la arcilla que tiene debajo. Cuando una respuesta depende de varias variables a la vez, una recta con un solo predictor se queda corta: deja en los residuos todo el efecto de las demás, y puede atribuirle a una variable lo que en realidad hace otra. La regresión lineal múltiple incluye varios predictores en la misma ecuación y estima el efecto de cada uno con los otros fijos. Este capítulo extiende lo visto en el capítulo 25 y presenta, paso a paso, la forma matricial que usa R por dentro.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(ggplot2)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+relleno <- read.csv("datos/asentamiento_relleno_hipotetico.csv")
+mod_relleno <- lm(asentamiento_mm ~ altura_relleno_m + espesor_arcilla_m, data = relleno)
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+mod_cil <- lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros)
+cf <- coef(mod_cil)
+f2 <- function(v) formatC(v, format = "f", digits = 2)
+```
+
+## El modelo de regresión múltiple {#sec-rlm-modelo}
+
+Con $p$ predictores, el modelo de la población es [@montgomery2012introduction, cap. 3]
+
+$$
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip} + \varepsilon_i
+$$ {#eq-rlm-modelo}
+
+donde $x_{ij}$ es el valor del predictor $j$ en la observación $i$, $\beta_0$ es el intercepto, $\beta_1, \dots, \beta_p$ son los coeficientes de los predictores y $\varepsilon_i$ es el error aleatorio, con los mismos supuestos del capítulo 25. La ecuación estimada es
+
+$$
+\hat{y}_i = b_0 + b_1 x_{i1} + b_2 x_{i2} + \cdots + b_p x_{ip}
+$$ {#eq-rlm-estimada}
+
+y los residuos siguen siendo $e_i = y_i - \hat{y}_i$.
+
+### Interpretación de un coeficiente
+
+::: {.pregunta}
+Si se sube un metro la altura de un relleno sin cambiar nada más, ¿cuánto más se asienta?
+:::
+
+Esa es justo la pregunta que responde un coeficiente de la regresión múltiple. El coeficiente $b_j$ es el cambio estimado en la media de $Y$ cuando $x_j$ aumenta una unidad y los demás predictores del modelo se mantienen constantes. Por eso se le llama coeficiente parcial.
+
+La frase "manteniendo constantes los demás" es lo que distingue a la regresión múltiple. En una regresión simple de la resistencia contra la relación agua/cemento, si las mezclas con más agua se hubieran ensayado más jóvenes, la pendiente mezclaría el efecto del agua con el de la edad. En la múltiple, con la edad dentro del modelo, el coeficiente de la relación agua/cemento compara mezclas de la misma edad.
+
+### La ecuación como un plano
+
+Con dos predictores, la ecuación $\hat{y} = b_0 + b_1 x_1 + b_2 x_2$ es un plano en tres dimensiones. Una forma más fácil de verlo en el papel es dibujar varias rectas: una para cada valor fijo de $x_2$. La @fig-rlm-plano lo hace para el asentamiento de un relleno, que se usa en el ejemplo de la @sec-rlm-mco. Las tres rectas son paralelas porque, en este modelo, el efecto de la altura es el mismo para cualquier espesor de arcilla.
+
+```{r}
+#| label: fig-rlm-plano
+#| fig-cap: "Asentamiento estimado contra la altura del relleno para tres espesores de arcilla (datos hipotéticos)."
+#| fig-alt: "Tres rectas paralelas que suben; la de 7 m de arcilla está arriba, la de 3 m abajo; los nueve puntos caen cerca de su recta"
+#| echo: false
+
+rej <- expand.grid(altura_relleno_m = seq(2, 6, 0.1), espesor_arcilla_m = c(3, 5, 7))
+rej$pred <- predict(mod_relleno, rej)
+ggplot(rej, aes(altura_relleno_m, pred, color = factor(espesor_arcilla_m))) +
+  geom_line(linewidth = 1) +
+  geom_point(data = relleno, aes(altura_relleno_m, asentamiento_mm, color = factor(espesor_arcilla_m)),
+             size = 2.5) +
+  scale_color_viridis_d(end = 0.85, name = "Espesor de\narcilla (m)") +
+  labs(x = "Altura del relleno (m)", y = "Asentamiento (mm)") +
+  theme_minimal(base_size = 13)
+```
+
+## Estimación por mínimos cuadrados {#sec-rlm-mco}
+
+El criterio es el mismo de la regresión simple: se eligen los coeficientes que hacen mínima la suma de los residuos al cuadrado, $SSE = \sum e_i^2$. Para dos predictores, al derivar $SSE$ con respecto a $b_0$, $b_1$ y $b_2$ e igualar a cero, resultan tres ecuaciones normales [@montgomery2012introduction, cap. 3]:
+
+$$
+\begin{aligned}
+\textstyle\sum y_i &= n\,b_0 + b_1 \textstyle\sum x_{i1} + b_2 \textstyle\sum x_{i2} \\
+\textstyle\sum x_{i1} y_i &= b_0 \textstyle\sum x_{i1} + b_1 \textstyle\sum x_{i1}^2 + b_2 \textstyle\sum x_{i1} x_{i2} \\
+\textstyle\sum x_{i2} y_i &= b_0 \textstyle\sum x_{i2} + b_1 \textstyle\sum x_{i1} x_{i2} + b_2 \textstyle\sum x_{i2}^2
+\end{aligned}
+$$ {#eq-rlm-normales}
+
+Es un sistema de tres ecuaciones con tres incógnitas, que se resuelve por sustitución o por eliminación, como en un curso de álgebra. A mano solo es práctico con dos predictores; con más se usa la forma matricial de la @sec-rlm-matricial.
+
+::: {.callout-note title="Ejemplo: asentamiento de un relleno según su altura y el espesor de arcilla"}
+
+**Planteamiento.** Se colocan rellenos de 2, 4 y 6 m de altura sobre estratos de arcilla de 3, 5 y 7 m de espesor, en las nueve combinaciones, y se mide el asentamiento al final de la construcción (datos hipotéticos). Ajuste el modelo $\hat{y} = b_0 + b_1 x_1 + b_2 x_2$, donde $x_1$ es la altura del relleno (m), $x_2$ el espesor de arcilla (m) y $y$ el asentamiento (mm).
+
+```{r}
+#| echo: false
+ver_datos("datos/asentamiento_relleno_hipotetico.csv", filas = 9,
+          nombres = c("Punto", "Altura del relleno (m)", "Espesor de arcilla (m)", "Asentamiento (mm)"))
+```
+
+**Solución:**
+
+1. Sumas que piden las ecuaciones normales (@tbl-rlm-sumas): $n = 9$, $\sum x_1 = 36$, $\sum x_2 = 45$, $\sum y = 448$, $\sum x_1^2 = 168$, $\sum x_2^2 = 249$, $\sum x_1 x_2 = 180$, $\sum x_1 y = 1936$ y $\sum x_2 y = 2336$.
+2. Sistema (@eq-rlm-normales):
+   $$
+   \begin{aligned}
+   9\,b_0 + 36\,b_1 + 45\,b_2 &= 448 \\
+   36\,b_0 + 168\,b_1 + 180\,b_2 &= 1936 \\
+   45\,b_0 + 180\,b_1 + 249\,b_2 &= 2336
+   \end{aligned}
+   $$
+3. Se elimina $b_0$. A la segunda ecuación se le resta 4 veces la primera: $24\,b_1 + 0\,b_2 = 144$, de donde $b_1 = 6$. A la tercera se le resta 5 veces la primera: $0\,b_1 + 24\,b_2 = 96$, de donde $b_2 = 4$.
+4. Se sustituye en la primera: $9\,b_0 + 36(6) + 45(4) = 448$, así que $b_0 = 52/9 = 5.778$.
+5. Ecuación estimada: $\hat{y} = 5.778 + 6\,x_1 + 4\,x_2$.
+
+```{r}
+#| label: tbl-rlm-sumas
+#| tbl-cap: "Cuadro de trabajo para las sumas de las ecuaciones normales."
+#| echo: false
+
+r <- relleno
+tab <- data.frame(i = r$punto, x1 = r$altura_relleno_m, x2 = r$espesor_arcilla_m, y = r$asentamiento_mm,
+                  x1c = r$altura_relleno_m^2, x2c = r$espesor_arcilla_m^2,
+                  x1x2 = r$altura_relleno_m * r$espesor_arcilla_m,
+                  x1y = r$altura_relleno_m * r$asentamiento_mm, x2y = r$espesor_arcilla_m * r$asentamiento_mm)
+tab <- rbind(tab, c(NA, colSums(tab[, -1])))
+tab$i <- c(1:9, "Suma")
+tab %>%
+  kbl(col.names = c("<i>i</i>", "<i>x</i><sub>1</sub>", "<i>x</i><sub>2</sub>", "<i>y</i>",
+                    "<i>x</i><sub>1</sub><sup>2</sup>", "<i>x</i><sub>2</sub><sup>2</sup>",
+                    "<i>x</i><sub>1</sub><i>x</i><sub>2</sub>", "<i>x</i><sub>1</sub><i>y</i>",
+                    "<i>x</i><sub>2</sub><i>y</i>"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(10, bold = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Leer los datos.
+2. Calcular las sumas y armar el sistema de las ecuaciones normales.
+3. Resolver el sistema con `solve()`.
+4. Ajustar el mismo modelo con `lm()` y comparar.
+
+```{r}
+# 1) Datos
+relleno <- read.csv("datos/asentamiento_relleno_hipotetico.csv")
+x1 <- relleno$altura_relleno_m
+x2 <- relleno$espesor_arcilla_m
+y <- relleno$asentamiento_mm
+n <- length(y)
+
+# 2) Coeficientes del sistema (lado izquierdo) y términos independientes (lado derecho)
+A <- rbind(c(n,       sum(x1),      sum(x2)),
+           c(sum(x1), sum(x1^2),    sum(x1 * x2)),
+           c(sum(x2), sum(x1 * x2), sum(x2^2)))
+d <- c(sum(y), sum(x1 * y), sum(x2 * y))
+A
+d
+
+# 3) solve(A, d) resuelve el sistema A b = d
+b <- solve(A, d)
+b
+
+# 4) Con lm(): los predictores se suman a la derecha de ~
+modelo <- lm(asentamiento_mm ~ altura_relleno_m + espesor_arcilla_m, data = relleno)
+coef(modelo)
+```
+
+**Interpretación.** Con el espesor de arcilla fijo, cada metro adicional de altura del relleno aumenta el asentamiento medio en 6 mm. Con la altura fija, cada metro adicional de arcilla lo aumenta en 4 mm. El intercepto (5.8 mm para altura y espesor nulos) está fuera del rango ensayado y no tiene sentido físico.
+
+:::
+
+En este ejemplo las nueve combinaciones forman un diseño completo: cada altura se ensayó con cada espesor. Por eso los dos predictores no están correlacionados y $b_1$ sale igual que en una regresión simple del asentamiento contra la altura. En datos de obra, donde no se eligen las combinaciones, los predictores suelen estar correlacionados y los coeficientes de la regresión múltiple pueden ser muy distintos de los de las regresiones simples. La @sec-rlm-multicolinealidad muestra un caso.
+
+## La regresión en forma matricial {#sec-rlm-matricial}
+
+Con tres o más predictores, escribir y resolver las ecuaciones normales a mano se vuelve largo. Con álgebra lineal se escribe el modelo para todas las observaciones en una sola línea. Esta sección explica la notación paso a paso; no hace falta haber llevado un curso de álgebra lineal para seguirla.
+
+Un vector es una lista ordenada de números, escrita en columna. Una matriz es un cuadro de números con filas y columnas. Con los datos del relleno:
+
+- El vector $\mathbf{y}$ tiene las nueve respuestas observadas, una por fila.
+- La matriz $\mathbf{X}$, llamada matriz de diseño, tiene una fila por observación. Su primera columna está llena de unos (es la que produce el intercepto), la segunda tiene los valores de $x_1$ y la tercera los de $x_2$.
+- El vector $\mathbf{b}$ tiene los coeficientes $b_0$, $b_1$ y $b_2$.
+
+$$
+\mathbf{y} = \begin{bmatrix} 30 \\ 37 \\ \vdots \\ 70 \end{bmatrix},
+\qquad
+\mathbf{X} = \begin{bmatrix} 1 & 2 & 3 \\ 1 & 2 & 5 \\ \vdots & \vdots & \vdots \\ 1 & 6 & 7 \end{bmatrix},
+\qquad
+\mathbf{b} = \begin{bmatrix} b_0 \\ b_1 \\ b_2 \end{bmatrix}
+$$
+
+Al multiplicar una fila de $\mathbf{X}$ por $\mathbf{b}$ se multiplican los elementos uno a uno y se suman: para la primera fila, $1 \cdot b_0 + 2\,b_1 + 3\,b_2$, que es justo el valor ajustado $\hat{y}_1$. Hacer eso con todas las filas a la vez es el producto $\mathbf{X}\mathbf{b}$, y el modelo completo queda
+
+$$
+\mathbf{y} = \mathbf{X}\,\mathbf{b} + \mathbf{e}
+$$ {#eq-rlm-matricial}
+
+donde $\mathbf{e}$ es el vector de residuos. Las ecuaciones normales de la @eq-rlm-normales, escritas con matrices, son $\left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)\mathbf{b} = \mathbf{X}^{\mathsf T}\mathbf{y}$, donde $\mathbf{X}^{\mathsf T}$ es la transpuesta de $\mathbf{X}$ (la misma matriz con las filas convertidas en columnas). Si $\mathbf{X}^{\mathsf T}\mathbf{X}$ tiene inversa, la solución es [@montgomery2012introduction, cap. 3; @wasserman2004all, cap. 13]
+
+$$
+\mathbf{b} = \left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)^{-1}\mathbf{X}^{\mathsf T}\mathbf{y}
+$$ {#eq-rlm-solucion}
+
+Esta fórmula sirve igual para 1, 2 o 20 predictores: solo cambia el número de columnas de $\mathbf{X}$. La matriz $\mathbf{X}^{\mathsf T}\mathbf{X}$ del relleno es exactamente la matriz `A` del ejemplo anterior, y $\mathbf{X}^{\mathsf T}\mathbf{y}$ es el vector `d`.
+
+```{r}
+# Forma matricial con los datos del relleno
+relleno <- read.csv("datos/asentamiento_relleno_hipotetico.csv")
+modelo <- lm(asentamiento_mm ~ altura_relleno_m + espesor_arcilla_m, data = relleno)
+
+# Matriz de diseño: columna de unos, x1 y x2
+X <- model.matrix(modelo)
+y <- relleno$asentamiento_mm
+
+# t() transpone, %*% multiplica matrices y solve(M) da la inversa de M
+XtX <- t(X) %*% X
+Xty <- t(X) %*% y
+b <- solve(XtX) %*% Xty
+b
+
+# Valores ajustados y residuos de una vez
+y_aj <- X %*% b
+e <- y - y_aj
+
+# Los residuos son perpendiculares a las columnas de X
+round(t(X) %*% e, 10)
+```
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+La última línea del código muestra que $\mathbf{X}^{\mathsf T}\mathbf{e} = \mathbf{0}$. Geométricamente, el vector ajustado $\hat{\mathbf{y}} = \mathbf{X}\mathbf{b}$ es la proyección perpendicular de $\mathbf{y}$ sobre el espacio que generan las columnas de $\mathbf{X}$: el punto de ese espacio más cercano a $\mathbf{y}$. El residuo es el segmento que une $\mathbf{y}$ con su proyección, y por eso es perpendicular a cada columna de $\mathbf{X}$. Minimizar $SSE = \mathbf{e}^{\mathsf T}\mathbf{e}$ es lo mismo que minimizar la longitud de ese segmento. De esa perpendicularidad salen las propiedades de la recta de la @sec-rls-mco: como la primera columna de $\mathbf{X}$ son unos, $\sum e_i = 0$.
+:::
+
+## Calidad del ajuste y prueba global {#sec-rlm-anova}
+
+La descomposición $SST = SSR + SSE$ y la cuadro ANOVA del capítulo 25 siguen igual, con un cambio en los grados de libertad: la regresión tiene $p$ (uno por predictor) y el error tiene $n - p - 1$ (se estimaron $p + 1$ coeficientes). El cuadrado medio del error, $MSE = SSE/(n - p - 1)$, estima la varianza de los errores.
+
+La prueba $F$ ahora es una prueba global [@montgomery2012introduction, cap. 3]:
+
+$$
+H_0: \beta_1 = \beta_2 = \cdots = \beta_p = 0 \qquad \text{contra} \qquad H_1: \text{al menos un } \beta_j \neq 0
+$$
+
+con $F = MSR/MSE$, que sigue una distribución $F$ con $p$ y $n - p - 1$ grados de libertad. Rechazar $H_0$ indica que el conjunto de predictores explica parte de la variación de $Y$, pero no dice cuáles: para eso están las pruebas individuales de la @sec-rlm-coeficientes.
+
+### R² ajustado
+
+El $R^2 = SSR/SST$ se define igual. El problema es que nunca baja al agregar un predictor, aunque ese predictor sea ruido: con suficientes predictores, cualquier modelo llega a $R^2 = 1$. Para comparar modelos con distinto número de predictores se usa el $R^2$ ajustado, que penaliza cada coeficiente extra:
+
+$$
+R^2_{\text{aj}} = 1 - \frac{SSE/(n - p - 1)}{SST/(n - 1)}
+$$ {#eq-rlm-r2aj}
+
+donde $n$ es el número de observaciones y $p$ el de predictores. Si un predictor nuevo no aporta lo suficiente para compensar el grado de libertad que consume, $R^2_{\text{aj}}$ baja.
+
+::: {.callout-note title="Ejemplo: cuadro ANOVA y R² del modelo del relleno"}
+
+**Planteamiento.** Con el modelo $\hat{y} = 5.778 + 6\,x_1 + 4\,x_2$, arme la cuadro ANOVA, haga la prueba global con $\alpha = 0.05$ y calcule $R^2$ y $R^2_{\text{aj}}$.
+
+**Solución:**
+
+1. Valores ajustados y residuos (@tbl-rlm-residuos). Por ejemplo, $\hat{y}_1 = 5.778 + 6(2) + 4(3) = 29.778$ y $e_1 = 30 - 29.778 = 0.222$ mm. Resulta $SSE = 5.556$ mm².
+2. $SST = \sum y_i^2 - (\sum y_i)^2/n = 23\,554 - 448^2/9 = 1253.556$ mm².
+3. $SSR = 1253.556 - 5.556 = 1248.000$ mm².
+4. Grados de libertad: $p = 2$ para la regresión y $9 - 2 - 1 = 6$ para el error.
+5. $MSR = 1248/2 = 624.0$, $MSE = 5.556/6 = 0.926$ y $F = 624.0/0.926 = 673.9$.
+6. Valor crítico $F_{0.95;\,2,\,6} = 5.14$. Como $673.9 > 5.14$, se rechaza $H_0$.
+7. $R^2 = 1248/1253.556 = 0.9956$ y $R^2_{\text{aj}} = 1 - (5.556/6)/(1253.556/8) = 1 - 0.926/156.69 = 0.9941$.
+
+```{r}
+#| label: tbl-rlm-residuos
+#| tbl-cap: "Valores ajustados y residuos del modelo del relleno."
+#| echo: false
+
+aj <- fitted(mod_relleno); e <- residuals(mod_relleno)
+data.frame(i = c(1:9, "Suma"), x1 = c(relleno$altura_relleno_m, NA), x2 = c(relleno$espesor_arcilla_m, NA),
+           y = c(relleno$asentamiento_mm, sum(relleno$asentamiento_mm)),
+           yh = c(sprintf("%.3f", aj), sprintf("%.3f", sum(aj))),
+           e = c(sprintf("%.3f", e), "0.000"), e2 = c(sprintf("%.4f", e^2), sprintf("%.4f", sum(e^2)))) %>%
+  kbl(col.names = c("<i>i</i>", "<i>x</i><sub>1</sub> (m)", "<i>x</i><sub>2</sub> (m)", "<i>y</i> (mm)",
+                    "<i>ŷ</i> (mm)", "<i>e</i> (mm)", "<i>e</i><sup>2</sup> (mm<sup>2</sup>)"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(10, bold = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Calcular los valores ajustados, los residuos y las sumas de cuadrados.
+2. Calcular los grados de libertad, los cuadrados medios y $F$.
+3. Calcular $R^2$ y $R^2_{\text{aj}}$.
+4. Comparar con `summary()` y `anova()`.
+
+```{r}
+# 1) Sumas de cuadrados
+relleno <- read.csv("datos/asentamiento_relleno_hipotetico.csv")
+modelo <- lm(asentamiento_mm ~ altura_relleno_m + espesor_arcilla_m, data = relleno)
+y <- relleno$asentamiento_mm
+n <- length(y)
+p <- 2
+SSE <- sum(residuals(modelo)^2)
+SST <- sum((y - mean(y))^2)
+SSR <- SST - SSE
+
+# 2) Prueba global
+MSR <- SSR / p
+MSE <- SSE / (n - p - 1)
+F_calc <- MSR / MSE
+c(F = F_calc, F_critico = qf(0.95, p, n - p - 1),
+  p_valor = pf(F_calc, p, n - p - 1, lower.tail = FALSE))
+
+# 3) R2 y R2 ajustado
+c(R2 = SSR / SST, R2_aj = 1 - (SSE / (n - p - 1)) / (SST / (n - 1)))
+
+# 4) summary() da R2, R2 ajustado y la F global; anova() separa la SSR por predictor
+summary(modelo)
+anova(modelo)
+```
+
+**Interpretación.** La altura del relleno y el espesor de arcilla, juntos, explican el 99.6 % de la variación del asentamiento en los nueve puntos. La prueba global confirma que al menos uno de los dos aporta. En `anova()`, la suma de cuadrados de la regresión aparece repartida: 864 para la altura y 384 para el espesor, que suman los 1248 calculados a mano.
+
+:::
+
+## Pruebas para cada coeficiente {#sec-rlm-coeficientes}
+
+Para saber si un predictor aporta información después de considerar los demás, se prueba $H_0: \beta_j = 0$ contra $H_1: \beta_j \neq 0$ con
+
+$$
+t = \frac{b_j}{SE(b_j)}, \qquad SE(b_j) = \sqrt{MSE \cdot C_{jj}}
+$$ {#eq-rlm-t}
+
+donde $C_{jj}$ es el elemento $j$ de la diagonal de la matriz $\left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)^{-1}$ (contando desde 0 para el intercepto) [@montgomery2012introduction, cap. 3]. El estadístico sigue una distribución $t$ con $n - p - 1$ grados de libertad, y el intervalo de confianza es $b_j \pm t_{1-\alpha/2,\,n-p-1}\,SE(b_j)$.
+
+::: {.callout-warning title="Cuidado"}
+La prueba $t$ de un coeficiente es parcial: pregunta si $x_j$ aporta algo además de los otros predictores que están en el modelo. Si se quita o se agrega otro predictor, el coeficiente, su error estándar y su valor $p$ cambian. Un predictor puede no ser significativo en un modelo y sí en otro, sobre todo cuando está correlacionado con los demás.
+:::
+
+::: {.callout-note title="Ejemplo: pruebas e intervalos para los coeficientes del relleno"}
+
+**Planteamiento.** Con el modelo del relleno ($MSE = 0.9259$ mm²), pruebe con $\alpha = 0.05$ si cada coeficiente es distinto de cero, calcule el intervalo del 95 % para $\beta_1$ y estime el asentamiento de un relleno de 5 m sobre 4 m de arcilla.
+
+**Solución:**
+
+1. La diagonal de $\left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)^{-1}$ es $C_{00} = 1.8194$, $C_{11} = 0.041667$ y $C_{22} = 0.041667$ (se obtiene con `solve(XtX)`; con este diseño, $C_{11} = 1/24$ porque $\sum (x_{i1} - \bar{x}_1)^2 = 24$).
+2. Errores estándar (@eq-rlm-t): $SE(b_1) = SE(b_2) = \sqrt{0.9259 \times 0.041667} = 0.1964$ mm/m y $SE(b_0) = \sqrt{0.9259 \times 1.8194} = 1.298$ mm.
+3. Estadísticos: $t_1 = 6/0.1964 = 30.55$, $t_2 = 4/0.1964 = 20.37$ y $t_0 = 5.778/1.298 = 4.45$.
+4. Valor crítico con 6 grados de libertad: $t_{0.975,\,6} = 2.447$. Los tres $|t|$ lo superan, así que los tres coeficientes son distintos de cero al 5 %.
+5. Intervalo para $\beta_1$: $6 \pm (2.447)(0.1964) = 6 \pm 0.48$, de 5.52 a 6.48 mm por metro de altura.
+6. Estimación para $x_1 = 5$ m y $x_2 = 4$ m: $\hat{y} = 5.778 + 6(5) + 4(4) = 51.8$ mm.
+
+**Pseudocódigo**
+
+1. Calcular $\left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)^{-1}$ y $MSE$.
+2. Calcular $SE(b_j)$, $t$ y el valor $p$ de cada coeficiente.
+3. Calcular los intervalos de confianza.
+4. Comparar con `summary()`, `confint()` y `predict()`.
+
+```{r}
+# 1) Matriz (X'X)^-1 y MSE
+relleno <- read.csv("datos/asentamiento_relleno_hipotetico.csv")
+modelo <- lm(asentamiento_mm ~ altura_relleno_m + espesor_arcilla_m, data = relleno)
+X <- model.matrix(modelo)
+C <- solve(t(X) %*% X)
+n <- nrow(X)
+p <- ncol(X) - 1
+MSE <- sum(residuals(modelo)^2) / (n - p - 1)
+
+# 2) Errores estándar, t y valores p
+b <- coef(modelo)
+se <- sqrt(MSE * diag(C))
+t_calc <- b / se
+p_valor <- 2 * pt(-abs(t_calc), df = n - p - 1)
+cbind(b, se, t_calc, p_valor)
+
+# 3) Intervalos del 95 %
+t_crit <- qt(0.975, df = n - p - 1)
+cbind(inferior = b - t_crit * se, superior = b + t_crit * se)
+
+# 4) Funciones de R
+summary(modelo)$coefficients
+confint(modelo)
+nuevo <- data.frame(altura_relleno_m = 5, espesor_arcilla_m = 4)
+predict(modelo, nuevo, interval = "confidence")
+predict(modelo, nuevo, interval = "prediction")
+```
+
+**Interpretación.** Los dos predictores aportan información aun con el otro dentro del modelo. Con 95 % de confianza, cada metro de altura agrega entre 5.5 y 6.5 mm de asentamiento medio si el espesor de arcilla no cambia. Para un relleno de 5 m sobre 4 m de arcilla se esperan 51.8 mm en promedio, y una obra particular podría asentarse entre 49.2 y 54.4 mm (intervalo de predicción del 95 %).
+
+:::
+
+## Predictores categóricos {#sec-rlm-categoricos}
+
+Muchas variables que influyen en una respuesta no son números: si la mezcla tiene aditivo o no, el tipo de cemento, el proveedor del agregado. Para meterlas en una regresión se usan variables indicadoras (también llamadas ficticias o *dummy*), que valen 1 si la observación pertenece a una categoría y 0 si no.
+
+Con una variable de dos categorías, como el aditivo, basta una indicadora: $x_{\text{con}} = 1$ si la mezcla lleva aditivo y 0 si no. La categoría que queda en 0 se llama categoría de referencia. El coeficiente de la indicadora es la diferencia de la media de $Y$ entre las dos categorías, con los demás predictores fijos. Con $k$ categorías hacen falta $k - 1$ indicadoras.
+
+En R no hay que crear las indicadoras a mano: si la columna es de texto o un factor, `lm()` las arma sola. La categoría de referencia es la primera de los niveles del factor, que por defecto es la primera en orden alfabético. Con `factor(x, levels = c(...))` se elige cuál va primero, como se vio en el capítulo 2.
+
+::: {.callout-note title="Ejemplo: resistencia según relación agua/cemento, edad y aditivo"}
+
+**Planteamiento.** Con los 48 cilindros hipotéticos (capítulo 24), ajuste un modelo para la resistencia (MPa) con la relación agua/cemento, la edad del ensayo (días) y el uso de aditivo. Interprete el coeficiente del aditivo.
+
+```{r}
+#| echo: false
+ver_datos("datos/cilindros_concreto_hipoteticos.csv",
+          nombres = c("Cilindro", "Relación a/c", "Cemento (kg/m³)", "Edad (días)",
+                      "Aditivo", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+Con 48 observaciones y tres predictores el cálculo a mano es largo, pero sigue los mismos pasos del ejemplo del relleno, con una matriz $\mathbf{X}$ de 48 filas y 4 columnas. La parte nueva es la columna del aditivo:
+
+1. Se elige "sin aditivo" como referencia y se crea la indicadora $x_3 = 1$ si el cilindro tiene aditivo y $x_3 = 0$ si no. Para los cilindros C01 y C03 (los dos con relación 0.40 y 3 días), las filas de $\mathbf{X}$ son $[1,\ 0.40,\ 3,\ 0]$ y $[1,\ 0.40,\ 3,\ 1]$.
+2. Al resolver $\mathbf{b} = \left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)^{-1}\mathbf{X}^{\mathsf T}\mathbf{y}$ resulta $\hat{y} = `r f2(cf[1])` - `r f2(-cf[2])`\,x_1 + `r f2(cf[3])`\,x_2 + `r f2(cf[4])`\,x_3$.
+3. Para un cilindro de relación 0.50 a 28 días: sin aditivo, $\hat{y} = `r f2(cf[1])` - `r f2(-cf[2])`(0.50) + `r f2(cf[3])`(28) = `r f2(cf[1] + cf[2]*0.5 + cf[3]*28)`$ MPa; con aditivo se suman `r f2(cf[4])` MPa y se obtienen `r f2(cf[1] + cf[2]*0.5 + cf[3]*28 + cf[4])` MPa.
+
+**Pseudocódigo**
+
+1. Leer los datos y convertir el aditivo en factor con "sin" como referencia.
+2. Construir la matriz de diseño y calcular $\mathbf{b}$ con la @eq-rlm-solucion.
+3. Ajustar el mismo modelo con `lm()` y revisar `summary()`.
+
+```{r}
+# 1) Datos; el aditivo como factor con "sin" de referencia
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+
+# 2) Matriz de diseño hecha a mano y solución matricial
+X <- cbind(1, cilindros$relacion_ac, cilindros$edad_dias,
+           ifelse(cilindros$aditivo == "con", 1, 0))
+y <- cilindros$resistencia_mpa
+b <- solve(t(X) %*% X) %*% t(X) %*% y
+round(b, 4)
+
+# 3) Con lm(): R crea la indicadora "aditivocon"
+modelo <- lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros)
+head(model.matrix(modelo), 4)
+summary(modelo)
+```
+
+**Interpretación.** Con la misma relación agua/cemento y la misma edad, los cilindros con aditivo tienen en promedio `r f2(cf[4])` MPa más de resistencia, y la prueba $t$ indica que esa diferencia es estadísticamente significativa al 5 %. El modelo trata la edad como si su efecto fuera una recta (`r f2(cf[3])` MPa por día), pero el concreto gana resistencia rápido al principio y lento después. El capítulo 27 muestra cómo los residuos delatan ese problema y cómo corregirlo.
+
+:::
+
+## Interacción entre predictores {#sec-rlm-interaccion}
+
+En los modelos anteriores el efecto de cada predictor es el mismo para cualquier valor de los otros: las rectas de la @fig-rlm-plano son paralelas. A veces no es así. Por ejemplo, un aditivo podría ayudar más en mezclas con mucha agua que en mezclas secas. Cuando el efecto de $x_1$ depende del valor de $x_2$, se dice que hay interacción, y se modela agregando el producto de los dos predictores:
+
+$$
+Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3\, x_1 x_2 + \varepsilon
+$$ {#eq-rlm-interaccion}
+
+donde $\beta_3$ es el coeficiente de la interacción. Con este modelo, la pendiente de $x_1$ ya no es $\beta_1$ sino $\beta_1 + \beta_3 x_2$: cambia con $x_2$. Si $x_2$ es una indicadora, el modelo da dos rectas con pendientes distintas, una por categoría. En R se escribe `y ~ x1 * x2`, que incluye $x_1$, $x_2$ y su producto.
+
+::: {#fig-rlm-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-interaccion">
+  <label><span>Coeficiente de la interacción <i>b</i><sub>3</sub>:</span> <output>0</output>
+    <input type="range" min="-40" max="40" step="1" value="0"></label>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Dos rectas de resistencia contra relación agua cemento, con y sin aditivo"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-interaccion");
+  var ctl = raiz.querySelector("input"), sal = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var w = 640, h = 300, m = 44, b0 = 52, b1 = -50, b2 = 2.4;
+  var sx = function (x) { return m + (x - 0.35) / 0.40 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y - 5) / 45 * (h - 2 * m); };
+  function dibujar() {
+    var b3 = parseFloat(ctl.value); sal.textContent = b3.toFixed(0);
+    var g = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>';
+    for (var t = 10; t <= 50; t += 10) {
+      g += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    }
+    for (var u = 0.4; u <= 0.701; u += 0.1) {
+      g += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(1) + '</text>';
+    }
+    var sin0 = b0 + b1 * 0.35, sin1 = b0 + b1 * 0.75;
+    var con0 = b0 + b2 + (b1 + b3) * 0.35, con1 = b0 + b2 + (b1 + b3) * 0.75;
+    g += '<line x1="' + sx(0.35) + '" x2="' + sx(0.75) + '" y1="' + sy(sin0) + '" y2="' + sy(sin1) + '" stroke="#1C6BA0" stroke-width="2.5"/>' +
+      '<line x1="' + sx(0.35) + '" x2="' + sx(0.75) + '" y1="' + sy(con0) + '" y2="' + sy(con1) + '" stroke="#D55E00" stroke-width="2.5" stroke-dasharray="7 4"/>' +
+      '<line x1="' + (w - 190) + '" x2="' + (w - 160) + '" y1="30" y2="30" stroke="#1C6BA0" stroke-width="2.5"/>' +
+      '<text class="eje-texto" x="' + (w - 152) + '" y="34">sin aditivo</text>' +
+      '<line x1="' + (w - 190) + '" x2="' + (w - 160) + '" y1="50" y2="50" stroke="#D55E00" stroke-width="2.5" stroke-dasharray="7 4"/>' +
+      '<text class="eje-texto" x="' + (w - 152) + '" y="54">con aditivo</text>';
+    svg.innerHTML = g;
+    texto.textContent = "Pendiente sin aditivo: " + b1.toFixed(0) + " MPa por unidad de a/c   |   con aditivo: " +
+      (b1 + b3).toFixed(0) + " MPa por unidad de a/c" + (b3 === 0 ? "   (rectas paralelas: sin interacción)" : "");
+  }
+  ctl.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Rectas de un modelo hipotético con interacción entre la relación agua/cemento y el aditivo. Mueva el control.
+
+:::
+
+En el interactivo de la @fig-rlm-interactivo, con $b_3 = 0$ las rectas son paralelas y el aditivo suma lo mismo a cualquier relación. Con $b_3$ positivo, la recta con aditivo baja más despacio: el aditivo ayuda más cuanto más agua tiene la mezcla.
+
+Con los cilindros hipotéticos se puede probar si esa interacción existe:
+
+```{r}
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+con_interaccion <- lm(resistencia_mpa ~ relacion_ac * aditivo + edad_dias, data = cilindros)
+summary(con_interaccion)$coefficients
+```
+
+El coeficiente `relacion_ac:aditivocon` es la interacción. Su valor $p$ (mayor que 0.9) indica que estos datos no dan evidencia de que el aditivo cambie la pendiente de la relación agua/cemento, así que se mantiene el modelo sin interacción, que es más simple.
+
+::: {.callout-tip title="En la práctica"}
+Cuando un modelo incluye una interacción, se dejan también los dos predictores que la forman aunque sus pruebas $t$ no salgan significativas, porque el coeficiente de la interacción solo se interpreta bien junto con ellos. Una interacción se agrega cuando hay una razón técnica para sospecharla, no probando todos los productos posibles.
+:::
+
+## Multicolinealidad {#sec-rlm-multicolinealidad}
+
+Hay multicolinealidad cuando dos o más predictores contienen casi la misma información. En los cilindros, la relación agua/cemento y el contenido de cemento tienen $r = -0.98$ (@sec-cor-elegir): si el agua por metro cúbico es casi constante, conocer uno es conocer el otro. Al meter los dos en el modelo, la regresión no tiene forma de separar el efecto de cada uno, y pasa esto [@montgomery2012introduction, cap. 9]:
+
+- Los errores estándar de los coeficientes crecen mucho.
+- Los coeficientes cambian bastante con pequeños cambios en los datos, y pueden salir con signos absurdos.
+- Un predictor que es claramente importante puede salir "no significativo".
+
+La multicolinealidad se mide con el factor de inflación de la varianza (VIF, por *variance inflation factor*):
+
+$$
+VIF_j = \frac{1}{1 - R_j^2}
+$$ {#eq-rlm-vif}
+
+donde $R_j^2$ es el coeficiente de determinación de una regresión del predictor $x_j$ contra todos los demás predictores. Si $x_j$ no tiene relación con los otros, $R_j^2 = 0$ y $VIF_j = 1$. El VIF dice cuántas veces crece la varianza de $b_j$ por la correlación con los otros predictores. Valores mayores que 10 se consideran señal de un problema serio [@montgomery2012introduction, cap. 9].
+
+::: {.callout-note title="Ejemplo: VIF de la relación agua/cemento y el contenido de cemento"}
+
+**Planteamiento.** Agregue el contenido de cemento (kg/m³) al modelo de los cilindros. Calcule el VIF de cada predictor y compare el error estándar del coeficiente de la relación agua/cemento con el del modelo sin cemento.
+
+**Solución:**
+
+1. Se ajusta la regresión de la relación agua/cemento contra los otros tres predictores (cemento, edad y aditivo). Su coeficiente de determinación es $R_1^2 = 0.9653$.
+2. VIF (@eq-rlm-vif): $VIF_1 = 1/(1 - 0.9653) = 28.8$.
+3. El error estándar de la relación agua/cemento crece aproximadamente en $\sqrt{28.8} = 5.4$ veces. En los resultados de R pasa de 2.94 a 15.94, y el contenido de cemento sale con $p = 0.74$ aunque está directamente ligado a la resistencia.
+
+**Pseudocódigo**
+
+1. Ajustar el modelo con los cuatro predictores.
+2. Para cada predictor, ajustar su regresión contra los otros, tomar $R_j^2$ y calcular el VIF.
+3. Comparar con `car::vif()`.
+
+```{r}
+# 1) Modelo con los dos predictores redundantes
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+sin_cemento <- lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros)
+con_cemento <- lm(resistencia_mpa ~ relacion_ac + cemento_kg_m3 + edad_dias + aditivo, data = cilindros)
+
+# 2) VIF a mano para la relación a/c y el cemento
+r2_ac <- summary(lm(relacion_ac ~ cemento_kg_m3 + edad_dias + aditivo, data = cilindros))$r.squared
+r2_cem <- summary(lm(cemento_kg_m3 ~ relacion_ac + edad_dias + aditivo, data = cilindros))$r.squared
+c(vif_ac = 1 / (1 - r2_ac), vif_cemento = 1 / (1 - r2_cem))
+
+# Error estándar de la relación a/c en los dos modelos
+c(sin_cemento = summary(sin_cemento)$coefficients["relacion_ac", "Std. Error"],
+  con_cemento = summary(con_cemento)$coefficients["relacion_ac", "Std. Error"])
+
+# 3) Con el paquete car (install.packages("car") la primera vez)
+car::vif(con_cemento)
+```
+
+**Interpretación.** Los VIF de la relación agua/cemento y del cemento están cerca de 29, muy por encima de 10, mientras que los de la edad y el aditivo valen 1. Como las dos variables miden lo mismo, lo razonable es dejar solo una. Aquí se queda la relación agua/cemento, que es la que se usa para diseñar las mezclas.
+
+:::
+
+El paquete car [@fox2019companion] es el único paquete nuevo de este capítulo. Se usa solo para comprobar el VIF calculado a mano, y se llama con `car::vif()` sin cargarlo con `library()`.
+
+::: {.callout-warning title="Cuidado"}
+La multicolinealidad es un problema entre predictores; no tiene que ver con la independencia de los errores, que es un supuesto sobre las observaciones (capítulo 27). Tampoco afecta a las predicciones dentro del rango de los datos: un modelo con predictores redundantes puede predecir bien. Lo que se pierde es la posibilidad de interpretar cada coeficiente por separado.
+:::
+
+## Comparar modelos {#sec-rlm-comparar}
+
+Para decidir si un grupo de predictores vale la pena se comparan dos modelos anidados: uno reducido y otro completo que tiene todos los predictores del reducido más algunos nuevos. La prueba $F$ parcial pregunta si los predictores nuevos reducen $SSE$ más de lo que se esperaría por azar [@montgomery2012introduction, cap. 3]:
+
+$$
+F = \frac{\left(SSE_{\text{red}} - SSE_{\text{comp}}\right)/q}{SSE_{\text{comp}}/(n - p - 1)}
+$$ {#eq-rlm-f-parcial}
+
+donde $q$ es el número de coeficientes nuevos y $p$ el número de predictores del modelo completo. Si $H_0$ (todos los coeficientes nuevos valen cero) es cierta, $F$ sigue una distribución $F$ con $q$ y $n - p - 1$ grados de libertad. En R se hace con `anova(reducido, completo)`:
+
+```{r}
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+reducido <- lm(resistencia_mpa ~ relacion_ac + edad_dias, data = cilindros)
+completo <- lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros)
+anova(reducido, completo)
+c(R2_aj_reducido = summary(reducido)$adj.r.squared, R2_aj_completo = summary(completo)$adj.r.squared)
+```
+
+Agregar el aditivo baja $SSE$ de 296.7 a 228.0 MPa², con $p < 0.001$, y el $R^2_{\text{aj}}$ sube de 0.913 a 0.931: el aditivo se queda. Cuando se agrega un solo predictor, esta prueba da el mismo valor $p$ que la prueba $t$ de su coeficiente.
+
+::: {.callout-tip title="En la práctica"}
+Un buen modelo de regresión se arma con criterio técnico: se empieza por los predictores que la teoría del problema señala, se revisa si cada uno aporta y si hay interacciones razonables, y se prefiere el modelo más simple que explique los datos. Probar automáticamente cientos de combinaciones hasta que algo salga significativo lleva a modelos que no se repiten con datos nuevos.
+:::
+
+## Ejercicios propuestos
+
+1. En un modelo con dos predictores centrados se tiene $n = 5$, $\sum y = 50$, $\sum x_1 = \sum x_2 = 0$, $\sum x_1^2 = 10$, $\sum x_2^2 = 20$, $\sum x_1 x_2 = 0$, $\sum x_1 y = 15$ y $\sum x_2 y = -20$. Plantee las ecuaciones normales, calcule $b_0$, $b_1$ y $b_2$, y prediga $y$ para $x_1 = 2$ y $x_2 = 3$.
+2. Un modelo con $p = 3$ predictores y $n = 15$ observaciones tiene $SST = 164$ y $SSE = 44$. Complete la cuadro ANOVA, haga la prueba global con $\alpha = 0.05$ y calcule $R^2$ y $R^2_{\text{aj}}$.
+3. Complete el cuadro de coeficientes de un modelo con $t_{\text{crit}} = 2.12$: el intercepto vale 12.5 con error estándar 2.5; el coeficiente de $x_1$ tiene error estándar 0.4 y $t = 3.5$; el de $x_2$ vale $-0.9$ con $t = -3.0$. Diga cuáles coeficientes son distintos de cero.
+4. Se estimó $\widehat{\text{consumo}} = 18.4 + 0.62\,(\text{área}) - 1.8\,(\text{aislamiento})$, con el consumo eléctrico mensual de una vivienda en kWh, el área en m² y el aislamiento en una escala numérica. Interprete los tres coeficientes y diga qué precaución tomar con el intercepto.
+5. Con los datos del relleno, ajuste las dos regresiones simples (asentamiento contra altura y asentamiento contra espesor). Compare sus pendientes y su $R^2$ con los del modelo múltiple y explique por qué las pendientes coinciden en este caso.
+6. Con los cilindros, ajuste el modelo con la relación agua/cemento, la edad y el aditivo, pero con "con" como categoría de referencia. ¿Qué cambia en los coeficientes y qué no?
+7. Agregue al modelo de los cilindros la interacción entre la edad y el aditivo. Escriba las dos rectas de resistencia contra edad (con y sin aditivo) para una relación de 0.50 y decida si la interacción hace falta.
+8. Con `mtcars`, un conjunto de datos que trae R, ajuste el consumo `mpg` en función de `disp`, `hp` y `wt`. Calcule los VIF y proponga un modelo más simple.
+
+## Lecturas recomendadas
+
+- @montgomery2012introduction, capítulos 3 y 9: la regresión múltiple en forma matricial, las pruebas de los coeficientes y el diagnóstico de la multicolinealidad, con ejemplos de ingeniería.
+- @laneintroduction, capítulo 14: una introducción sencilla a la regresión múltiple y a la interpretación de los coeficientes parciales.
+- @fox2019companion: cómo ajustar e interpretar modelos de regresión con R, incluidos predictores categóricos e interacciones.
+- @wasserman2004all, capítulo 13: la regresión lineal desde la teoría, para quien busca un tratamiento más formal.
