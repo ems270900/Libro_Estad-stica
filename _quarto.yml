@@ -111,8 +111,8 @@ book:
 format:
   html:
     theme:
-      light: cosmo
-      dark: darkly
+      light: [cosmo, assets/css/paleta-claro.scss]
+      dark: [darkly, assets/css/paleta-oscuro.scss]
     toc: true
     toc-depth: 3
     number-sections: true

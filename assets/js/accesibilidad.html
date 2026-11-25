@@ -145,24 +145,25 @@ document.addEventListener("DOMContentLoaded", function () {
   var iconoCasa = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h3a.5.5 0 0 0 .5-.5V11h2v3.5a.5.5 0 0 0 .5.5h3a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5H10v-3.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5V14H3.5a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>';
   // Botón de inicio: en el libro web abre index.html; en el HTML de un solo
   // archivo (sin barra lateral de Quarto) vuelve a la primera página, la portada.
-  var esLibroWeb = !!document.querySelector('#quarto-sidebar a[href="./index.html"]');
-  var html = '<a id="boton-inicio" class="boton-barra" href="' + (esLibroWeb ? "./index.html" : "#") +
-    '" aria-label="Ir a la portada" title="Ir a la portada">' + iconoCasa + '</a>';
+  // Se decide al hacer clic, porque la barra lateral puede cargarse después.
+  var html = '<a id="boton-inicio" class="boton-barra" href="./index.html"' +
+    ' aria-label="Ir a la portada" title="Ir a la portada">' + iconoCasa + '</a>';
   if (!hayBusquedaQuarto) {
     html += '<button type="button" id="boton-busqueda" aria-label="Buscar en el libro" aria-expanded="false" aria-controls="panel-busqueda" title="Buscar en el libro (Ctrl+K)">' + iconoLupa + '</button>';
   }
   html += '<button type="button" id="boton-acceso" aria-label="Opciones de lectura: tamaño de letra, contraste y fuente" aria-expanded="false" aria-controls="panel-acceso" title="Tamaño de letra, contraste y fuente">Aa</button>';
   barra.innerHTML = html;
   document.body.appendChild(barra);
-  if (!esLibroWeb) {
-    document.getElementById("boton-inicio").addEventListener("click", function (e) {
-      e.preventDefault();
-      // Sin destino en la dirección, assets/js/paginas.html muestra la portada
-      history.pushState(null, "", location.pathname + location.search);
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-      window.scrollTo(0, 0);
-    });
-  }
+  document.getElementById("boton-inicio").addEventListener("click", function (e) {
+    // Libro web: el enlace normal a index.html
+    if (document.querySelector("#quarto-sidebar .sidebar-menu-container")) return;
+    // HTML de un solo archivo: volver a la primera página, la portada
+    e.preventDefault();
+    // Sin destino en la dirección, assets/js/paginas.html muestra la portada
+    history.pushState(null, "", location.pathname + location.search);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    window.scrollTo(0, 0);
+  });
   // Libro web: la búsqueda de Quarto (botón con lupa) pasa a la misma barra
   var busquedaQuarto = document.getElementById("quarto-search");
   if (busquedaQuarto) {

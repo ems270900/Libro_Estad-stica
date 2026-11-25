@@ -63,3 +63,8 @@
 - Formato de salida: solo HTML por ahora.
 - Título: Probabilidad e Inferencia Estadística Aplicada a la Ingeniería Civil. Subtítulo: Fundamentos, métodos y aplicaciones con R. Institución: Escuela de Ingeniería Civil, UCR (2026-11-24).
 - "Material Eduardo": solo como referencia de consulta; no entra en el libro.
+
+## Estética (2026-11-25)
+
+- Imagen de portada nueva: se diseña en otro hilo; al recibirla, reemplazar `assets/img/ciclo_h.png` por `assets/img/portada.png` en `index.qmd`, cambiar el crédito y anotarla en `figuras_terceros.md` si corresponde.
+- Los gráficos de R y los interactivos de los capítulos conservan sus colores propios (azul #1C6BA0 y naranja #E69F00); solo cambió la interfaz.

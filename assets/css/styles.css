@@ -5,23 +5,27 @@
    color de los enlaces y botones de Bootstrap).
      --acento          capítulo seleccionado, rótulos de partes, h4, fichas
      --acento-hover    color al pasar el mouse por la tabla de contenidos
-     --acento-2        botones, deslizadores y serie principal de los interactivos
+     --acento-2        recuadros, botones y deslizadores de los interactivos
+     --serie-1         serie principal de los gráficos interactivos
      --portada-1..3    degradado de la banda de la portada (igual en ambos modos)
    ============================================================================= */
 :root {
-  --acento: #10199e;
-  --acento-hover: #87cefa;
-  --acento-2: #1c6ba0;
-  --acento-2-hover: #15557f;
-  --portada-1: #081a40;
-  --portada-2: #10199e;
-  --portada-3: #1f6fb2;
+  /* Paleta 6 de la galería: petróleo y ámbar (elegida por el autor, 2026-11-25) */
+  --acento: #0f5560;          /* petróleo */
+  --acento-hover: #1d8a99;
+  --acento-2: #a26800;        /* ámbar */
+  --acento-2-hover: #7f5200;
+  --serie-1: #1b7f8c;         /* serie principal de los interactivos (contrasta con el naranja #E69F00) */
+  --portada-1: #062a30;
+  --portada-2: #0f5560;
+  --portada-3: #2b8a96;
 }
 body.quarto-dark {
-  --acento: #8fb8ff;
-  --acento-hover: #b9d4ff;
-  --acento-2: #8fb8ff;
-  --acento-2-hover: #b9d4ff;
+  --acento: #7fd0da;
+  --acento-hover: #b5e6ec;
+  --acento-2: #ffc357;
+  --acento-2-hover: #ffd88f;
+  --serie-1: #7fd0da;
 }
 
 /* Tipografía y ancho del contenido */
@@ -894,7 +898,7 @@ a.video-enlace:hover {
   align-items: start;
   flex: 0 0 auto;
   background: #f5f7fa;
-  border-top: 3px solid var(--acento);
+  border-top: 3px solid var(--acento-2);
   padding: 0.9rem 1.4rem;
   font-size: 0.78rem;
   line-height: 1.4;
@@ -928,8 +932,8 @@ a.video-enlace:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-body.quarto-dark .portada-pie { background: #1f2430; border-top-color: var(--acento); }
-body.quarto-dark .portada-logos { border-right-color: #3a4050; }
+body.quarto-dark .portada-pie { background: #25282c; border-top-color: var(--acento-2); }
+body.quarto-dark .portada-logos { border-right-color: #3d4045; }
 
 @media (max-width: 900px) {
   .portada { width: 100%; height: auto; min-height: 0; }
@@ -1060,11 +1064,11 @@ body.quarto-dark main h4 {
 .interactivo input[type=range] { flex: 1 1 12rem; accent-color: var(--acento-2); }
 .interactivo output { min-width: 2.5rem; font-variant-numeric: tabular-nums; font-weight: 600; }
 .interactivo svg { width: 100%; height: auto; display: block; }
-.interactivo .curva { fill: none; stroke: var(--acento-2); stroke-width: 2.5; }
+.interactivo .curva { fill: none; stroke: var(--serie-1); stroke-width: 2.5; }
 .interactivo .eje { stroke: #6c757d; stroke-width: 1; }
 .interactivo .eje-texto { fill: #495057; font-size: 12px; font-family: system-ui, sans-serif; }
-body.quarto-dark .interactivo { background: #1f2430; border-color: #3a4050; }
-body.quarto-dark .interactivo .curva { stroke: var(--acento); }
+body.quarto-dark .interactivo { background: #25282c; border-color: #3d4045; }
+body.quarto-dark .interactivo .curva { stroke: var(--serie-1); }
 body.quarto-dark .interactivo .eje { stroke: #9aa3ad; }
 body.quarto-dark .interactivo .eje-texto { fill: #c3c7cf; }
 .interactivo button { margin: 0.5rem 0 0.2rem; padding: 0.3rem 0.9rem; font-size: 0.9rem; color: #fff; background: var(--acento-2); border: none; border-radius: 4px; cursor: pointer; }
@@ -1086,52 +1090,52 @@ body.quarto-dark .interactivo button { background: var(--acento-2); color: #1111
 
 /* Interactivos de la Parte V (inferencia): intervalos que aciertan o fallan,
    áreas de error tipo I y II, segunda curva y casillas para escribir números. */
-.interactivo .ic-cubre { stroke: var(--acento-2); fill: var(--acento-2); stroke-width: 2; }
+.interactivo .ic-cubre { stroke: var(--serie-1); fill: var(--serie-1); stroke-width: 2; }
 .interactivo .ic-falla { stroke: #D55E00; fill: #D55E00; stroke-width: 2.5; }
 .interactivo .area-alfa { fill: #E69F00; opacity: 0.75; }
 .interactivo .area-beta { fill: #9aa3ad; opacity: 0.45; }
 .interactivo .curva-2 { stroke: #009E73; stroke-dasharray: 6 3; }
-.interactivo .barra-obs { fill: var(--acento-2); }
+.interactivo .barra-obs { fill: var(--serie-1); }
 .interactivo .barra-esp { fill: #E69F00; opacity: 0.8; }
 .interactivo input[type=number] { width: 5.5rem; padding: 0.15rem 0.3rem; font-variant-numeric: tabular-nums; }
 .interactivo table.entrada { border-collapse: collapse; margin: 0.4rem 0; }
 .interactivo table.entrada td, .interactivo table.entrada th { padding: 0.2rem 0.5rem; text-align: center; }
-body.quarto-dark .interactivo .ic-cubre { stroke: var(--acento); fill: var(--acento); }
+body.quarto-dark .interactivo .ic-cubre { stroke: var(--serie-1); fill: var(--serie-1); }
 body.quarto-dark .interactivo .curva-2 { stroke: #5fd3a8; }
-body.quarto-dark .interactivo input[type=number] { background: #2a3040; color: #e6e6e6; border: 1px solid #4a5060; }
+body.quarto-dark .interactivo input[type=number] { background: #2e3135; color: #e6e6e6; border: 1px solid #4d5055; }
 
 /* Interactivos de la Parte VII (diseño de experimentos) */
 .interactivo .int-resultado { margin: 0.5rem 0 0; font-size: 0.93rem; }
-.interactivo .barra { fill: color-mix(in srgb, var(--acento-2) 38%, #ffffff); }
-.interactivo .barra-activa { fill: var(--acento-2); }
-.interactivo .punto { fill: var(--acento-2); fill-opacity: 0.75; }
+.interactivo .barra { fill: color-mix(in srgb, var(--serie-1) 38%, #ffffff); }
+.interactivo .barra-activa { fill: var(--serie-1); }
+.interactivo .punto { fill: var(--serie-1); fill-opacity: 0.75; }
 .interactivo .punto-b { fill: #E69F00; fill-opacity: 0.85; }
 .interactivo .media-grupo { stroke: #B3541E; stroke-width: 3; }
 .interactivo .media-general { stroke: #6c757d; stroke-width: 1.5; stroke-dasharray: 6,4; }
-.interactivo .linea-a { fill: none; stroke: var(--acento-2); stroke-width: 3; }
+.interactivo .linea-a { fill: none; stroke: var(--serie-1); stroke-width: 3; }
 .interactivo .linea-b { fill: none; stroke: #E69F00; stroke-width: 3; }
 .interactivo .linea-lote { fill: none; stroke: #6c757d; stroke-width: 1.2; stroke-opacity: 0.7; }
 .interactivo table.int-cuadro { margin: 0.5rem auto 0; font-size: 0.9rem; border-collapse: collapse; }
 .interactivo table.int-cuadro th, .interactivo table.int-cuadro td { padding: 0.15rem 0.6rem; border-bottom: 1px solid #d5dbe3; text-align: center; }
-body.quarto-dark .interactivo .barra { fill: color-mix(in srgb, var(--acento-2) 45%, #222222); }
-body.quarto-dark .interactivo .barra-activa { fill: var(--acento); }
-body.quarto-dark .interactivo .punto { fill: var(--acento); }
-body.quarto-dark .interactivo .linea-a { stroke: var(--acento); }
+body.quarto-dark .interactivo .barra { fill: color-mix(in srgb, var(--serie-1) 45%, #222222); }
+body.quarto-dark .interactivo .barra-activa { fill: var(--serie-1); }
+body.quarto-dark .interactivo .punto { fill: var(--serie-1); }
+body.quarto-dark .interactivo .linea-a { stroke: var(--serie-1); }
 body.quarto-dark .interactivo .media-grupo { stroke: #f0a06a; }
-body.quarto-dark .interactivo table.int-cuadro th, body.quarto-dark .interactivo table.int-cuadro td { border-color: #3a4050; }
+body.quarto-dark .interactivo table.int-cuadro th, body.quarto-dark .interactivo table.int-cuadro td { border-color: #3d4045; }
 
 /* --- Interactivos de la Parte IV: barras, áreas, selectores --- */
 .interactivo .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.3rem 1.2rem; margin-bottom: 0.4rem; }
 .interactivo select { font-size: 0.95rem; padding: 0.15rem 0.5rem; border: 1px solid #b8c2cc; border-radius: 5px; background: #fff; color: #212529; }
-.interactivo .barra-p4 { fill: color-mix(in srgb, var(--acento-2) 38%, #ffffff); stroke: var(--acento-2); stroke-width: 0.8; }
-.interactivo .barra-sel { fill: var(--acento-2); }
-.interactivo .area { fill: var(--acento-2); fill-opacity: 0.3; stroke: none; }
+.interactivo .barra-p4 { fill: color-mix(in srgb, var(--serie-1) 38%, #ffffff); stroke: var(--serie-1); stroke-width: 0.8; }
+.interactivo .barra-sel { fill: var(--serie-1); }
+.interactivo .area { fill: var(--serie-1); fill-opacity: 0.3; stroke: none; }
 .interactivo .curva-2 { fill: none; stroke: #E69F00; stroke-width: 2.5; }
 .interactivo .guia { stroke: #6c757d; stroke-width: 1; stroke-dasharray: 4 3; }
-body.quarto-dark .interactivo select { background: #2b3140; color: #e6e6e6; border-color: #4a5263; }
-body.quarto-dark .interactivo .barra-p4 { fill: color-mix(in srgb, var(--acento-2) 45%, #222222); stroke: var(--acento); }
-body.quarto-dark .interactivo .barra-sel { fill: var(--acento); }
-body.quarto-dark .interactivo .area { fill: var(--acento); fill-opacity: 0.35; }
+body.quarto-dark .interactivo select { background: #2e3135; color: #e6e6e6; border-color: #4d5055; }
+body.quarto-dark .interactivo .barra-p4 { fill: color-mix(in srgb, var(--serie-1) 45%, #222222); stroke: var(--serie-1); }
+body.quarto-dark .interactivo .barra-sel { fill: var(--serie-1); }
+body.quarto-dark .interactivo .area { fill: var(--serie-1); fill-opacity: 0.35; }
 body.quarto-dark .interactivo .curva-2 { stroke: #f0b84a; }
 
 /* =============================================================================
@@ -1235,3 +1239,5 @@ body.quarto-dark #quarto-sidebar ul.sidebar-section .chapter-number { color: #8a
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .menu-text,
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-title,
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-number { color: var(--acento) !important; }
+/* Portada del libro web: sin índice a la derecha (solo tendría el título) */
+body:has(.portada) #quarto-margin-sidebar { display: none !important; }

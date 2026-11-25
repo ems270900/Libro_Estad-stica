@@ -7,6 +7,7 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | Capítulo | Estado | Registro | Pull requests |
 |:--|:--|:--|:--|
 | Plantilla del repositorio | Lista | — | (este PR) |
+| Estética de la interfaz (paleta petróleo y ámbar, favicon ∮, tabla de contenidos web como hidrología, botón de inicio, autor y correo en la portada) | Lista | — | rama claude/project-thread-f8e1p8 |
 | Portada, prefacio e introducción | Por escribir | — | — |
 | 1. R y RStudio | Borrador | [01-r_rstudio.md](01-r_rstudio.md) | Parte I |
 | 2. Objetos, tipos de datos y operadores | Borrador | [02-objetos_operadores.md](02-objetos_operadores.md) | Parte I |
