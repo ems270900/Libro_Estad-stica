@@ -88,7 +88,7 @@ Tiempos medidos el 2026-11-25 en la nube (4 núcleos), con la Parte I (portada, 
 | HTML de un solo archivo, primera vez | 19 s |
 | HTML de un solo archivo, repetido (con caché) | 12 s |
 
-Con las siete partes (30 capítulos y 3 apéndices) el libro completo tarda unos 3 minutos cuando ningún capítulo está congelado (medido el 2026-11-25 al unir la Parte IV). Compilar uno por uno los 32 capítulos y apéndices restantes, cada uno con su propia ejecución, tomó 325 s en total, es decir, unos 10 s por capítulo en promedio. Con `_freeze/` al día, una compilación completa solo vuelve a ejecutar los capítulos modificados.
+Con las siete partes (30 capítulos y 3 apéndices) el libro completo tarda unos 3 minutos cuando ningún capítulo está congelado (medido el 2026-11-25 al unir la Parte IV). Compilar uno por uno 32 capítulos y apéndices (todos menos el 19), cada uno con su propia ejecución, tomó 325 s en total, es decir, unos 10 s por capítulo en promedio. Con `_freeze/` al día, una compilación completa solo vuelve a ejecutar los capítulos modificados.
 
 Con todos los capítulos congelados, casi todo el tiempo de una compilación completa es el armado de las páginas HTML, no R. Cada capítulo nuevo agrega uno o dos segundos a esa parte, más el tiempo de su propio código solo cuando se modifica. Estos tiempos se actualizan cuando entran las partes siguientes.
 
