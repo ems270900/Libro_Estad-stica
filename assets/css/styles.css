@@ -1108,3 +1108,10 @@ body.quarto-dark .interactivo .curva-2 { stroke: #f0b84a; }
 body.quarto-dark .doc-simulado { background: transparent; }
 body.quarto-dark .doc-simulado pre { background: #2a2f3a; }
 body.quarto-dark .doc-simulado .doc-mensaje { color: #f0b46b; }
+
+/* Capítulo 1: archivos del interactivo de rutas, como enlaces y no como botones grandes */
+.interactivo button.archivo { margin: 0; padding: 0 0.25rem; color: inherit; background: transparent; border-radius: 3px; font: inherit; text-decoration: underline dotted; }
+.interactivo button.archivo:hover, .interactivo button.archivo:focus-visible { background: rgba(28, 107, 160, 0.12); }
+.interactivo button.archivo.elegido { background: rgba(28, 107, 160, 0.2); font-weight: 700; text-decoration: none; }
+body.quarto-dark .interactivo button.archivo { background: transparent; }
+body.quarto-dark .interactivo button.archivo.elegido { background: rgba(143, 184, 255, 0.25); }

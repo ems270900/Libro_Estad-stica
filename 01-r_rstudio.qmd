@@ -56,7 +56,7 @@ RStudio se organiza en cuatro paneles (@fig-r-paneles). Al abrirlo por primera v
 
 Las capturas de este libro se tomaron con la versión de RStudio que funciona en el navegador. La de escritorio que se instala en el paso 2 es igual, salvo por dos detalles de la esquina superior derecha: no muestra el nombre de usuario (en las capturas, "estudiante") ni el botón para cerrar la sesión.
 
-![Los cuatro paneles de RStudio. La posición de cada panel se puede cambiar en Herramientas > Opciones globales > Distribución de paneles.](assets/img/cap01/paneles_rstudio.png){#fig-r-paneles fig-alt="Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha" width="80%"}
+![Los cuatro paneles de RStudio. La posición de cada panel se puede cambiar en Tools > Global Options > Pane Layout.](assets/img/cap01/paneles_rstudio.png){#fig-r-paneles fig-alt="Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha" width="80%"}
 
 - **Editor de código.** Es un editor de texto donde se escribe el código y se guarda en un archivo con extensión `.R`, llamado script. Lo que se escribe ahí no se ejecuta hasta que se envía a la consola.
 - **Consola.** Es donde R recibe las instrucciones y responde. Se puede escribir directamente en ella, pero lo que se escribe ahí no queda guardado.
@@ -68,6 +68,38 @@ La @fig-r-cuatro muestra los cuatro paneles en uso: un script con tres líneas, 
 ![Los cuatro paneles de RStudio durante una sesión de trabajo. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_cuatro_paneles.png){#fig-r-cuatro fig-alt="Ventana de RStudio con un script arriba a la izquierda, la consola abajo, el entorno con objetos arriba a la derecha y un gráfico abajo a la derecha" width="85%"}
 
 La regla para trabajar es sencilla: el código se escribe en el script y se envía a la consola. Así, al terminar, queda un archivo con todos los pasos del análisis, que se puede abrir otro día y volver a correr.
+
+### Configuración recomendada
+
+Antes de empezar a trabajar conviene cambiar tres opciones de RStudio. Todas están en el menú Tools > Global Options:
+
+1. En General, sección Workspace, se desmarca Restore .RData into workspace at startup y en Save workspace to .RData on exit se elige Never. Así, cada vez que se abre RStudio la sesión empieza vacía, y todo lo que se necesita sale del script. Si se dejan marcadas, RStudio guarda los objetos de la sesión anterior y es fácil terminar con un análisis que depende de un objeto que ya no está en ningún script.
+2. En Code, pestaña Saving, en Default text encoding se elige UTF-8. Así las tildes y la ñ de los comentarios se ven bien en cualquier computadora.
+3. En Appearance se puede subir el tamaño de letra (Editor font size) y elegir un tema de colores (Editor theme). Los temas oscuros, como Cobalt o Tomorrow Night, cansan menos la vista en sesiones largas.
+
+Se presiona OK para guardar. Estas opciones se fijan una sola vez por computadora.
+
+### Atajos de teclado
+
+Los atajos ahorran tiempo desde el primer día. El @tbl-r-atajos reúne los que se usan en este libro. En Mac, Ctrl se reemplaza por Cmd y Alt por Option. La lista completa está en Help > Keyboard Shortcuts Help, o con Alt + Shift + K.
+
+| Atajo | Qué hace |
+|:--|:--|
+| Ctrl + Enter | Ejecuta la línea donde está el cursor, o las líneas seleccionadas |
+| Ctrl + Shift + Enter | Ejecuta el script completo |
+| Ctrl + Shift + N | Crea un script nuevo |
+| Ctrl + S | Guarda el script |
+| Alt + - (guion) | Escribe el operador de asignación `<-` |
+| Ctrl + Shift + M | Escribe el operador pipe `%>%` |
+| Ctrl + Shift + C | Convierte en comentario las líneas seleccionadas, o las vuelve a activar |
+| Ctrl + L | Limpia la consola (los objetos no se borran) |
+| Flecha arriba, en la consola | Recupera las instrucciones anteriores |
+| Tab | Completa el nombre de un objeto o de una función |
+| Esc | Cancela una instrucción incompleta en la consola |
+
+: Atajos de teclado de RStudio que se usan en este libro. {#tbl-r-atajos}
+
+El atajo Tab merece práctica: al escribir las primeras letras de una función, como `me`, y presionar Tab, RStudio muestra las funciones que empiezan así (`mean`, `median`, `merge`...) con una descripción corta de cada una. Además de ahorrar teclas, evita errores de escritura.
 
 ## Primeras instrucciones {#sec-r-primeras}
 
@@ -87,11 +119,37 @@ Los cálculos siguen el orden habitual de las operaciones: primero potencias, lu
 2^3           # potencia
 ```
 
+R también sabe las funciones matemáticas de una calculadora científica. Se escriben con el nombre de la función y el número entre paréntesis:
+
+```{r}
+sqrt(144)      # raíz cuadrada
+abs(-3.5)      # valor absoluto
+pi             # el número pi, ya guardado en R
+exp(1)         # e elevado a 1
+log(100)       # logaritmo natural
+log10(100)     # logaritmo en base 10
+```
+
+Un detalle que confunde al principio: en R, `log()` es el logaritmo natural (el que en la calculadora se llama ln) y `log10()` es el logaritmo en base 10. Los números muy grandes o muy pequeños R los muestra en notación científica: `1.08e+06` significa $1.08 \times 10^6$, es decir, 1 080 000, y `2.5e-04` significa 0.00025.
+
 Todo lo que va después del símbolo `#` es un comentario: R no lo ejecuta. Los comentarios sirven para explicar qué hace cada línea, y se usan en todo el libro.
 
 ### Del script a la consola
 
 Para enviar una línea del script a la consola se coloca el cursor en ella y se presiona Ctrl + Enter (en Mac, Cmd + Enter). Si se seleccionan varias líneas, se envían todas. El botón Run, arriba a la derecha del editor, hace lo mismo.
+
+Un script se guarda con Ctrl + S. El nombre del archivo conviene escribirlo sin espacios ni tildes, con guiones bajos, y que diga qué contiene: `ensayos_concreto.R` se encuentra fácil dentro de un mes; `Sin título 3.R`, no. Si el nombre de la pestaña del script aparece en rojo con un asterisco, hay cambios sin guardar.
+
+Un script largo se puede dividir en secciones. Un comentario que termina con cuatro guiones o más se convierte en un título de sección, y RStudio lo muestra en el índice del script (el botón con líneas horizontales arriba a la derecha del editor), desde donde se salta de una sección a otra. Ctrl + Shift + R inserta una sección nueva.
+
+```{r}
+#| eval: false
+# Datos -------------------------------------------------------------
+resistencias <- c(27.4, 29.1, 26.8)
+
+# Cálculos ----------------------------------------------------------
+mean(resistencias)
+```
 
 ::: {.callout-note title="Ejemplo: área de la sección de una columna"}
 
@@ -147,8 +205,83 @@ getwd()
 ```
 
 ```
-[1] "C:/Usuarios/ana/estadistica"
+[1] "C:/Users/estudiante/Documents/estadistica"
 ```
+
+### Rutas a los archivos
+
+Una ruta es la dirección de un archivo dentro de la computadora. Hay dos formas de escribirla:
+
+- Ruta absoluta: la dirección completa, desde el disco. Por ejemplo, `"C:/Users/estudiante/Documents/estadistica/datos/ensayos.csv"`. Funciona solo en esa computadora: en la de otra persona, la carpeta de usuario se llama distinto y la ruta deja de existir.
+- Ruta relativa: la dirección desde la carpeta de trabajo. Si la carpeta de trabajo es la del proyecto, la misma ruta se escribe `"datos/ensayos.csv"`. Funciona en cualquier computadora que tenga el proyecto completo, y por eso es la que se usa en todo este libro.
+
+En las rutas de R las carpetas se separan con una barra inclinada hacia adelante, `/`, también en Windows. La barra invertida `\`, que es la que muestra el Explorador de Windows, tiene otro significado dentro de un texto de R y produce un error. Si se copia una ruta del Explorador, se cambian las barras: `C:\Users\estudiante` se escribe `"C:/Users/estudiante"`. Para subir una carpeta se usa `..`: desde la carpeta `datos`, la ruta `"../informe.Rmd"` apunta a un archivo de la carpeta del proyecto.
+
+En el interactivo de la @fig-r-rutas, al elegir un archivo del proyecto se muestran su ruta relativa y su ruta absoluta, y la instrucción para leerlo. Cambie la carpeta de trabajo para ver cómo cambia la ruta relativa.
+
+::: {#fig-r-rutas}
+
+```{=html}
+<div class="interactivo" id="int-rutas">
+  <label><span>Carpeta de trabajo:</span>
+    <select aria-label="Carpeta de trabajo">
+      <option value="">estadistica (la del proyecto)</option>
+      <option value="datos">estadistica/datos</option>
+    </select></label>
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-top:0.6rem; text-align:left;">
+    <div style="flex:1 1 220px; font-family:monospace; font-size:0.9rem; line-height:1.7;">
+      <div>&#128193; estadistica/</div>
+      <div style="padding-left:1.4rem;"><button type="button" class="archivo" data-ruta="estadistica.Rproj">estadistica.Rproj</button></div>
+      <div style="padding-left:1.4rem;"><button type="button" class="archivo" data-ruta="analisis.R">analisis.R</button></div>
+      <div style="padding-left:1.4rem;">&#128193; datos/</div>
+      <div style="padding-left:2.8rem;"><button type="button" class="archivo" data-ruta="datos/ensayos.csv">ensayos.csv</button></div>
+      <div style="padding-left:2.8rem;">&#128193; campo/</div>
+      <div style="padding-left:4.2rem;"><button type="button" class="archivo" data-ruta="datos/campo/sondeo_1.csv">sondeo_1.csv</button></div>
+      <div style="padding-left:1.4rem;">&#128193; figuras/</div>
+      <div style="padding-left:2.8rem;"><button type="button" class="archivo" data-ruta="figuras/histograma.png">histograma.png</button></div>
+    </div>
+    <div class="salida-rutas" aria-live="polite" style="flex:2 1 300px; font-size:0.9rem;"></div>
+  </div>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-rutas"), lista = raiz.querySelector("select"), salida = raiz.querySelector(".salida-rutas");
+  var base = "C:/Users/estudiante/Documents/estadistica", elegido = "datos/ensayos.csv";
+  function relativa(ruta, desde) {
+    if (!desde) return ruta;
+    var a = desde.split("/"), b = ruta.split("/");
+    while (a.length && b.length > 1 && a[0] === b[0]) { a.shift(); b.shift(); }
+    var subir = a.map(function () { return ".."; });
+    return subir.concat(b).join("/");
+  }
+  function lectura(ruta, rel) {
+    if (/\.csv$/.test(ruta)) return 'read.csv("' + rel + '")';
+    if (/\.png$/.test(ruta)) return 'ggsave("' + rel + '")';
+    if (/\.R$/.test(ruta)) return 'source("' + rel + '")';
+    return "(se abre con doble clic; abre el proyecto en RStudio)";
+  }
+  function mostrar() {
+    var rel = relativa(elegido, lista.value);
+    salida.innerHTML = "<p><strong>Ruta relativa:</strong> <code>" + rel + "</code></p>" +
+      "<p><strong>Ruta absoluta:</strong> <code>" + base + "/" + elegido + "</code></p>" +
+      "<p><strong>Instrucción:</strong> <code>" + lectura(elegido, rel) + "</code></p>";
+    var botones = raiz.querySelectorAll(".archivo");
+    for (var i = 0; i < botones.length; i++) botones[i].classList.toggle("elegido", botones[i].getAttribute("data-ruta") === elegido);
+  }
+  raiz.addEventListener("click", function (e) { if (e.target.classList.contains("archivo")) { elegido = e.target.getAttribute("data-ruta"); mostrar(); } });
+  lista.addEventListener("change", mostrar);
+  mostrar();
+})();
+</script>
+```
+
+Rutas relativa y absoluta de los archivos de un proyecto según la carpeta de trabajo.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+En internet se encuentra con frecuencia la instrucción `setwd("C:/...")` para cambiar la carpeta de trabajo. Funciona, pero ata el script a una computadora: en cualquier otra, la ruta no existe y el script falla en la primera línea. Con un proyecto de RStudio no hace falta `setwd()`.
+:::
 
 ## Paquetes {#sec-r-paquetes}
 
@@ -205,6 +338,22 @@ Equivocarse es parte normal de programar. Los mensajes de R tienen dos tipos:
 
 Los errores más comunes al empezar son pocos: una coma o un paréntesis que falta, mayúsculas y minúsculas cambiadas (para R, `Datos` y `datos` son objetos distintos), comillas sin cerrar y usar un objeto antes de crearlo. Si la consola muestra un signo `+` en vez de `>`, R está esperando que se termine la instrucción, casi siempre porque falta cerrar un paréntesis o unas comillas. Se presiona Esc para cancelar y se corrige la línea en el script.
 
+El @tbl-r-errores reúne los errores que más se repiten en las primeras semanas con R, con su causa y su solución.
+
+| Lo que aparece | Causa | Solución |
+|:--|:--|:--|
+| `Error: object 'resistencia' not found` | El objeto no existe: no se ejecutó la línea que lo crea, o el nombre está mal escrito | Ejecutar la línea que lo crea; revisar mayúsculas y tildes |
+| `Error: unexpected symbol` | Falta una coma, un operador o un paréntesis entre dos palabras | Revisar la línea que indica el mensaje |
+| `Error: unexpected ')'` | Sobra un paréntesis de cierre | Contar los paréntesis; RStudio resalta el par de cada uno |
+| La consola muestra `+` en vez de `>` | Falta cerrar un paréntesis o unas comillas | Esc, y corregir la línea en el script |
+| `could not find function "ggplot"` | El paquete no está cargado | `library(ggplot2)` |
+| `there is no package called 'ggplot2'` | El paquete no está instalado | `install.packages("ggplot2")` |
+| `cannot open file 'datos.csv'` | El archivo no está en la carpeta de trabajo o la ruta está mal | Usar un proyecto y la ruta relativa correcta |
+| `Error: '\U' used without hex digits` | Ruta con barras invertidas copiada del Explorador de Windows | Cambiar `\` por `/` |
+| Advertencia `NAs introduced by coercion` | Se convirtió a número un texto que no es un número | Revisar los datos: puede haber comas decimales o celdas con texto |
+
+: Errores frecuentes al empezar con R. {#tbl-r-errores}
+
 ::: {.callout-tip title="En la práctica"}
 Cuando un mensaje de error no se entiende, copiarlo tal cual en un buscador casi siempre lleva a alguien que tuvo el mismo problema. Los mensajes de R están en inglés, y se encuentran más respuestas buscándolos en inglés.
 :::
@@ -226,6 +375,11 @@ Casi todo análisis de datos sigue los mismos pasos (@fig-r-flujo): se importan 
 5. Escriba en la consola `2 + * 3` y luego `(2 + 3`. Explique con sus palabras qué responde R en cada caso y por qué.
 6. Abra la ayuda de la función `sqrt()` y use uno de sus ejemplos. ¿Qué hace la función?
 7. Instale los paquetes de la @sec-r-paquetes y cárguelos con `library()`. ¿Aparece algún mensaje? ¿Es un error o una advertencia?
+8. Cambie las opciones de RStudio que recomienda la sección de configuración. Cierre RStudio, ábralo de nuevo y compruebe que el panel de entorno empieza vacío.
+9. Calcule con R: la raíz cuadrada de 2, el logaritmo natural de 10, el logaritmo en base 10 de 1000 y el área de un círculo de 15 cm de diámetro. ¿Qué número da `1.5e3`?
+10. Divida un script en tres secciones (Datos, Cálculos y Resultados) con comentarios que terminen en cuatro guiones. Compruebe que aparecen en el índice del script.
+11. En el interactivo de la @fig-r-rutas, escriba la ruta relativa de `sondeo_1.csv` cuando la carpeta de trabajo es la del proyecto y cuando es la carpeta `datos`. Explique por qué cambia.
+12. Escriba a propósito `Mean(c(1, 2, 3))`, con M mayúscula. Lea el mensaje y busque en el @tbl-r-errores su causa.
 
 ## Lecturas recomendadas
 
