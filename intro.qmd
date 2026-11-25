@@ -56,10 +56,6 @@ Cuando un ejemplo usa un archivo de datos, el libro muestra una vista paginada d
 
 Los datos tienen dos orígenes, y el planteamiento de cada ejemplo dice cuál. La mayoría son hipotéticos: se construyeron para ilustrar un método, con valores realistas para la ingeniería civil, y llevan "hipotético" en el nombre del archivo. No deben usarse para diseñar. Unos pocos son registros reales de lluvia y de caudal tomados del material del curso; se publican anonimizados, sin el nombre de la estación ni de la institución que los midió.
 
-## Interactivos {.unnumbered}
-
-Casi todos los capítulos traen al menos un interactivo: un gráfico con deslizadores o casillas donde se cambian los parámetros y el resultado se actualiza al instante. Con ellos se ve cómo se ensancha un intervalo de confianza cuando baja el tamaño de la muestra, cómo se mueve la curva normal al cambiar la media o qué le pasa a la recta de regresión cuando aparece un dato atípico. Están escritos para funcionar dentro del libro, sin internet y sin instalar nada. El texto que los acompaña propone qué valores probar; vale la pena hacerlo antes de seguir leyendo, porque muchas propiedades que en el papel cuestan se entienden en dos movimientos del deslizador.
-
 ## Ejercicios {.unnumbered}
 
 Cada capítulo cierra con ejercicios propuestos. No traen solución publicada: se resuelven con los métodos y los ejemplos del capítulo, primero a mano y después con R, y la comparación entre los dos resultados es la mejor forma de saber si quedaron bien.
