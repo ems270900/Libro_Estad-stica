@@ -1,0 +1,161 @@
+---
+title: "Título del capítulo en minúscula salvo la primera palabra"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+<!--
+Plantilla de capítulo. Ver GUIA_ESTILO.md.
+1. Copiar este archivo a la raíz con el nombre NN-tema_corto.qmd (sin espacios ni tildes).
+2. Agregarlo a la parte que corresponde en _quarto.yml.
+3. Borrar estos comentarios y los textos de ejemplo.
+Los datos, valores y textos de esta plantilla son de muestra: no son contenido del libro.
+-->
+
+::: {.quote-block}
+"Frase breve con fuente verificada (libro, discurso o artículo). Si no se puede verificar, quitar el epígrafe. Nunca citas bíblicas."\
+— *Autor*
+:::
+
+Párrafo de entrada, de tres a cinco oraciones. Dice qué problema de ingeniería resuelve el capítulo y por qué le importa a quien diseña, ensaya o decide. No empieza con "En este capítulo se abordará".
+
+## Concepto principal {#sec-tema-concepto}
+
+Se define el término la primera vez, sin negrita dentro del párrafo. Se explica el porqué antes que la ecuación.
+
+$$
+t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}
+$$ {#eq-tema-t}
+
+donde $\bar{x}$ es la media muestral, $\mu_0$ es el valor de referencia de la hipótesis nula, $s$ es la desviación estándar muestral y $n$ es el tamaño de la muestra.
+
+Toda ecuación tomada de una fuente lleva su cita en la oración que la presenta [@clave2020ejemplo].
+
+![Leyenda de una o dos oraciones que termina en punto. Fuente: adaptado de @clave2020ejemplo.](assets/img/capNN/nombre_figura.png){#fig-tema-esquema fig-alt="Descripción breve de lo que muestra la figura" width="80%"}
+
+Como se ve en la @fig-tema-esquema, …
+
+::: {.callout-tip title="En la práctica"}
+Criterios de uso, normas aplicables o valores típicos en ingeniería, con su cita.
+:::
+
+::: {.callout-warning title="Cuidado"}
+El error más común al aplicar el método y cómo evitarlo. Cuando se presentan varias fórmulas alternativas o empíricas para lo mismo: sus resultados no se promedian, porque cada una tiene sus propios supuestos y rango de validez.
+:::
+
+## Interactivo {#sec-tema-interactivo}
+
+Los interactivos se escriben en HTML y JavaScript propios, sin bibliotecas externas, para que funcionen sin internet y dentro del HTML de un solo archivo (OJS y Shiny necesitan conexión o servidor). Cada interactivo lleva un identificador único (aquí `int-normal`) y su leyenda en un `div` de figura.
+
+::: {#fig-tema-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-normal">
+  <label><span>Desviación estándar <i>σ</i>:</span> <output>1.0</output>
+    <input type="range" min="0.5" max="3" step="0.1" value="1"></label>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Densidad normal que cambia con σ"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-normal");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), w = 640, h = 260, m = 34;
+  var sx = function (x) { return m + (x + 6) / 12 * (w - 2 * m); };
+  var sy = function (y) { return h - m - y / 0.85 * (h - 2 * m); };
+  function dibujar() {
+    var s = parseFloat(control.value), d = "";
+    salida.textContent = s.toFixed(1);
+    for (var x = -6; x <= 6.001; x += 0.05) {
+      var y = Math.exp(-0.5 * Math.pow(x / s, 2)) / (s * Math.sqrt(2 * Math.PI));
+      d += (d ? "L" : "M") + sx(x).toFixed(1) + "," + sy(y).toFixed(1);
+    }
+    var ejes = "";
+    for (var k = -6; k <= 6; k += 2) {
+      ejes += '<line class="eje" x1="' + sx(k) + '" x2="' + sx(k) + '" y1="' + (h - m) + '" y2="' + (h - m + 5) + '"/>' +
+              '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + k + '</text>';
+    }
+    svg.innerHTML = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      ejes + '<path class="curva" d="' + d + '"/>';
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Densidad normal con media 0. Mueva el control para cambiar $\sigma$.
+
+:::
+
+## Segundo concepto {#sec-tema-segundo}
+
+::: {.callout-note title="Ejemplo: describir el caso en pocas palabras"}
+
+**Planteamiento.** Datos, qué se pide y en qué unidades. Los datos de esta plantilla son hipotéticos: resistencia a compresión (MPa) de diez cilindros de concreto. Pruebe si la media difiere de 28 MPa con $\alpha = 0.05$.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("_plantillas/resistencia_concreto_hipotetica.csv",
+          nombres = c("Cilindro", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Media muestral: $\bar{x} = 284.0/10 = 28.40$ MPa.
+2. Desviación estándar: $s = 1.29$ MPa.
+3. Estadístico: $t = (28.40 - 28)/(1.29/\sqrt{10}) = 0.98$.
+4. Valor crítico con 9 grados de libertad: $t_{0.975,\,9} = 2.262$. Como $|t| < 2.262$, no se rechaza $H_0$.
+
+**Pseudocódigo**
+
+1. Leer los datos.
+2. Calcular la media, la desviación estándar y el estadístico $t$ con la @eq-tema-t.
+3. Comparar con el valor crítico o calcular el valor $p$.
+4. Repetir con la función del paquete y comprobar que coincide.
+
+```{r}
+# 1) Datos
+datos <- read.csv("_plantillas/resistencia_concreto_hipotetica.csv")
+x <- datos$resistencia_mpa
+mu0 <- 28
+
+# 2) Cálculo manual (base R)
+n <- length(x)
+t_calc <- (mean(x) - mu0) / (sd(x) / sqrt(n))
+p_valor <- 2 * pt(-abs(t_calc), df = n - 1)
+c(t = t_calc, p = p_valor)
+
+# 3) Misma prueba con la función de R
+t.test(x, mu = mu0)
+```
+
+Para métodos iterativos, un cuadro con cada iteración (bloque oculto):
+
+```{r}
+#| label: tbl-tema-iteraciones
+#| tbl-cap: "Iteraciones del método."
+#| echo: false
+
+library(kableExtra)
+iter <- data.frame(k = 0:3, x = c(1.000, 1.500, 1.417, 1.414),
+                   err = c(NA, 0.500, 0.083, 0.003))
+options(knitr.kable.NA = "")
+iter %>%
+  kbl(col.names = c("<i>k</i>", "<i>x<sub>k</sub></i>", "|<i>x<sub>k</sub></i> − <i>x</i><sub><i>k</i>−1</sub>|"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Interpretación.** Dos o tres oraciones sobre qué significa el resultado para el diseño o la decisión.
+
+:::
+
+## Ejercicios propuestos
+
+1. Ejercicio con datos y unidades. Sin solucionario.
+2. …
+
+## Lecturas recomendadas
+
+- @clave2020ejemplo, capítulo N: por qué vale la pena leerlo.

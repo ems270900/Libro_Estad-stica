@@ -1,0 +1,100 @@
+project:
+  type: book
+  output-dir: _book
+
+lang: es
+editor: source
+
+prefer-html: true
+
+crossref:
+  fig-title: "Figura"
+  tbl-title: "Cuadro"
+  eq-title: "Ecuación"
+  fig-prefix: "Figura"
+  tbl-prefix: "Cuadro"
+  eq-prefix: "Ecuación"
+
+book:
+  title: "Estadística Aplicada a la Ingeniería"
+  subtitle: "Fundamentos, métodos y aplicaciones con R"
+  author:
+    - name: "Ing. Edwin Matarrita Segura, M.Sc."
+      affiliation: "Escuela de Ingeniería Civil, Universidad de Costa Rica"
+  favicon: assets/img/favicon.png
+  date: today
+
+  reader-mode: true
+
+  page-footer:
+    left: |
+      © 2026 Ing. Edwin Matarrita Segura. Texto bajo licencia
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es">CC BY-NC-SA 4.0</a>;
+      código R bajo licencia
+      <a href="https://github.com/ems270900/Libro_Estad-stica/blob/main/LICENSE-CODE">MIT</a>.
+    right: |
+      Este libro fue construido con <a href="https://quarto.org/">Quarto</a> y
+      <a href="https://posit.co/download/rstudio-desktop/">RStudio</a>.
+
+  repo-url: https://github.com/ems270900/Libro_Estad-stica
+  # Dirección del libro web cuando el autor decida publicarlo (no publicar sin su permiso)
+  site-url: https://ems270900.github.io/Libro_Estad-stica/
+
+  chapters:
+    - index.qmd
+    - welcome.qmd
+    - intro.qmd
+
+    # Las partes y los capítulos se agregan cuando el autor defina el contenido.
+    # Formato:
+    # - part: "Nombre de la parte"
+    #   chapters:
+    #     - 01-tema_corto.qmd
+    #     - 02-otro_tema.qmd
+
+    - epilogo.qmd
+    - 99-Referencias.qmd
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    # Código R: solo se ve el de los ejemplos, abierto y con botón de copiar.
+    # Nunca plegado ("Ver código"). Los bloques que solo generan figuras,
+    # cuadros o interactivos llevan `#| echo: false` en el propio bloque.
+    code-fold: false
+    code-copy: true
+    code-line-numbers: false
+    code-tools: false
+    fig-cap-location: bottom
+    tbl-cap-location: top
+    # Botón de accesibilidad (letra, contraste y fuente), junto al modo oscuro
+    include-after-body: assets/js/accesibilidad.html
+    link-external-newwindow: true
+    df-print: paged
+    smooth-scroll: true
+    css: assets/css/styles.css
+    lightbox: true
+    # Ancho de las columnas: cuerpo más ancho y menos margen vacío
+    grid:
+      sidebar-width: 280px
+      body-width: 950px
+      margin-width: 220px
+
+# Figuras centradas. Las imágenes llevan su propio `#| out-width`, elegido a la
+# vista para que queden de altura parecida; los gráficos de R usan el 70 %.
+# Con clic sobre cualquier figura se ve ampliada (lightbox).
+knitr:
+  opts_chunk:
+    out.width: "70%"
+    fig.align: "center"
+
+execute:
+  echo: true
+  warning: false
+  error: false
+  message: false

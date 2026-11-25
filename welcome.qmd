@@ -1,0 +1,13 @@
+---
+page-layout: article
+---
+
+# Prefacio {.unnumbered}
+
+<!-- POR ESCRIBIR. Mismo esquema que el prefacio del libro de hidrología:
+     origen del libro, para quién es, qué lo distingue (ejemplos a mano y con R,
+     datos descargables, libro abierto), cómo empezar sin saber R. -->
+
+## Agradecimientos {.unnumbered}
+
+<!-- POR ESCRIBIR por el autor. -->
