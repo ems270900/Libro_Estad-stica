@@ -216,7 +216,7 @@ La pequeña diferencia en c) (0.1574 contra 0.1573) se debe al redondeo de la ta
 Antes de buscar en la tabla conviene hacer un dibujo rápido de la campana, marcar el valor y sombrear el área que se pide. La mayoría de los errores con la normal no son de cálculo, sino de tomar el área equivocada: la de la izquierda cuando se pedía la de la derecha, o $\Phi(z)$ cuando se pedía la diferencia entre dos valores.
 :::
 
-## Cuantiles: del área al valor {#sec-normal-cuantiles}
+## Cuantiles: el valor que corresponde a un área {#sec-normal-cuantiles}
 
 Muchas preguntas de ingeniería van en sentido contrario: se conoce la probabilidad y se busca el valor. ¿Qué resistencia supera el 95 % de los cilindros? ¿Qué caudal se excede solo el 1 % de los años? Ese valor es un cuantil. Para la normal se despeja $x$ de la @eq-normal-z:
 

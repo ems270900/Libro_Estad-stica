@@ -75,3 +75,8 @@
 ## Estética (2026-11-25)
 
 - Los gráficos de R y los interactivos de los capítulos conservan sus colores propios (azul #1C6BA0 y naranja #E69F00); solo cambió la interfaz.
+
+## Diversificación de ejemplos entre ramas (2026-11-25)
+
+- Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Faltan las Partes V y I a IV.
+- La prueba de jarras usa dosis "recomendadas por el proveedor" sin dar valores en mg/L; si el autor quiere dosis típicas, hay que citarlas de un manual de potabilización.

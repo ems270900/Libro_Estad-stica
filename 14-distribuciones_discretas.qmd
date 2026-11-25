@@ -835,7 +835,7 @@ comparacion %>%
 
 :::
 
-### Aproximación de Poisson a la binomial {#sec-disc-aprox-poisson}
+### La Poisson como aproximación de la binomial {#sec-disc-aprox-poisson}
 
 Cuando el número de ensayos $n$ es grande y la probabilidad de éxito $p$ es pequeña, la binomial se parece mucho a una Poisson con $\lambda = np$. Una regla usual es aplicarla cuando $n \ge 20$ y $p \le 0.05$ [@illowsky2018introductory, cap. 4]. Antes de las computadoras era un atajo valioso, porque $\binom{n}{x}$ con $n$ grande es difícil de calcular a mano. Hoy sirve sobre todo para entender por qué la Poisson describe eventos raros: cada uno de muchos "intentos" tiene una probabilidad pequeña de producir el evento.
 

@@ -22,3 +22,9 @@
 - Sin epígrafe, por decisión del autor.
 - Referencias cruzadas a las Partes IV a VI y al Apéndice A.
 - Tukey a mano con la tabla q del Apéndice A (@tbl-apa-q05).
+
+## Cambios (2026-11-25): ejemplos de otras ramas
+
+- Los cuatro ejemplos siguen la prueba de jarras del capítulo 28: Tukey entre coagulantes, contraste del sulfato de aluminio (el coagulante actual) contra los demás, revisión de supuestos y diseño en bloques con cinco muestras de agua cruda en lugar de cinco lotes de cemento. El interactivo de bloques usa las nuevas medias (79, 83, 89 y 85 %) y su eje va de 70 a 100 %.
+- Datos nuevos: `datos/jarras_muestras_hipotetico.csv` (reemplaza a `curado_lotes_hipotetico.csv`). HSD = 2.86, contraste L = −20 (t = −8.16), Shapiro p = 0.500, Levene p = 0.888, bloques F = 173.3 y Tukey con bloques: verificados con R.
+- Ejercicio 3: el contraste ahora compara coagulantes de aluminio contra los de hierro.
