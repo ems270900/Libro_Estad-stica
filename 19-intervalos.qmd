@@ -137,18 +137,18 @@ $$
 \bar{x} - z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}} \;\le\; \mu \;\le\; \bar{x} + z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}}
 $$ {#eq-ic-media-z}
 
-donde $\bar{x}$ es la media muestral, $\sigma$ es la desviación estándar de la población, $n$ es el tamaño de la muestra y $z_{\alpha/2}$ es el valor crítico del @tbl-ic-criticos [@montgomery2014applied]. Conocer $\sigma$ es raro, pero ocurre cuando un proceso se ha controlado durante años, como la producción de una planta de concreto con un historial largo de ensayos.
+donde $\bar{x}$ es la media muestral, $\sigma$ es la desviación estándar de la población, $n$ es el tamaño de la muestra y $z_{\alpha/2}$ es el valor crítico del @tbl-ic-criticos [@montgomery2014applied]. Conocer $\sigma$ es raro, pero ocurre cuando un proceso se ha controlado durante años, como el efluente de una planta de tratamiento que se muestrea todas las semanas o la producción de una planta de concreto con un historial largo de ensayos.
 
-::: {.callout-note title="Ejemplo: resistencia media de una planta con historial conocido"}
+::: {.callout-note title="Ejemplo: DBO media del efluente de una planta de tratamiento"}
 
-**Planteamiento.** Una planta de concreto tiene un historial que indica una desviación estándar de $\sigma = 3.0$ MPa para su mezcla de 28 MPa. En una obra se ensayaron 36 cilindros, con media $\bar{x} = 32.4$ MPa. Construya un intervalo de confianza del 95 % para la resistencia media.
+**Planteamiento.** El historial de una planta de tratamiento de aguas residuales indica que la demanda bioquímica de oxígeno a cinco días (DBO₅) de su efluente tiene una desviación estándar de $\sigma = 3.0$ mg/L. En un trimestre se analizaron 36 muestras compuestas, con media $\bar{x} = 32.4$ mg/L. Los datos son hipotéticos. Construya un intervalo de confianza del 95 % para la DBO₅ media del efluente.
 
 **Solución:**
 
 1. Valor crítico: para 95 %, $z_{0.025} = 1.960$.
-2. Error estándar: $\sigma/\sqrt{n} = 3.0/\sqrt{36} = 3.0/6 = 0.500$ MPa.
-3. Margen de error: $E = 1.960 \times 0.500 = 0.980$ MPa.
-4. Límites: $32.4 - 0.98 = 31.42$ MPa y $32.4 + 0.98 = 33.38$ MPa.
+2. Error estándar: $\sigma/\sqrt{n} = 3.0/\sqrt{36} = 3.0/6 = 0.500$ mg/L.
+3. Margen de error: $E = 1.960 \times 0.500 = 0.980$ mg/L.
+4. Límites: $32.4 - 0.98 = 31.42$ mg/L y $32.4 + 0.98 = 33.38$ mg/L.
 
 **Pseudocódigo**
 
@@ -159,8 +159,8 @@ donde $\bar{x}$ es la media muestral, $\sigma$ es la desviación estándar de la
 
 ```{r}
 # 1) Datos del enunciado
-media <- 32.4      # MPa
-sigma <- 3.0       # MPa, conocida por el historial
+media <- 32.4      # mg/L
+sigma <- 3.0       # mg/L, conocida por el historial
 n <- 36
 confianza <- 0.95
 
@@ -178,7 +178,7 @@ c(z = z, ee = ee, E = E, inferior = media - E, superior = media + E)
 
 R base no tiene una función para este intervalo, porque en la práctica casi siempre se usa el de la $t$ de la sección siguiente. El cálculo manual es el método recomendado.
 
-**Interpretación.** Con 95 % de confianza, la resistencia media del concreto entregado está entre 31.42 y 33.38 MPa. Todo el intervalo queda por encima de los 28 MPa especificados, así que la resistencia media no es motivo de preocupación.
+**Interpretación.** Con 95 % de confianza, la DBO₅ media del efluente en el trimestre está entre 31.42 y 33.38 mg/L. Si el permiso de vertido fijara, por ejemplo, un límite de 40 mg/L para la media, todo el intervalo quedaría por debajo, así que la DBO media no sería motivo de preocupación. Eso no dice nada de las muestras individuales, que pueden pasar del límite aunque la media no lo haga.
 
 :::
 
@@ -286,9 +286,9 @@ donde $\hat{p}$ es la proporción muestral y $n$ es el tamaño de la muestra. Se
 
 El intervalo de Wald es fácil de calcular a mano, pero con muestras pequeñas o proporciones cercanas a 0 o a 1 contiene al parámetro menos veces de lo que promete. Por eso R ofrece otros dos. `prop.test()` usa el intervalo de Wilson [-@wilson1927probable], que corrige ese problema y se recomienda para uso general [@agresti1998approximate]. `binom.test()` usa el intervalo exacto de Clopper y Pearson [-@clopper1934use], basado en la distribución binomial, que es más conservador.
 
-::: {.callout-note title="Ejemplo: proporción de cilindros bajo la resistencia mínima"}
+::: {.callout-note title="Ejemplo: proporción de vehículos que exceden el límite de velocidad"}
 
-**Planteamiento.** De 85 cilindros ensayados en una obra, 10 no alcanzaron la resistencia mínima. Construya un intervalo de confianza del 95 % para la proporción de cilindros que no cumplen.
+**Planteamiento.** En una zona escolar con límite de 25 km/h se midió con radar la velocidad de 85 vehículos escogidos al azar durante la hora de entrada, y 10 circulaban por encima del límite. Los datos son hipotéticos. Construya un intervalo de confianza del 95 % para la proporción de vehículos que exceden el límite.
 
 **Solución:**
 
@@ -327,7 +327,7 @@ exacto <- binom.test(x, n, conf.level = 0.95)$conf.int
 
 ```{r}
 #| label: tbl-ic-proporcion
-#| tbl-cap: "Tres intervalos del 95 % para la proporción de cilindros que no cumplen."
+#| tbl-cap: "Intervalos del 95 % para la proporción de vehículos que exceden el límite."
 #| echo: false
 
 tibble(
@@ -341,7 +341,7 @@ tibble(
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-**Interpretación.** Con 95 % de confianza, entre el 4.9 % y el 18.6 % de los cilindros de la obra no alcanzan la resistencia mínima. El @tbl-ic-proporcion muestra que los métodos de Wilson y de Clopper-Pearson dan límites algo más altos, porque la distribución de $\hat{p}$ es asimétrica cuando $p$ es pequeña. Con cualquiera de los tres, la fracción que no cumple podría pasar del 15 %, lo que justifica investigar la causa.
+**Interpretación.** Con 95 % de confianza, entre el 4.9 % y el 18.6 % de los vehículos que pasan por la zona escolar a esa hora exceden el límite. El @tbl-ic-proporcion muestra que los métodos de Wilson y de Clopper-Pearson dan límites algo más altos, porque la distribución de $\hat{p}$ es asimétrica cuando $p$ es pequeña. Con cualquiera de los tres, la fracción que excede el límite podría pasar del 15 %, lo que justifica estudiar medidas de pacificación del tránsito.
 
 :::
 
@@ -381,22 +381,22 @@ ggplot(curva, aes(x, y)) +
   theme_minimal(base_size = 13)
 ```
 
-::: {.callout-note title="Ejemplo: variabilidad de la resistencia de un lote de concreto"}
+::: {.callout-note title="Ejemplo: variabilidad del grado de compactación de una base"}
 
-**Planteamiento.** Con los 25 cilindros del capítulo anterior ($s^2 = 5.640$ MPa²), construya intervalos de confianza del 95 % para la varianza y para la desviación estándar de la resistencia. Suponga que la resistencia sigue una distribución normal.
+**Planteamiento.** En la base granular de una carretera se hicieron 25 ensayos de densidad de campo, y cada uno se expresó como grado de compactación: la densidad seca de campo como porcentaje de la máxima del ensayo Proctor modificado. Los datos son hipotéticos ($s^2 = 1.457$ %²). Construya intervalos de confianza del 95 % para la varianza y para la desviación estándar del grado de compactación. Suponga que sigue una distribución normal.
 
 ```{r}
 #| echo: false
-ver_datos("datos/lote_cilindros_hipotetico.csv",
-          nombres = c("Cilindro", "Resistencia (MPa)"))
+ver_datos("datos/compactacion_campo_hipotetica.csv",
+          nombres = c("Ensayo", "Grado de compactación (%)"))
 ```
 
 **Solución:**
 
-1. Grados de libertad: $\nu = 25 - 1 = 24$, y $(n-1)s^2 = 24 \times 5.640 = 135.36$ MPa².
+1. Grados de libertad: $\nu = 25 - 1 = 24$, y $(n-1)s^2 = 24 \times 1.4567 = 34.96$ %².
 2. Valores críticos de la tabla $\chi^2$: $\chi^2_{0.025,\,24} = 39.364$ y $\chi^2_{0.975,\,24} = 12.401$.
-3. Límites para $\sigma^2$: $135.36/39.364 = 3.439$ MPa² y $135.36/12.401 = 10.915$ MPa².
-4. Límites para $\sigma$: $\sqrt{3.439} = 1.854$ MPa y $\sqrt{10.915} = 3.304$ MPa.
+3. Límites para $\sigma^2$: $34.96/39.364 = 0.888$ %² y $34.96/12.401 = 2.819$ %².
+4. Límites para $\sigma$: $\sqrt{0.888} = 0.942$ % y $\sqrt{2.819} = 1.679$ %.
 
 **Pseudocódigo**
 
@@ -407,8 +407,8 @@ ver_datos("datos/lote_cilindros_hipotetico.csv",
 
 ```{r}
 # 1) Datos
-cilindros <- read.csv("datos/lote_cilindros_hipotetico.csv")
-x <- cilindros$resistencia_mpa
+base <- read.csv("datos/compactacion_campo_hipotetica.csv")
+x <- base$compactacion_pct
 n <- length(x)
 s2 <- var(x)
 
@@ -416,17 +416,17 @@ s2 <- var(x)
 chi_grande <- qchisq(0.975, df = n - 1)
 chi_pequeno <- qchisq(0.025, df = n - 1)
 
-# 3) Intervalo para la varianza (MPa²)
+# 3) Intervalo para la varianza (%²)
 ic_var <- c((n - 1) * s2 / chi_grande, (n - 1) * s2 / chi_pequeno)
 ic_var
 
-# 4) Intervalo para la desviación estándar (MPa)
+# 4) Intervalo para la desviación estándar (%)
 sqrt(ic_var)
 ```
 
 R base no tiene una función que dé este intervalo directamente; el cálculo con `qchisq()` es el método habitual.
 
-**Interpretación.** Con 95 % de confianza, la desviación estándar de la resistencia del concreto está entre 1.85 y 3.30 MPa. El intervalo es ancho: el límite superior casi duplica al inferior. Estimar la variabilidad con precisión pide muchos más datos que estimar la media.
+**Interpretación.** Con 95 % de confianza, la desviación estándar del grado de compactación de la base está entre 0.94 y 1.68 puntos porcentuales. El intervalo es ancho: el límite superior casi duplica al inferior. Estimar la variabilidad con precisión pide muchos más datos que estimar la media. La variabilidad importa porque, con una media de 97.6 %, una desviación de 1.7 dejaría bastantes puntos de la base bajo un mínimo de 95 %.
 
 :::
 
@@ -573,15 +573,15 @@ $$ {#eq-ic-n-proporcion}
 
 donde $p^*$ es una estimación previa de la proporción. Si no hay ninguna, se usa $p^* = 0.5$, que da el $n$ más grande posible y por tanto el más seguro [@illowsky2018introductory]. En los dos casos el resultado se redondea siempre hacia arriba.
 
-::: {.callout-note title="Ejemplo: cuántos cilindros ensayar"}
+::: {.callout-note title="Ejemplo: cuántos medidores de agua leer"}
 
-**Planteamiento.** a) Se quiere estimar la resistencia media de un concreto con un margen de error de 1 MPa y 95 % de confianza. Por ensayos anteriores se sabe que $\sigma \approx 2.4$ MPa. ¿Cuántos cilindros hay que ensayar? b) Se quiere estimar la proporción de cilindros que no cumplen con un margen de 0.05 y 95 % de confianza. ¿Cuántos se necesitan sin información previa, y cuántos si se sabe que la proporción ronda el 8 %?
+**Planteamiento.** Un acueducto quiere actualizar su dotación de diseño. a) Se quiere estimar el consumo medio mensual por vivienda con un margen de error de 1 m³ y 95 % de confianza. Por estudios anteriores se sabe que $\sigma \approx 2.4$ m³. ¿Cuántos medidores hay que leer? b) También se quiere estimar la proporción de viviendas con fugas internas con un margen de 0.05 y 95 % de confianza. ¿Cuántas viviendas hay que revisar sin información previa, y cuántas si se sabe que la proporción ronda el 8 %? Los valores son hipotéticos.
 
 **Solución:**
 
-1. Media: $n = (1.960 \times 2.4/1)^2 = 4.704^2 = 22.13$. Se redondea hacia arriba: 23 cilindros.
-2. Proporción sin información previa: $n = 1.960^2 \times 0.5 \times 0.5/0.05^2 = 0.9604/0.0025 = 384.2$, es decir, 385 cilindros.
-3. Proporción con $p^* = 0.08$: $n = 1.960^2 \times 0.08 \times 0.92/0.05^2 = 0.2827/0.0025 = 113.1$, es decir, 114 cilindros.
+1. Media: $n = (1.960 \times 2.4/1)^2 = 4.704^2 = 22.13$. Se redondea hacia arriba: 23 medidores.
+2. Proporción sin información previa: $n = 1.960^2 \times 0.5 \times 0.5/0.05^2 = 0.9604/0.0025 = 384.2$, es decir, 385 viviendas.
+3. Proporción con $p^* = 0.08$: $n = 1.960^2 \times 0.08 \times 0.92/0.05^2 = 0.2827/0.0025 = 113.1$, es decir, 114 viviendas.
 
 **Pseudocódigo**
 
@@ -603,7 +603,7 @@ p_previa <- c(0.5, 0.08)
 ceiling(z^2 * p_previa * (1 - p_previa) / E_p^2)
 ```
 
-**Interpretación.** Para la media bastan 23 cilindros, pero para estimar la fracción defectuosa con ±5 % harían falta entre 114 y 385. Las proporciones piden muestras mucho más grandes que las medias. Por eso, en control de calidad, la resistencia se resume con la media y la desviación estándar, además del conteo de cilindros que no cumplen.
+**Interpretación.** Para la media bastan 23 medidores, pero para estimar la fracción de viviendas con fugas con ±5 % harían falta entre 114 y 385 revisiones. Las proporciones piden muestras mucho más grandes que las medias. Lo mismo pasa en el control de calidad del concreto: con unos 23 cilindros se estima bien la resistencia media, pero la fracción de cilindros que no cumplen pide cientos.
 
 :::
 

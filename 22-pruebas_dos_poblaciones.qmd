@@ -45,17 +45,17 @@ $$ {#eq-dos-z}
 
 donde $\bar{x}_1$ y $\bar{x}_2$ son las medias muestrales, $\sigma_1^2$ y $\sigma_2^2$ las varianzas conocidas, $n_1$ y $n_2$ los tamaños de muestra y $\Delta_0$ la diferencia de la hipótesis nula, casi siempre 0 [@montgomery2014applied]. Las varianzas se suman, aunque las medias se resten, porque las dos medias aportan incertidumbre.
 
-::: {.callout-note title="Ejemplo: dos concretos premezclados con historial conocido"}
+::: {.callout-note title="Ejemplo: DBO del efluente de dos plantas de tratamiento"}
 
-**Planteamiento.** Una constructora compara dos concretos premezclados. Por su historial, el tipo A tiene $\sigma_1 = 4$ MPa y el tipo B, $\sigma_2 = 5$ MPa. Una muestra de 30 cilindros del tipo A dio $\bar{x}_1 = 28.0$ MPa y una de 35 cilindros del tipo B, $\bar{x}_2 = 25.8$ MPa. Con $\alpha = 0.05$, ¿hay evidencia de que el tipo A es más resistente?
+**Planteamiento.** Una municipalidad compara la DBO₅ del efluente de sus dos plantas de tratamiento. Por su historial, la planta A tiene $\sigma_1 = 4$ mg/L y la planta B, $\sigma_2 = 5$ mg/L. Treinta muestras de la planta A dieron $\bar{x}_1 = 28.0$ mg/L y 35 de la planta B, $\bar{x}_2 = 25.8$ mg/L. Los datos son hipotéticos. Con $\alpha = 0.05$, ¿hay evidencia de que el efluente de la planta A tiene una DBO₅ media mayor?
 
 **Solución:**
 
 1. Hipótesis: $H_0: \mu_1 - \mu_2 \le 0$ y $H_1: \mu_1 - \mu_2 > 0$. Unilateral derecha.
-2. Error estándar: $\sqrt{4^2/30 + 5^2/35} = \sqrt{0.5333 + 0.7143} = \sqrt{1.2476} = 1.117$ MPa.
+2. Error estándar: $\sqrt{4^2/30 + 5^2/35} = \sqrt{0.5333 + 0.7143} = \sqrt{1.2476} = 1.117$ mg/L.
 3. Estadístico: $z = (28.0 - 25.8)/1.117 = 2.2/1.117 = 1.970$.
 4. Decisión: $z_{0.05} = 1.645$. Como $1.970 > 1.645$, se rechaza $H_0$. El valor $p$ es $P(Z \ge 1.970) = 0.024$.
-5. Conclusión: con 5 % de significancia, hay evidencia de que el concreto tipo A tiene mayor resistencia media.
+5. Conclusión: con 5 % de significancia, hay evidencia de que el efluente de la planta A tiene una DBO₅ media mayor.
 
 **Pseudocódigo**
 
@@ -65,8 +65,8 @@ donde $\bar{x}_1$ y $\bar{x}_2$ son las medias muestrales, $\sigma_1^2$ y $\sigm
 
 ```{r}
 # 1) Datos
-media1 <- 28.0; sigma1 <- 4; n1 <- 30    # tipo A
-media2 <- 25.8; sigma2 <- 5; n2 <- 35    # tipo B
+media1 <- 28.0; sigma1 <- 4; n1 <- 30    # planta A, mg/L
+media2 <- 25.8; sigma2 <- 5; n2 <- 35    # planta B, mg/L
 
 # 2) Error estándar y estadístico
 ee <- sqrt(sigma1^2 / n1 + sigma2^2 / n2)
@@ -77,7 +77,7 @@ p_valor <- 1 - pnorm(z)
 c(ee = ee, z = z, p = p_valor)
 ```
 
-**Interpretación.** El tipo A es en promedio 2.2 MPa más resistente y la diferencia es significativa al 5 %, aunque no al 1 %. Para escoger proveedor habría que considerar también el costo y la variabilidad: el tipo B, además de una media menor, tiene mayor dispersión.
+**Interpretación.** El efluente de la planta A tiene en promedio 2.2 mg/L más de DBO₅ y la diferencia es significativa al 5 %, aunque no al 1 %. Para decidir en cuál planta invertir primero habría que mirar también la variabilidad: la planta B, aunque tiene una media menor, es más dispersa, y eso aumenta la probabilidad de que una muestra individual pase el límite del permiso.
 
 :::
 
@@ -340,9 +340,9 @@ $$ {#eq-dos-proporciones}
 
 donde $\hat{p}_1 = x_1/n_1$ y $\hat{p}_2 = x_2/n_2$ son las proporciones de cada muestra [@montgomery2014applied]. La aproximación es aceptable si cada muestra tiene al menos cinco éxitos y cinco fracasos. Como en una proporción, `prop.test()` reporta $\chi^2 = z^2$.
 
-::: {.callout-note title="Ejemplo: bloques defectuosos de dos plantas"}
+::: {.callout-note title="Ejemplo: trabajadores sin equipo de protección en dos obras"}
 
-**Planteamiento.** En una inspección se revisaron 150 bloques de la planta 1, de los cuales 21 tenían defectos, y 160 de la planta 2, con 9 defectuosos. Con $\alpha = 0.05$, ¿hay evidencia de que las proporciones de defectuosos son distintas?
+**Planteamiento.** En visitas sin aviso a dos obras de una misma constructora, la persona encargada de salud ocupacional observó a 150 trabajadores en la obra 1, de los cuales 21 no usaban completo el equipo de protección personal, y a 160 en la obra 2, de los cuales 9 no lo usaban. Los datos son hipotéticos. Con $\alpha = 0.05$, ¿hay evidencia de que las proporciones de incumplimiento de las dos obras son distintas?
 
 **Solución:**
 
@@ -351,7 +351,7 @@ donde $\hat{p}_1 = x_1/n_1$ y $\hat{p}_2 = x_2/n_2$ son las proporciones de cada
 3. Error estándar: $\sqrt{0.0968 \times 0.9032 \times (1/150 + 1/160)} = 0.0336$.
 4. Estadístico: $z = (0.1400 - 0.0563)/0.0336 = 2.492$.
 5. Decisión: $z_{0.025} = 1.960$. Como $2.492 > 1.960$, se rechaza $H_0$. El valor $p$ es $2\,P(Z \ge 2.492) = 0.013$.
-6. Conclusión: con 5 % de significancia, las proporciones de bloques defectuosos de las dos plantas son distintas.
+6. Conclusión: con 5 % de significancia, las proporciones de trabajadores sin el equipo completo de las dos obras son distintas.
 
 **Pseudocódigo**
 
@@ -377,7 +377,7 @@ c(p1 = p_i[1], p2 = p_i[2], z = z, p = 2 * (1 - pnorm(abs(z))))
 prop.test(x, n, correct = FALSE)
 ```
 
-**Interpretación.** La planta 1 produjo 14 % de bloques defectuosos y la planta 2, 5.6 %. La diferencia es significativa, y el intervalo del 95 % que da `prop.test()` indica que la planta 1 tiene entre 1.8 y 15.0 puntos porcentuales más de defectos. Para un comprador, la planta 2 es la opción más segura, o se le puede exigir a la planta 1 una inspección más estricta.
+**Interpretación.** En la obra 1 el 14 % de los trabajadores observados no usaba el equipo completo y en la obra 2, el 5.6 %. La diferencia es significativa, y el intervalo del 95 % que da `prop.test()` indica que la obra 1 tiene entre 1.8 y 15.0 puntos porcentuales más de incumplimiento. La constructora tiene un argumento para revisar la supervisión y la capacitación en la obra 1, aunque la prueba no dice por qué difieren las obras.
 
 :::
 
