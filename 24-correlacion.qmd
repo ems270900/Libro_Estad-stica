@@ -132,25 +132,25 @@ data.frame(
 En ingeniería estas referencias se quedan cortas. Entre la resistencia de cilindros y la relación agua/cemento de un mismo laboratorio son comunes valores de $|r|$ mayores que 0.9, y un $r = 0.5$ sería una señal de que algo falla en el control de la mezcla. La magnitud se juzga con el conocimiento del problema, no con un umbral fijo.
 :::
 
-::: {.callout-note title="Ejemplo: correlación entre la relación agua/cemento y la resistencia"}
+::: {.callout-note title="Ejemplo: correlación entre la densidad y la velocidad del tránsito"}
 
-**Planteamiento.** Se tienen diez mezclas hipotéticas de concreto con distinta relación agua/cemento ($x$, adimensional) y la resistencia a compresión a 28 días de cada una ($y$, MPa). Dibuje el diagrama de dispersión y calcule la covarianza y el coeficiente de correlación de Pearson.
+**Planteamiento.** En un tramo de autopista de dos carriles por sentido se registraron, con un detector, diez periodos de 15 minutos con distinta congestión. Para cada periodo se tiene la densidad ($x$, vehículos por kilómetro y por carril) y la velocidad media de los vehículos ($y$, km/h). Los datos son hipotéticos. Dibuje el diagrama de dispersión y calcule la covarianza y el coeficiente de correlación de Pearson.
 
 ```{r}
 #| echo: false
-ver_datos("datos/mezclas_ac_hipoteticas.csv",
-          nombres = c("Mezcla", "Relación a/c", "Resistencia (MPa)"))
+ver_datos("datos/greenshields_tramo_hipotetico.csv",
+          nombres = c("Periodo", "Densidad (veh/km/carril)", "Velocidad (km/h)"))
 ```
 
 **Solución:**
 
-1. Medias: $\bar{x} = 5.59/10 = 0.559$ y $\bar{y} = 337.9/10 = 33.79$ MPa.
-2. Para cada mezcla se calculan las desviaciones y sus productos (@tbl-cor-mano). Las columnas de desviaciones suman cero, lo que sirve de control.
-3. De la última fila del cuadro: $S_{xx} = 0.091890$, $S_{yy} = 373.529$ y $S_{xy} = -5.79010$.
-4. Covarianza (@eq-cor-cov): $s_{xy} = -5.79010/9 = -0.6433$ MPa.
+1. Medias: $\bar{x} = 420/10 = 42$ veh/km/carril y $\bar{y} = 543.0/10 = 54.30$ km/h.
+2. Para cada periodo se calculan las desviaciones y sus productos (@tbl-cor-mano). Las columnas de desviaciones suman cero, lo que sirve de control.
+3. De la última fila del cuadro: $S_{xx} = 4240$, $S_{yy} = 2675.92$ y $S_{xy} = -3346.8$.
+4. Covarianza (@eq-cor-cov): $s_{xy} = -3346.8/9 = -371.87$ (veh/km/carril)(km/h).
 5. Correlación (@eq-cor-pearson):
    $$
-   r = \frac{-5.79010}{\sqrt{(0.091890)(373.529)}} = \frac{-5.79010}{5.8586} = -0.988
+   r = \frac{-3346.8}{\sqrt{(4240)(2675.92)}} = \frac{-3346.8}{3368.37} = -0.994
    $$
 
 ```{r}
@@ -158,21 +158,21 @@ ver_datos("datos/mezclas_ac_hipoteticas.csv",
 #| tbl-cap: "Cálculo a mano de las sumas para la correlación."
 #| echo: false
 
-m <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-dx <- m$relacion_ac - mean(m$relacion_ac)
-dy <- m$resistencia_mpa - mean(m$resistencia_mpa)
+m <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+dx <- m$densidad_veh_km - mean(m$densidad_veh_km)
+dy <- m$velocidad_km_h - mean(m$velocidad_km_h)
 cuadro <- data.frame(
   i = c(1:10, "Suma"),
-  x = c(sprintf("%.2f", m$relacion_ac), sprintf("%.2f", sum(m$relacion_ac))),
-  y = c(sprintf("%.1f", m$resistencia_mpa), sprintf("%.1f", sum(m$resistencia_mpa))),
-  dx = c(sprintf("%.3f", dx), "0.000"),
-  dy = c(sprintf("%.2f", dy), "0.00"),
-  dx2 = c(sprintf("%.6f", dx^2), sprintf("%.6f", sum(dx^2))),
-  dy2 = c(sprintf("%.4f", dy^2), sprintf("%.4f", sum(dy^2))),
-  dxdy = c(sprintf("%.5f", dx * dy), sprintf("%.5f", sum(dx * dy)))
+  x = c(sprintf("%d", m$densidad_veh_km), sprintf("%d", sum(m$densidad_veh_km))),
+  y = c(sprintf("%.1f", m$velocidad_km_h), sprintf("%.1f", sum(m$velocidad_km_h))),
+  dx = c(sprintf("%d", dx), "0"),
+  dy = c(sprintf("%.1f", dy), "0.0"),
+  dx2 = c(sprintf("%d", dx^2), sprintf("%d", sum(dx^2))),
+  dy2 = c(sprintf("%.2f", dy^2), sprintf("%.2f", sum(dy^2))),
+  dxdy = c(sprintf("%.1f", dx * dy), sprintf("%.1f", sum(dx * dy)))
 )
 cuadro %>%
-  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>y<sub>i</sub></i> (MPa)",
+  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>y<sub>i</sub></i> (km/h)",
                     "<i>x<sub>i</sub></i> − <i>x̄</i>", "<i>y<sub>i</sub></i> − <i>ȳ</i>",
                     "(<i>x<sub>i</sub></i> − <i>x̄</i>)<sup>2</sup>",
                     "(<i>y<sub>i</sub></i> − <i>ȳ</i>)<sup>2</sup>",
@@ -192,15 +192,15 @@ cuadro %>%
 
 ```{r}
 #| label: fig-cor-mezclas
-#| fig-cap: "Resistencia contra relación agua/cemento."
-#| fig-alt: "Diez puntos que bajan casi en línea recta, desde 44 MPa con relación 0.40 hasta 25 MPa con relación 0.70"
+#| fig-cap: "Velocidad contra densidad del tránsito."
+#| fig-alt: "Diez puntos que bajan casi en línea recta, desde 77 km/h con 12 veh/km hasta 27 km/h con 76 veh/km"
 
 # 1) Datos y diagrama de dispersión (base R)
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-x <- mezclas$relacion_ac
-y <- mezclas$resistencia_mpa
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+x <- tramo$densidad_veh_km
+y <- tramo$velocidad_km_h
 plot(x, y, pch = 19, col = "#1C6BA0",
-     xlab = "Relación agua/cemento", ylab = "Resistencia a 28 días (MPa)")
+     xlab = "Densidad (veh/km/carril)", ylab = "Velocidad media (km/h)")
 ```
 
 ```{r}
@@ -224,13 +224,13 @@ cov(x, y)
 cor(x, y)
 ```
 
-**Interpretación.** El diagrama de la @fig-cor-mezclas muestra una tendencia lineal y decreciente, sin puntos apartados, y $r = -0.988$ confirma que la asociación lineal es negativa y muy fuerte. En estas diez mezclas, más agua por unidad de cemento va con menos resistencia, lo que concuerda con lo que se sabe del concreto. El número no dice cuántos MPa se pierden por cada aumento de la relación: eso lo responde la recta de regresión del capítulo 25.
+**Interpretación.** El diagrama de la @fig-cor-mezclas muestra una tendencia lineal y decreciente, sin puntos apartados, y $r = -0.994$ confirma que la asociación lineal es negativa y muy fuerte. Cuantos más vehículos hay por kilómetro de carril, más despacio circulan, lo que concuerda con lo que se observa en cualquier vía que se congestiona. El número no dice cuántos km/h se pierden por cada vehículo adicional por kilómetro: eso lo responde la recta de regresión del capítulo 25.
 
 :::
 
 ## Prueba de significancia para la correlación {#sec-cor-prueba}
 
-Las diez mezclas son una muestra. Si se hicieran otras diez, el $r$ saldría algo distinto. El valor $r$ es una estimación del coeficiente de la población, que se escribe $\rho$ (letra griega rho) y que no se conoce. Con pocos datos, un $r$ alto puede aparecer por azar aunque $\rho = 0$. La prueba de hipótesis del capítulo 20 responde si el $r$ observado es demasiado grande para atribuirlo al azar.
+Los diez periodos son una muestra. Si se registraran otros diez, el $r$ saldría algo distinto. El valor $r$ es una estimación del coeficiente de la población, que se escribe $\rho$ (letra griega rho) y que no se conoce. Con pocos datos, un $r$ alto puede aparecer por azar aunque $\rho = 0$. La prueba de hipótesis del capítulo 20 responde si el $r$ observado es demasiado grande para atribuirlo al azar.
 
 Las hipótesis son
 
@@ -246,19 +246,19 @@ $$ {#eq-cor-t}
 
 donde $r$ es la correlación muestral y $n$ el número de pares. Si $H_0$ es cierta y los pares vienen de una distribución normal bivariada, $t$ sigue una distribución $t$ de Student con $n - 2$ grados de libertad. Se rechaza $H_0$ al nivel $\alpha$ si $|t| > t_{1-\alpha/2,\, n-2}$, o si el valor $p$ es menor que $\alpha$.
 
-::: {.callout-note title="Ejemplo: prueba para la correlación de las diez mezclas"}
+::: {.callout-note title="Ejemplo: prueba para la correlación entre densidad y velocidad"}
 
-**Planteamiento.** Con las diez mezclas del ejemplo anterior ($r = -0.988$), pruebe con $\alpha = 0.05$ si la correlación de la población es distinta de cero.
+**Planteamiento.** Con los diez periodos del ejemplo anterior ($r = -0.994$), pruebe con $\alpha = 0.05$ si la correlación de la población es distinta de cero.
 
 **Solución:**
 
 1. Hipótesis: $H_0: \rho = 0$ contra $H_1: \rho \neq 0$.
 2. Estadístico (@eq-cor-t):
    $$
-   t = -0.98830 \, \sqrt{\frac{10 - 2}{1 - (-0.98830)^2}} = -0.98830 \, \sqrt{\frac{8}{0.02326}} = -18.33
+   t = -0.99360 \, \sqrt{\frac{10 - 2}{1 - (-0.99360)^2}} = -0.99360 \, \sqrt{\frac{8}{0.012765}} = -24.87
    $$
 3. Valor crítico con $n - 2 = 8$ grados de libertad: $t_{0.975,\,8} = 2.306$ (apéndice A).
-4. Decisión: $|{-18.33}| > 2.306$, así que se rechaza $H_0$. El valor $p$ es menor que 0.001.
+4. Decisión: $|{-24.87}| > 2.306$, así que se rechaza $H_0$. El valor $p$ es menor que 0.001.
 
 **Pseudocódigo**
 
@@ -268,9 +268,9 @@ donde $r$ es la correlación muestral y $n$ el número de pares. Si $H_0$ es cie
 
 ```{r}
 # 1) Datos y correlación
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-x <- mezclas$relacion_ac
-y <- mezclas$resistencia_mpa
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+x <- tramo$densidad_veh_km
+y <- tramo$velocidad_km_h
 n <- length(x)
 r <- cor(x, y)
 
@@ -284,7 +284,7 @@ c(r = r, t = t_calc, t_critico = t_crit, p = p_valor)
 cor.test(x, y)
 ```
 
-**Interpretación.** Con un nivel de significancia del 5 %, las diez mezclas dan evidencia de una correlación lineal distinta de cero entre la relación agua/cemento y la resistencia. `cor.test()` entrega además un intervalo de confianza del 95 % para $\rho$, de $-0.997$ a $-0.950$: aun en el extremo menos favorable, la asociación es muy fuerte.
+**Interpretación.** Con un nivel de significancia del 5 %, los diez periodos dan evidencia de una correlación lineal distinta de cero entre la densidad y la velocidad. `cor.test()` entrega además un intervalo de confianza del 95 % para $\rho$, de $-0.999$ a $-0.972$: aun en el extremo menos favorable, la asociación es muy fuerte.
 
 :::
 
@@ -641,7 +641,7 @@ Si los datos cubren solo una parte del rango de $X$, la correlación sale más b
 
 ## Ejercicios propuestos
 
-1. Con las diez mezclas de `mezclas_ac_hipoteticas.csv`, pase la resistencia de MPa a kg/cm² (multiplique por 10.197) y vuelva a calcular la covarianza y la correlación. Explique qué cambió y qué no.
+1. Con los diez periodos de `greenshields_tramo_hipotetico.csv`, pase la velocidad de km/h a m/s (divida entre 3.6) y la densidad a vehículos por milla (multiplique por 1.609), y vuelva a calcular la covarianza y la correlación. Explique qué cambió y qué no.
 2. Para seis vigas hipotéticas se midieron la carga aplicada (kN) y la deflexión al centro del claro (mm): (10, 0.8), (20, 1.6), (30, 2.5), (40, 3.1), (50, 4.1) y (60, 4.9). Calcule a mano $S_{xx}$, $S_{yy}$, $S_{xy}$ y $r$, y compruebe el resultado con `cor()`.
 3. En una muestra de $n = 15$ tramos de carretera, la correlación entre el tránsito promedio diario y el índice de rugosidad fue $r = 0.52$. Pruebe con $\alpha = 0.05$ si $\rho$ es distinto de cero. Repita con $n = 60$ y comente la diferencia.
 4. Tres evaluadores ordenan ocho ofertas de una licitación. Invente dos órdenes que den $r_s = 1$ y $\tau = 1$, y otros dos que den $r_s = -1$. ¿Qué orden da $\tau$ cercano a 0?

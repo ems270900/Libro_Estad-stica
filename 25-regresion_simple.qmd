@@ -4,7 +4,7 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-La correlación del capítulo 24 dice que la resistencia del concreto baja cuando sube la relación agua/cemento, y que la asociación es muy fuerte. Pero quien diseña una mezcla necesita algo más concreto: cuántos MPa se pierden si la relación pasa de 0.50 a 0.55, o qué resistencia se espera con una relación de 0.62. La regresión lineal simple responde esas preguntas con la ecuación de una recta, $\hat{y} = b_0 + b_1 x$, ajustada a los datos. Este capítulo explica cómo se calcula esa recta a mano y con `lm()`, cómo se interpretan sus coeficientes, qué tan confiable es y cómo se usa para predecir sin salirse del rango de los datos.
+La correlación del capítulo 24 dice que la velocidad del tránsito baja cuando sube la densidad de vehículos en la vía, y que la asociación es muy fuerte. Pero quien opera una autopista necesita algo más concreto: cuántos km/h se pierden por cada 10 vehículos adicionales por kilómetro de carril, qué velocidad se espera con 40 veh/km o a qué velocidad circulan los vehículos cuando la vía está casi vacía. La regresión lineal simple responde esas preguntas con la ecuación de una recta, $\hat{y} = b_0 + b_1 x$, ajustada a los datos. Este capítulo explica cómo se calcula esa recta a mano y con `lm()`, cómo se interpretan sus coeficientes, qué tan confiable es y cómo se usa para predecir sin salirse del rango de los datos.
 
 ```{r}
 #| echo: false
@@ -13,17 +13,17 @@ library(ggplot2)
 library(kableExtra)
 options(knitr.kable.NA = "")
 azul <- "#1C6BA0"
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-mod_mezclas <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+mod_tramo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
 ```
 
 ## El modelo de regresión lineal simple {#sec-rls-modelo}
 
 ::: {.pregunta}
-Si dos mezclas tienen la misma relación agua/cemento, ¿tendrán la misma resistencia?
+Si en dos periodos la vía tiene la misma densidad de vehículos, ¿tendrán la misma velocidad media?
 :::
 
-No. Aunque se prepare la misma dosificación, la resistencia varía de un cilindro a otro por la humedad de los agregados, el curado, la compactación y el propio ensayo. Por eso la regresión no dice "con esta relación la resistencia es tal", sino "con esta relación la resistencia media es tal, y los cilindros individuales se reparten alrededor de esa media".
+No. Aunque la densidad sea la misma, la velocidad cambia de un periodo a otro por la proporción de camiones, la lluvia, la luz del día y la forma de conducir de quienes pasan en ese momento. Por eso la regresión no dice "con esta densidad la velocidad es tal", sino "con esta densidad la velocidad media es tal, y los periodos individuales se reparten alrededor de esa media".
 
 El modelo de regresión lineal simple escribe esa idea así [@montgomery2012introduction, cap. 2; @illowsky2018introductory, cap. 12]:
 
@@ -51,7 +51,7 @@ $$
 e_i = y_i - \hat{y}_i
 $$ {#eq-rls-residuo}
 
-Un residuo positivo indica que el punto quedó por encima de la recta, y uno negativo, por debajo. La @fig-rls-residuos muestra los residuos de las diez mezclas como segmentos verticales. El residuo $e_i$ se calcula con los datos; el error $\varepsilon_i$ pertenece al modelo de la población y no se observa nunca.
+Un residuo positivo indica que el punto quedó por encima de la recta, y uno negativo, por debajo. La @fig-rls-residuos muestra los residuos de los diez periodos como segmentos verticales. El residuo $e_i$ se calcula con los datos; el error $\varepsilon_i$ pertenece al modelo de la población y no se observa nunca.
 
 ```{r}
 #| label: fig-rls-residuos
@@ -59,14 +59,14 @@ Un residuo positivo indica que el punto quedó por encima de la recta, y uno neg
 #| fig-alt: "Diez puntos alrededor de una recta descendente, cada uno unido a la recta con un segmento vertical punteado"
 #| echo: false
 
-mezclas$ajustado <- fitted(mod_mezclas)
-ggplot(mezclas, aes(relacion_ac, resistencia_mpa)) +
-  geom_abline(intercept = coef(mod_mezclas)[1], slope = coef(mod_mezclas)[2],
+tramo$ajustado <- fitted(mod_tramo)
+ggplot(tramo, aes(densidad_veh_km, velocidad_km_h)) +
+  geom_abline(intercept = coef(mod_tramo)[1], slope = coef(mod_tramo)[2],
               color = azul, linewidth = 1) +
-  geom_segment(aes(xend = relacion_ac, yend = ajustado), linetype = "dashed",
+  geom_segment(aes(xend = densidad_veh_km, yend = ajustado), linetype = "dashed",
                color = "#D55E00") +
   geom_point(size = 2.5) +
-  labs(x = "Relación agua/cemento", y = "Resistencia a 28 días (MPa)") +
+  labs(x = "Densidad (veh/km/carril)", y = "Velocidad media (km/h)") +
   theme_minimal(base_size = 13)
 ```
 
@@ -126,16 +126,16 @@ $$
 
 ### Interactivo: ajustar una recta a ojo
 
-Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueven el intercepto y la pendiente de una recta sobre las diez mezclas. Los segmentos son los residuos y debajo aparece la suma de sus cuadrados. El objetivo es lograr el $SSE$ más pequeño posible.
+Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueven el intercepto y la pendiente de una recta sobre los diez periodos. Los segmentos son los residuos y debajo aparece la suma de sus cuadrados. El objetivo es lograr el $SSE$ más pequeño posible.
 
 ::: {#fig-rls-interactivo-mco}
 
 ```{=html}
 <div class="interactivo" id="int-minimos">
-  <label><span>Intercepto <i>b</i><sub>0</sub>:</span> <output>60.0</output>
-    <input type="range" min="50" max="90" step="0.1" value="60"></label>
-  <label><span>Pendiente <i>b</i><sub>1</sub>:</span> <output>-45.0</output>
-    <input type="range" min="-90" max="-30" step="0.5" value="-45"></label>
+  <label><span>Intercepto <i>b</i><sub>0</sub>:</span> <output>80.0</output>
+    <input type="range" min="60" max="110" step="0.1" value="80"></label>
+  <label><span>Pendiente <i>b</i><sub>1</sub>:</span> <output>-0.60</output>
+    <input type="range" min="-1.2" max="-0.3" step="0.01" value="-0.6"></label>
   <svg viewBox="0 0 640 320" role="img" aria-label="Diez puntos con una recta que se mueve y sus residuos"></svg>
   <p class="resultado" aria-live="polite"></p>
   <button type="button">Ver la recta de mínimos cuadrados</button>
@@ -145,11 +145,11 @@ Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueve
   var raiz = document.getElementById("int-minimos");
   var ctl = raiz.querySelectorAll("input"), sal = raiz.querySelectorAll("output");
   var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
-  var xs = [0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70];
-  var ys = [44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1];
+  var xs = [12, 18, 24, 30, 36, 44, 52, 60, 68, 76];
+  var ys = [76.5, 73.4, 71.3, 64.4, 58.5, 49.8, 45.4, 43.7, 32.9, 27.1];
   var w = 640, h = 320, m = 44;
-  var sx = function (x) { return m + (x - 0.35) / 0.40 * (w - 2 * m); };
-  var sy = function (y) { return h - m - (y - 20) / 28 * (h - 2 * m); };
+  var sx = function (x) { return m + (x - 5) / 80 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y - 20) / 65 * (h - 2 * m); };
   // Recta de mínimos cuadrados, para comparar
   var n = xs.length, mx = 0, my = 0, sxx = 0, sxy = 0;
   for (var i = 0; i < n; i++) { mx += xs[i] / n; my += ys[i] / n; }
@@ -162,19 +162,19 @@ Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueve
   }
   function dibujar() {
     var b0 = parseFloat(ctl[0].value), b1 = parseFloat(ctl[1].value);
-    sal[0].textContent = b0.toFixed(1); sal[1].textContent = b1.toFixed(1);
+    sal[0].textContent = b0.toFixed(1); sal[1].textContent = b1.toFixed(2);
     var g = "";
-    for (var t = 20; t <= 45; t += 5) {
+    for (var t = 20; t <= 80; t += 10) {
       g += '<line class="eje" x1="' + (m - 5) + '" x2="' + m + '" y1="' + sy(t) + '" y2="' + sy(t) + '"/>' +
            '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
     }
-    for (var u = 0.40; u <= 0.701; u += 0.10) {
+    for (var u = 10; u <= 80; u += 10) {
       g += '<line class="eje" x1="' + sx(u) + '" x2="' + sx(u) + '" y1="' + (h - m) + '" y2="' + (h - m + 5) + '"/>' +
-           '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(2) + '</text>';
+           '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u + '</text>';
     }
     g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
          '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
-         '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>';
+         '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Densidad (veh/km/carril)</text>';
     var res = "", pts = "";
     for (var k = 0; k < n; k++) {
       var yh = b0 + b1 * xs[k];
@@ -182,18 +182,18 @@ Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueve
              '" stroke="#D55E00" stroke-dasharray="4 3" stroke-width="1.5"/>';
       pts += '<circle cx="' + sx(xs[k]) + '" cy="' + sy(ys[k]) + '" r="4.5" fill="#1C6BA0"/>';
     }
-    var recta = '<line class="curva" x1="' + sx(0.35) + '" x2="' + sx(0.75) + '" y1="' + sy(b0 + b1 * 0.35) +
-                '" y2="' + sy(b0 + b1 * 0.75) + '"/>';
+    var recta = '<line class="curva" x1="' + sx(5) + '" x2="' + sx(85) + '" y1="' + sy(b0 + b1 * 5) +
+                '" y2="' + sy(b0 + b1 * 85) + '"/>';
     svg.innerHTML = '<defs><clipPath id="int-minimos-recorte"><rect x="' + m + '" y="0" width="' + (w - 2 * m) +
       '" height="' + (h - m) + '"/></clipPath></defs>' + g +
       '<g clip-path="url(#int-minimos-recorte)">' + res + recta + '</g>' + pts;
-    texto.textContent = "SSE de su recta = " + sse(b0, b1).toFixed(2) + " MPa²   |   mínimo posible = " +
-      sse(b0mc, b1mc).toFixed(2) + " MPa², con b0 = " + b0mc.toFixed(2) + " y b1 = " + b1mc.toFixed(2);
+    texto.textContent = "SSE de su recta = " + sse(b0, b1).toFixed(2) + " (km/h)²   |   mínimo posible = " +
+      sse(b0mc, b1mc).toFixed(2) + " (km/h)², con b0 = " + b0mc.toFixed(2) + " y b1 = " + b1mc.toFixed(3);
   }
   ctl[0].addEventListener("input", dibujar);
   ctl[1].addEventListener("input", dibujar);
   raiz.querySelector("button").addEventListener("click", function () {
-    ctl[0].value = b0mc.toFixed(1); ctl[1].value = (Math.round(b1mc * 2) / 2).toFixed(1); dibujar();
+    ctl[0].value = b0mc.toFixed(1); ctl[1].value = b1mc.toFixed(2); dibujar();
   });
   dibujar();
 })();
@@ -206,48 +206,48 @@ Recta movible y suma de cuadrados.
 
 Al probar se nota que el intercepto y la pendiente están amarrados: si se cambia la pendiente, hay que mover el intercepto para que la recta siga pasando por el centro de la nube, que es el punto $(\bar{x}, \bar{y})$. Es la propiedad 1 de la lista anterior.
 
-::: {.callout-note title="Ejemplo: recta de regresión de la resistencia contra la relación agua/cemento"}
+::: {.callout-note title="Ejemplo: recta de regresión de la velocidad contra la densidad del tránsito"}
 
-**Planteamiento.** Con las diez mezclas hipotéticas del capítulo 24, estime por mínimos cuadrados la recta que da la resistencia media a 28 días ($y$, MPa) en función de la relación agua/cemento ($x$). Calcule los valores ajustados y los residuos, y compruebe las propiedades de la recta.
+**Planteamiento.** Con los diez periodos hipotéticos del capítulo 24, estime por mínimos cuadrados la recta que da la velocidad media ($y$, km/h) en función de la densidad ($x$, veh/km/carril). Este es el modelo lineal de velocidad y densidad que propuso @greenshields1935study. Calcule los valores ajustados y los residuos, y compruebe las propiedades de la recta.
 
 ```{r}
 #| echo: false
-ver_datos("datos/mezclas_ac_hipoteticas.csv",
-          nombres = c("Mezcla", "Relación a/c", "Resistencia (MPa)"))
+ver_datos("datos/greenshields_tramo_hipotetico.csv",
+          nombres = c("Periodo", "Densidad (veh/km/carril)", "Velocidad (km/h)"))
 ```
 
 **Solución:**
 
-1. Del ejemplo del capítulo 24 se tienen $\bar{x} = 0.559$, $\bar{y} = 33.79$ MPa, $S_{xx} = 0.091890$ y $S_{xy} = -5.79010$.
+1. Del ejemplo del capítulo 24 se tienen $\bar{x} = 42$ veh/km/carril, $\bar{y} = 54.30$ km/h, $S_{xx} = 4240$ y $S_{xy} = -3346.8$.
 2. Pendiente (@eq-rls-b1):
    $$
-   b_1 = \frac{-5.79010}{0.091890} = -63.011 \ \mathrm{MPa}
+   b_1 = \frac{-3346.8}{4240} = -0.78934 \ \mathrm{(km/h)/(veh/km)}
    $$
 3. Intercepto (@eq-rls-b0):
    $$
-   b_0 = 33.79 - (-63.011)(0.559) = 33.79 + 35.223 = 69.013 \ \mathrm{MPa}
+   b_0 = 54.30 - (-0.78934)(42) = 54.30 + 33.152 = 87.452 \ \mathrm{km/h}
    $$
-4. Recta estimada: $\hat{y} = 69.013 - 63.011\,x$.
-5. Valores ajustados y residuos. Para la primera mezcla, $\hat{y}_1 = 69.013 - 63.011(0.40) = 43.81$ MPa y $e_1 = 44.1 - 43.81 = 0.29$ MPa. Las demás siguen igual (@tbl-rls-residuos).
-6. Comprobación: los residuos suman cero (salvo el redondeo) y $SSE = \sum e_i^2 = 8.688$ MPa².
+4. Recta estimada: $\hat{y} = 87.452 - 0.78934\,x$.
+5. Valores ajustados y residuos. Para el primer periodo, $\hat{y}_1 = 87.452 - 0.78934(12) = 77.98$ km/h y $e_1 = 76.5 - 77.98 = -1.48$ km/h. Los demás siguen igual (@tbl-rls-residuos).
+6. Comprobación: los residuos suman cero (salvo el redondeo) y $SSE = \sum e_i^2 = 34.158$ (km/h)².
 
 ```{r}
 #| label: tbl-rls-residuos
 #| tbl-cap: "Valores ajustados y residuos."
 #| echo: false
 
-aj <- fitted(mod_mezclas); e <- residuals(mod_mezclas)
+aj <- fitted(mod_tramo); e <- residuals(mod_tramo)
 data.frame(
   i = c(1:10, "Suma"),
-  x = c(sprintf("%.2f", mezclas$relacion_ac), ""),
-  y = c(sprintf("%.1f", mezclas$resistencia_mpa), sprintf("%.1f", sum(mezclas$resistencia_mpa))),
+  x = c(sprintf("%d", tramo$densidad_veh_km), ""),
+  y = c(sprintf("%.1f", tramo$velocidad_km_h), sprintf("%.1f", sum(tramo$velocidad_km_h))),
   yh = c(sprintf("%.2f", aj), sprintf("%.1f", sum(aj))),
   e = c(sprintf("%.2f", e), "0.00"),
   e2 = c(sprintf("%.3f", e^2), sprintf("%.3f", sum(e^2)))
 ) %>%
-  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>y<sub>i</sub></i> (MPa)",
-                    "<i>ŷ<sub>i</sub></i> (MPa)", "<i>e<sub>i</sub></i> (MPa)",
-                    "<i>e<sub>i</sub></i><sup>2</sup> (MPa<sup>2</sup>)"),
+  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i> (veh/km)", "<i>y<sub>i</sub></i> (km/h)",
+                    "<i>ŷ<sub>i</sub></i> (km/h)", "<i>e<sub>i</sub></i> (km/h)",
+                    "<i>e<sub>i</sub></i><sup>2</sup> ((km/h)<sup>2</sup>)"),
       escape = FALSE, align = "c") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
   row_spec(11, bold = TRUE)
@@ -263,9 +263,9 @@ data.frame(
 
 ```{r}
 # 1) Datos
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-x <- mezclas$relacion_ac
-y <- mezclas$resistencia_mpa
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+x <- tramo$densidad_veh_km
+y <- tramo$velocidad_km_h
 
 # 2) Sumas
 Sxx <- sum((x - mean(x))^2)
@@ -281,14 +281,14 @@ y_aj <- b0 + b1 * x
 e <- y - y_aj
 c(suma_residuos = sum(e), SSE = sum(e^2))
 
-# 5) El mismo modelo con lm(): la fórmula se lee "resistencia en función de relación a/c"
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+# 5) El mismo modelo con lm(): la fórmula se lee "velocidad en función de densidad"
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
 coef(modelo)
 fitted(modelo)      # valores ajustados
 residuals(modelo)   # residuos
 ```
 
-**Interpretación.** La recta estimada es $\widehat{\text{resistencia}} = 69.01 - 63.01\,(\text{relación a/c})$. Como la relación agua/cemento se mueve en centésimas, la pendiente se lee mejor así: por cada aumento de 0.01 en la relación, la resistencia media a 28 días baja unos 0.63 MPa. Los residuos están entre $-1.6$ y $1.2$ MPa, una dispersión pequeña comparada con los 19 MPa que separan la mezcla más fuerte de la más débil.
+**Interpretación.** La recta estimada es $\widehat{\text{velocidad}} = 87.45 - 0.789\,(\text{densidad})$. La pendiente se lee mejor en un cambio de 10 vehículos: por cada 10 veh/km/carril adicionales, la velocidad media baja unos 7.9 km/h. Los residuos están entre $-2.9$ y $3.6$ km/h, una dispersión pequeña comparada con los 49 km/h que separan el periodo más fluido del más congestionado.
 
 :::
 
@@ -296,12 +296,14 @@ En la función `lm()` (de *linear model*) la fórmula `y ~ x` se lee "$y$ en fun
 
 ## Interpretación de los coeficientes {#sec-rls-interpretacion}
 
-La pendiente $b_1$ es el cambio estimado en la media de $Y$ cuando $X$ aumenta una unidad. Tiene las unidades de $Y$ divididas entre las de $X$. Si la unidad de $X$ es grande para el problema (como pasar la relación agua/cemento de 0 a 1), conviene reescalarla, como se hizo en el ejemplo con el cambio de 0.01.
+La pendiente $b_1$ es el cambio estimado en la media de $Y$ cuando $X$ aumenta una unidad. Tiene las unidades de $Y$ divididas entre las de $X$. Si la unidad de $X$ es muy grande o muy pequeña para el problema, conviene reescalarla, como se hizo en el ejemplo con el cambio de 10 veh/km. Con la relación agua/cemento de una mezcla de concreto, por ejemplo, pasar de 0 a 1 no tiene sentido y se habla del cambio por cada 0.01.
 
-El intercepto $b_0$ es el valor estimado de $Y$ cuando $X = 0$. Solo tiene sentido práctico si $X = 0$ es posible y está dentro del rango de los datos. En el ejemplo, $b_0 = 69.0$ MPa sería la resistencia de un concreto sin agua, que no existe; el intercepto es solo la altura a la que la recta cortaría el eje, y sirve para ubicarla, no para interpretarlo.
+El intercepto $b_0$ es el valor estimado de $Y$ cuando $X = 0$. Solo tiene sentido práctico si $X = 0$ es posible y está cerca del rango de los datos. En el ejemplo sí lo tiene: $b_0 = 87.5$ km/h es la velocidad estimada con la vía casi vacía, que en ingeniería de tránsito se llama velocidad a flujo libre. Como el periodo menos denso tuvo 12 veh/km, es una extrapolación corta. En otros problemas el intercepto no significa nada: en una recta de resistencia contra relación agua/cemento, $X = 0$ sería un concreto sin agua, que no existe, y el intercepto solo sirve para ubicar la recta.
+
+La recta también da la densidad con la que la velocidad llegaría a cero, que es la densidad de congestión del modelo de Greenshields: $-b_0/b_1 = 87.452/0.78934 = 110.8$ veh/km/carril. Ese valor está muy lejos de los datos, así que se toma solo como una estimación gruesa (@sec-rls-extrapolacion).
 
 ::: {.callout-warning title="Cuidado"}
-La pendiente describe una asociación en los datos observados. Decir que "si se baja la relación agua/cemento en 0.01, la resistencia sube 0.63 MPa" supone una relación de causa que la regresión, por sí sola, no demuestra (@sec-cor-causalidad). En el concreto se acepta porque hay un mecanismo físico conocido y porque las mezclas se diseñan en el laboratorio, no porque la recta lo diga.
+La pendiente describe una asociación en los datos observados. Decir que "si entran 10 vehículos más por kilómetro, la velocidad baja 7.9 km/h" supone una relación de causa que la regresión, por sí sola, no demuestra (@sec-cor-causalidad). En el tránsito se acepta porque hay un mecanismo conocido (con menos espacio entre vehículos, quienes conducen frenan), no porque la recta lo diga. En un ensayo de laboratorio, como el de mezclas de concreto con distinta relación agua/cemento, el argumento es más fuerte, porque quien ensaya fija el valor de $X$.
 :::
 
 ## Qué tan bien ajusta la recta {#sec-rls-ajuste}
@@ -336,17 +338,17 @@ $$ {#eq-rls-mse}
 
 donde $n - 2$ son los grados de libertad del error: se pierden dos porque se estimaron dos parámetros, $b_0$ y $b_1$. El valor $s$ se llama error estándar de la estimación (en R, *residual standard error*) y tiene las unidades de $Y$. Es el tamaño típico de un residuo: aproximadamente dos de cada tres puntos quedan a menos de $s$ de la recta.
 
-::: {.callout-note title="Ejemplo: R² y error estándar de la recta de las mezclas"}
+::: {.callout-note title="Ejemplo: R² y error estándar de la recta de velocidad y densidad"}
 
 **Planteamiento.** Con la recta del ejemplo anterior, calcule $SST$, $SSR$, $R^2$ y el error estándar de la estimación. Compruebe que $R^2 = r^2$.
 
 **Solución:**
 
-1. $SST = S_{yy} = 373.529$ MPa² (capítulo 24) y $SSE = 8.688$ MPa² (@tbl-rls-residuos).
-2. $SSR = SST - SSE = 373.529 - 8.688 = 364.841$ MPa².
-3. Coeficiente de determinación (@eq-rls-r2): $R^2 = 364.841 / 373.529 = 0.977$.
-4. Comprobación: $r^2 = (-0.98830)^2 = 0.977$.
-5. Error estándar (@eq-rls-mse): $MSE = 8.688 / (10 - 2) = 1.086$ MPa² y $s = \sqrt{1.086} = 1.042$ MPa.
+1. $SST = S_{yy} = 2675.920$ (km/h)² (capítulo 24) y $SSE = 34.158$ (km/h)² (@tbl-rls-residuos).
+2. $SSR = SST - SSE = 2675.920 - 34.158 = 2641.762$ (km/h)².
+3. Coeficiente de determinación (@eq-rls-r2): $R^2 = 2641.762 / 2675.920 = 0.987$.
+4. Comprobación: $r^2 = (-0.99360)^2 = 0.987$.
+5. Error estándar (@eq-rls-mse): $MSE = 34.158 / (10 - 2) = 4.270$ (km/h)² y $s = \sqrt{4.270} = 2.066$ km/h.
 
 **Pseudocódigo**
 
@@ -357,19 +359,19 @@ donde $n - 2$ son los grados de libertad del error: se pierden dos porque se est
 
 ```{r}
 # 1) Sumas de cuadrados
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
-y <- mezclas$resistencia_mpa
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
+y <- tramo$velocidad_km_h
 SST <- sum((y - mean(y))^2)
 SSE <- sum(residuals(modelo)^2)
 SSR <- SST - SSE
 
 # 2) R2 y su relación con r
 R2 <- SSR / SST
-c(R2 = R2, r_al_cuadrado = cor(mezclas$relacion_ac, y)^2)
+c(R2 = R2, r_al_cuadrado = cor(tramo$densidad_veh_km, y)^2)
 
 # 3) Error estándar de la estimación
-n <- nrow(mezclas)
+n <- nrow(tramo)
 s <- sqrt(SSE / (n - 2))
 s
 
@@ -377,7 +379,7 @@ s
 summary(modelo)
 ```
 
-**Interpretación.** La recta explica el 97.7 % de la variación de la resistencia entre las diez mezclas, y el resto queda en los residuos. El error típico de la recta es de 1.04 MPa: si se usa para estimar la resistencia de una mezcla nueva, es razonable esperar desviaciones del orden de 1 a 2 MPa.
+**Interpretación.** La recta explica el 98.7 % de la variación de la velocidad entre los diez periodos, y el resto queda en los residuos. El error típico de la recta es de 2.07 km/h: si se usa para estimar la velocidad media de un periodo nuevo, es razonable esperar desviaciones del orden de 2 a 4 km/h.
 
 :::
 
@@ -387,7 +389,7 @@ Un $R^2$ alto no demuestra que la recta sea el modelo correcto ni que haya relac
 
 ## Inferencia sobre la pendiente {#sec-rls-inferencia}
 
-Con otras diez mezclas se obtendría otra recta. La pendiente $b_1$ es, entonces, una estimación con incertidumbre, y se puede calcular su error estándar, probar hipótesis y armar un intervalo de confianza, como en los capítulos 19 a 21. Para eso se suponen errores independientes, con media cero, varianza constante $\sigma^2$ y distribución normal. El capítulo 27 explica cómo revisar esos supuestos.
+Con otros diez periodos se obtendría otra recta. La pendiente $b_1$ es, entonces, una estimación con incertidumbre, y se puede calcular su error estándar, probar hipótesis y armar un intervalo de confianza, como en los capítulos 19 a 21. Para eso se suponen errores independientes, con media cero, varianza constante $\sigma^2$ y distribución normal. El capítulo 27 explica cómo revisar esos supuestos.
 
 El error estándar de la pendiente es [@montgomery2012introduction, cap. 2; @laneintroduction, cap. 14]
 
@@ -423,21 +425,21 @@ $$ {#eq-rls-se-b0}
 
 En la regresión simple, la prueba $t$ de la pendiente y la prueba de la correlación de la @eq-cor-t dan el mismo estadístico y el mismo valor $p$.
 
-::: {.callout-note title="Ejemplo: prueba e intervalo para la pendiente de las mezclas"}
+::: {.callout-note title="Ejemplo: prueba e intervalo para la pendiente de velocidad y densidad"}
 
-**Planteamiento.** Con el modelo de las diez mezclas ($b_1 = -63.011$, $b_0 = 69.013$, $s = 1.042$ MPa), pruebe con $\alpha = 0.05$ si la pendiente es distinta de cero y calcule intervalos de confianza del 95 % para $\beta_1$ y $\beta_0$.
+**Planteamiento.** Con el modelo de los diez periodos ($b_1 = -0.78934$, $b_0 = 87.452$, $s = 2.066$ km/h), pruebe con $\alpha = 0.05$ si la pendiente es distinta de cero y calcule intervalos de confianza del 95 % para $\beta_1$ y $\beta_0$.
 
 **Solución:**
 
-1. Error estándar de la pendiente (@eq-rls-se-b1): $SE(b_1) = 1.0421 / \sqrt{0.091890} = 1.0421 / 0.30313 = 3.438$ MPa.
-2. Estadístico (@eq-rls-t): $t = -63.011 / 3.438 = -18.33$.
-3. Valor crítico: $t_{0.975,\,8} = 2.306$. Como $|t| = 18.33 > 2.306$, se rechaza $H_0$.
-4. Intervalo para la pendiente (@eq-rls-ic-b1): $-63.011 \pm (2.306)(3.438) = -63.011 \pm 7.928$, es decir, de $-70.94$ a $-55.08$ MPa.
+1. Error estándar de la pendiente (@eq-rls-se-b1): $SE(b_1) = 2.0663 / \sqrt{4240} = 2.0663 / 65.115 = 0.03173$ (km/h)/(veh/km).
+2. Estadístico (@eq-rls-t): $t = -0.78934 / 0.03173 = -24.87$.
+3. Valor crítico: $t_{0.975,\,8} = 2.306$. Como $|t| = 24.87 > 2.306$, se rechaza $H_0$.
+4. Intervalo para la pendiente (@eq-rls-ic-b1): $-0.78934 \pm (2.306)(0.03173) = -0.78934 \pm 0.07318$, es decir, de $-0.8625$ a $-0.7162$ (km/h)/(veh/km).
 5. Error estándar del intercepto (@eq-rls-se-b0):
    $$
-   SE(b_0) = 1.0421 \, \sqrt{\frac{1}{10} + \frac{0.559^2}{0.091890}} = 1.0421 \, \sqrt{3.5006} = 1.950 \ \mathrm{MPa}
+   SE(b_0) = 2.0663 \, \sqrt{\frac{1}{10} + \frac{42^2}{4240}} = 2.0663 \, \sqrt{0.51604} = 1.484 \ \mathrm{km/h}
    $$
-6. Intervalo para el intercepto: $69.013 \pm (2.306)(1.950) = 69.013 \pm 4.496$, de 64.52 a 73.51 MPa.
+6. Intervalo para el intercepto: $87.452 \pm (2.306)(1.484) = 87.452 \pm 3.423$, de 84.03 a 90.88 km/h.
 
 **Pseudocódigo**
 
@@ -448,9 +450,9 @@ En la regresión simple, la prueba $t$ de la pendiente y la prueba de la correla
 
 ```{r}
 # 1) Modelo y cantidades básicas
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
-x <- mezclas$relacion_ac
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
+x <- tramo$densidad_veh_km
 n <- length(x)
 Sxx <- sum((x - mean(x))^2)
 s <- sqrt(sum(residuals(modelo)^2) / (n - 2))
@@ -476,7 +478,7 @@ summary(modelo)$coefficients
 confint(modelo, level = 0.95)
 ```
 
-**Interpretación.** Con un nivel de significancia del 5 %, hay evidencia de una relación lineal entre la relación agua/cemento y la resistencia ($p < 0.001$). Con 95 % de confianza, cada aumento de 0.01 en la relación baja la resistencia media entre 0.55 y 0.71 MPa. El intervalo del intercepto se calcula igual, pero, como se dijo en la @sec-rls-interpretacion, no tiene interpretación física en este problema.
+**Interpretación.** Con un nivel de significancia del 5 %, hay evidencia de una relación lineal entre la densidad y la velocidad ($p < 0.001$). Con 95 % de confianza, cada aumento de 10 veh/km/carril baja la velocidad media entre 7.2 y 8.6 km/h. El intervalo del intercepto dice que la velocidad a flujo libre del tramo está, con 95 % de confianza, entre 84.0 y 90.9 km/h, siempre que la recta siga valiendo un poco por debajo de 12 veh/km (@sec-rls-interpretacion).
 
 :::
 
@@ -503,24 +505,24 @@ data.frame(
 
 El estadístico $F$ compara la variación que explica la recta con la que queda sin explicar. Si $H_0: \beta_1 = 0$ es cierta, sigue una distribución $F$ con 1 y $n - 2$ grados de libertad, y se rechaza $H_0$ si $F > F_{1-\alpha;\,1,\,n-2}$. En la regresión simple esta prueba es la misma que la prueba $t$ de la pendiente, porque $F = t^2$.
 
-::: {.callout-note title="Ejemplo: cuadro ANOVA del modelo de las mezclas"}
+::: {.callout-note title="Ejemplo: cuadro ANOVA del modelo de velocidad y densidad"}
 
-**Planteamiento.** Arme la cuadro ANOVA del modelo de las diez mezclas y haga la prueba $F$ con $\alpha = 0.05$.
+**Planteamiento.** Arme el cuadro ANOVA del modelo de los diez periodos y haga la prueba $F$ con $\alpha = 0.05$.
 
 **Solución:**
 
-1. Sumas de cuadrados del ejemplo de la @sec-rls-ajuste: $SSR = 364.841$, $SSE = 8.688$ y $SST = 373.529$ MPa².
+1. Sumas de cuadrados del ejemplo de la @sec-rls-ajuste: $SSR = 2641.762$, $SSE = 34.158$ y $SST = 2675.920$ (km/h)².
 2. Grados de libertad: 1 para la regresión, $10 - 2 = 8$ para el error y $10 - 1 = 9$ en total.
-3. Cuadrados medios: $MSR = 364.841/1 = 364.841$ y $MSE = 8.688/8 = 1.086$ MPa².
-4. $F = 364.841 / 1.086 = 336.0$. Se comprueba que $t^2 = (-18.33)^2 = 336.0$.
-5. Valor crítico: $F_{0.95;\,1,\,8} = 5.32$. Como $336.0 > 5.32$, se rechaza $H_0$. El resultado se resume en el @tbl-rls-anova.
+3. Cuadrados medios: $MSR = 2641.762/1 = 2641.762$ y $MSE = 34.158/8 = 4.270$ (km/h)².
+4. $F = 2641.762 / 4.270 = 618.7$. Se comprueba que $t^2 = (-24.87)^2 = 618.7$.
+5. Valor crítico: $F_{0.95;\,1,\,8} = 5.32$. Como $618.7 > 5.32$, se rechaza $H_0$. El resultado se resume en el @tbl-rls-anova.
 
 ```{r}
 #| label: tbl-rls-anova
 #| tbl-cap: "Cuadro ANOVA de la regresión."
 #| echo: false
 
-av <- anova(mod_mezclas)
+av <- anova(mod_tramo)
 data.frame(
   fuente = c("Regresión", "Error", "Total"),
   sc = sprintf("%.3f", c(av$`Sum Sq`, sum(av$`Sum Sq`))),
@@ -529,7 +531,7 @@ data.frame(
   f = c(sprintf("%.1f", av$`F value`[1]), "", ""),
   p = c("< 0.001", "", "")
 ) %>%
-  kbl(col.names = c("Fuente", "SC (MPa<sup>2</sup>)", "gl", "CM (MPa<sup>2</sup>)", "<i>F</i>", "Valor <i>p</i>"),
+  kbl(col.names = c("Fuente", "SC ((km/h)<sup>2</sup>)", "gl", "CM ((km/h)<sup>2</sup>)", "<i>F</i>", "Valor <i>p</i>"),
       escape = FALSE, align = "lccccc") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
@@ -542,9 +544,9 @@ data.frame(
 
 ```{r}
 # 1) Sumas de cuadrados y grados de libertad
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
-y <- mezclas$resistencia_mpa
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
+y <- tramo$velocidad_km_h
 n <- length(y)
 SST <- sum((y - mean(y))^2)
 SSE <- sum(residuals(modelo)^2)
@@ -560,20 +562,20 @@ c(F = F_calc, F_critico = qf(0.95, 1, n - 2), p = pf(F_calc, 1, n - 2, lower.tai
 anova(modelo)
 ```
 
-**Interpretación.** La variación explicada por la recta es 336 veces mayor que la variación residual por grado de libertad, así que la relación agua/cemento explica una parte real de la variación de la resistencia. La conclusión es la misma de la prueba $t$, como debe ser en una regresión con un solo predictor.
+**Interpretación.** La variación explicada por la recta es unas 619 veces mayor que la variación residual por grado de libertad, así que la densidad explica una parte real de la variación de la velocidad. La conclusión es la misma de la prueba $t$, como debe ser en una regresión con un solo predictor.
 
 :::
 
 ## Estimación de la media y predicción de un valor nuevo {#sec-rls-prediccion}
 
 ::: {.pregunta}
-Si se prepara una mezcla con relación agua/cemento de 0.55, ¿qué resistencia se espera?
+Si el tramo tiene 40 vehículos por kilómetro de carril, ¿qué velocidad se espera?
 :::
 
 La respuesta tiene dos versiones, que dan el mismo número central pero distinta incertidumbre:
 
-- **La resistencia media** de todas las mezclas que se hagan con relación 0.55. Se estima con un intervalo de confianza para la media.
-- **La resistencia de una mezcla en particular** con relación 0.55. Se estima con un intervalo de predicción, que es más ancho porque suma la variación propia de cada mezcla.
+- **La velocidad media** de todos los periodos con 40 veh/km/carril. Se estima con un intervalo de confianza para la media.
+- **La velocidad de un periodo en particular** con 40 veh/km/carril. Se estima con un intervalo de predicción, que es más ancho porque suma la variación propia de cada periodo.
 
 En los dos casos el valor central es $\hat{y}_0 = b_0 + b_1 x_0$. Los errores estándar son [@montgomery2012introduction, cap. 2]
 
@@ -587,18 +589,18 @@ $$ {#eq-rls-se-pred}
 
 donde $x_0$ es el valor del predictor en el que se estima. El intervalo es $\hat{y}_0 \pm t_{1-\alpha/2,\,n-2}$ por el error estándar que corresponda. El "1" de más dentro de la raíz es la variación de una observación individual alrededor de la media. El término $(x_0 - \bar{x})^2$ hace que los dos intervalos se ensanchen al alejarse del centro de los datos.
 
-::: {.callout-note title="Ejemplo: resistencia esperada para una relación agua/cemento de 0.55"}
+::: {.callout-note title="Ejemplo: velocidad esperada con una densidad de 40 veh/km"}
 
-**Planteamiento.** Con el modelo de las diez mezclas, estime la resistencia para $x_0 = 0.55$. Calcule el intervalo de confianza del 95 % para la resistencia media y el intervalo de predicción del 95 % para una mezcla individual.
+**Planteamiento.** Con el modelo de los diez periodos, estime la velocidad para $x_0 = 40$ veh/km/carril. Calcule el intervalo de confianza del 95 % para la velocidad media y el intervalo de predicción del 95 % para un periodo individual.
 
 **Solución:**
 
-1. Valor central: $\hat{y}_0 = 69.013 - 63.011(0.55) = 34.36$ MPa.
-2. Distancia al centro: $(0.55 - 0.559)^2 / 0.091890 = 0.000081 / 0.091890 = 0.00088$.
-3. Error estándar de la media (@eq-rls-se-media): $1.0421 \sqrt{0.1 + 0.00088} = 1.0421 (0.31762) = 0.331$ MPa.
-4. Intervalo de confianza: $34.36 \pm (2.306)(0.331) = 34.36 \pm 0.76$, de 33.59 a 35.12 MPa.
-5. Error estándar de predicción (@eq-rls-se-pred): $1.0421 \sqrt{1 + 0.1 + 0.00088} = 1.0421 (1.04923) = 1.093$ MPa.
-6. Intervalo de predicción: $34.36 \pm (2.306)(1.093) = 34.36 \pm 2.52$, de 31.84 a 36.88 MPa.
+1. Valor central: $\hat{y}_0 = 87.452 - 0.78934(40) = 55.88$ km/h.
+2. Distancia al centro: $(40 - 42)^2 / 4240 = 4 / 4240 = 0.00094$.
+3. Error estándar de la media (@eq-rls-se-media): $2.0663 \sqrt{0.1 + 0.00094} = 2.0663 (0.31772) = 0.657$ km/h.
+4. Intervalo de confianza: $55.88 \pm (2.306)(0.657) = 55.88 \pm 1.51$, de 54.36 a 57.39 km/h.
+5. Error estándar de predicción (@eq-rls-se-pred): $2.0663 \sqrt{1 + 0.1 + 0.00094} = 2.0663 (1.04926) = 2.168$ km/h.
+6. Intervalo de predicción: $55.88 \pm (2.306)(2.168) = 55.88 \pm 5.00$, de 50.88 a 60.88 km/h.
 
 **Pseudocódigo**
 
@@ -609,11 +611,11 @@ donde $x_0$ es el valor del predictor en el que se estima. El intervalo es $\hat
 
 ```{r}
 # 1) Modelo y valor central
-mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
-modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
-x <- mezclas$relacion_ac
+tramo <- read.csv("datos/greenshields_tramo_hipotetico.csv")
+modelo <- lm(velocidad_km_h ~ densidad_veh_km, data = tramo)
+x <- tramo$densidad_veh_km
 n <- length(x)
-x0 <- 0.55
+x0 <- 40
 y0 <- coef(modelo)[1] + coef(modelo)[2] * x0
 
 # 2) Errores estándar
@@ -628,12 +630,12 @@ rbind(media = y0 + c(-1, 1) * t_crit * se_media,
       prediccion = y0 + c(-1, 1) * t_crit * se_pred)
 
 # 4) Con predict(): el valor nuevo va en un data frame con el mismo nombre de columna
-nuevo <- data.frame(relacion_ac = 0.55)
+nuevo <- data.frame(densidad_veh_km = 40)
 predict(modelo, newdata = nuevo, interval = "confidence", level = 0.95)
 predict(modelo, newdata = nuevo, interval = "prediction", level = 0.95)
 ```
 
-**Interpretación.** Con 95 % de confianza, la resistencia media de las mezclas con relación 0.55 está entre 33.6 y 35.1 MPa. Una mezcla individual, en cambio, puede quedar entre 31.8 y 36.9 MPa. Si el diseño pide una resistencia mínima de 32 MPa, la media cumple con holgura, pero una mezcla particular podría quedar justo en el límite. Para decisiones sobre elementos individuales se usa el intervalo de predicción.
+**Interpretación.** Con 95 % de confianza, la velocidad media de los periodos con 40 veh/km/carril está entre 54.4 y 57.4 km/h. Un periodo individual, en cambio, puede quedar entre 50.9 y 60.9 km/h. Si un sistema de información al usuario anuncia el tiempo de viaje del próximo cuarto de hora, la incertidumbre que corresponde es la del intervalo de predicción, porque se trata de un periodo particular y no del promedio de muchos.
 
 :::
 
@@ -645,33 +647,33 @@ La @fig-rls-bandas muestra las dos bandas para todo el rango de los datos. La ba
 #| fig-alt: "Recta descendente con una banda angosta azul alrededor y una banda ancha gris más afuera que contiene los diez puntos"
 #| echo: false
 
-rejilla <- data.frame(relacion_ac = seq(0.40, 0.70, length.out = 100))
-media <- predict(mod_mezclas, rejilla, interval = "confidence")
-pred <- predict(mod_mezclas, rejilla, interval = "prediction")
+rejilla <- data.frame(densidad_veh_km = seq(12, 76, length.out = 100))
+media <- predict(mod_tramo, rejilla, interval = "confidence")
+pred <- predict(mod_tramo, rejilla, interval = "prediction")
 rejilla <- cbind(rejilla, ajuste = media[, 1], lm_inf = media[, 2], lm_sup = media[, 3],
                  lp_inf = pred[, 2], lp_sup = pred[, 3])
-ggplot(rejilla, aes(relacion_ac)) +
-  geom_ribbon(aes(ymin = lp_inf, ymax = lp_sup, fill = "Predicción de una mezcla"), alpha = 0.6) +
+ggplot(rejilla, aes(densidad_veh_km)) +
+  geom_ribbon(aes(ymin = lp_inf, ymax = lp_sup, fill = "Predicción de un periodo"), alpha = 0.6) +
   geom_ribbon(aes(ymin = lm_inf, ymax = lm_sup, fill = "Confianza para la media"), alpha = 0.8) +
   geom_line(aes(y = ajuste), color = azul, linewidth = 1) +
-  geom_point(data = mezclas, aes(relacion_ac, resistencia_mpa), size = 2.3) +
-  scale_fill_manual(values = c("Predicción de una mezcla" = "grey85",
+  geom_point(data = tramo, aes(densidad_veh_km, velocidad_km_h), size = 2.3) +
+  scale_fill_manual(values = c("Predicción de un periodo" = "grey85",
                                "Confianza para la media" = "#9ECAE1"), name = NULL) +
-  labs(x = "Relación agua/cemento", y = "Resistencia a 28 días (MPa)") +
+  labs(x = "Densidad (veh/km/carril)", y = "Velocidad media (km/h)") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "bottom")
 ```
 
 ### Interactivo: los dos intervalos
 
-Con el control se elige la relación agua/cemento $x_0$. El interactivo calcula $\hat{y}_0$ y los dos intervalos del 95 % con las fórmulas de esta sección, y marca en gris la zona fuera del rango de los datos.
+Con el control se elige la densidad $x_0$. El interactivo calcula $\hat{y}_0$ y los dos intervalos del 95 % con las fórmulas de esta sección, y marca en gris la zona fuera del rango de los datos.
 
 ::: {#fig-rls-interactivo-bandas}
 
 ```{=html}
 <div class="interactivo" id="int-bandas">
-  <label><span>Relación agua/cemento <i>x</i><sub>0</sub>:</span> <output>0.55</output>
-    <input type="range" min="0.25" max="0.85" step="0.01" value="0.55"></label>
+  <label><span>Densidad <i>x</i><sub>0</sub> (veh/km/carril):</span> <output>40</output>
+    <input type="range" min="0" max="110" step="1" value="40"></label>
   <svg viewBox="0 0 640 320" role="img" aria-label="Recta con bandas de confianza y predicción y los intervalos en el valor elegido"></svg>
   <p class="resultado" aria-live="polite"></p>
 </div>
@@ -680,8 +682,8 @@ Con el control se elige la relación agua/cemento $x_0$. El interactivo calcula 
   var raiz = document.getElementById("int-bandas");
   var ctl = raiz.querySelector("input"), sal = raiz.querySelector("output");
   var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
-  var xs = [0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70];
-  var ys = [44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1];
+  var xs = [12, 18, 24, 30, 36, 44, 52, 60, 68, 76];
+  var ys = [76.5, 73.4, 71.3, 64.4, 58.5, 49.8, 45.4, 43.7, 32.9, 27.1];
   var n = xs.length, mx = 0, my = 0, sxx = 0, sxy = 0, sse = 0, tc = 2.306; // t(0.975, 8)
   for (var i = 0; i < n; i++) { mx += xs[i] / n; my += ys[i] / n; }
   for (var j = 0; j < n; j++) { sxx += Math.pow(xs[j] - mx, 2); sxy += (xs[j] - mx) * (ys[j] - my); }
@@ -689,43 +691,44 @@ Con el control se elige la relación agua/cemento $x_0$. El interactivo calcula 
   for (var k = 0; k < n; k++) sse += Math.pow(ys[k] - b0 - b1 * xs[k], 2);
   var s = Math.sqrt(sse / (n - 2));
   var w = 640, h = 320, m = 44;
-  var sx = function (x) { return m + (x - 0.25) / 0.60 * (w - 2 * m); };
-  var sy = function (y) { return h - m - (y - 10) / 50 * (h - 2 * m); };
+  var sx = function (x) { return m + x / 110 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y + 20) / 120 * (h - 2 * m); };
   function semed(x) { return s * Math.sqrt(1 / n + Math.pow(x - mx, 2) / sxx); }
   function sepred(x) { return s * Math.sqrt(1 + 1 / n + Math.pow(x - mx, 2) / sxx); }
   function banda(f, color) {
     var arriba = "", abajo = "";
-    for (var x = 0.25; x <= 0.8501; x += 0.01) {
+    for (var x = 0; x <= 110.01; x += 1) {
       var yh = b0 + b1 * x;
       arriba += (arriba ? "L" : "M") + sx(x).toFixed(1) + "," + sy(yh + tc * f(x)).toFixed(1);
       abajo = "L" + sx(x).toFixed(1) + "," + sy(yh - tc * f(x)).toFixed(1) + abajo;
     }
     return '<path d="' + arriba + abajo + 'Z" fill="' + color + '" fill-opacity="0.55"/>';
   }
-  var fondo = '<rect x="' + sx(0.25) + '" y="' + m / 2 + '" width="' + (sx(0.40) - sx(0.25)) + '" height="' + (h - 1.5 * m) +
-    '" fill="#999" fill-opacity="0.15"/><rect x="' + sx(0.70) + '" y="' + m / 2 + '" width="' + (sx(0.85) - sx(0.70)) +
+  var fondo = '<rect x="' + sx(0) + '" y="' + m / 2 + '" width="' + (sx(12) - sx(0)) + '" height="' + (h - 1.5 * m) +
+    '" fill="#999" fill-opacity="0.15"/><rect x="' + sx(76) + '" y="' + m / 2 + '" width="' + (sx(110) - sx(76)) +
     '" height="' + (h - 1.5 * m) + '" fill="#999" fill-opacity="0.15"/>' + banda(sepred, "#cccccc") + banda(semed, "#9ECAE1") +
-    '<line class="curva" x1="' + sx(0.25) + '" x2="' + sx(0.85) + '" y1="' + sy(b0 + b1 * 0.25) + '" y2="' + sy(b0 + b1 * 0.85) + '"/>';
-  for (var t = 10; t <= 60; t += 10) {
+    '<line class="curva" x1="' + sx(0) + '" x2="' + sx(110) + '" y1="' + sy(b0) + '" y2="' + sy(b0 + b1 * 110) + '"/>' +
+    '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + sy(0) + '" y2="' + sy(0) + '" stroke-dasharray="3,3"/>';
+  for (var t = -20; t <= 100; t += 20) {
     fondo += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
   }
-  for (var u = 0.3; u <= 0.801; u += 0.1) {
-    fondo += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(1) + '</text>';
+  for (var u = 0; u <= 100; u += 20) {
+    fondo += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u + '</text>';
   }
   fondo += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
     '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
-    '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>';
+    '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Densidad (veh/km/carril)</text>';
   for (var q = 0; q < n; q++) fondo += '<circle cx="' + sx(xs[q]) + '" cy="' + sy(ys[q]) + '" r="3.5" fill="#222"/>';
   function dibujar() {
-    var x0 = parseFloat(ctl.value); sal.textContent = x0.toFixed(2);
+    var x0 = parseFloat(ctl.value); sal.textContent = x0.toFixed(0);
     var y0 = b0 + b1 * x0, am = tc * semed(x0), ap = tc * sepred(x0);
     var marca = '<line x1="' + sx(x0) + '" x2="' + sx(x0) + '" y1="' + sy(y0 - ap) + '" y2="' + sy(y0 + ap) +
       '" stroke="#555" stroke-width="5" stroke-opacity="0.6"/><line x1="' + sx(x0) + '" x2="' + sx(x0) + '" y1="' + sy(y0 - am) +
       '" y2="' + sy(y0 + am) + '" stroke="#1C6BA0" stroke-width="5"/><circle cx="' + sx(x0) + '" cy="' + sy(y0) + '" r="5" fill="#D55E00"/>';
     svg.innerHTML = fondo + marca;
-    var aviso = (x0 < 0.40 || x0 > 0.70) ? "   (fuera del rango de los datos, de 0.40 a 0.70: es una extrapolación)" : "";
-    texto.textContent = "ŷ0 = " + y0.toFixed(2) + " MPa   |   media: " + (y0 - am).toFixed(2) + " a " + (y0 + am).toFixed(2) +
-      " MPa   |   una mezcla: " + (y0 - ap).toFixed(2) + " a " + (y0 + ap).toFixed(2) + " MPa" + aviso;
+    var aviso = (x0 < 12 || x0 > 76) ? "   (fuera del rango de los datos, de 12 a 76 veh/km: es una extrapolación)" : "";
+    texto.textContent = "ŷ0 = " + y0.toFixed(2) + " km/h   |   media: " + (y0 - am).toFixed(2) + " a " + (y0 + am).toFixed(2) +
+      " km/h   |   un periodo: " + (y0 - ap).toFixed(2) + " a " + (y0 + ap).toFixed(2) + " km/h" + aviso;
   }
   ctl.addEventListener("input", dibujar);
   dibujar();
@@ -733,13 +736,13 @@ Con el control se elige la relación agua/cemento $x_0$. El interactivo calcula 
 </script>
 ```
 
-Intervalos para la media y para una mezcla.
+Intervalos para la media y para un periodo.
 
 :::
 
 ## Extrapolación {#sec-rls-extrapolacion}
 
-Usar la recta fuera del rango de $x$ en que se ajustó se llama extrapolar. La ecuación sigue dando números, pero los datos no dicen nada sobre si la relación se mantiene. Con el modelo de las mezclas, una relación de 0.90 daría $69.0 - 63.0(0.90) = 12.3$ MPa, y una de 1.10 daría un valor negativo, que es imposible. En la realidad, la resistencia del concreto baja con la relación agua/cemento siguiendo una curva, no una recta, y la recta solo es una buena aproximación en el tramo ensayado.
+Usar la recta fuera del rango de $x$ en que se ajustó se llama extrapolar. La ecuación sigue dando números, pero los datos no dicen nada sobre si la relación se mantiene. Con el modelo del tramo, una densidad de 100 veh/km/carril daría $87.45 - 0.789(100) = 8.5$ km/h, y una de 120 daría un valor negativo, que es imposible. En la realidad, cerca de la congestión el tránsito avanza a tirones y la relación entre velocidad y densidad se curva, así que la recta de Greenshields solo es una buena aproximación en el tramo observado. Lo mismo pasa con la resistencia del concreto contra la relación agua/cemento, que sigue una curva y no una recta.
 
 La @fig-rls-extrapolacion muestra un caso estructural. Una viga hipotética se ensayó con cargas de 10 a 60 kN, en su rango elástico, y la deflexión siguió una recta. Si con esa recta se estima la deflexión con 90 kN, se subestima mucho, porque después de la fisuración la viga pierde rigidez.
 
@@ -780,9 +783,11 @@ Una recta con $R^2 = 0.99$ no autoriza a extrapolar. Antes de usar el modelo hay
 3. Complete la cuadro ANOVA de una regresión simple con $n = 12$: $SST = 200$ y $SSE = 20$. Calcule $MSR$, $MSE$, $F$ y $R^2$, y decida con $\alpha = 0.05$.
 4. En una regresión con $n = 10$ se obtuvo $b_1 = -3.2$ y $SE(b_1) = 0.8$. Pruebe $H_0: \beta_1 = 0$ con $\alpha = 0.05$ y calcule el intervalo del 95 % para $\beta_1$.
 5. En una regresión simple con $n = 10$ se sabe que $SST = 250$ y $R^2 = 0.84$. Calcule $SSR$, $SSE$, $MSE$, $s$ y $F$.
-6. Con el modelo de las mezclas, calcule con `predict()` los intervalos del 95 % para $x_0 = 0.40$, $0.55$ y $0.70$. ¿Dónde es más angosto el intervalo para la media? Explique con la @eq-rls-se-media por qué.
-7. Repita el ajuste de las mezclas usando como predictor la relación agua/cemento multiplicada por 100 (por ejemplo, 55 en vez de 0.55). ¿Qué pasa con $b_0$, $b_1$, $R^2$ y el valor $p$? Explique.
-8. Use el interactivo de la @fig-rls-interactivo-bandas para encontrar la relación agua/cemento con la que el límite inferior del intervalo de predicción es 30 MPa. Compruebe el resultado con `predict()`.
+6. Con el modelo de velocidad y densidad, calcule con `predict()` los intervalos del 95 % para $x_0 = 12$, $42$ y $76$ veh/km/carril. ¿Dónde es más angosto el intervalo para la media? Explique con la @eq-rls-se-media por qué.
+7. Repita el ajuste de velocidad y densidad expresando la velocidad en m/s (divida entre 3.6). ¿Qué pasa con $b_0$, $b_1$, $R^2$ y el valor $p$? Explique.
+8. Use el interactivo de la @fig-rls-interactivo-bandas para encontrar la densidad con la que el límite inferior del intervalo de predicción es 30 km/h. Compruebe el resultado con `predict()`.
+9. En el modelo de Greenshields, el flujo es $q = k\,v$ (veh/h/carril), con $k$ la densidad y $v$ la velocidad. Con la recta del ejemplo, escriba $q$ como función de $k$, encuentre la densidad que da el flujo máximo y calcule ese flujo, que es la capacidad que estima el modelo. ¿Está esa densidad dentro del rango de los datos?
+10. Diez probetas hipotéticas de una misma mezcla de concreto con relaciones agua/cemento de 0.40 a 0.70 dieron estas resistencias a 28 días (MPa): (0.40, 44.1), (0.45, 41.5), (0.48, 37.2), (0.50, 38.0), (0.55, 33.9), (0.58, 33.5), (0.60, 30.2), (0.65, 28.4), (0.68, 25.0) y (0.70, 26.1). Ajuste la recta a mano y con `lm()`, interprete la pendiente por cada 0.01 de relación y explique por qué aquí el intercepto no tiene sentido físico.
 
 ## Lecturas recomendadas
 

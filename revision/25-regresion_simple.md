@@ -8,3 +8,9 @@ Fecha: 2026-11-25. Estado: borrador.
 - Figuras propias: residuos verticales, bandas de confianza y de predicción, extrapolación de la viga.
 - Interactivos: ajustar una recta a ojo y comparar su $SSE$ con el mínimo (`#fig-rls-interactivo-mco`); intervalos para la media y para una mezcla según $x_0$, con aviso de extrapolación (`#fig-rls-interactivo-bandas`).
 - Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
+
+## Cambios (2026-11-25): ejemplos de otras ramas
+
+- A pedido del autor (menos ejemplos de concreto), el hilo de las diez mezclas agua/cemento pasa a velocidad contra densidad del tránsito en diez periodos hipotéticos de un tramo de autopista (modelo de Greenshields, `@greenshields1935study`, entrada nueva en `references.bib`). Datos: `datos/greenshields_tramo_hipotetico.csv` (semilla 1935 en `herramientas/datos_parte6.R`), que reemplaza a `mezclas_ac_hipoteticas.csv`.
+- Cifras a mano verificadas con R 4.3.3: x̄ = 42, ȳ = 54.30, Sxx = 4240, Syy = 2675.92, Sxy = −3346.8, r = −0.994, t = −24.87, b0 = 87.452, b1 = −0.78934, SSE = 34.158, R² = 0.987, s = 2.066, F = 618.7, ŷ(40) = 55.88 con intervalos 54.36–57.39 (media) y 50.88–60.88 (predicción); en el capítulo 27, periodo 8 con h = 0.176, r = 1.92 y D = 0.397.
+- Interactivos actualizados con los datos nuevos. Etiquetas sin renombrar (`fig-cor-mezclas`, `tbl-cor-mano`, etc.).
