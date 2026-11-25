@@ -18,3 +18,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ecuación nueva: `eq-condicional-riesgo`. Ejercicios nuevos 13 a 16 (ambiental, hidrología, geotecnia, transportes).
 - Referencias nuevas: @friendly1994mosaic y @gigerenzer1995improve (además de las del capítulo 10).
 - No se tocó el recuadro "cargas de concreto fuera de especificación", que el hilo de diversificación de ramas va a reemplazar.
+- Diversificación de ramas (2026-11-25): el ejemplo de Bayes pasa de cargas de concreto de tres plantas al tipo de tormenta (frente frío, onda tropical, ciclón) que causó un desbordamiento (mismas probabilidades, 0.305, 0.356 y 0.339). Se ajustaron los párrafos de probabilidad total y Bayes, el árbol y el ejercicio 8. Se conserva la etiqueta `fig-condicional-arbol-plantas`.
