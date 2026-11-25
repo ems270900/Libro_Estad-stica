@@ -480,7 +480,7 @@ En el interactivo de la @fig-disc-int-riesgo se eligen el periodo de retorno $T$
 ::: {#fig-disc-int-riesgo}
 
 ```{=html}
-<div class="interactivo" id="int-riesgo">
+<div class="interactivo" id="int-riesgo-bin">
   <div class="controles">
     <label><span>Periodo de retorno <i>T</i> (años):</span> <output class="ot"></output>
       <input class="rt" type="range" min="0" max="100" step="1" value="50"></label>
@@ -492,7 +492,7 @@ En el interactivo de la @fig-disc-int-riesgo se eligen el periodo de retorno $T$
 </div>
 <script>
 (function () {
-  var raiz = document.getElementById("int-riesgo");
+  var raiz = document.getElementById("int-riesgo-bin");
   var rt = raiz.querySelector(".rt"), rn = raiz.querySelector(".rn");
   var ot = raiz.querySelector(".ot"), on = raiz.querySelector(".on");
   var svg = raiz.querySelector("svg"), res = raiz.querySelector(".resultado");
