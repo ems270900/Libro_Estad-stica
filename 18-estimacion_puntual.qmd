@@ -14,6 +14,57 @@ options(knitr.kable.NA = "")
 
 Un laboratorio ensaya 25 cilindros del concreto que llega a una obra. Lo que interesa no son esos 25 cilindros, que se destruyen en la prensa, sino los miles de metros cúbicos que quedan en la estructura. Con la muestra se quiere saber cuál es la resistencia media de todo el concreto, cuánto varía y qué fracción queda por debajo de la resistencia especificada. Esos valores de la población nunca se conocen con exactitud: se estiman. Este capítulo explica qué es un estimador, cómo se juzga si es bueno y cómo se construye uno con el método de máxima verosimilitud. Es la puerta de entrada a la inferencia estadística, que ocupa toda esta parte del libro [@montgomery2014applied; @walpole2012probabilidad].
 
+## Por qué se estima {#sec-est-por-que}
+
+Quien cocina no se toma la olla entera para saber si a la sopa le falta sal: prueba una cucharada, después de revolver. La estadística hace lo mismo con los materiales, los suelos, el agua y el tránsito. Una perforación geotécnica recupera unos pocos kilogramos de suelo de un terreno que pesa miles de toneladas. Un aforo de tránsito cuenta los vehículos de unas horas para describir lo que pasa todo el año. Un análisis de calidad del agua usa un litro para juzgar un río. En todos los casos se mira una parte pequeña, la muestra, para decir algo sobre el todo, la población [@illowsky2018introductory].
+
+La @fig-est-poblacion-muestra lo muestra con un lote de 1000 elementos, por ejemplo 1000 metros de tubería, cada uno con su propio valor de espesor de pared. Nadie mide los 1000. Se escogen 25 al azar (los cuadros marcados) y con ellos se calcula una media. La media de la muestra no coincide exactamente con la del lote, pero se le acerca, y la teoría de este capítulo dice qué tanto.
+
+```{r}
+#| label: fig-est-poblacion-muestra
+#| fig-cap: "Un lote de 1000 elementos y una muestra aleatoria de 25 (cuadros marcados). A la derecha, la distribución del lote y los valores de la muestra."
+#| fig-alt: "A la izquierda, una cuadrícula de 1000 cuadros coloreados según su espesor, con 25 de ellos marcados con un borde negro. A la derecha, un histograma del lote con los 25 valores de la muestra como puntos debajo y dos líneas verticales para la media del lote y la de la muestra."
+#| fig-width: 9
+#| fig-height: 3.8
+#| out-width: "95%"
+#| echo: false
+
+library(patchwork)
+set.seed(1810)
+lote <- tibble(id = 1:1000, fila = (id - 1) %/% 50, col = (id - 1) %% 50,
+               espesor = rnorm(1000, mean = 6.0, sd = 0.25))
+elegidos <- sample(lote$id, 25)
+lote <- lote %>% mutate(en_muestra = id %in% elegidos)
+
+p_cuad <- ggplot(lote, aes(col, fila, fill = espesor)) +
+  geom_tile(colour = "white", linewidth = 0.2) +
+  geom_tile(data = filter(lote, en_muestra), colour = "black", linewidth = 0.7) +
+  scale_fill_gradient(low = "#d6e6f2", high = "#1C6BA0", name = "Espesor\n(mm)") +
+  coord_equal() +
+  theme_void(base_size = 11) +
+  theme(legend.position = "bottom")
+
+p_hist <- ggplot(lote, aes(espesor)) +
+  geom_histogram(bins = 30, fill = "grey75", colour = "white") +
+  geom_point(data = filter(lote, en_muestra), aes(y = -4), colour = "#1C6BA0", size = 2) +
+  geom_vline(xintercept = mean(lote$espesor), linetype = "dashed") +
+  geom_vline(xintercept = mean(lote$espesor[lote$en_muestra]), colour = "#E69F00", linewidth = 1) +
+  annotate("text", x = 5.2, y = 95, label = "Media del lote (μ): discontinua", hjust = 0, size = 3.3) +
+  annotate("text", x = 5.2, y = 84, label = "Media de la muestra (x̄): naranja", hjust = 0, size = 3.3, colour = "#B36B00") +
+  labs(x = "Espesor de pared (mm)", y = "Número de elementos") +
+  theme_minimal(base_size = 12)
+
+p_cuad + p_hist + plot_layout(widths = c(1.25, 1))
+```
+
+En el lote simulado de la figura, la media de los 1000 elementos es `r sprintf("%.3f", mean(lote$espesor))` mm y la de la muestra es `r sprintf("%.3f", mean(lote$espesor[lote$en_muestra]))` mm. Si se escogieran otros 25, la media de la muestra cambiaría un poco, pero la del lote seguiría igual. Esa diferencia de papeles, un valor fijo que no se conoce y un valor variable que sí se calcula, es la base de toda la inferencia.
+
+Para que la cucharada represente a la olla hay que revolver. En estadística, revolver es escoger la muestra al azar: cada elemento de la población tiene la misma oportunidad de quedar en ella. Si la muestra se escoge por comodidad, los resultados pueden quedar sesgados aunque se calculen con las fórmulas correctas.
+
+::: {.callout-warning title="Cuidado"}
+Algunos ejemplos de muestras que no representan a la población: medir el tránsito solo en la hora pico y usar ese promedio para todo el día; tomar las muestras de agua de un pozo de monitoreo siempre en época lluviosa; ensayar solo los cilindros del primer camión de la mañana; perforar solo donde la maquinaria entra con facilidad. Ninguna fórmula de este capítulo corrige un muestreo así. Las fórmulas miden el error que viene del azar, no el que viene de escoger mal.
+:::
+
 ## Parámetros, estimadores y estimaciones {#sec-est-conceptos}
 
 ::: {.pregunta}
@@ -112,6 +163,98 @@ y al dividir entre $n - 1$ el valor esperado queda igual a $\sigma^2$. El númer
 Que $S^2$ sea insesgado no significa que $S$ también lo sea. La raíz cuadrada no conserva el promedio, y $S$ subestima un poco a $\sigma$ en muestras pequeñas. La diferencia es menor al 3 % desde $n = 10$ y en la práctica se ignora, pero muestra que la propiedad depende de la escala en que se mida el parámetro.
 :::
 
+### Sesgo y varianza en una diana {#sec-est-diana}
+
+Una diana de tiro ayuda a separar las dos ideas. El centro es el parámetro $\theta$ y cada disparo es la estimación que da una muestra distinta. Un tirador puede fallar por dos razones: porque su mira está desviada, y entonces todos los disparos caen corridos hacia un lado (sesgo), o porque su pulso tiembla, y entonces los disparos quedan dispersos (varianza). La @fig-est-dianas muestra las cuatro combinaciones.
+
+```{r}
+#| label: fig-est-dianas
+#| fig-cap: "Sesgo y varianza de un estimador representados como disparos a una diana."
+#| fig-alt: "Cuatro dianas. Arriba a la izquierda, disparos agrupados en el centro; arriba a la derecha, disparos dispersos alrededor del centro; abajo a la izquierda, disparos agrupados pero corridos; abajo a la derecha, disparos dispersos y corridos."
+#| fig-width: 7
+#| fig-height: 6.5
+#| out-width: "75%"
+#| echo: false
+
+set.seed(181)
+casos <- tibble(
+  panel = factor(c("Sin sesgo, poca varianza", "Sin sesgo, mucha varianza",
+                   "Con sesgo, poca varianza", "Con sesgo, mucha varianza"),
+                 levels = c("Sin sesgo, poca varianza", "Sin sesgo, mucha varianza",
+                            "Con sesgo, poca varianza", "Con sesgo, mucha varianza")),
+  dx = c(0, 0, 1.5, 1.5), dy = c(0, 0, 1.0, 1.0), sd = c(0.3, 1.1, 0.3, 1.1)
+)
+disparos <- casos %>%
+  rowwise() %>%
+  reframe(panel = panel, x = rnorm(25, dx, sd), y = rnorm(25, dy, sd))
+anillos <- tidyr::crossing(r = c(1, 2, 3), ang = seq(0, 2 * pi, length.out = 200), panel = casos$panel) %>%
+  mutate(x = r * cos(ang), y = r * sin(ang))
+ggplot() +
+  geom_path(data = anillos, aes(x, y, group = r), colour = "grey70") +
+  geom_point(data = tibble(x = 0, y = 0), aes(x, y), shape = 3, size = 4, stroke = 1.2) +
+  geom_point(data = disparos, aes(x, y), colour = "#1C6BA0", alpha = 0.8, size = 1.8) +
+  facet_wrap(~panel, ncol = 2) +
+  coord_equal(xlim = c(-3.2, 3.2), ylim = c(-3.2, 3.2)) +
+  theme_void(base_size = 12) +
+  theme(strip.text = element_text(margin = margin(b = 4)))
+```
+
+El mejor estimador es el de arriba a la izquierda, insesgado y con poca varianza. El peor es el de abajo a la derecha. Los otros dos plantean la pregunta interesante: ¿qué es preferible, un tirador centrado pero tembloroso o uno firme con la mira un poco corrida? Depende de qué tan lejos del centro caen los disparos en promedio, y eso es justo lo que mide el error cuadrático medio de la @sec-est-ecm. En la @fig-est-int-diana se mueven el sesgo y la dispersión para ver cómo cambia ese promedio.
+
+::: {#fig-est-int-diana}
+
+```{=html}
+<div class="interactivo" id="int-diana">
+  <div class="controles">
+    <label><span>Sesgo (corrimiento de la mira):</span> <output>0.0</output>
+      <input type="range" min="0" max="2" step="0.1" value="0" data-ctrl="b"></label>
+    <label><span>Dispersión (temblor del pulso):</span> <output>0.6</output>
+      <input type="range" min="0.1" max="1.5" step="0.1" value="0.6" data-ctrl="s"></label>
+  </div>
+  <button type="button">Otros 30 disparos</button>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 330" role="img" aria-label="Diana con treinta disparos que cambian con el sesgo y la dispersión"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-diana");
+  var cb = raiz.querySelector('[data-ctrl="b"]'), cs = raiz.querySelector('[data-ctrl="s"]');
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado");
+  var svg = raiz.querySelector("svg"), boton = raiz.querySelector("button"), z = [];
+  function rnorm() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function nuevos() { z = []; for (var i = 0; i < 30; i++) z.push([rnorm(), rnorm()]); }
+  var cx = 320, cy = 165, esc = 48;
+  function dibujar() {
+    var b = parseFloat(cb.value), s = parseFloat(cs.value);
+    salidas[0].textContent = b.toFixed(1); salidas[1].textContent = s.toFixed(1);
+    var g = "", mx = 0, my = 0, ecm = 0;
+    for (var r = 1; r <= 3; r++) g += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * esc) + '" fill="none" class="eje"/>';
+    g += '<line class="eje" x1="' + (cx - 8) + '" x2="' + (cx + 8) + '" y1="' + cy + '" y2="' + cy + '"/><line class="eje" x1="' + cx + '" x2="' + cx + '" y1="' + (cy - 8) + '" y2="' + (cy + 8) + '"/>';
+    for (var i = 0; i < z.length; i++) {
+      var x = b * 0.8 + s * z[i][0], y = b * 0.6 + s * z[i][1];
+      mx += x / z.length; my += y / z.length; ecm += (x * x + y * y) / z.length;
+      g += '<circle class="punto" r="4" cx="' + (cx + esc * x).toFixed(1) + '" cy="' + (cy - esc * y).toFixed(1) + '"/>';
+    }
+    g += '<circle class="punto-b" r="6" cx="' + (cx + esc * mx).toFixed(1) + '" cy="' + (cy - esc * my).toFixed(1) + '"/>';
+    var ses2 = mx * mx + my * my, varz = ecm - ses2;
+    svg.innerHTML = g + '<text class="eje-texto" x="10" y="20">Centro = parámetro θ</text>' +
+      '<text class="eje-texto" x="10" y="38">Punto naranja = promedio de los disparos</text>';
+    texto.innerHTML = "Sesgo² observado = " + ses2.toFixed(2) + "; varianza observada = " + varz.toFixed(2) +
+      "; distancia cuadrática media al centro (ECM) = <b>" + ecm.toFixed(2) + "</b> = " + ses2.toFixed(2) + " + " + varz.toFixed(2);
+  }
+  cb.addEventListener("input", dibujar); cs.addEventListener("input", dibujar);
+  boton.addEventListener("click", function () { nuevos(); dibujar(); });
+  nuevos(); dibujar();
+})();
+</script>
+```
+
+Sesgo y dispersión de un estimador. El promedio de las distancias al cuadrado hasta el centro es la suma del sesgo al cuadrado y de la varianza.
+
+:::
+
+Al subir el sesgo con poca dispersión, los disparos quedan agrupados pero lejos del centro. Al subir la dispersión sin sesgo, el promedio de los disparos queda cerca del centro, pero cada disparo individual puede caer lejos. Con sesgo 0.5 y dispersión 0.4 el ECM suele quedar por debajo del de sesgo 0 y dispersión 0.8: un estimador con un poco de sesgo puede ganarle a uno insesgado si es mucho más estable.
+
 ### Varianza y error estándar {#sec-est-error-estandar}
 
 Un estimador insesgado puede ser poco útil si sus valores cambian mucho de una muestra a otra. La dispersión del estimador alrededor de su promedio se mide con su varianza, y su raíz cuadrada recibe un nombre propio: el error estándar. Para la media muestral, con datos independientes,
@@ -136,6 +279,68 @@ donde $p$ es la proporción de la población. Se estima con $\sqrt{\hat{p}(1-\ha
 La desviación estándar $s$ y el error estándar $s/\sqrt{n}$ son cosas distintas. La primera mide cuánto varían los cilindros entre sí y no baja al ensayar más cilindros. El segundo mide cuánto variaría la media de una muestra a otra y sí baja con $n$. Confundirlos es uno de los errores más comunes en los informes de laboratorio.
 :::
 
+La @fig-est-int-ee pone las dos cantidades lado a lado. La población es la de los tiempos de viaje al trabajo en una ciudad hipotética, una variable asimétrica con media de 17 min y desviación estándar de 9 min. Arriba están 2000 viajes individuales; abajo, las medias de 500 muestras de tamaño $n$.
+
+::: {#fig-est-int-ee}
+
+```{=html}
+<div class="interactivo" id="int-error-estandar">
+  <label><span>Tamaño de cada muestra <i>n</i>:</span> <output>5</output>
+    <input type="range" min="1" max="100" step="1" value="5" data-ctrl="n"></label>
+  <button type="button">Tomar otras 500 muestras</button>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 360" role="img" aria-label="Histograma de los datos individuales y de las medias de 500 muestras"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-error-estandar");
+  var cn = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg"), boton = raiz.querySelector("button");
+  var w = 640, m = 34, xmin = 0, xmax = 60, nb = 60, B = 500, datos = [], muestras = [];
+  var mu = 15 * Math.exp(0.125), sigma = mu * Math.sqrt(Math.exp(0.25) - 1);
+  function rnorm() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function rviaje() { return 15 * Math.exp(0.5 * rnorm()); }
+  function generar() {
+    datos = []; for (var i = 0; i < 2000; i++) datos.push(rviaje());
+    muestras = []; for (var b = 0; b < B; b++) { var f = []; for (var j = 0; j < 100; j++) f.push(rviaje()); muestras.push(f); }
+  }
+  var sx = function (x) { return m + (x - xmin) / (xmax - xmin) * (w - 2 * m); };
+  function hist(v, y0, alto, clase) {
+    var c = new Array(nb).fill(0), ancho = (xmax - xmin) / nb, g = "", mx = 0;
+    v.forEach(function (x) { var k = Math.floor((x - xmin) / ancho); if (k >= 0 && k < nb) c[k]++; });
+    c.forEach(function (k) { if (k > mx) mx = k; });
+    for (var k = 0; k < nb; k++) {
+      var hgt = c[k] / mx * alto;
+      g += '<rect class="' + clase + '" x="' + sx(xmin + k * ancho).toFixed(1) + '" width="' + (sx(ancho) - sx(0) - 1).toFixed(1) +
+           '" y="' + (y0 - hgt).toFixed(1) + '" height="' + hgt.toFixed(1) + '"/>';
+    }
+    return g + '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + y0 + '" y2="' + y0 + '"/>';
+  }
+  function de(v) { var s = 0, s2 = 0; v.forEach(function (x) { s += x; s2 += x * x; }); var me = s / v.length; return [me, Math.sqrt((s2 - v.length * me * me) / (v.length - 1))]; }
+  function dibujar() {
+    var n = parseInt(cn.value, 10); salida.textContent = n;
+    var medias = muestras.map(function (f) { var s = 0; for (var j = 0; j < n; j++) s += f[j]; return s / n; });
+    var ejes = "";
+    for (var k = 0; k <= 60; k += 10) ejes += '<text class="eje-texto" x="' + sx(k) + '" y="348" text-anchor="middle">' + k + '</text>';
+    svg.innerHTML = '<text class="eje-texto" x="' + m + '" y="16">Tiempos de viaje individuales, en minutos (2000 datos)</text>' + hist(datos, 160, 130, "barra") +
+      '<text class="eje-texto" x="' + m + '" y="196">Medias de 500 muestras de tamaño n, en minutos</text>' + hist(medias, 330, 120, "barra-activa") + ejes;
+    var a = de(datos), b = de(medias);
+    texto.innerHTML = "Desviación de los datos ≈ " + a[1].toFixed(2) + " min (no cambia con <i>n</i>). Desviación de las medias = " +
+      b[1].toFixed(2) + " min; teórica <i>σ</i>/√<i>n</i> = " + sigma.toFixed(2) + "/√" + n + " = <b>" + (sigma / Math.sqrt(n)).toFixed(2) + "</b> min.";
+  }
+  cn.addEventListener("input", dibujar);
+  boton.addEventListener("click", function () { generar(); dibujar(); });
+  generar(); dibujar();
+})();
+</script>
+```
+
+Datos individuales y medias muestrales de una variable asimétrica. Al subir $n$, el histograma de las medias se angosta como $\sigma/\sqrt{n}$ y se vuelve simétrico; el de los datos no cambia.
+
+:::
+
+Con $n = 1$ los dos histogramas son iguales, porque la media de un solo dato es el dato. Con $n = 4$ la desviación de las medias ya es la mitad de la de los datos, y con $n = 100$ es la décima parte. Además, el histograma de las medias se vuelve simétrico aunque los datos sean asimétricos: es el teorema del límite central del capítulo anterior en acción.
+
 ### Error cuadrático medio y consistencia {#sec-est-ecm}
 
 A veces un estimador con un poco de sesgo tiene mucha menos varianza que uno insesgado. Para compararlos se usa el error cuadrático medio (ECM), que suma las dos fuentes de error:
@@ -147,6 +352,32 @@ $$ {#eq-est-ecm}
 Entre dos estimadores se prefiere el de menor ECM. Si los dos son insesgados, el ECM es solo la varianza y se prefiere el de menor varianza, que se llama más eficiente. Para datos normales, la media muestral es más eficiente que la mediana: con muestras grandes, la varianza de la mediana es cerca de $\pi/2 \approx 1.57$ veces la de la media [@wasserman2004all].
 
 Un estimador es consistente si se acerca al parámetro a medida que crece la muestra. La media, la varianza muestral y la proporción muestral lo son. La consistencia es la garantía mínima: con suficientes datos, el estimador termina dando el valor correcto.
+
+La @fig-est-consistencia muestra la consistencia con un aforo de tránsito simulado. En una carretera, el 15 % de los vehículos son pesados. Se cuentan vehículos uno por uno y, después de cada uno, se recalcula la proporción de pesados. Cada línea es un aforo distinto.
+
+```{r}
+#| label: fig-est-consistencia
+#| fig-cap: "Proporción acumulada de vehículos pesados en cinco aforos simulados. La línea discontinua es la proporción real, 0.15."
+#| fig-alt: "Cinco líneas que oscilan mucho con pocos vehículos contados y se juntan alrededor de 0.15 cuando se cuentan miles."
+#| cache: true
+#| echo: false
+
+set.seed(1815)
+aforos <- map_dfr(1:5, function(k) {
+  pesado <- rbinom(5000, 1, 0.15)
+  tibble(aforo = factor(k), n = 1:5000, p = cumsum(pesado) / (1:5000))
+})
+ggplot(aforos, aes(n, p, colour = aforo)) +
+  geom_hline(yintercept = 0.15, linetype = "dashed") +
+  geom_line(linewidth = 0.7) +
+  scale_x_log10(breaks = c(1, 10, 100, 1000, 5000), labels = c("1", "10", "100", "1000", "5000")) +
+  scale_colour_viridis_d(end = 0.85, guide = "none") +
+  coord_cartesian(ylim = c(0, 0.5)) +
+  labs(x = "Vehículos contados (escala logarítmica)", y = "Proporción de pesados") +
+  theme_minimal(base_size = 13)
+```
+
+Con diez vehículos, la proporción estimada puede ir de 0 a 0.4. Con mil, todas las líneas quedan entre 0.13 y 0.17. Nada garantiza que un aforo concreto dé exactamente 0.15, pero con muestras grandes ya no puede alejarse mucho. Eso es lo que se llama ley de los grandes números [@wasserman2004all].
 
 ::: {.callout-note title="Ejemplo: estimaciones puntuales para un lote de concreto"}
 
@@ -456,6 +687,118 @@ Un método más antiguo y más sencillo es el de los momentos: se igualan la med
 Cuando dos métodos de estimación dan valores distintos para el mismo parámetro, los resultados no se promedian. Cada método tiene sus propiedades; para muestras de tamaño moderado se prefiere el de máxima verosimilitud.
 :::
 
+### Dos parámetros a la vez: lluvias máximas y la distribución de Gumbel {#sec-est-gumbel}
+
+Los dos métodos se aplican igual cuando la distribución tiene dos parámetros, solo que hay que igualar dos momentos o maximizar respecto de dos parámetros. Un caso muy común en hidrología es la distribución de Gumbel, o de valores extremos tipo I, que se usa para las lluvias y los caudales máximos anuales [@gumbel1958statistics; @chow1988applied]. Su función de distribución acumulada es
+
+$$
+F(x) = \exp\!\left[-\exp\!\left(-\frac{x - u}{\alpha}\right)\right]
+$$ {#eq-est-gumbel}
+
+donde $u$ es el parámetro de posición (mm), que coincide con la moda, y $\alpha$ es el parámetro de escala (mm). Su media es $u + 0.5772\,\alpha$ y su desviación estándar es $\pi\alpha/\sqrt{6}$. Al igualar esos dos momentos con $\bar{x}$ y $s$ y despejar, se obtienen los estimadores por el método de los momentos [@chow1988applied]:
+
+$$
+\hat{\alpha} = \frac{\sqrt{6}\, s}{\pi}, \qquad \hat{u} = \bar{x} - 0.5772\,\hat{\alpha}
+$$ {#eq-est-gumbel-momentos}
+
+donde 0.5772 es la constante de Euler. Para la máxima verosimilitud, en cambio, las dos ecuaciones que salen de derivar $\ell(u, \alpha)$ no tienen solución explícita y se resuelven con un método numérico.
+
+Con los parámetros estimados se calcula la lluvia de diseño $x_T$ para un periodo de retorno de $T$ años, que es el valor que se excede en promedio una vez cada $T$ años. Se despeja de $F(x_T) = 1 - 1/T$:
+
+$$
+x_T = u - \alpha \ln\!\left[-\ln\!\left(1 - \frac{1}{T}\right)\right]
+$$ {#eq-est-gumbel-xt}
+
+::: {.callout-note title="Ejemplo: parámetros de Gumbel para la lluvia máxima diaria"}
+
+**Planteamiento.** Con la serie de precipitación máxima en 24 h de cada año (1956–2020) de una estación meteorológica, usada en la parte de estadística descriptiva, estime los parámetros de la distribución de Gumbel por el método de los momentos y por máxima verosimilitud. Con cada juego de parámetros, calcule la lluvia de diseño para un periodo de retorno de 50 años.
+
+```{r}
+#| echo: false
+ver_datos("datos/precipitacion_maxima_diaria.csv",
+          nombres = c("Año", "Precipitación máxima diaria (mm)"))
+```
+
+**Solución:**
+
+1. Estadísticos de la serie: $n = 65$ años, $\sum x_i = 4921.9$ mm, así que $\bar{x} = 4921.9/65 = 75.72$ mm, y $s = 21.16$ mm.
+2. Método de los momentos con la @eq-est-gumbel-momentos: $\hat{\alpha} = \sqrt{6} \times 21.16/\pi = 2.4495 \times 21.16/3.1416 = 16.50$ mm y $\hat{u} = 75.72 - 0.5772 \times 16.50 = 66.20$ mm.
+3. Máxima verosimilitud: se maximiza numéricamente la log-verosimilitud partiendo de los valores del paso 2. El resultado es $\hat{u} = 66.35$ mm y $\hat{\alpha} = 15.57$ mm.
+4. Lluvia de diseño para $T = 50$ años con la @eq-est-gumbel-xt: el factor es $-\ln[-\ln(1 - 1/50)] = -\ln[-\ln(0.98)] = -\ln(0.020203) = 3.902$. Con los momentos, $x_{50} = 66.20 + 16.50 \times 3.902 = 130.6$ mm. Con máxima verosimilitud, $x_{50} = 66.35 + 15.57 \times 3.902 = 127.1$ mm.
+
+**Pseudocódigo**
+
+1. Leer la serie y calcular $n$, $\bar{x}$ y $s$.
+2. Calcular $\hat{\alpha}$ y $\hat{u}$ con la @eq-est-gumbel-momentos.
+3. Escribir la densidad de Gumbel y ajustarla por máxima verosimilitud con `MASS::fitdistr()`, partiendo de los valores de los momentos.
+4. Calcular $x_{50}$ con cada juego de parámetros.
+5. Comparar los ajustes con el histograma de la serie.
+
+```{r}
+# 1) Datos
+lluvia <- read.csv("datos/precipitacion_maxima_diaria.csv")
+x <- lluvia$precipitacion_mm
+n <- length(x)
+media <- mean(x)
+s <- sd(x)
+
+# 2) Método de los momentos
+alfa_mom <- sqrt(6) * s / pi
+u_mom <- media - 0.5772 * alfa_mom
+c(n = n, media = media, s = s, u = u_mom, alfa = alfa_mom)
+
+# 3) Máxima verosimilitud: densidad de Gumbel f(x) = (1/alfa) exp(-z - exp(-z)), z = (x - u)/alfa
+dgumbel <- function(x, u, alfa) {
+  z <- (x - u) / alfa
+  exp(-z - exp(-z)) / alfa
+}
+library(MASS)
+ajuste <- fitdistr(x, densfun = dgumbel, start = list(u = u_mom, alfa = alfa_mom))
+ajuste
+u_mv <- ajuste$estimate[["u"]]
+alfa_mv <- ajuste$estimate[["alfa"]]
+
+# 4) Lluvia de diseño para T = 50 años
+x_T <- function(T, u, alfa) u - alfa * log(-log(1 - 1 / T))
+c(momentos = x_T(50, u_mom, alfa_mom), max_verosimilitud = x_T(50, u_mv, alfa_mv))
+```
+
+```{r}
+#| label: fig-est-gumbel
+#| fig-cap: "Histograma de la lluvia máxima diaria anual y densidades de Gumbel ajustadas por los dos métodos."
+#| fig-alt: "Histograma asimétrico a la derecha con dos curvas casi superpuestas; la de máxima verosimilitud es un poco más alta en la moda."
+#| echo: false
+
+curvas <- tibble(x = seq(30, 170, length.out = 400)) %>%
+  mutate(`Método de los momentos` = dgumbel(x, u_mom, alfa_mom),
+         `Máxima verosimilitud` = dgumbel(x, u_mv, alfa_mv)) %>%
+  pivot_longer(-x, names_to = "metodo", values_to = "densidad")
+ggplot(tibble(x = x), aes(x)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 10, boundary = 40,
+                 fill = "grey80", colour = "white") +
+  geom_line(data = curvas, aes(x, densidad, colour = metodo, linetype = metodo), linewidth = 1) +
+  scale_colour_manual(values = c("#1C6BA0", "#E69F00")) +
+  labs(x = "Precipitación máxima diaria anual (mm)", y = "Densidad", colour = NULL, linetype = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+**Interpretación.** Los dos métodos dan parámetros parecidos y curvas casi superpuestas (@fig-est-gumbel), pero la lluvia de diseño para 50 años difiere en unos 3.5 mm. Esa diferencia crece con el periodo de retorno, porque la estimación de la cola depende mucho de $\alpha$. Para el diseño se escoge un método y se justifica: con 65 años de registro se prefiere la máxima verosimilitud, por las propiedades de la sección anterior. Ninguno de los dos valores es exacto; en el capítulo siguiente se verá cómo acompañarlos con un intervalo.
+
+:::
+
+## Errores comunes {#sec-est-errores}
+
+Estos son los tropiezos que más se repiten al estimar, en clase y en los informes técnicos:
+
+1. **Confundir el parámetro con su estimación.** "La resistencia media del concreto es 32.15 MPa" es incorrecto: 32.15 MPa es la media de la muestra. Lo correcto es "la resistencia media se estima en 32.15 MPa".
+2. **Reportar una estimación sin su error estándar.** Una media de 32.15 MPa con error estándar de 0.1 MPa y otra con error estándar de 3 MPa dicen cosas muy distintas. Con la estimación sola no se puede juzgar su precisión.
+3. **Usar la desviación estándar en lugar del error estándar, o al revés.** La primera describe a los elementos; el segundo, a la media. Si se quiere decir cuánto varían los cilindros, se usa $s$; si se quiere decir qué tan bien se conoce la media, $s/\sqrt{n}$.
+4. **Dividir entre $n$ en la varianza muestral.** Las calculadoras suelen tener dos botones, $\sigma_n$ y $\sigma_{n-1}$ (o $s$). Para estimar la varianza de la población se usa el de $n - 1$. La hoja de cálculo tiene las funciones `DESVEST.P` y `DESVEST.M`; la que corresponde a una muestra es `DESVEST.M`.
+5. **Creer que más datos corrigen un sesgo.** Aumentar $n$ reduce la varianza de un estimador, pero no su sesgo de muestreo. Mil aforos hechos solo en hora pico siguen sobrestimando el tránsito medio diario.
+6. **Calcular una proporción con muy pocos casos y tratarla como exacta.** Con dos cilindros de 25 bajo la especificación, $\hat{p} = 0.08$ tiene un error estándar de 0.054; decir "el 8 % del concreto no cumple" sugiere una precisión que no existe.
+7. **Promediar los resultados de dos métodos de estimación.** Si la máxima verosimilitud y los momentos dan valores distintos, se escoge uno con criterio; el promedio no tiene las propiedades de ninguno de los dos.
+
 ## Ejercicios propuestos
 
 1. Para los diez esfuerzos de fluencia del archivo `datos/varillas_fluencia_hipoteticas.csv`, calcule a mano y con R la media, la desviación estándar y el error estándar de la media. ¿Cuántas varillas habría que ensayar para que el error estándar fuera la mitad?
@@ -464,6 +807,10 @@ Cuando dos métodos de estimación dan valores distintos para el mismo parámetr
 4. Simule 5000 muestras de tamaño 15 de una normal con media 30 y desviación 2.5. En cada una calcule la media y la mediana. ¿Cuál de los dos estimadores tiene menor varianza? Calcule el cociente entre las dos varianzas.
 5. El número de vehículos pesados que cruzan un puente en un minuto sigue una distribución de Poisson con media $\lambda$. Demuestre que el EMV de $\lambda$ es $\bar{x}$. Luego estime $\lambda$ con estos conteos de diez minutos: 3, 5, 2, 4, 6, 3, 1, 4, 5, 2.
 6. Repita el ejemplo de Newton-Raphson con $\theta_0 = 600$ h. ¿Cuántas iteraciones necesita? ¿Qué pasa si arranca en $\theta_0 = 1200$ h?
+7. Se tomaron ocho muestras de un efluente y se midió su demanda bioquímica de oxígeno (DBO): 42, 38, 51, 45, 39, 47, 44 y 50 mg/L. Estime la media, la desviación estándar y el error estándar de la media. ¿Cuántas muestras harían falta para que el error estándar bajara a 1 mg/L?
+8. En el interactivo de la @fig-est-int-ee, anote la desviación de las medias para $n$ = 1, 4, 16 y 64. Compruebe que se divide entre 2 cada vez que $n$ se multiplica por 4. Explique con la @eq-est-ee-media por qué ocurre.
+9. Los días de atraso de 12 actividades de un proyecto de construcción fueron 0, 2, 1, 0, 5, 3, 0, 1, 2, 8, 1 y 0. Si el número de días de atraso por actividad se modela con una distribución de Poisson, estime $\lambda$ por máxima verosimilitud y la probabilidad de que una actividad no tenga atraso. ¿Le parece razonable el modelo de Poisson para estos datos? Compare la media y la varianza.
+10. Con la serie de caudales máximos anuales `datos/caudal_maximo_anual.csv`, estime los parámetros de Gumbel por los dos métodos de la @sec-est-gumbel y calcule el caudal de diseño para un periodo de retorno de 100 años con cada juego de parámetros.
 
 ## Lecturas recomendadas
 
