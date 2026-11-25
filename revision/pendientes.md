@@ -4,7 +4,7 @@
 
 - Lista de referencias bibliográficas base (la entrega el autor).
 - Contenido, nivel y lista de capítulos (la entrega el autor).
-- Cambios futuros de estética que decida el autor. La imagen de portada nueva (`assets/img/portada.png`, versión nocturna de la escena única) ya está en el repositorio; el hilo de estética cambia la línea de la imagen y el crédito en `index.qmd`. Los espectros de la portada tienen la forma del Código Sísmico (rampa, meseta y caída) pero no sus valores exactos: si el autor quiere las curvas oficiales del CSCR, hace falta el cuadro de parámetros.
+- Cambios futuros de estética que decida el autor. La portada usa `assets/img/portada.png`, elegida por el autor (propuesta E2, neón de inferencia, solo estadística). Se regenera con `node herramientas/portada.js E2 petroleo_ambar x.svg` y `node herramientas/portada_png.js x.svg assets/img/portada.png`.
 
 ## Parte I (R y RStudio)
 
@@ -74,5 +74,4 @@
 
 ## Estética (2026-11-25)
 
-- Imagen de portada nueva: se diseña en otro hilo; al recibirla, reemplazar `assets/img/ciclo_h.png` por `assets/img/portada.png` en `index.qmd`, cambiar el crédito y anotarla en `figuras_terceros.md` si corresponde.
 - Los gráficos de R y los interactivos de los capítulos conservan sus colores propios (azul #1C6BA0 y naranja #E69F00); solo cambió la interfaz.

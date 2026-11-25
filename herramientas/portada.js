@@ -499,10 +499,150 @@ function escena(P, modo) {
   return envolver(s, noc ? { fx: 0.05, fy: 0.06, esquina: false } : {});
 }
 
+
+// ---------------------------------------------------------------- portadas solo estadísticas (fondo petróleo)
+const N = { cian: "#7fd0da", petro: "#2b8a96", ambar: "#ffc357", ambar2: "#e09a1a", coral: "#f0a596", blanco: "#eaf6f7", rej: "rgba(255,255,255,0.07)" };
+function oscuro(contenido, opc = {}) {
+  let s = `<defs>
+   <radialGradient id="oFondo" gradientUnits="userSpaceOnUse" cx="${opc.cx ?? 1750}" cy="${opc.cy ?? 900}" r="2100"><stop offset="0" stop-color="#14606b"/><stop offset="0.55" stop-color="#0b3f47"/><stop offset="1" stop-color="#062a30"/></radialGradient>
+   <filter id="oDifuso" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="110"/></filter>
+   <filter id="oBrillo" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+   <filter id="oBrillo2" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="22" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+  s += `<rect x="230" y="200" width="${W - 460}" height="${H - 400}" rx="160" fill="url(#oFondo)" filter="url(#oDifuso)"/>`;
+  if (opc.puntos) {
+    for (let x = 160; x < W; x += 60) for (let y = 120; y < H; y += 60) s += `<circle cx="${x}" cy="${y}" r="2.2" fill="rgba(255,255,255,0.10)"/>`;
+  } else {
+    for (let x = 140; x < W; x += 120) s += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${N.rej}" stroke-width="${(x - 140) % 480 ? 1.5 : 3}"/>`;
+    for (let y = 100; y < H; y += 120) s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${N.rej}" stroke-width="${(y - 100) % 480 ? 1.5 : 3}"/>`;
+  }
+  s += `<ellipse cx="${W}" cy="${H}" rx="1150" ry="520" fill="#ffffff" filter="url(#oDifuso)"/>`;
+  return envolver(s + contenido, { fx: 0.05, fy: 0.06, esquina: false });
+}
+const dt = (x, nu) => Math.exp(lgamma((nu + 1) / 2) - lgamma(nu / 2)) / Math.sqrt(nu * Math.PI) * (1 + (x * x) / nu) ** (-(nu + 1) / 2);
+const txt = (x, y, t, tam, col, op = 1) => `<text x="${f(x)}" y="${f(y)}" font-family="'STIX Two Text','Cambria Math','Times New Roman',serif" font-style="italic" font-size="${tam}" fill="${col}" fill-opacity="${op}" text-anchor="middle">${t}</text>`;
+
+// E1. Regla empírica: normal con las franjas de 1, 2 y 3 desviaciones, Z contra t e histograma
+function propuestaE1() {
+  let s = "";
+  // fondo izquierdo: histograma de una muestra normal con su curva
+  const u = rng(41), z = normalGen(u), dat = Array.from({ length: 800 }, () => z());
+  const hb = { x: 400, y: 1200, w: 950, h: 520 }, eh = escala(hb, [-3.6, 3.6], [0, 0.48]), nb = 18, an = 7.2 / nb;
+  const cu = Array(nb).fill(0); dat.forEach((v) => { const k = Math.floor((v + 3.6) / an); if (k >= 0 && k < nb) cu[k]++; });
+  cu.forEach((c, k) => { const d = c / (dat.length * an), x0 = eh.x(-3.6 + k * an), x1 = eh.x(-3.6 + (k + 1) * an);
+    s += `<rect x="${f(x0 + 3)}" y="${f(eh.y(d))}" width="${f(x1 - x0 - 6)}" height="${f(eh.y(0) - eh.y(d))}" fill="${N.blanco}" fill-opacity="${0.10 + 0.25 * (1 - Math.abs(k - nb / 2) / (nb / 2))}" stroke="${N.blanco}" stroke-opacity="0.45" stroke-width="3"/>`; });
+  const xs = seq(-3.6, 3.6, 200);
+  s += `<path d="${linea(xs.map((x) => [eh.x(x), eh.y(dnorm(x))]))}" fill="none" stroke="${N.ambar}" stroke-width="6" stroke-opacity="0.85"/>`;
+  // fondo superior derecho: Z contra t(3) con colas de rechazo al 5 %
+  [{ x: 2150, y: 230, w: 1150, h: 520 }].forEach((cb) => {
+    const e = escala(cb, [-4.5, 4.5], [0, 0.42]), xx = seq(-4.5, 4.5, 300);
+    const cola = (fn, q, col) => { const iz = xx.filter((x) => x <= -q).map((x) => [e.x(x), e.y(fn(x))]), de = xx.filter((x) => x >= q).map((x) => [e.x(x), e.y(fn(x))]);
+      return [iz, de].map((c) => `<path d="${area(c, c.map((p) => [p[0], e.y(0)]))}" fill="${col}" fill-opacity="0.45"/>`).join(""); };
+    s += cola(dnorm, 1.96, N.cian) + cola((x) => dt(x, 3), 3.182, N.coral);
+    s += `<path d="${linea(xx.map((x) => [e.x(x), e.y(dnorm(x))]))}" fill="none" stroke="${N.cian}" stroke-width="5"/>`;
+    s += `<path d="${linea(xx.map((x) => [e.x(x), e.y(dt(x, 3))]))}" fill="none" stroke="${N.coral}" stroke-width="5"/>`;
+    s += `<line x1="${f(e.x(0))}" y1="${f(e.y(0.42))}" x2="${f(e.x(0))}" y2="${f(e.y(0))}" stroke="${N.blanco}" stroke-opacity="0.5" stroke-width="3" stroke-dasharray="12 10"/>`;
+    s += `<line x1="${f(cb.x)}" y1="${f(e.y(0))}" x2="${f(cb.x + cb.w)}" y2="${f(e.y(0))}" stroke="${N.blanco}" stroke-opacity="0.5" stroke-width="3"/>`;
+  });
+  // figura principal: normal con franjas
+  const cb = { x: 900, y: 420, w: 2300, h: 1180 }, e = escala(cb, [-3.9, 3.9], [0, 0.43]), xx = seq(-3.9, 3.9, 500);
+  const franja = (a, b, col, op) => { const pts = xx.filter((x) => x >= a && x <= b).map((x) => [e.x(x), e.y(dnorm(x))]);
+    return `<path d="${area(pts, pts.map((p) => [p[0], e.y(0)]))}" fill="${col}" fill-opacity="${op}"/>`; };
+  s += franja(-3.9, -3, N.coral, 0.55) + franja(3, 3.9, N.coral, 0.55);
+  s += franja(-3, -2, N.ambar2, 0.75) + franja(2, 3, N.ambar2, 0.75);
+  s += franja(-2, -1, N.petro, 0.85) + franja(1, 2, N.petro, 0.85);
+  s += franja(-1, 1, N.cian, 0.55);
+  for (let k = -3; k <= 3; k++) s += `<line x1="${f(e.x(k))}" y1="${f(e.y(dnorm(k)))}" x2="${f(e.x(k))}" y2="${f(e.y(0) + 30)}" stroke="${N.blanco}" stroke-width="${k ? 3 : 5}" stroke-opacity="0.8" ${k ? 'stroke-dasharray="14 10"' : ""}/>`;
+  s += `<line x1="${f(cb.x - 60)}" y1="${f(e.y(0))}" x2="${f(cb.x + cb.w + 60)}" y2="${f(e.y(0))}" stroke="${N.blanco}" stroke-width="5" stroke-opacity="0.8"/>`;
+  s += `<g filter="url(#oBrillo)"><path d="${linea(xx.map((x) => [e.x(x), e.y(dnorm(x))]))}" fill="none" stroke="#ffffff" stroke-width="9"/></g>`;
+  // flechas de 68, 95 y 99.7 % (sin números)
+  [[1, e.y(0.30), N.cian], [2, e.y(0.36), N.ambar], [3, e.y(0.42) + 10, N.coral]].forEach(([k, y, c], i) => {
+    const xa = e.x(-k), xb = e.x(k), ah = 22;
+    s += `<g stroke="${c}" stroke-width="5" fill="none" stroke-opacity="0.95"><line x1="${f(xa)}" y1="${f(y)}" x2="${f(xb)}" y2="${f(y)}"/>`;
+    s += `<path d="M${f(xa + ah)},${f(y - ah * 0.6)}L${f(xa)},${f(y)}L${f(xa + ah)},${f(y + ah * 0.6)}"/><path d="M${f(xb - ah)},${f(y - ah * 0.6)}L${f(xb)},${f(y)}L${f(xb - ah)},${f(y + ah * 0.6)}"/></g>`;
+  });
+  // rótulos matemáticos bajo el eje
+  const rot = ["μ − 3σ", "μ − 2σ", "μ − σ", "μ", "μ + σ", "μ + 2σ", "μ + 3σ"];
+  rot.forEach((r, i) => { s += txt(e.x(i - 3), e.y(0) + 100, r, 54, N.blanco, 0.85); });
+  return oscuro(s, { cx: 2000 });
+}
+
+// E2. Neón: diagramas de caja en el tiempo, suavizado por núcleo con banda y teorema de Bayes
+function propuestaE2() {
+  let s = "";
+  // 1. cajas a lo largo del tiempo, arriba, con la mediana unida
+  const u = rng(52), z = normalGen(u), cb = { x: 330, y: 230, w: 2900, h: 620 };
+  const e1 = escala(cb, [0, 17], [0, 12]); const med = [];
+  for (let i = 1; i <= 16; i++) {
+    const mu = 5 + 2.2 * Math.sin(i / 2.6) + 0.12 * i, d = Array.from({ length: 40 }, () => mu + 0.9 * z());
+    const q1 = quantile(d, 0.25), q2 = quantile(d, 0.5), q3 = quantile(d, 0.75), iqr = q3 - q1;
+    const lo = Math.min(...d.filter((v) => v >= q1 - 1.5 * iqr)), hi = Math.max(...d.filter((v) => v <= q3 + 1.5 * iqr));
+    const x = e1.x(i), w = 22, c = i % 4 === 0 ? N.ambar : N.cian; med.push([x, e1.y(q2)]);
+    s += `<g opacity="0.85"><line x1="${f(x)}" y1="${f(e1.y(hi))}" x2="${f(x)}" y2="${f(e1.y(lo))}" stroke="${c}" stroke-width="4"/>`;
+    s += `<rect x="${f(x - w)}" y="${f(e1.y(q3))}" width="${2 * w}" height="${f(e1.y(q1) - e1.y(q3))}" rx="6" fill="${c}" fill-opacity="0.25" stroke="${c}" stroke-width="5"/></g>`;
+  }
+  s += `<path d="${linea(med)}" fill="none" stroke="${N.blanco}" stroke-opacity="0.55" stroke-width="3" stroke-dasharray="10 10"/>`;
+  // 2. dispersión con suavizado de Nadaraya-Watson (dos anchos de banda) y banda de ±2 errores
+  const n = 170, cx = { x: 1250, y: 760, w: 2050, h: 760 }, e2 = escala(cx, [0, 1], [-0.25, 1.25]);
+  const m = (x) => 0.55 + 0.35 * Math.sin(2 * Math.PI * x * 1.3) * Math.exp(-0.8 * x) + 0.15 * x;
+  const xsD = Array.from({ length: n }, () => u()), ysD = xsD.map((x) => m(x) + 0.13 * z());
+  const nw = (x0, h) => { let sw = 0, sy = 0, sy2 = 0; xsD.forEach((x, i) => { const w = dnorm((x - x0) / h); sw += w; sy += w * ysD[i]; });
+    const mh = sy / sw; xsD.forEach((x, i) => { const w = dnorm((x - x0) / h); sy2 += w * (ysD[i] - mh) ** 2; });
+    let sw2 = 0; xsD.forEach((x) => { sw2 += dnorm((x - x0) / h) ** 2; }); return { m: mh, se: Math.sqrt(sy2 / sw) * Math.sqrt(sw2) / sw }; };
+  xsD.forEach((x, i) => { s += `<circle cx="${f(e2.x(x))}" cy="${f(e2.y(ysD[i]))}" r="7" fill="${N.blanco}" fill-opacity="0.55"/>`; });
+  const gx = seq(0.01, 0.99, 160), ajus = gx.map((x) => nw(x, 0.06)), fino = gx.map((x) => nw(x, 0.012));
+  s += `<path d="${area(gx.map((x, i) => [e2.x(x), e2.y(ajus[i].m + 2 * ajus[i].se)]), gx.map((x, i) => [e2.x(x), e2.y(ajus[i].m - 2 * ajus[i].se)]))}" fill="${N.cian}" fill-opacity="0.25"/>`;
+  s += `<path d="${linea(gx.map((x, i) => [e2.x(x), e2.y(fino[i].m)]))}" fill="none" stroke="${N.coral}" stroke-width="3" stroke-opacity="0.7"/>`;
+  s += `<g filter="url(#oBrillo)"><path d="${linea(gx.map((x, i) => [e2.x(x), e2.y(ajus[i].m)]))}" fill="none" stroke="${N.cian}" stroke-width="9"/></g>`;
+  // 3. Bayes conjugado normal-normal: previa, verosimilitud y posterior
+  const m0 = 1.3, s0 = 0.38, m1 = -0.35, s1 = 0.45, sp = 1 / Math.sqrt(1 / s0 ** 2 + 1 / s1 ** 2), mp = (m0 / s0 ** 2 + m1 / s1 ** 2) * sp ** 2;
+  const bb = { x: 300, y: 1000, w: 1500, h: 760 }, e3 = escala(bb, [-1.8, 2.6], [0, 1.45]), bx = seq(-1.8, 2.6, 300);
+  [[m0, s0, N.coral], [m1, s1, N.petro], [mp, sp, N.ambar]].forEach(([mm, ss, c], i) => {
+    const pts = bx.map((x) => [e3.x(x), e3.y(dnorm(x, mm, ss))]);
+    s += `<path d="${area(pts, pts.map((p) => [p[0], e3.y(0)]))}" fill="${c}" fill-opacity="${i === 2 ? 0.55 : 0.35}"/>`;
+    s += `<g ${i === 2 ? 'filter="url(#oBrillo)"' : ""}><path d="${linea(pts)}" fill="none" stroke="${i === 1 ? N.cian : c}" stroke-width="${i === 2 ? 9 : 5}"/></g>`;
+  });
+  s += `<line x1="${f(bb.x)}" y1="${f(e3.y(0))}" x2="${f(bb.x + bb.w)}" y2="${f(e3.y(0))}" stroke="${N.blanco}" stroke-opacity="0.6" stroke-width="4"/>`;
+  return oscuro(s, { puntos: true, cx: 1600 });
+}
+
+// E3. Teorema del límite central en perspectiva: la media de n exponenciales, Gamma(n, 1/n),
+//     pasa de muy asimétrica a normal y angosta al crecer n
+function propuestaE3() {
+  let s = `<defs>`;
+  const ns = [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48];
+  const cols = ns.map((_, i) => { const t = i / (ns.length - 1);
+    const A = [0xff, 0xc3, 0x57], B = [0xf0, 0xa5, 0x96], C = [0x7f, 0xd0, 0xda];
+    const mix = (P, Q, r) => P.map((v, j) => Math.round(v + (Q[j] - v) * r));
+    const c = t < 0.5 ? mix(A, B, t * 2) : mix(B, C, (t - 0.5) * 2); return "#" + c.map((v) => v.toString(16).padStart(2, "0")).join(""); });
+  cols.forEach((c, i) => { s += `<linearGradient id="t${i}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity="0.95"/><stop offset="1" stop-color="${c}" stop-opacity="0.12"/></linearGradient>`; });
+  s += `</defs>`;
+  // proyección oblicua: x a la derecha, profundidad hacia arriba a la derecha
+  const ox = 560, oy = 1700, ax = 1500 / 3, bx = 140, by = -98, hy = 150;
+  const P = (x, y, k) => [ox + x * ax + k * bx, oy - y * hy + k * by];
+  // piso
+  for (let k = 0; k <= ns.length; k++) { const a = P(0, 0, k), b = P(3, 0, k); s += `<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${N.rej}" stroke-width="3"/>`; }
+  for (let x = 0; x <= 3; x += 0.25) { const a = P(x, 0, 0), b = P(x, 0, ns.length); s += `<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${N.rej}" stroke-width="2"/>`; }
+  const xs = seq(0.001, 3, 300), esp = 0.32;
+  for (let i = ns.length - 1; i >= 0; i--) {
+    const n = ns[i], fn = (x) => dgamma(x, n, 1 / n), esc = 1 / Math.max(1.0, dgamma((n - 1) / n || 0.001, n, 1 / n)) * Math.min(1, 0.55 + i * 0.05);
+    const y = (x) => Math.min(fn(x), 4) * (i === 0 ? 1 : 1) * 0.9 * (i === 0 ? 1 : 1) * (1.0 / Math.max(1, 0.0 + 1)) ;
+    const fr = xs.map((x) => P(x, y(x) * 0.9, i)), at = xs.map((x) => P(x, y(x) * 0.9, i + esp));
+    // cara superior (grosor) y cara frontal
+    s += `<path d="${area(at, fr)}" fill="${cols[i]}" fill-opacity="0.35"/>`;
+    s += `<path d="${area(fr, fr.map((p) => [p[0], P(0, 0, i)[1] + (p[0] - P(0, 0, i)[0]) * 0])) }" fill="url(#t${i})"/>`;
+    s += `<g filter="url(#oBrillo)"><path d="${linea(fr)}" fill="none" stroke="${cols[i]}" stroke-width="${i === 0 || i === ns.length - 1 ? 8 : 5}"/></g>`;
+    void esc;
+  }
+  // histograma 3D de una muestra de medias (n = 48) al frente, a la derecha
+  const u = rng(63), z = normalGen(u), med = Array.from({ length: 400 }, () => 1 + z() / Math.sqrt(48));
+  return oscuro(s, { cx: 1900, cy: 1000 });
+}
+
 // ---------------------------------------------------------------- main
 const [, , prop = "A", pal = "petroleo_ambar", salida = "portada.svg"] = process.argv;
 const P = PALETAS[pal];
 if (!P) { console.error("Paleta desconocida: " + pal + ". Opciones: " + Object.keys(PALETAS).join(", ")); process.exit(1); }
-const svg = { A: propuestaA, B: propuestaB, C: propuestaC, B1: (P) => escena(P, "luminosa"), B2: (P) => escena(P, "nocturna"), B3: (P) => escena(P, "color") }[prop](P);
+const svg = { A: propuestaA, B: propuestaB, C: propuestaC, B1: (P) => escena(P, "luminosa"), B2: (P) => escena(P, "nocturna"), B3: (P) => escena(P, "color"), E1: propuestaE1, E2: propuestaE2, E3: propuestaE3 }[prop](P);
 fs.writeFileSync(salida, svg);
 console.log("Escrito " + salida);
