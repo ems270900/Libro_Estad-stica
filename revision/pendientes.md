@@ -37,8 +37,8 @@
 
 ## Parte VII (diseño de experimentos)
 
-- Revisión del autor de los capítulos 28 a 30 y de las traducciones de los epígrafes (Fisher 1938, Tukey 1962, Fisher 1926).
-- Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 usa el rango estudentizado con `qtukey()`; si se quiere resolver a mano sin R, falta una tabla de $q$ en el Apéndice A.
+- Revisión del autor de los capítulos 28 a 30.
+
 ## Parte IV (variables aleatorias y distribuciones)
 
 - Revisión del autor de los capítulos 13 a 17.
