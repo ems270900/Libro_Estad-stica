@@ -63,7 +63,7 @@ La @fig-va-funcion dibuja la regla como un conjunto de flechas. Cada resultado d
 
 ```{r}
 #| label: fig-va-funcion
-#| fig-cap: "La variable aleatoria como regla que asigna un número a cada resultado."
+#| fig-cap: "La variable aleatoria como regla."
 #| fig-alt: "A la izquierda, los ocho resultados de lanzar tres monedas; a la derecha, los números 0, 1, 2 y 3; flechas unen cada resultado con su número de escudos"
 #| echo: false
 #| fig-width: 6.5
@@ -101,7 +101,7 @@ Una regla práctica para distinguirlas: si la pregunta natural es "¿cuántos?",
 
 ```{r}
 #| label: tbl-va-ramas
-#| tbl-cap: "Ejemplos de variables aleatorias discretas y continuas en la ingeniería civil."
+#| tbl-cap: "Variables discretas y continuas por rama."
 #| echo: false
 
 tibble(
@@ -303,7 +303,7 @@ La densidad se puede ver como el histograma de una cantidad enorme de datos. En 
 
 ```{r}
 #| label: fig-va-histograma-densidad
-#| fig-cap: "Histogramas en escala de densidad de tiempos simulados con 50, 500 y 50 000 datos."
+#| fig-cap: "Histogramas que se acercan a la densidad."
 #| fig-alt: "Tres histogramas cada vez más finos y suaves; el último coincide casi exactamente con la curva creciente de la densidad"
 #| echo: false
 #| cache: true
@@ -475,7 +475,7 @@ La segunda lectura es la misma fórmula del centroide que se usa en estática: $
 
 ```{r}
 #| label: fig-va-balanza
-#| fig-cap: "El valor esperado como punto de equilibrio de las probabilidades."
+#| fig-cap: "La media como punto de equilibrio."
 #| fig-alt: "Seis bloques de alturas proporcionales a las probabilidades de 0 a 5 defectos sobre una regla horizontal apoyada en un triángulo ubicado en 1.18"
 #| echo: false
 #| fig-width: 6.5
@@ -517,7 +517,7 @@ Dos variables pueden tener el mismo valor esperado y comportarse muy distinto. D
 
 ```{r}
 #| label: fig-va-misma-media
-#| fig-cap: "Dos tiempos de viaje con la misma media y distinta dispersión."
+#| fig-cap: "Misma media, distinta dispersión."
 #| fig-alt: "Dos densidades triangulares centradas en 30 minutos: una alta y angosta entre 27 y 33, otra baja y ancha entre 15 y 45"
 #| echo: false
 #| fig-width: 6.5
@@ -815,7 +815,7 @@ La @fig-va-ataguia muestra cómo cambia el costo esperado de cada alternativa co
 
 ```{r}
 #| label: fig-va-ataguia
-#| fig-cap: "Costo esperado de las dos ataguías según el costo de los daños."
+#| fig-cap: "Costo esperado de las dos ataguías."
 #| fig-alt: "Dos rectas que se cruzan en un costo de daños de 134 millones; antes del cruce la alternativa A es más barata y después la B"
 #| echo: false
 #| fig-width: 6.5
@@ -945,7 +945,7 @@ En el interactivo de la @fig-va-interactivo se arma la función de probabilidad 
 </script>
 ```
 
-Función de probabilidad y FDA. Mueva los pesos de cada valor; el triángulo marca la media y la banda sombreada va de $\mu - \sigma$ a $\mu + \sigma$.
+Función de probabilidad y FDA de una variable discreta.
 
 :::
 
