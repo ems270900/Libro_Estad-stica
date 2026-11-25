@@ -78,7 +78,7 @@ $$
 t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}
 $$ {#eq-ph-t}
 
-donde $\bar{x}$ es la media muestral, $\mu_0$ es el valor de $H_0$, $s$ es la desviación estándar muestral y $n$ es el tamaño de la muestra. Si $H_0$ es cierta y la población es normal, $t$ sigue una distribución $t$ con $n - 1$ grados de libertad. Eso es lo que hace útil al estadístico: se sabe qué valores son esperables cuando $H_0$ es cierta y cuáles serían raros.
+donde $\bar{x}$ es la media muestral, $\mu_0$ es el valor de $H_0$, $s$ es la desviación estándar muestral y $n$ es el tamaño de la muestra. Si $H_0$ es cierta y la población es normal, $t$ sigue una distribución $t$ con $n - 1$ grados de libertad. Eso es lo que hace útil al estadístico: se sabe qué valores son esperables cuando $H_0$ es cierta y cuáles serían raros. Observe que el denominador es el error estándar $s/\sqrt{n}$ y no la desviación estándar $s$: el estadístico cuenta errores estándar, no desviaciones estándar de los datos. La diferencia se explica con detalle en la @sec-una-z-dato-prueba.
 
 La región de rechazo, o región crítica, es el conjunto de valores del estadístico que son tan raros bajo $H_0$ que llevan a rechazarla. Se escoge de modo que la probabilidad de caer en ella cuando $H_0$ es cierta sea un valor pequeño $\alpha$, el nivel de significancia. Los valores que separan la región de rechazo del resto son los valores críticos. La @fig-ph-regiones muestra las regiones para las tres formas de $H_1$ con $\alpha = 0.05$.
 
