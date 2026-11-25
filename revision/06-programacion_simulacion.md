@@ -16,3 +16,4 @@ Fecha: 2026-11-25. Estado: borrador.
 
 - Agregado: Diagramas de flujo de `if`/`else if`/`else` y de `for`; interactivo para seguir un ciclo línea por línea (`int-paso`) con datos hipotéticos de lluvia. No se tocaron los recuadros que el hilo de diversificación va a reemplazar.
 - Pies de figura y títulos de cuadro acortados. Pendiente: revisión del autor.
+- Diversificación de ramas (2026-11-25): la media acumulada pasa a la humedad de cinco muestras de arcilla (mismos números) y la simulación de Monte Carlo, al ángulo de fricción de un relleno frente al de diseño de un muro (N(32°, 3°), P(φ < 28°) = 0.0912), con su interactivo. Las secciones de funciones, `rnorm()` y `replicate()` conservan los cilindros. Se corrigió además una llave que faltaba en `references.bib` (wickham2011split) y que impedía compilar.

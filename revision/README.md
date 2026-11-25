@@ -14,7 +14,7 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 3. Datos y data frames | Borrador | [03-datos_dataframes.md](03-datos_dataframes.md) | Parte I; ampliación |
 | 4. Gráficos en R | Borrador | [04-graficos.md](04-graficos.md) | Parte I; ampliación |
 | 5. Documentos reproducibles con R Markdown | Borrador | [05-rmarkdown.md](05-rmarkdown.md) | Parte I; ampliación |
-| 6. Funciones, condiciones, ciclos y simulación | Borrador | [06-programacion_simulacion.md](06-programacion_simulacion.md) | Parte I; ampliación |
+| 6. Funciones, condiciones, ciclos y simulación | Borrador | [06-programacion_simulacion.md](06-programacion_simulacion.md) | Parte I; ampliación; diversificación de ramas |
 | 7. La estadística en la ingeniería civil | Borrador | [07-estadistica_ingenieria.md](07-estadistica_ingenieria.md) | Parte II; ampliación |
 | 8. Presentación de datos: cuadros y gráficos | Borrador | [08-presentacion_datos.md](08-presentacion_datos.md) | Parte II; ampliación |
 | 9. Medidas de tendencia central, posición y variabilidad | Borrador | [09-medidas_descriptivas.md](09-medidas_descriptivas.md) | Parte II; ampliación |
