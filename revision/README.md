@@ -8,7 +8,7 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 |:--|:--|:--|:--|
 | Plantilla del repositorio | Lista | — | (este PR) |
 | Estética de la interfaz (paleta petróleo y ámbar, favicon ∮, tabla de contenidos web como hidrología, botón de inicio, autor y correo en la portada) | Lista | — | rama claude/project-thread-f8e1p8 |
-| Portada, prefacio, introducción y palabras finales | Borrador | — | Prefacio, introducción y palabras finales |
+| Portada, prefacio, introducción y palabras finales | Borrador | — | Prefacio, introducción y palabras finales; imagen de portada generada por código |
 | 1. R y RStudio | Borrador | [01-r_rstudio.md](01-r_rstudio.md) | Parte I; ampliación |
 | 2. Objetos, tipos de datos y operadores | Borrador | [02-objetos_operadores.md](02-objetos_operadores.md) | Parte I; ampliación |
 | 3. Datos y data frames | Borrador | [03-datos_dataframes.md](03-datos_dataframes.md) | Parte I; ampliación |

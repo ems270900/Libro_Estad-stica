@@ -24,8 +24,9 @@ format:
 </div>
 
 <figure class="portada-imagen">
-<img src="assets/img/ciclo_h.png" alt="Ilustración del ciclo del agua con sus reservas y flujos, desde la atmósfera hasta el agua subterránea">
-<figcaption>Ilustración: Servicio Geológico de los Estados Unidos (USGS).</figcaption>
+<!-- Imagen de portada: para cambiarla basta con reemplazar assets/img/portada.png (proporción 1.85:1). -->
+<img src="assets/img/portada.png" alt="Ilustración de la portada con gráficos de datos y distribuciones de probabilidad">
+<figcaption>Ilustración generada con R y SVG a partir de datos y modelos.</figcaption>
 </figure>
 
 <div class="portada-pie">

@@ -4,7 +4,7 @@
 
 - Lista de referencias bibliográficas base (la entrega el autor).
 - Contenido, nivel y lista de capítulos (la entrega el autor).
-- Cambios futuros de estética que decida el autor. Por ahora la portada usa la misma imagen del libro de hidrología (`assets/img/ciclo_h.png`, USGS).
+- Cambios futuros de estética que decida el autor. La imagen de portada nueva (`assets/img/portada.png`, versión nocturna de la escena única) ya está en el repositorio; el hilo de estética cambia la línea de la imagen y el crédito en `index.qmd`. Los espectros de la portada tienen la forma del Código Sísmico (rampa, meseta y caída) pero no sus valores exactos: si el autor quiere las curvas oficiales del CSCR, hace falta el cuadro de parámetros.
 
 ## Parte I (R y RStudio)
 
