@@ -70,6 +70,136 @@ Según lo que se quiera demostrar, la alternativa puede tener tres formas, que s
 La forma de $H_1$ se decide con la pregunta de ingeniería, antes de ver los datos. Si un contratista debe colocar una carpeta asfáltica de al menos 50 mm y se quiere demostrar que no cumplió, la alternativa es $H_1: \mu < 50$ mm. Si se quiere demostrar que un aditivo aumenta la resistencia, es $H_1: \mu > \mu_0$. Si solo se quiere saber si un proceso se salió de su valor objetivo, en cualquier dirección, la prueba es bilateral. Escoger la forma después de mirar los datos, para que el resultado salga significativo, invalida la prueba.
 :::
 
+## Cómo plantear una prueba {#sec-ph-plantear}
+
+Plantear bien las hipótesis es la parte más difícil de una prueba, y la más importante: si las hipótesis están mal, todos los cálculos que siguen responden otra pregunta. La buena noticia es que se puede hacer con un procedimiento fijo, que se repite igual en todos los capítulos de esta parte.
+
+### Cinco preguntas para pasar del enunciado a las hipótesis
+
+1. **¿De qué parámetro se habla?** Una media $\mu$ si el dato es una medición (espesor, caudal, resistencia); una proporción $p$ si el dato es sí o no (cumple o no cumple, defectuoso o no); una varianza $\sigma^2$ si la pregunta es por la uniformidad; una diferencia $\mu_1 - \mu_2$ o $p_1 - p_2$ si se comparan dos grupos.
+2. **¿Cuál es el valor de referencia?** Es el número que aparece en el enunciado: la especificación, la norma, el valor nominal, el valor histórico. Se escribe $\mu_0$, $p_0$ o $\sigma_0^2$. Si se comparan dos grupos, casi siempre es 0.
+3. **¿Qué se quiere demostrar?** Eso va en $H_1$. La alternativa es la afirmación que necesita evidencia: que la obra no cumple, que el método nuevo es mejor, que el proceso cambió.
+4. **¿En qué dirección?** Si importa un desvío hacia un solo lado, la prueba es unilateral y $H_1$ lleva $>$ o $<$. Si importan los dos lados, es bilateral y $H_1$ lleva $\neq$.
+5. **¿Qué queda para $H_0$?** El complemento de $H_1$, que siempre contiene la igualdad: $=$, $\le$ o $\ge$.
+
+### Por qué la igualdad va en la hipótesis nula
+
+Hay dos razones, una práctica y otra de fondo. La práctica es que para calcular el valor $p$ hace falta un valor concreto del parámetro: con $H_0: \mu = 300$ MPa se sabe exactamente qué distribución tiene el estadístico. Con "$\mu \ne 300$" no habría un valor único con el cual calcular. En las pruebas unilaterales se calcula en el borde, $\mu = \mu_0$, que es el caso más difícil de rechazar dentro de $H_0$.
+
+La razón de fondo es la carga de la prueba. $H_0$ representa la situación que se mantiene mientras no haya evidencia en contra: el producto cumple, el método no cambió nada, el acusado es inocente. Quien afirma lo contrario debe aportar los datos. Por eso la elección de $H_1$ depende de quién tiene que demostrar algo.
+
+::: {.callout-tip title="En la práctica"}
+Un mismo enunciado puede dar hipótesis distintas según quién pregunte. Si una municipalidad quiere demostrar que el contratista colocó una carpeta de menos de 50 mm para cobrarle una multa, la carga es de la municipalidad: $H_1: \mu < 50$ mm. Si el contrato dice que el contratista debe demostrar que cumplió para recibir el pago, la carga es del contratista: $H_1: \mu > 50$ mm. Con los mismos datos, una prueba puede no rechazar $H_0$ en los dos planteamientos: no hay evidencia de incumplimiento, pero tampoco de cumplimiento. Por eso los contratos y las normas de aceptación deberían decir de quién es la carga.
+:::
+
+### Las palabras del enunciado
+
+Las frases del enunciado indican la dirección. El @tbl-ph-frases reúne las más comunes. Una regla útil: las frases que incluyen la igualdad ("al menos", "como máximo", "no supera") describen casi siempre lo que se afirma o se exige, y van en $H_0$; lo que se quiere demostrar contra ellas va en $H_1$.
+
+| Frase del enunciado | Símbolo | Dónde va | Ejemplo |
+|:--|:-:|:--|:--|
+| "es distinto de", "difiere de", "cambió", "se apartó de" | $\neq$ | $H_1$ (bilateral) | ¿El coeficiente del vertedero difiere de 0.62? |
+| "es mayor que", "excede", "supera", "aumentó", "más de" | $>$ | $H_1$ (derecha) | ¿El ruido medio supera los 65 dB(A)? |
+| "es menor que", "no alcanza", "disminuyó", "redujo", "menos de" | $<$ | $H_1$ (izquierda) | ¿El mantenimiento redujo el IRI? |
+| "al menos", "como mínimo", "no menos de" | $\ge$ | $H_0$ (y $H_1$ lleva $<$) | El proveedor afirma que la resistencia es de al menos 28 MPa. |
+| "como máximo", "no supera", "no más de", "a lo sumo" | $\le$ | $H_0$ (y $H_1$ lleva $>$) | La norma exige que el plomo no supere 0.01 mg/L. |
+| "es igual a", "es de", "tiene un valor nominal de" | $=$ | $H_0$ (y $H_1$ lleva $\neq$) | Los sacos son de 50 kg. |
+
+: Frases del enunciado y su lugar en las hipótesis. {#tbl-ph-frases}
+
+### Ejemplos de planteamiento
+
+Los casos del @tbl-ph-planteamientos vienen de distintas ramas de la ingeniería civil. En cada uno se aplicaron las cinco preguntas.
+
+| Enunciado | Parámetro | $H_0$ | $H_1$ | Colas |
+|:--|:-:|:-:|:-:|:-:|
+| La norma exige que la DBO media del efluente no supere 50 mg/L; se sospecha que la planta incumple. | $\mu$ | $\mu \le 50$ | $\mu > 50$ | Derecha |
+| El diseño supone una densidad seca media de 1.85 g/cm³ en el relleno; se quiere saber si el relleno colocado se aparta de ese valor. | $\mu$ | $\mu = 1.85$ | $\mu \neq 1.85$ | Dos |
+| Se quiere demostrar que menos del 5 % de los pilotes tiene defectos, para aceptar el lote. | $p$ | $p \ge 0.05$ | $p < 0.05$ | Izquierda |
+| Un aforo indica que más del 12 % de los vehículos son pesados, cuando el diseño del pavimento supuso 12 %. ¿Hay evidencia de que el porcentaje es mayor? | $p$ | $p \le 0.12$ | $p > 0.12$ | Derecha |
+| Se quiere saber si el tiempo medio de ciclo de las vagonetas cambió después de reorganizar el frente de trabajo. | $\mu_1 - \mu_2$ | $\mu_1 - \mu_2 = 0$ | $\mu_1 - \mu_2 \neq 0$ | Dos |
+| La especificación pide que la desviación estándar del espesor no pase de 2 mm; ¿la supera? | $\sigma^2$ | $\sigma^2 \le 4$ | $\sigma^2 > 4$ | Derecha |
+| Se quiere demostrar que un nuevo tratamiento reduce la deflexión media de las vigas, medida en las mismas vigas antes y después. | $\mu_D$ | $\mu_D \le 0$ | $\mu_D > 0$ | Derecha, con $d = \text{antes} - \text{después}$ |
+| ¿La proporción de muestras de agua con coliformes es distinta en época seca y lluviosa? | $p_1 - p_2$ | $p_1 = p_2$ | $p_1 \neq p_2$ | Dos |
+
+: Planteamiento de hipótesis en casos de distintas ramas. {#tbl-ph-planteamientos}
+
+### Errores típicos al plantear
+
+1. **Poner lo que se quiere demostrar en $H_0$.** Si se quiere demostrar que la obra incumple y se escribe $H_0$: "la obra incumple", el procedimiento nunca podrá demostrarlo, porque solo se rechaza $H_0$.
+2. **Escribir las hipótesis con estadísticos.** $H_0: \bar{x} = 50$ es un error: $\bar{x}$ ya se conoce. Las hipótesis hablan de $\mu$, $p$ o $\sigma^2$.
+3. **Usar el valor de la muestra como referencia.** Si la muestra dio 48.4 mm, la hipótesis no es $\mu = 48.4$; el valor de referencia sale de la especificación, no de los datos.
+4. **Escoger la dirección mirando los datos.** "La media salió menor, así que pruebo $\mu < \mu_0$" duplica en la práctica el error tipo I. La dirección se decide con la pregunta, antes de medir.
+5. **Poner la igualdad en $H_1$.** $H_1: \mu \ge 28$ no es una alternativa válida; la igualdad siempre va en $H_0$.
+6. **Confundir la variable con el parámetro.** "$H_0$: los cilindros resisten 28 MPa" mezcla los cilindros individuales con la media. Lo correcto es "$H_0$: la resistencia media es de 28 MPa".
+7. **Usar una prueba de una muestra cuando hay dos grupos.** Si la pregunta compara dos plantas, dos métodos o un antes y un después, el parámetro es una diferencia.
+
+### Práctica
+
+La @fig-ph-int-plantear propone enunciados para practicar. En cada uno se escoge la hipótesis alternativa y se comprueba la respuesta.
+
+::: {#fig-ph-int-plantear}
+
+```{=html}
+<div class="interactivo" id="int-plantear">
+  <p class="resultado" data-parte="enunciado"></p>
+  <label><span>Hipótesis alternativa <i>H</i><sub>1</sub>:</span>
+    <select data-parte="opcion"></select></label>
+  <button type="button" data-parte="comprobar">Comprobar</button>
+  <button type="button" data-parte="siguiente">Siguiente enunciado</button>
+  <p class="resultado" data-parte="respuesta"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-plantear");
+  var q = function (s) { return raiz.querySelector('[data-parte="' + s + '"]'); };
+  var casos = [
+    { e: "Una norma exige que la concentración media de plomo en el agua potable no supere 0.01 mg/L. Se quiere saber si un acueducto incumple.",
+      o: ["μ ≠ 0.01 mg/L", "μ > 0.01 mg/L", "μ < 0.01 mg/L"], r: 1,
+      x: "«No supere» describe la exigencia e incluye la igualdad: va en H₀: μ ≤ 0.01. Lo que se quiere demostrar, el incumplimiento, va en H₁: μ > 0.01. Prueba de cola derecha." },
+    { e: "Un contratista asegura que el grado de compactación medio de un relleno es al menos 95 % del Proctor. La inspección sospecha que es menor.",
+      o: ["μ < 95 %", "μ > 95 %", "μ ≠ 95 %"], r: 0,
+      x: "«Al menos» es la afirmación del contratista: H₀: μ ≥ 95 %. La sospecha de la inspección va en H₁: μ < 95 %. Prueba de cola izquierda." },
+    { e: "Se quiere saber si un perfilador acústico da caudales medios distintos a los de un molinete, aforando las mismas secciones con los dos.",
+      o: ["μ_D > 0", "μ_D < 0", "μ_D ≠ 0"], r: 2,
+      x: "«Distintos» no indica dirección y un sesgo hacia cualquier lado importa: H₀: μ_D = 0 y H₁: μ_D ≠ 0, con muestras pareadas. Prueba bilateral." },
+    { e: "El diseño de un pavimento supuso que el 12 % de los vehículos son pesados. Se quiere saber si el porcentaje real es mayor.",
+      o: ["p ≠ 0.12", "p < 0.12", "p > 0.12"], r: 2,
+      x: "El parámetro es una proporción y la pregunta tiene dirección: H₀: p ≤ 0.12 y H₁: p > 0.12. Si fuera mayor, el pavimento estaría subdiseñado." },
+    { e: "Un fabricante quiere demostrar que menos del 5 % de sus pilotes prefabricados tiene defectos, para que el lote sea aceptado.",
+      o: ["p < 0.05", "p > 0.05", "p ≠ 0.05"], r: 0,
+      x: "Lo que el fabricante quiere demostrar va en H₁: p < 0.05, y H₀: p ≥ 0.05. La carga de la prueba es del fabricante." },
+    { e: "El tiempo medio de colado de una losa se ha mantenido en 45 min. Después de cambiar de bomba, se quiere saber si cambió.",
+      o: ["μ > 45 min", "μ ≠ 45 min", "μ < 45 min"], r: 1,
+      x: "«Cambió» no dice en qué dirección: H₀: μ = 45 min y H₁: μ ≠ 45 min. Prueba bilateral." },
+    { e: "Se quiere demostrar que una nueva mezcla asfáltica reduce la profundidad media de ahuellamiento, que con la mezcla actual es de 8 mm.",
+      o: ["μ ≠ 8 mm", "μ > 8 mm", "μ < 8 mm"], r: 2,
+      x: "«Reduce» indica dirección y es lo que se quiere demostrar: H₀: μ ≥ 8 mm y H₁: μ < 8 mm. Cola izquierda." },
+    { e: "La especificación pide que la desviación estándar del espesor de una carpeta no pase de 2 mm. Se quiere saber si la supera.",
+      o: ["σ² > 4 mm²", "σ² < 4 mm²", "σ² ≠ 4 mm²"], r: 0,
+      x: "El parámetro es la varianza. «No pase de» va en H₀: σ² ≤ 4 mm², y «la supera» en H₁: σ² > 4 mm². Cola derecha." }
+  ];
+  var i = 0;
+  function mostrar() {
+    var c = casos[i];
+    q("enunciado").innerHTML = "<b>Enunciado " + (i + 1) + " de " + casos.length + ".</b> " + c.e;
+    q("opcion").innerHTML = c.o.map(function (t, k) { return '<option value="' + k + '">' + t + '</option>'; }).join("");
+    q("respuesta").textContent = "";
+  }
+  q("comprobar").addEventListener("click", function () {
+    var c = casos[i], k = parseInt(q("opcion").value, 10);
+    q("respuesta").innerHTML = (k === c.r ? "<b>Correcto.</b> " : "<b>No.</b> ") + c.x;
+  });
+  q("siguiente").addEventListener("click", function () { i = (i + 1) % casos.length; mostrar(); });
+  mostrar();
+})();
+</script>
+```
+
+Práctica de planteamiento de hipótesis.
+
+:::
+
 ## Estadístico de prueba y región de rechazo {#sec-ph-estadistico}
 
 Para decidir hace falta medir qué tan lejos están los datos de lo que dice $H_0$. Esa medida es el estadístico de prueba. En el caso de las varillas, lo natural es comparar $\bar{x}$ con $\mu_0 = 300$, en unidades de error estándar:
@@ -361,6 +491,35 @@ Además de compararlo con $\alpha$, el valor $p$ se puede leer como una escala d
 
 Un valor $p$ grande no es evidencia a favor de $H_0$. Puede ser grande porque $H_0$ es cierta o porque la muestra es pequeña y la prueba tiene poca potencia; el valor $p$ solo no distingue entre las dos situaciones.
 
+### Qué dice y qué no dice un valor *p* {#sec-ph-que-es-p}
+
+El valor $p$ es probablemente el número más malinterpretado de la estadística aplicada. En 2016 la Asociación Estadounidense de Estadística publicó una declaración con seis principios para usarlo bien [@wasserstein2016asa]. Resumidos, son estos:
+
+1. Los valores $p$ indican qué tan incompatibles son los datos con un modelo estadístico dado, que incluye a $H_0$ y a los supuestos de la prueba.
+2. Los valores $p$ no miden la probabilidad de que la hipótesis sea cierta, ni la probabilidad de que los datos se deban solo al azar.
+3. Las conclusiones científicas y las decisiones técnicas no deben basarse solo en si un valor $p$ pasa un umbral.
+4. Una inferencia correcta exige informar todo: cuántas pruebas se hicieron, cuáles se escogieron y por qué.
+5. Un valor $p$, o la significancia estadística, no mide el tamaño de un efecto ni la importancia de un resultado.
+6. Por sí solo, un valor $p$ no es una buena medida de la evidencia sobre un modelo o una hipótesis.
+
+El primer principio menciona algo que se olvida con facilidad: el valor $p$ se calcula suponiendo $H_0$ y también todos los supuestos de la prueba (independencia, normalidad, muestreo aleatorio). Un valor $p$ pequeño dice que algo de ese conjunto no encaja con los datos, pero no dice qué. Puede ser que la media cambió, o que las varillas no se escogieron al azar, o que los datos no son independientes. Por eso los supuestos se revisan antes de interpretar.
+
+Con el ejemplo de las varillas ($p = 0.0073$), el @tbl-ph-lecturas-p compara lecturas correctas e incorrectas.
+
+| Lectura | ¿Correcta? |
+|:--|:-:|
+| Si la media de la producción fuera 300 MPa, un control tan alejado como este o más saldría en menos del 1 % de los controles. | Sí |
+| Los datos son poco compatibles con una media de 300 MPa (y con los supuestos de la prueba). | Sí |
+| Hay 0.73 % de probabilidad de que la media sea 300 MPa. | No |
+| Hay 99.27 % de probabilidad de que la producción haya cambiado. | No |
+| Hay 0.73 % de probabilidad de que el resultado se deba al azar. | No |
+| La caída de la media es grande. | No: eso lo dice la estimación, no el valor $p$. |
+| Si se repitiera el control, se rechazaría $H_0$ con 99.27 % de probabilidad. | No: eso depende de la potencia. |
+
+: Lecturas correctas e incorrectas de un valor p de 0.0073. {#tbl-ph-lecturas-p}
+
+Las lecturas incorrectas tienen algo en común: dan vuelta a la probabilidad condicional. El valor $p$ es una probabilidad de los datos dado $H_0$, $P(\text{datos tan extremos} \mid H_0)$. Las frases incorrectas hablan de la probabilidad de $H_0$ dados los datos, $P(H_0 \mid \text{datos})$, que es otra cosa, como se vio con el teorema de Bayes en la parte de probabilidad.
+
 ## Procedimiento paso a paso {#sec-ph-procedimiento}
 
 Todas las pruebas de los capítulos siguientes siguen los mismos pasos:
@@ -371,6 +530,8 @@ Todas las pruebas de los capítulos siguientes siguen los mismos pasos:
 4. Calcular el estadístico con los datos.
 5. Decidir: comparar el estadístico con el valor crítico, o el valor $p$ con $\alpha$.
 6. Escribir la conclusión en el lenguaje del problema, con las unidades.
+
+Los pasos 1 y 6 son los que más cuestan; se explican en detalle en la @sec-ph-plantear y en la @sec-ph-redactar. Los ejemplos de los capítulos 21 a 23 siguen siempre estos seis pasos.
 
 La @fig-ph-diagrama resume el procedimiento como un diagrama de decisión. Los dos caminos del paso 5 llevan siempre a la misma conclusión.
 
@@ -537,6 +698,35 @@ t.test(ruido, mu = mu0, alternative = "two.sided")$p.value
 Con la prueba bilateral la conclusión cambia, y eso tienta a escoger la forma que conviene. La regla es escoger la unilateral solo cuando un resultado en la dirección contraria no cambiaría ninguna decisión: aquí, un ruido medio de 60 dB(A) no tiene consecuencia para el permiso. Si cualquiera de los dos desvíos importa, como en el control de las varillas, la prueba es bilateral. Y nunca se cambia de bilateral a unilateral después de ver que el resultado no alcanzó.
 :::
 
+## Cómo redactar la conclusión {#sec-ph-redactar}
+
+La conclusión es lo que lee quien toma la decisión, que casi nunca mira el valor $p$. Tiene que decir tres cosas: la decisión estadística, lo que significa en el lenguaje del problema y qué tan grande es el efecto. Estas plantillas sirven para casi todos los casos.
+
+Cuando se rechaza $H_0$:
+
+> Con un nivel de significancia de [α], hay evidencia suficiente para afirmar que [$H_1$ en palabras del problema] ([estadístico] = [valor], $p$ = [valor]). [Estimación del efecto con unidades e intervalo]. [Consecuencia para la decisión de ingeniería].
+
+Cuando no se rechaza $H_0$:
+
+> Con un nivel de significancia de [α], no hay evidencia suficiente para afirmar que [$H_1$ en palabras del problema] ([estadístico] = [valor], $p$ = [valor]). [Estimación con su intervalo, que muestra qué valores siguen siendo posibles]. [Qué haría falta para decidir: más datos, otra prueba].
+
+El @tbl-ph-conclusiones muestra conclusiones bien y mal escritas para los ejemplos de esta parte.
+
+| Mal escrita | Bien escrita |
+|:--|:--|
+| "Se acepta $H_0$." | "Con 5 % de significancia, no hay evidencia suficiente para afirmar que el tipo de falla depende de la planta ($p = 0.092$)." |
+| "Se rechaza $H_0$." | "Con 5 % de significancia, hay evidencia de que el esfuerzo de fluencia medio es distinto de 300 MPa ($t = -3.45$, $p = 0.007$); está entre 1.3 y 6.0 MPa por debajo del objetivo." |
+| "Los bloques cumplen." | "Con 10 bloques no hay evidencia de que más del 20 % tenga defectos ($p = 0.12$), pero la muestra tampoco demuestra que se cumpla: la proporción podría estar entre 0.15 y 1." |
+| "Hay 99 % de probabilidad de que el ruido supere el límite." | "Hay evidencia, justa, de que el ruido medio supera los 65 dB(A) ($p = 0.048$); el límite inferior de confianza del 95 % es 65.01 dB(A)." |
+| "La diferencia es significativa, así que el aditivo es muy bueno." | "El aditivo aumentó la resistencia media en 2.8 MPa (IC del 95 %: 1.1 a 4.4 MPa; $p = 0.001$). Si ese aumento compensa su costo es una decisión económica." |
+| "$p = 0.000$." | "$p < 0.001$." Un valor $p$ nunca es exactamente cero. |
+
+: Conclusiones mal y bien escritas. {#tbl-ph-conclusiones}
+
+::: {.callout-warning title="Cuidado"}
+"No se rechaza $H_0$" no autoriza a escribir "se comprobó que el producto cumple". La ausencia de evidencia no es evidencia de ausencia. Si lo que se necesita es demostrar que algo cumple, la afirmación de cumplimiento debe ir en $H_1$, como en el ejemplo de los pilotes del @tbl-ph-planteamientos.
+:::
+
 ## Relación con los intervalos de confianza {#sec-ph-intervalos}
 
 Una prueba bilateral con nivel $\alpha$ y un intervalo de confianza del $100(1-\alpha)$ % usan el mismo estadístico y los mismos valores críticos. Por eso siempre llevan a la misma conclusión [@montgomery2014applied]:
@@ -701,6 +891,120 @@ Por eso un informe completo incluye tres cosas: la decisión de la prueba con su
 ::: {.callout-warning title="Cuidado"}
 Si se hacen muchas pruebas con $\alpha = 0.05$, alrededor de una de cada veinte saldrá significativa por azar, aunque ningún efecto sea real. Revisar 20 propiedades de un material y reportar solo la que dio $p < 0.05$ es una forma de engañarse. Las comparaciones múltiples se tratan en la parte de diseño de experimentos.
 :::
+
+## Tamaño del efecto {#sec-ph-tamano-efecto}
+
+::: {.pregunta}
+Si dos estudios dan $p = 0.001$, ¿encontraron el mismo efecto?
+:::
+
+No necesariamente. El valor $p$ mezcla dos cosas: qué tan grande es el efecto y cuántos datos hay. Para la prueba $t$ de una muestra, el estadístico se puede escribir como
+
+$$
+t = \frac{\bar{x} - \mu_0}{s}\,\sqrt{n} = d\,\sqrt{n}
+$$ {#eq-ph-t-d}
+
+donde $d = (\bar{x} - \mu_0)/s$ es el tamaño del efecto estandarizado, la diferencia medida en desviaciones estándar de los datos. La @eq-ph-t-d dice que un mismo $t$, y por tanto un mismo valor $p$, puede venir de un efecto grande con pocos datos o de un efecto pequeño con muchos. Con $n = 9$, un $t$ de 3 pide $d = 1$; con $n = 900$, basta $d = 0.1$. El tamaño del efecto separa las dos piezas y por eso se reporta junto con el valor $p$.
+
+### Tamaño del efecto en las unidades del problema
+
+La medida más útil en ingeniería es la diferencia en las unidades originales, con su intervalo de confianza: "el esfuerzo medio está 3.65 MPa por debajo del objetivo, entre 1.3 y 6.0 MPa con 95 % de confianza". Quien diseña puede compararla directamente con los márgenes y los factores de seguridad. Este es el tamaño del efecto que se debe reportar siempre.
+
+### Tamaño del efecto estandarizado
+
+Cuando se comparan estudios con unidades distintas, o no hay un criterio de ingeniería para juzgar la diferencia, se usa una medida sin unidades. La más común es la $d$ de Cohen [@cohen1988statistical], que divide la diferencia entre una desviación estándar. El @tbl-ph-efectos reúne las versiones que se usan en este libro.
+
+| Situación | Tamaño del efecto | Fórmula |
+|:--|:--|:-:|
+| Una media | $d$ | $(\bar{x} - \mu_0)/s$ |
+| Dos medias independientes | $d$ | $(\bar{x}_1 - \bar{x}_2)/s_p$ |
+| Muestras pareadas | $d_z$ | $\bar{d}/s_d$ |
+| Dos proporciones | $h$ | $2\arcsin\sqrt{\hat{p}_1} - 2\arcsin\sqrt{\hat{p}_2}$ |
+| Cuadro de contingencia | $V$ de Cramér | $\sqrt{\chi^2/[n\,(k-1)]}$ |
+
+: Medidas de tamaño del efecto. {#tbl-ph-efectos}
+
+En la $V$ de Cramér, $k$ es el menor entre el número de filas y el de columnas. Cohen propuso como referencia que $d = 0.2$ es un efecto pequeño, 0.5 mediano y 0.8 grande, con los mismos valores para $h$ [@cohen1988statistical]. Él mismo advirtió que son convenciones para cuando no hay nada mejor. En ingeniería casi siempre hay algo mejor: una caída de $d = 0.2$ en la resistencia de un cable puede ser grave, y una de $d = 1$ en el color de una pintura puede no importar.
+
+Para las varillas, $d = (296.35 - 300)/3.344 = -1.09$: la media de la muestra quedó a algo más de una desviación estándar por debajo del objetivo, un efecto grande según la convención de Cohen.
+
+### Valor p, efecto y tamaño de muestra
+
+La @fig-ph-int-efecto-n fija un tamaño del efecto y deja cambiar el número de datos. Muestra el valor $p$ que se obtendría si la muestra diera exactamente ese efecto, y el intervalo de confianza del 95 % para el efecto.
+
+::: {#fig-ph-int-efecto-n}
+
+```{=html}
+<div class="interactivo" id="int-efecto-n">
+  <div class="controles">
+    <label><span>Efecto observado <i>d</i>:</span> <output>0.30</output>
+      <input type="range" min="0" max="1.5" step="0.05" value="0.3" data-ctrl="d"></label>
+    <label><span>Tamaño de muestra <i>n</i>:</span> <output>20</output>
+      <input type="range" min="0" max="3" step="0.01" value="1.301" data-ctrl="n"></label>
+  </div>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 330" role="img" aria-label="Valor p en función del tamaño de muestra e intervalo de confianza del efecto"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-efecto-n");
+  var c = {}; raiz.querySelectorAll("[data-ctrl]").forEach(function (el) { c[el.dataset.ctrl] = el; });
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, m = 50;
+  function pnorm(x) {
+    var t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2), e = Math.exp(-x * x / 2);
+    var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * e;
+    return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+  }
+  var sxn = function (ln) { return m + (ln - Math.log10(2)) / (3 - Math.log10(2)) * (w - 2 * m); };
+  var syp = function (p) { var lp = Math.max(Math.log10(Math.max(p, 1e-6)), -6); return 30 + (-lp) / 6 * 150; };
+  var sxd = function (d) { return m + (d + 1) / 3 * (w - 2 * m); };
+  function dibujar() {
+    var d = parseFloat(c.d.value), n = Math.max(2, Math.round(Math.pow(10, parseFloat(c.n.value))));
+    salidas[0].textContent = d.toFixed(2); salidas[1].textContent = n;
+    var curva = "";
+    for (var ln = Math.log10(2); ln <= 3.0001; ln += 0.01) {
+      var nn = Math.pow(10, ln), p = 2 * (1 - pnorm(d * Math.sqrt(nn)));
+      curva += (curva ? "L" : "M") + sxn(ln).toFixed(1) + "," + syp(p).toFixed(1);
+    }
+    var p0 = 2 * (1 - pnorm(d * Math.sqrt(n))), E = 1.96 / Math.sqrt(n);
+    var g = '<text class="eje-texto" x="' + m + '" y="18">Valor p (escala logarítmica)</text>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="30" y2="180"/><line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="180" y2="180"/>';
+    [1, 0.05, 0.001, 0.000001].forEach(function (p) { g += '<text class="eje-texto" x="' + (m - 6) + '" y="' + (syp(p) + 4) + '" text-anchor="end">' + p + '</text>'; });
+    [2, 10, 100, 1000].forEach(function (k) { g += '<text class="eje-texto" x="' + sxn(Math.log10(k)) + '" y="196" text-anchor="middle">' + k + '</text>'; });
+    g += '<line class="guia" x1="' + m + '" x2="' + (w - m) + '" y1="' + syp(0.05) + '" y2="' + syp(0.05) + '"/>' +
+      '<path class="curva" d="' + curva + '"/>' +
+      '<circle class="punto-b" r="6" cx="' + sxn(Math.log10(n)) + '" cy="' + syp(p0) + '"/>' +
+      '<text class="eje-texto" x="' + (w - m) + '" y="196" text-anchor="end">n</text>';
+    g += '<text class="eje-texto" x="' + m + '" y="232">Intervalo de confianza del 95 % para el efecto d</text>' +
+      '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="290" y2="290"/>';
+    [-1, -0.5, 0, 0.5, 1, 1.5, 2].forEach(function (k) { g += '<text class="eje-texto" x="' + sxd(k) + '" y="306" text-anchor="middle">' + k + '</text>'; });
+    g += '<line class="guia" x1="' + sxd(0) + '" x2="' + sxd(0) + '" y1="245" y2="290"/>' +
+      '<line class="ic-cubre" x1="' + sxd(Math.max(d - E, -1)) + '" x2="' + sxd(Math.min(d + E, 2)) + '" y1="268" y2="268"/>' +
+      '<circle class="punto-b" r="6" cx="' + sxd(d) + '" cy="268"/>';
+    svg.innerHTML = g;
+    texto.innerHTML = "<i>z</i> = <i>d</i>√<i>n</i> = " + (d * Math.sqrt(n)).toFixed(2) + "; valor <i>p</i> bilateral = <b>" +
+      (p0 < 0.0001 ? "< 0.0001" : p0.toFixed(4)) + "</b>; IC del 95 % para <i>d</i>: [" + (d - E).toFixed(2) + ", " + (d + E).toFixed(2) + "].";
+  }
+  Object.keys(c).forEach(function (k) { c[k].addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Valor $p$ e intervalo del efecto según el tamaño de muestra.
+
+:::
+
+Con un efecto de 0.3 y 20 datos, el valor $p$ es 0.18 y el intervalo para $d$ va de −0.14 a 0.74: incluye el cero, pero también efectos grandes. La conclusión correcta no es "no hay efecto", sino "con 20 datos no se sabe". Con el mismo efecto y 200 datos, el valor $p$ baja a 0.00002 y el intervalo, de 0.16 a 0.44, ya excluye el cero. El efecto no cambió; cambió la precisión. Por eso el intervalo de confianza informa más que el valor $p$: muestra a la vez el tamaño del efecto y la incertidumbre que lo rodea. El interactivo usa la aproximación normal con $\sigma$ conocida, para que las cuentas se vean más claras.
+
+### Cómo reportar una prueba
+
+Un informe técnico completo incluye la estimación con su intervalo, el tamaño del efecto, el estadístico con sus grados de libertad y el valor $p$ exacto. Para el control de las varillas:
+
+> El esfuerzo de fluencia medio de las diez varillas fue de 296.35 MPa ($s = 3.34$ MPa), 3.65 MPa por debajo del objetivo de 300 MPa (IC del 95 % para la diferencia: 1.3 a 6.0 MPa; $d = -1.09$). La diferencia es estadísticamente significativa, $t(9) = -3.45$, $p = 0.007$. Una caída de esa magnitud reduce el margen sobre el esfuerzo de fluencia nominal, por lo que se recomienda revisar el proceso.
+
+Esa redacción permite que otra persona juzgue el resultado aunque use otro $\alpha$, y que lo compare con otros estudios.
 
 ## Errores comunes {#sec-ph-errores-comunes}
 

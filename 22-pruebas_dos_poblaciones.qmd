@@ -35,6 +35,50 @@ La distinción importa porque en las muestras pareadas cada pareja comparte much
 
 : Pruebas de hipótesis para dos poblaciones. {#tbl-dos-eleccion}
 
+### Por qué el pareo da más precisión {#sec-dos-por-que-pareo}
+
+La ventaja del pareo se ve mejor con un dibujo. La @fig-dos-pareo-intuicion usa los datos de rugosidad de la @sec-dos-pareadas. A la izquierda se miran como dos grupos sueltos: los tramos varían tanto entre sí (unos tienen 2 m/km y otros 4 m/km) que las dos cajas se traslapan casi por completo. A la derecha se miran las diferencias de cada tramo: casi todas son positivas, y la mejora salta a la vista.
+
+```{r}
+#| label: fig-dos-pareo-intuicion
+#| fig-cap: "Los mismos datos de IRI como grupos independientes y como diferencias pareadas."
+#| fig-alt: "Panel izquierdo: dos diagramas de caja muy traslapados para antes y después. Panel derecho: diez puntos de diferencias, ocho de ellos por encima de la línea de cero."
+#| fig-width: 8
+#| fig-height: 3.8
+#| out-width: "90%"
+#| echo: false
+
+library(patchwork)
+iri_vis <- read.csv("datos/iri_mantenimiento_hipotetico.csv")
+largo <- iri_vis %>%
+  pivot_longer(c(iri_antes, iri_despues), names_to = "momento", values_to = "valor") %>%
+  mutate(momento = factor(momento, levels = c("iri_antes", "iri_despues"), labels = c("Antes", "Después")))
+p_ind <- ggplot(largo, aes(momento, valor)) +
+  geom_boxplot(width = 0.5, fill = "#1C6BA0", alpha = 0.15, outlier.shape = NA) +
+  geom_jitter(width = 0.08, colour = "#1C6BA0", size = 2) +
+  labs(x = NULL, y = "IRI (m/km)", subtitle = "Como grupos independientes") +
+  theme_minimal(base_size = 12)
+p_dif <- ggplot(iri_vis, aes(x = "Antes − después", y = iri_antes - iri_despues)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_jitter(width = 0.06, colour = "#E69F00", size = 2.5) +
+  stat_summary(fun = mean, geom = "crossbar", width = 0.3, colour = "#B3541E") +
+  labs(x = NULL, y = "Diferencia de IRI (m/km)", subtitle = "Como diferencias pareadas") +
+  theme_minimal(base_size = 12)
+p_ind + p_dif
+```
+
+La explicación está en la varianza de una diferencia. Para dos mediciones $X_1$ y $X_2$ con correlación $\rho$,
+
+$$
+\operatorname{Var}(X_1 - X_2) = \sigma_1^2 + \sigma_2^2 - 2\rho\,\sigma_1\sigma_2
+$$ {#eq-dos-var-diferencia}
+
+donde $\sigma_1$ y $\sigma_2$ son las desviaciones estándar de cada medición. Si las muestras son independientes, $\rho = 0$ y las varianzas se suman. Si son pareadas, el mismo tramo tiende a dar valores altos antes y después, $\rho$ es positiva y el término $-2\rho\sigma_1\sigma_2$ resta buena parte de la variación. Con $\rho = 0.9$ y varianzas iguales, la varianza de la diferencia es la quinta parte de la que tendrían dos grupos independientes.
+
+::: {.callout-tip title="En la práctica"}
+Siempre que se pueda, conviene diseñar el estudio pareado: medir el mismo elemento con los dos métodos, el mismo tramo antes y después, la misma muestra de suelo dividida en dos. Con el mismo número de mediciones se detectan diferencias mucho menores. El pareo deja de ayudar solo cuando las parejas no se parecen entre sí, porque entonces $\rho$ es casi cero y se pierden grados de libertad sin ganar nada.
+:::
+
 ## Diferencia de medias con varianzas conocidas {#sec-dos-z}
 
 Si las dos poblaciones son normales, o las muestras son grandes, y se conocen $\sigma_1$ y $\sigma_2$, la diferencia $\bar{X}_1 - \bar{X}_2$ tiene distribución normal con varianza $\sigma_1^2/n_1 + \sigma_2^2/n_2$. Para $H_0: \mu_1 - \mu_2 = \Delta_0$ el estadístico es
@@ -203,6 +247,93 @@ ggplot(concreto, aes(mezcla, resistencia_mpa)) +
 
 :::
 
+### Señal y ruido {#sec-dos-senal-ruido}
+
+Todos los estadísticos $t$ del capítulo tienen la misma forma: una diferencia entre medias dividida entre su error estándar. Se puede leer como una relación entre señal y ruido. La señal es la diferencia que se quiere detectar; el ruido es la variación que la tapa. Una diferencia de 2 MPa es clarísima si los cilindros de cada grupo varían ±0.5 MPa, y se pierde si varían ±5 MPa. La @fig-dos-int-senal-ruido deja mover las tres piezas: la diferencia real, la dispersión dentro de cada grupo y el tamaño de las muestras.
+
+::: {#fig-dos-int-senal-ruido}
+
+```{=html}
+<div class="interactivo" id="int-senal-ruido">
+  <div class="controles">
+    <label><span>Diferencia real <i>μ</i><sub>1</sub> − <i>μ</i><sub>2</sub>:</span> <output>2.0</output>
+      <input type="range" min="0" max="5" step="0.1" value="2" data-ctrl="d"></label>
+    <label><span>Desviación estándar <i>σ</i>:</span> <output>2.0</output>
+      <input type="range" min="0.3" max="6" step="0.1" value="2" data-ctrl="s"></label>
+    <label><span>Datos por grupo <i>n</i>:</span> <output>10</output>
+      <input type="range" min="3" max="60" step="1" value="10" data-ctrl="n"></label>
+  </div>
+  <button type="button">Otras muestras</button>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 250" role="img" aria-label="Datos de dos grupos con sus medias"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-senal-ruido");
+  var c = {}; raiz.querySelectorAll("[data-ctrl]").forEach(function (el) { c[el.dataset.ctrl] = el; });
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado");
+  var svg = raiz.querySelector("svg"), boton = raiz.querySelector("button"), z1 = [], z2 = [];
+  var w = 640, h = 250, m = 40, xmin = 15, xmax = 45;
+  function rnorm() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function lgamma(x) {
+    var g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, tmp = x + 5.5; tmp -= (x + 0.5) * Math.log(tmp); var ser = 1.000000000190015;
+    for (var j = 0; j < 6; j++) ser += g[j] / ++y;
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+  }
+  function betacf(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, cc = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d; var hh = d;
+    for (var k = 1; k <= 200; k++) {
+      var k2 = 2 * k, aa = k * (b - k) * x / ((qam + k2) * (a + k2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; cc = 1 + aa / cc; if (Math.abs(cc) < 1e-30) cc = 1e-30; d = 1 / d; hh *= d * cc;
+      aa = -(a + k) * (qab + k) * x / ((a + k2) * (qap + k2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; cc = 1 + aa / cc; if (Math.abs(cc) < 1e-30) cc = 1e-30; d = 1 / d;
+      var del = d * cc; hh *= del; if (Math.abs(del - 1) < 3e-14) break;
+    }
+    return hh;
+  }
+  function ibeta(a, b, x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
+  }
+  function pt(t, v) { var cola = 0.5 * ibeta(v / 2, 0.5, v / (v + t * t)); return t >= 0 ? 1 - cola : cola; }
+  function nuevos() { z1 = []; z2 = []; for (var i = 0; i < 60; i++) { z1.push(rnorm()); z2.push(rnorm()); } }
+  var sx = function (x) { return m + (Math.min(Math.max(x, xmin), xmax) - xmin) / (xmax - xmin) * (w - 2 * m); };
+  function resumen(v) { var s = 0, s2 = 0; v.forEach(function (x) { s += x; s2 += x * x; }); var me = s / v.length; return [me, (s2 - v.length * me * me) / (v.length - 1)]; }
+  function dibujar() {
+    var d = parseFloat(c.d.value), s = parseFloat(c.s.value), n = parseInt(c.n.value, 10);
+    salidas[0].textContent = d.toFixed(1); salidas[1].textContent = s.toFixed(1); salidas[2].textContent = n;
+    var g1 = [], g2 = [], g = "";
+    for (var i = 0; i < n; i++) { g1.push(30 + d / 2 + s * z1[i]); g2.push(30 - d / 2 + s * z2[i]); }
+    g1.forEach(function (x, i) { g += '<circle class="punto" r="4" cx="' + sx(x).toFixed(1) + '" cy="' + (70 + (i % 7) * 5) + '"/>'; });
+    g2.forEach(function (x, i) { g += '<circle class="punto-b" r="4" cx="' + sx(x).toFixed(1) + '" cy="' + (150 + (i % 7) * 5) + '"/>'; });
+    var r1 = resumen(g1), r2 = resumen(g2), ee = Math.sqrt(r1[1] / n + r2[1] / n), t = (r1[0] - r2[0]) / ee;
+    var nu = Math.pow(r1[1] / n + r2[1] / n, 2) / (Math.pow(r1[1] / n, 2) / (n - 1) + Math.pow(r2[1] / n, 2) / (n - 1));
+    var p = 2 * (1 - pt(Math.abs(t), nu));
+    g += '<line class="media-grupo" x1="' + sx(r1[0]) + '" x2="' + sx(r1[0]) + '" y1="58" y2="112"/>' +
+         '<line class="media-grupo" x1="' + sx(r2[0]) + '" x2="' + sx(r2[0]) + '" y1="138" y2="192"/>';
+    var ejes = "";
+    for (var k = 15; k <= 45; k += 5) ejes += '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - 12) + '" text-anchor="middle">' + k + '</text>';
+    svg.innerHTML = '<text class="eje-texto" x="' + m + '" y="48">Grupo 1</text><text class="eje-texto" x="' + m + '" y="130">Grupo 2</text>' + g +
+      '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - 30) + '" y2="' + (h - 30) + '"/>' + ejes;
+    texto.innerHTML = "Señal: <i>x̄</i><sub>1</sub> − <i>x̄</i><sub>2</sub> = " + (r1[0] - r2[0]).toFixed(2) + ". Ruido: error estándar = " + ee.toFixed(2) +
+      ". <i>t</i> de Welch = señal/ruido = <b>" + t.toFixed(2) + "</b>, valor <i>p</i> bilateral = <b>" + (p < 0.0001 ? "< 0.0001" : p.toFixed(4)) + "</b>.";
+  }
+  Object.keys(c).forEach(function (k) { c[k].addEventListener("input", dibujar); });
+  boton.addEventListener("click", function () { nuevos(); dibujar(); });
+  nuevos(); dibujar();
+})();
+</script>
+```
+
+Dos grupos simulados y la prueba de Welch.
+
+:::
+
+Con una diferencia de 2, una desviación de 2 y diez datos por grupo, la prueba rechaza en muchas de las muestras pero no en todas: los puntos de los dos grupos se mezclan y las medias (líneas verticales) quedan a una distancia comparable con su error estándar. Si la desviación baja a 0.5, los grupos se separan a simple vista. Si se mantiene la desviación en 2 y se sube $n$ a 50, los puntos siguen mezclados, pero las medias se conocen tan bien que la diferencia se detecta casi siempre. Que los datos de dos grupos se traslapen no impide que sus medias sean distintas.
+
 ## Cociente de varianzas {#sec-dos-f}
 
 Para comparar la variabilidad de dos poblaciones normales se usa el cociente de las varianzas muestrales:
@@ -327,6 +458,59 @@ iri %>%
 ```
 
 **Interpretación.** El mantenimiento redujo el IRI en 0.43 m/km en promedio, y la @fig-dos-iri muestra que la mejora aparece en ocho de los diez tramos. El paso 5 del código ilustra por qué importa el diseño: si los mismos datos se analizan como muestras independientes, el valor $p$ sube a 0.063 y no se rechazaría $H_0$. La razón es que los tramos difieren mucho entre sí (de 2.6 a 4.1 m/km antes del mantenimiento), y esa variación entre tramos tapa el efecto cuando no se trabaja con las diferencias.
+
+:::
+
+::: {.callout-note title="Ejemplo: dos métodos de aforo en las mismas secciones de un río"}
+
+**Planteamiento.** Una oficina de hidrología quiere saber si el perfilador acústico de corriente (ADCP) que compró da los mismos caudales que el molinete que usaba antes. En ocho secciones de distintos ríos, con caudal estable, se hizo un aforo con cada método el mismo día. Los caudales hipotéticos (m³/s) fueron:
+
+| Sección | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|:--|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Molinete | 12.4 | 8.7 | 15.2 | 6.3 | 21.8 | 10.1 | 17.6 | 9.4 |
+| ADCP | 12.9 | 8.9 | 15.9 | 6.2 | 22.6 | 10.6 | 18.1 | 9.9 |
+
+: Caudales aforados con los dos métodos (m³/s). {#tbl-dos-aforos}
+
+Con $\alpha = 0.05$, ¿hay evidencia de que los dos métodos dan caudales medios distintos?
+
+**Solución:**
+
+1. Diseño: cada sección se aforó con los dos métodos, así que las muestras son pareadas. Se calcula $d_i = \text{ADCP} - \text{molinete}$: 0.5, 0.2, 0.7, −0.1, 0.8, 0.5, 0.5 y 0.5 m³/s.
+2. Hipótesis: $H_0: \mu_D = 0$ y $H_1: \mu_D \neq 0$. Bilateral, porque un sesgo en cualquier dirección afectaría los registros.
+3. Estadísticos: $\sum d_i = 3.6$, así que $\bar{d} = 0.45$ m³/s. La suma de cuadrados de las diferencias es 0.56, de modo que $s_d = \sqrt{0.56/7} = 0.283$ m³/s y el error estándar es $0.283/\sqrt{8} = 0.100$ m³/s.
+4. Estadístico: $t = 0.45/0.100 = 4.50$, con 7 grados de libertad.
+5. Decisión: $t_{0.025,\,7} = 2.365$. Como $4.50 > 2.365$, se rechaza $H_0$. El valor $p$ es 0.0028.
+6. Intervalo del 95 % para $\mu_D$: $0.45 \pm 2.365 \times 0.100 = [0.21,\ 0.69]$ m³/s.
+
+**Pseudocódigo**
+
+1. Guardar los caudales de cada método en el mismo orden de secciones.
+2. Calcular las diferencias, su media y su desviación estándar.
+3. Calcular el estadístico, el valor $p$ bilateral y el intervalo.
+4. Comprobar con `t.test(..., paired = TRUE)` y comparar con el análisis incorrecto como muestras independientes.
+
+```{r}
+# 1) Datos (m³/s), en el mismo orden de secciones
+molinete <- c(12.4, 8.7, 15.2, 6.3, 21.8, 10.1, 17.6, 9.4)
+adcp     <- c(12.9, 8.9, 15.9, 6.2, 22.6, 10.6, 18.1, 9.9)
+
+# 2) Diferencias
+d <- adcp - molinete
+n <- length(d)
+
+# 3) Estadístico, valor p e intervalo
+ee <- sd(d) / sqrt(n)
+t_obs <- mean(d) / ee
+c(media_d = mean(d), s_d = sd(d), t = t_obs, p = 2 * pt(-abs(t_obs), df = n - 1),
+  inferior = mean(d) - qt(0.975, n - 1) * ee, superior = mean(d) + qt(0.975, n - 1) * ee)
+
+# 4) Con la función de R, y el análisis incorrecto para comparar
+t.test(adcp, molinete, paired = TRUE)
+t.test(adcp, molinete)$p.value      # como si fueran independientes: no detecta nada
+```
+
+**Interpretación.** El ADCP da en promedio 0.45 m³/s más que el molinete, entre 0.21 y 0.69 m³/s con 95 % de confianza, lo que equivale a un 3 % de los caudales aforados. Si los datos se hubieran analizado como muestras independientes, el valor $p$ sería 0.87 y no se habría detectado nada, porque la diferencia entre secciones (de 6 a 22 m³/s) tapa por completo la diferencia entre métodos. Antes de unir registros de los dos métodos en una misma serie conviene investigar el origen de ese 3 %.
 
 :::
 
@@ -469,6 +653,15 @@ $$ {#eq-dos-n}
 
 datos por grupo [@montgomery2014applied]. Es el doble que para una sola media (@eq-ph-n-potencia), porque ahora hay dos medias estimadas con error. Por ejemplo, para detectar una diferencia de 2 MPa en concretos con $\sigma = 2$ MPa, con $\alpha = 0.05$ y potencia de 0.80, $n = 2((1.960 + 0.842)(2)/2)^2 = 15.7$, es decir, 16 cilindros por mezcla. `power.t.test(delta = 2, sd = 2, power = 0.80)`, que usa la distribución $t$, pide 17.
 
+## Errores comunes {#sec-dos-errores}
+
+1. **Analizar datos pareados como independientes.** Es el error más costoso del capítulo: el ejemplo de los aforos pasa de $p = 0.003$ a $p = 0.87$.
+2. **Parear datos que no tienen pareja.** Doce cilindros sin aditivo y diez con aditivo no se pueden parear, ni siquiera ordenándolos de menor a mayor. Si los grupos tienen distinto tamaño, casi seguro son independientes.
+3. **Decidir que las medias no difieren porque los intervalos de confianza se traslapan.** Dos intervalos del 95 % que se traslapan un poco pueden corresponder a una diferencia significativa al 5 %. Lo correcto es construir el intervalo de la diferencia, que es lo que da `t.test()`.
+4. **Hacer primero la prueba $F$ para decidir entre Welch y varianzas iguales.** Esa práctica, muy extendida, cambia el error tipo I de la prueba final. Es más sencillo usar Welch siempre.
+5. **Olvidar el orden de los grupos en R.** Con la fórmula `y ~ grupo`, `t.test()` resta los grupos en orden alfabético. El signo de la diferencia y la dirección de `alternative` deben corresponder a ese orden.
+6. **Comparar proporciones con muestras pequeñas.** Si algún grupo tiene menos de cinco éxitos o cinco fracasos, se usa la prueba exacta de Fisher (`fisher.test()`), que se ve en el capítulo siguiente.
+
 ## Ejercicios propuestos
 
 1. Dos laboratorios midieron la concentración de un aditivo químico en mezclas asfálticas. Laboratorio 1: $\bar{x}_1 = 7.1$ %, $\sigma_1 = 0.4$ %, $n_1 = 25$. Laboratorio 2: $\bar{x}_2 = 6.9$ %, $\sigma_2 = 0.3$ %, $n_2 = 20$. Con $\alpha = 0.05$, ¿hay diferencia entre los laboratorios? Suponga desviaciones conocidas.
@@ -477,6 +670,9 @@ datos por grupo [@montgomery2014applied]. Es el doble que para una sola media (@
 4. Con los datos de `datos/concreto_aditivo_hipotetico.csv`, construya un intervalo del 99 % para la diferencia de medias con `t.test()`. ¿Contiene el cero? ¿Qué relación tiene eso con la prueba bilateral al 1 %?
 5. En dos carreteras se registró si los vehículos excedían el límite de velocidad: en la ruta A, 84 de 300; en la ruta B, 57 de 280. ¿Hay evidencia de que la proporción de vehículos que exceden el límite es mayor en la ruta A?
 6. Simule en R 2000 pares de muestras con $n_1 = 5$, $\sigma_1 = 5$ y $n_2 = 30$, $\sigma_2 = 1$, ambas con media 0. Aplique a cada par la prueba con varianzas iguales y la de Welch con $\alpha = 0.05$. ¿Qué fracción rechaza cada una? ¿Cuál respeta el 5 % de error tipo I?
+7. En el interactivo de la @fig-dos-int-senal-ruido, fije la diferencia en 1 y la desviación en 3. Busque el número de datos por grupo con el que la prueba rechaza $H_0$ en la mayoría de las muestras. Compare con la @eq-dos-n.
+8. En seis ensayos de permeabilidad se dividió cada muestra de suelo en dos mitades: una se ensayó con carga constante y la otra con carga variable. Los coeficientes ($\times 10^{-5}$ cm/s) fueron: carga constante 3.2, 5.8, 1.9, 7.4, 4.1, 2.6; carga variable 3.6, 6.1, 2.4, 7.5, 4.8, 2.9. ¿Hay diferencia entre los métodos? Justifique el diseño que usa.
+9. Use la @eq-dos-var-diferencia para calcular el error estándar de la diferencia media de los aforos si $\sigma_1 = \sigma_2 = 5.3$ m³/s y $\rho = 0.998$, con $n = 8$. Compare con el error estándar que tendrían dos muestras independientes.
 
 ## Lecturas recomendadas
 
