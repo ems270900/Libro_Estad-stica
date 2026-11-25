@@ -8,8 +8,7 @@
 
 ## Parte I (R y RStudio)
 
-- Capturas de pantalla de RStudio, CRAN y Posit: ya están en `assets/img/cap01/`, `cap03/` y `cap05/` (RStudio 2026.11.1, R 4.6.2). Falta integrarlas en el texto y actualizar en el capítulo 1 la dirección de descarga de RStudio, que ahora es <https://docs.posit.co/ide/user/download.html>.
-- El HTML de un solo archivo necesita MathJax; en la nube de este proyecto el CDN está bloqueado, así que se compila en un entorno con red abierta.
+- Capturas de pantalla de RStudio, CRAN y Posit: integradas en los capítulos 1, 3 y 5 (RStudio 2026.11.1, R 4.6.2), con la dirección de descarga vigente de RStudio. Si cambia la versión que se usa en el curso, conviene repetirlas.
 - Revisión del autor de los capítulos 1 a 6.
 
 ## Parte II (estadística descriptiva)

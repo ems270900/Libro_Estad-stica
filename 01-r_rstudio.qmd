@@ -32,9 +32,9 @@ En la página siguiente se elige "base" o "install R for the first time" (@fig-r
 
 ### Paso 2: instalar RStudio
 
-En la página de Posit, la empresa que desarrolla RStudio (<https://posit.co/download/rstudio-desktop/>), se baja hasta el botón de descarga de RStudio Desktop para Windows (@fig-r-posit). La página también ofrece el enlace a R, por si no se hizo el paso 1. Se ejecuta el instalador y se aceptan las opciones por defecto.
+En la página de descarga de Posit, la empresa que desarrolla RStudio (<https://docs.posit.co/ide/user/download.html>), la página reconoce que la computadora usa Windows y ofrece el botón Download installer (@fig-r-posit). Se descarga el instalador, se ejecuta y se aceptan las opciones por defecto. La página también tiene el enlace a R, por si no se hizo el paso 1.
 
-![Página de descarga de RStudio Desktop. Fuente: captura de <https://posit.co/download/rstudio-desktop/>.](assets/img/cap01/posit_descarga.png){#fig-r-posit fig-alt="Página de Posit con los pasos para instalar R y RStudio Desktop y el botón de descarga" width="75%"}
+![Página de descarga de RStudio Desktop. Fuente: captura de <https://docs.posit.co/ide/user/download.html>.](assets/img/cap01/posit_descarga.png){#fig-r-posit fig-alt="Página Download RStudio de Posit con el recuadro Recommended for you y los botones Download installer y Download zip archive" width="75%"}
 
 ### Paso 3: abrir RStudio
 
@@ -53,6 +53,8 @@ Conviene que la ruta de la carpeta de trabajo no tenga tildes, eñes ni espacios
 RStudio se organiza en cuatro paneles (@fig-r-paneles). Al abrirlo por primera vez solo se ven tres, porque el editor aparece cuando se crea un script. Se crea con el menú File > New File > R Script (@fig-r-nuevo-script) o con el atajo Ctrl + Shift + N. Los menús de RStudio están en inglés; en el texto se escriben tal como aparecen en pantalla.
 
 ![Creación de un script nuevo desde el menú File. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_nuevo_script.png){#fig-r-nuevo-script fig-alt="Menú File de RStudio desplegado con la opción New File y el submenú R Script" width="85%"}
+
+Las capturas de este libro se tomaron con la versión de RStudio que funciona en el navegador. La de escritorio que se instala en el paso 2 es igual, salvo por dos detalles de la esquina superior derecha: no muestra el nombre de usuario (en las capturas, "estudiante") ni el botón para cerrar la sesión.
 
 ![Los cuatro paneles de RStudio. La posición de cada panel se puede cambiar en Herramientas > Opciones globales > Distribución de paneles.](assets/img/cap01/paneles_rstudio.png){#fig-r-paneles fig-alt="Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha" width="80%"}
 
