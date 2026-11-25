@@ -1,0 +1,692 @@
+---
+title: "Intervalos de confianza, de predicción y de tolerancia"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+```
+
+En el capítulo anterior se estimó que la resistencia media de un lote de concreto es de 32.15 MPa. Ese número solo no dice qué tan confiable es. Si se hubieran ensayado tres cilindros, la estimación podría estar a varios megapascales de la verdadera; con cien, a unas décimas. Un intervalo de confianza resuelve eso: da un rango de valores para el parámetro y dice con qué frecuencia el método acierta. Este capítulo construye los intervalos para la media, la proporción y la varianza, explica los intervalos de predicción y de tolerancia, que responden preguntas distintas, y muestra cómo calcular el tamaño de muestra necesario para una precisión dada [@montgomery2018applied; @walpole2012probabilidad].
+
+## La idea de un intervalo de confianza {#sec-ic-idea}
+
+Casi todos los intervalos de confianza tienen la misma forma:
+
+$$
+\text{estimación puntual} \pm \underbrace{(\text{valor crítico}) \times (\text{error estándar})}_{\text{margen de error}}
+$$ {#eq-ic-forma-general}
+
+La estimación puntual es el centro del intervalo ($\bar{x}$, $\hat{p}$). El error estándar mide cuánto varía esa estimación de una muestra a otra. El valor crítico sale de una distribución ($z$, $t$ o $\chi^2$) y depende del nivel de confianza que se quiera. El producto de los dos es el margen de error $E$, que es la mitad del ancho del intervalo [@illowsky2018introductory].
+
+El nivel de confianza se escribe $100(1 - \alpha)$ %, donde $\alpha$ es la probabilidad de que el método falle. Para un intervalo del 95 %, $\alpha = 0.05$. Como el intervalo es bilateral, esa probabilidad de fallar se reparte entre las dos colas: $\alpha/2 = 0.025$ en cada una.
+
+### Qué significa el 95 %
+
+::: {.pregunta}
+Si un intervalo del 95 % para la media va de 31.17 a 33.13 MPa, ¿hay un 95 % de probabilidad de que $\mu$ esté ahí?
+:::
+
+En sentido estricto, no. La media $\mu$ es un número fijo: está dentro del intervalo o no lo está. Lo aleatorio es el intervalo, porque depende de la muestra. El 95 % describe el método: si se tomaran muchas muestras y con cada una se construyera un intervalo de la misma manera, cerca del 95 % de esos intervalos contendría a $\mu$ [@neyman1937outline]. Al decir "con 95 % de confianza, la media está entre 31.17 y 33.13 MPa" se expresa esa confianza en el método, no una probabilidad sobre $\mu$.
+
+La @fig-ic-interactivo lo muestra con una simulación. Cada línea horizontal es un intervalo construido con una muestra distinta de una población con $\mu = 30$ MPa y $\sigma = 2.5$ MPa. Los intervalos que no tocan la línea vertical fallaron.
+
+::: {#fig-ic-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-ic-repetidos">
+  <label><span>Nivel de confianza (%):</span> <output>95</output>
+    <input type="range" min="50" max="99" step="1" value="95" data-ctrl="conf"></label>
+  <label><span>Tamaño de cada muestra <i>n</i>:</span> <output>10</output>
+    <input type="range" min="2" max="100" step="1" value="10" data-ctrl="n"></label>
+  <button type="button">Tomar otras 50 muestras</button>
+  <p class="resultado"></p>
+  <svg viewBox="0 0 640 400" role="img" aria-label="Cincuenta intervalos de confianza alrededor de la media verdadera"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-ic-repetidos");
+  var cconf = raiz.querySelector('[data-ctrl="conf"]'), cn = raiz.querySelector('[data-ctrl="n"]');
+  var salidas = raiz.querySelectorAll("output"), texto = raiz.querySelector(".resultado");
+  var svg = raiz.querySelector("svg"), boton = raiz.querySelector("button");
+  var w = 640, h = 400, m = 34, mu = 30, sigma = 2.5, B = 50, z01 = [];
+  // Cuantil de la normal estándar (algoritmo de Acklam, error menor que 1e-9)
+  function qnorm(p) {
+    var a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.3577518672690, -30.66479806614716, 2.506628277459239],
+        b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572],
+        c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783],
+        d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416], q, r;
+    if (p < 0.02425) { q = Math.sqrt(-2 * Math.log(p));
+      return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+    if (p > 1 - 0.02425) return -qnorm(1 - p);
+    q = p - 0.5; r = q * q;
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  }
+  // Normal estándar por el método de Box-Muller
+  function rnorm() { var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  // Se guardan 50 x 100 valores N(0, 1); cada muestra usa sus primeros n
+  function muestrear() { z01 = []; for (var i = 0; i < B; i++) { var f = []; for (var j = 0; j < 100; j++) f.push(rnorm()); z01.push(f); } }
+  var sx = function (x) { return m + (x - 24) / 12 * (w - 2 * m); };
+  var sy = function (i) { return 12 + i * (h - m - 20) / B; };
+  function dibujar() {
+    var conf = parseInt(cconf.value, 10) / 100, n = parseInt(cn.value, 10);
+    salidas[0].textContent = Math.round(conf * 100); salidas[1].textContent = n;
+    var zc = qnorm(1 - (1 - conf) / 2), E = zc * sigma / Math.sqrt(n), fallas = 0, lineas = "";
+    for (var i = 0; i < B; i++) {
+      var suma = 0; for (var j = 0; j < n; j++) suma += mu + sigma * z01[i][j];
+      var xb = suma / n, li = xb - E, ls = xb + E, cubre = (li <= mu && ls >= mu);
+      if (!cubre) fallas++;
+      var clase = cubre ? "ic-cubre" : "ic-falla";
+      lineas += '<line class="' + clase + '" x1="' + sx(Math.max(li, 24)).toFixed(1) + '" x2="' + sx(Math.min(ls, 36)).toFixed(1) +
+                '" y1="' + sy(i).toFixed(1) + '" y2="' + sy(i).toFixed(1) + '"/>' +
+                '<circle class="' + clase + '" r="2.5" cx="' + sx(xb).toFixed(1) + '" cy="' + sy(i).toFixed(1) + '"/>';
+    }
+    var ejes = "";
+    for (var k = 24; k <= 36; k += 2) {
+      ejes += '<line class="eje" x1="' + sx(k) + '" x2="' + sx(k) + '" y1="' + (h - m) + '" y2="' + (h - m + 5) + '"/>' +
+              '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + k + '</text>';
+    }
+    svg.innerHTML = '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' + ejes +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 2) + '" text-anchor="middle">Resistencia (MPa)</text>' +
+      '<line class="eje" stroke-dasharray="5 4" x1="' + sx(mu) + '" x2="' + sx(mu) + '" y1="4" y2="' + (h - m) + '"/>' + lineas;
+    texto.innerHTML = "Margen de error <i>E</i> = " + zc.toFixed(3) + " × 2.5/√" + n + " = " + E.toFixed(2) +
+      " MPa. Contienen a <i>μ</i> = 30: " + (B - fallas) + " de " + B + " intervalos (" + Math.round(100 * (B - fallas) / B) + " %).";
+  }
+  cconf.addEventListener("input", dibujar); cn.addEventListener("input", dibujar);
+  boton.addEventListener("click", function () { muestrear(); dibujar(); });
+  muestrear(); dibujar();
+})();
+</script>
+```
+
+Cincuenta intervalos de confianza para $\mu$, cada uno con una muestra distinta. Los de color naranja no contienen a $\mu = 30$ MPa (línea discontinua).
+
+:::
+
+Al subir el nivel de confianza, los intervalos se alargan y fallan menos. Al subir $n$, se acortan sin perder confianza, porque el error estándar baja. Con el botón se ve que la cantidad de fallas cambia de una tanda a otra, pero ronda el $100\alpha$ % que se fijó.
+
+### Valores críticos {#sec-ic-valores-criticos}
+
+En este libro, $z_{a}$ es el valor de la normal estándar que deja un área $a$ a su derecha. Así, $z_{0.025} = 1.960$ porque $P(Z > 1.960) = 0.025$. La misma convención se usa para $t_{a,\,\nu}$ y $\chi^2_{a,\,\nu}$, donde $\nu$ son los grados de libertad. El @tbl-ic-criticos da los valores más usados.
+
+| Nivel de confianza | $\alpha$ | $\alpha/2$ | $z_{\alpha/2}$ | En R |
+|:-:|:-:|:-:|:-:|:--|
+| 90 % | 0.10 | 0.050 | 1.645 | `qnorm(0.950)` |
+| 95 % | 0.05 | 0.025 | 1.960 | `qnorm(0.975)` |
+| 99 % | 0.01 | 0.005 | 2.576 | `qnorm(0.995)` |
+
+: Valores críticos de la normal estándar para intervalos bilaterales. {#tbl-ic-criticos}
+
+::: {.callout-warning title="Cuidado"}
+Las funciones de cuantiles de R (`qnorm()`, `qt()`, `qchisq()`) reciben el área a la izquierda, no a la derecha. Por eso $z_{0.025}$ se calcula con `qnorm(1 - 0.025)` y $t_{0.025,\,9}$ con `qt(1 - 0.025, df = 9)`. Algunos libros y tablas usan la convención contraria y escriben $z_{0.975}$ para el mismo 1.960. Antes de usar una tabla conviene revisar qué área indica su encabezado.
+:::
+
+## Intervalo para la media {#sec-ic-media}
+
+### Con desviación estándar conocida
+
+Si la población es normal, o si la muestra es grande para que aplique el teorema del límite central, y además se conoce $\sigma$, el intervalo de confianza para $\mu$ es
+
+$$
+\bar{x} - z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}} \;\le\; \mu \;\le\; \bar{x} + z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}}
+$$ {#eq-ic-media-z}
+
+donde $\bar{x}$ es la media muestral, $\sigma$ es la desviación estándar de la población, $n$ es el tamaño de la muestra y $z_{\alpha/2}$ es el valor crítico del @tbl-ic-criticos [@montgomery2018applied]. Conocer $\sigma$ es raro, pero ocurre cuando un proceso se ha controlado durante años, como la producción de una planta de concreto con un historial largo de ensayos.
+
+::: {.callout-note title="Ejemplo: resistencia media de una planta con historial conocido"}
+
+**Planteamiento.** Una planta de concreto tiene un historial que indica una desviación estándar de $\sigma = 3.0$ MPa para su mezcla de 28 MPa. En una obra se ensayaron 36 cilindros, con media $\bar{x} = 32.4$ MPa. Construya un intervalo de confianza del 95 % para la resistencia media.
+
+**Solución:**
+
+1. Valor crítico: para 95 %, $z_{0.025} = 1.960$.
+2. Error estándar: $\sigma/\sqrt{n} = 3.0/\sqrt{36} = 3.0/6 = 0.500$ MPa.
+3. Margen de error: $E = 1.960 \times 0.500 = 0.980$ MPa.
+4. Límites: $32.4 - 0.98 = 31.42$ MPa y $32.4 + 0.98 = 33.38$ MPa.
+
+**Pseudocódigo**
+
+1. Guardar $\bar{x}$, $\sigma$, $n$ y el nivel de confianza.
+2. Calcular $z_{\alpha/2}$ con `qnorm()`.
+3. Calcular el error estándar y el margen de error.
+4. Restar y sumar el margen a $\bar{x}$.
+
+```{r}
+# 1) Datos del enunciado
+media <- 32.4      # MPa
+sigma <- 3.0       # MPa, conocida por el historial
+n <- 36
+confianza <- 0.95
+
+# 2) Valor crítico (qnorm recibe el área a la izquierda)
+alfa <- 1 - confianza
+z <- qnorm(1 - alfa / 2)
+
+# 3) Error estándar y margen de error
+ee <- sigma / sqrt(n)
+E <- z * ee
+
+# 4) Intervalo
+c(z = z, ee = ee, E = E, inferior = media - E, superior = media + E)
+```
+
+R base no tiene una función para este intervalo, porque en la práctica casi siempre se usa el de la $t$ de la sección siguiente. El cálculo manual es el método recomendado.
+
+**Interpretación.** Con 95 % de confianza, la resistencia media del concreto entregado está entre 31.42 y 33.38 MPa. Todo el intervalo queda por encima de los 28 MPa especificados, así que la resistencia media no es motivo de preocupación.
+
+:::
+
+### Con desviación estándar desconocida
+
+Cuando $\sigma$ se desconoce, se reemplaza por $s$. Esa sustitución añade incertidumbre, porque $s$ también varía de muestra en muestra, y el valor crítico ya no sale de la normal sino de la distribución $t$ de Student con $n - 1$ grados de libertad [@student1908probable]:
+
+$$
+\bar{x} - t_{\alpha/2,\,n-1}\,\frac{s}{\sqrt{n}} \;\le\; \mu \;\le\; \bar{x} + t_{\alpha/2,\,n-1}\,\frac{s}{\sqrt{n}}
+$$ {#eq-ic-media-t}
+
+donde $s$ es la desviación estándar muestral y $t_{\alpha/2,\,n-1}$ es el valor de la $t$ que deja un área $\alpha/2$ a su derecha. La @fig-ic-t-normal compara las dos distribuciones. La $t$ tiene colas más pesadas, de modo que su valor crítico es mayor y el intervalo, más ancho. Con 9 grados de libertad, $t_{0.025,\,9} = 2.262$, contra 1.960 de la normal; con 30 grados de libertad la diferencia ya es pequeña (2.042).
+
+```{r}
+#| label: fig-ic-t-normal
+#| fig-cap: "Densidad normal estándar y densidades t con 3 y 9 grados de libertad."
+#| fig-alt: "Tres curvas en forma de campana; las t son más bajas en el centro y más altas en las colas que la normal."
+#| echo: false
+
+tibble(x = seq(-4.5, 4.5, length.out = 400)) %>%
+  mutate(`Normal estándar` = dnorm(x), `t con 9 g. l.` = dt(x, 9), `t con 3 g. l.` = dt(x, 3)) %>%
+  pivot_longer(-x, names_to = "dist", values_to = "densidad") %>%
+  mutate(dist = factor(dist, levels = c("Normal estándar", "t con 9 g. l.", "t con 3 g. l."))) %>%
+  ggplot(aes(x, densidad, colour = dist, linetype = dist)) +
+  geom_line(linewidth = 1) +
+  scale_colour_manual(values = c("#1C6BA0", "#E69F00", "#009E73")) +
+  labs(x = "Valor de la variable", y = "Densidad", colour = NULL, linetype = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+El intervalo con la $t$ supone que la población es aproximadamente normal. Con muestras de más de 30 o 40 datos, el teorema del límite central lo hace razonable aunque la población no sea normal, siempre que no haya valores atípicos fuertes [@illowsky2018introductory].
+
+Para buscar $t_{\alpha/2,\,n-1}$ en una tabla se siguen cuatro pasos:
+
+1. Calcular $\alpha = 1 - \text{nivel de confianza}$.
+2. Dividir entre 2, porque el intervalo es bilateral.
+3. Calcular los grados de libertad, $\nu = n - 1$.
+4. Cruzar la fila de $\nu$ con la columna de $\alpha/2$.
+
+::: {.callout-note title="Ejemplo: intervalo para el esfuerzo de fluencia de varillas de acero"}
+
+**Planteamiento.** Una fábrica controla el esfuerzo de fluencia de sus varillas de acero, cuyo valor objetivo es de 300 MPa. En el último control se ensayaron diez varillas hipotéticas. Construya un intervalo de confianza del 95 % para el esfuerzo de fluencia medio.
+
+```{r}
+#| echo: false
+ver_datos("datos/varillas_fluencia_hipoteticas.csv",
+          nombres = c("Varilla", "Esfuerzo de fluencia (MPa)"))
+```
+
+**Solución:**
+
+1. Estadísticos de la muestra: $n = 10$, $\bar{x} = 2963.5/10 = 296.35$ MPa y $s = 3.344$ MPa.
+2. Valor crítico: $\alpha/2 = 0.025$ y $\nu = 9$, así que $t_{0.025,\,9} = 2.262$.
+3. Error estándar: $s/\sqrt{n} = 3.344/\sqrt{10} = 1.057$ MPa.
+4. Margen de error: $E = 2.262 \times 1.057 = 2.392$ MPa.
+5. Límites: $296.35 - 2.39 = 293.96$ MPa y $296.35 + 2.39 = 298.74$ MPa.
+
+**Pseudocódigo**
+
+1. Leer los datos.
+2. Calcular $n$, $\bar{x}$ y $s$.
+3. Calcular $t_{\alpha/2,\,n-1}$ con `qt()`.
+4. Aplicar la @eq-ic-media-t.
+5. Comparar con el intervalo que da `t.test()`.
+
+```{r}
+# 1) Datos
+varillas <- read.csv("datos/varillas_fluencia_hipoteticas.csv")
+x <- varillas$fluencia_mpa
+
+# 2) Estadísticos
+n <- length(x)
+media <- mean(x)
+s <- sd(x)
+
+# 3) Valor crítico t con n - 1 grados de libertad
+t_crit <- qt(1 - 0.05 / 2, df = n - 1)
+
+# 4) Intervalo con la fórmula
+E <- t_crit * s / sqrt(n)
+c(t = t_crit, E = E, inferior = media - E, superior = media + E)
+
+# 5) El mismo intervalo con la función de R
+t.test(x, conf.level = 0.95)$conf.int
+```
+
+**Interpretación.** Con 95 % de confianza, el esfuerzo de fluencia medio está entre 293.96 y 298.74 MPa. El valor objetivo de 300 MPa queda fuera del intervalo, por encima del límite superior. Eso indica que la producción quedó por debajo del objetivo; en el capítulo de pruebas para una población se llega a la misma conclusión con una prueba de hipótesis.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Un intervalo se hace más ancho cuando se pide más confianza, cuando los datos varían más o cuando la muestra es más pequeña. De los tres factores, el único que se controla al diseñar el muestreo es $n$. Un intervalo angosto indica precisión, pero no corrige los sesgos: si los cilindros se curaron mal o la muestra no fue aleatoria, el intervalo puede ser angosto y estar lejos del valor verdadero.
+:::
+
+## Intervalo para una proporción {#sec-ic-proporcion}
+
+Si $x$ de los $n$ elementos de una muestra tienen la característica de interés, la proporción muestral es $\hat{p} = x/n$. Para $n$ grande, $\hat{p}$ tiene una distribución aproximadamente normal y el intervalo es
+
+$$
+\hat{p} - z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} \;\le\; p \;\le\; \hat{p} + z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
+$$ {#eq-ic-proporcion}
+
+donde $\hat{p}$ es la proporción muestral y $n$ es el tamaño de la muestra. Se le llama intervalo de Wald. La aproximación se considera aceptable cuando $n\hat{p} \ge 5$ y $n(1-\hat{p}) \ge 5$, es decir, cuando hay al menos cinco éxitos y cinco fracasos [@montgomery2018applied].
+
+El intervalo de Wald es fácil de calcular a mano, pero con muestras pequeñas o proporciones cercanas a 0 o a 1 contiene al parámetro menos veces de lo que promete. Por eso R ofrece otros dos. `prop.test()` usa el intervalo de Wilson [-@wilson1927probable], que corrige ese problema y se recomienda para uso general [@agresti1998approximate]. `binom.test()` usa el intervalo exacto de Clopper y Pearson [-@clopper1934use], basado en la distribución binomial, que es más conservador.
+
+::: {.callout-note title="Ejemplo: proporción de cilindros bajo la resistencia mínima"}
+
+**Planteamiento.** De 85 cilindros ensayados en una obra, 10 no alcanzaron la resistencia mínima. Construya un intervalo de confianza del 95 % para la proporción de cilindros que no cumplen.
+
+**Solución:**
+
+1. Proporción muestral: $\hat{p} = 10/85 = 0.1176$.
+2. Condiciones: $n\hat{p} = 10 \ge 5$ y $n(1 - \hat{p}) = 75 \ge 5$. Se puede usar la @eq-ic-proporcion.
+3. Error estándar: $\sqrt{0.1176 \times 0.8824/85} = 0.0349$.
+4. Margen de error: $E = 1.960 \times 0.0349 = 0.0685$.
+5. Límites: $0.1176 - 0.0685 = 0.0491$ y $0.1176 + 0.0685 = 0.1861$.
+
+**Pseudocódigo**
+
+1. Guardar $x$ y $n$, y calcular $\hat{p}$.
+2. Revisar las condiciones $n\hat{p} \ge 5$ y $n(1-\hat{p}) \ge 5$.
+3. Calcular el intervalo de Wald con la @eq-ic-proporcion.
+4. Calcular los intervalos de Wilson y de Clopper-Pearson con las funciones de R.
+
+```{r}
+# 1) Datos
+x <- 10
+n <- 85
+p_gorro <- x / n
+
+# 2) Condiciones de la aproximación normal
+c(exitos = n * p_gorro, fracasos = n * (1 - p_gorro))
+
+# 3) Intervalo de Wald con la fórmula
+z <- qnorm(0.975)
+E <- z * sqrt(p_gorro * (1 - p_gorro) / n)
+wald <- c(p_gorro - E, p_gorro + E)
+wald
+
+# 4) Intervalos de Wilson (sin corrección por continuidad) y exacto
+wilson <- prop.test(x, n, conf.level = 0.95, correct = FALSE)$conf.int
+exacto <- binom.test(x, n, conf.level = 0.95)$conf.int
+```
+
+```{r}
+#| label: tbl-ic-proporcion
+#| tbl-cap: "Tres intervalos del 95 % para la proporción de cilindros que no cumplen."
+#| echo: false
+
+tibble(
+  metodo = c("Wald (fórmula a mano)", "Wilson, <code>prop.test()</code>", "Clopper-Pearson, <code>binom.test()</code>"),
+  li = c(wald[1], wilson[1], exacto[1]),
+  ls = c(wald[2], wilson[2], exacto[2])
+) %>%
+  mutate(ancho = ls - li) %>%
+  kbl(col.names = c("Método", "Límite inferior", "Límite superior", "Ancho"),
+      digits = 4, escape = FALSE, align = c("l", "c", "c", "c")) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Interpretación.** Con 95 % de confianza, entre el 4.9 % y el 18.6 % de los cilindros de la obra no alcanzan la resistencia mínima. El @tbl-ic-proporcion muestra que los métodos de Wilson y de Clopper-Pearson dan límites algo más altos, porque la distribución de $\hat{p}$ es asimétrica cuando $p$ es pequeña. Con cualquiera de los tres, la fracción que no cumple podría pasar del 15 %, lo que justifica investigar la causa.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Los tres intervalos del @tbl-ic-proporcion responden a la misma pregunta con supuestos distintos, y sus límites no se promedian. Se escoge un método antes de ver los resultados: el de Wilson para uso general, el exacto cuando hay pocos éxitos o se necesita garantizar al menos la confianza nominal, y el de Wald solo para cálculos rápidos a mano con muestras grandes.
+:::
+
+## Intervalo para la varianza y la desviación estándar {#sec-ic-varianza}
+
+En control de calidad interesa tanto la variabilidad como la media: un concreto con la media correcta pero muy disperso produce muchos cilindros bajo la especificación. Si la población es normal, la cantidad $(n-1)S^2/\sigma^2$ sigue una distribución $\chi^2$ con $n - 1$ grados de libertad, y de ahí sale el intervalo
+
+$$
+\frac{(n-1)\,s^2}{\chi^2_{\alpha/2,\,n-1}} \;\le\; \sigma^2 \;\le\; \frac{(n-1)\,s^2}{\chi^2_{1-\alpha/2,\,n-1}}
+$$ {#eq-ic-varianza}
+
+donde $s^2$ es la varianza muestral, $\chi^2_{\alpha/2,\,n-1}$ es el valor que deja un área $\alpha/2$ a la derecha (el grande) y $\chi^2_{1-\alpha/2,\,n-1}$ es el que deja $1 - \alpha/2$ a la derecha (el pequeño) [@montgomery2018applied]. Observe que el valor crítico grande va en el denominador del límite inferior. El intervalo para $\sigma$ se obtiene sacando la raíz cuadrada a los dos límites.
+
+La distribución $\chi^2$ no es simétrica, como se ve en la @fig-ic-chi, y por eso el intervalo tampoco lo es: $s^2$ no queda en el centro.
+
+```{r}
+#| label: fig-ic-chi
+#| fig-cap: "Distribución chi-cuadrado con 24 grados de libertad y los valores críticos para 95 %."
+#| fig-alt: "Curva asimétrica a la derecha con un área sombreada de 0.025 en cada cola, en 12.40 y 39.36."
+#| echo: false
+
+chi_lo <- qchisq(0.025, 24)
+chi_hi <- qchisq(0.975, 24)
+curva <- tibble(x = seq(0, 60, length.out = 600), y = dchisq(x, 24))
+ggplot(curva, aes(x, y)) +
+  geom_area(data = filter(curva, x <= chi_lo), fill = "#E69F00", alpha = 0.6) +
+  geom_area(data = filter(curva, x >= chi_hi), fill = "#E69F00", alpha = 0.6) +
+  geom_line(colour = "#1C6BA0", linewidth = 1) +
+  annotate("text", x = chi_lo, y = 0.012, label = "12.40", vjust = -0.5, hjust = 1.1) +
+  annotate("text", x = chi_hi, y = 0.012, label = "39.36", vjust = -0.5, hjust = -0.1) +
+  annotate("text", x = 24, y = 0.02, label = "0.95") +
+  labs(x = expression(chi^2), y = "Densidad") +
+  theme_minimal(base_size = 13)
+```
+
+::: {.callout-note title="Ejemplo: variabilidad de la resistencia de un lote de concreto"}
+
+**Planteamiento.** Con los 25 cilindros del capítulo anterior ($s^2 = 5.640$ MPa²), construya intervalos de confianza del 95 % para la varianza y para la desviación estándar de la resistencia. Suponga que la resistencia sigue una distribución normal.
+
+```{r}
+#| echo: false
+ver_datos("datos/cilindros_concreto_hipoteticos.csv",
+          nombres = c("Cilindro", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Grados de libertad: $\nu = 25 - 1 = 24$, y $(n-1)s^2 = 24 \times 5.640 = 135.36$ MPa².
+2. Valores críticos de la tabla $\chi^2$: $\chi^2_{0.025,\,24} = 39.364$ y $\chi^2_{0.975,\,24} = 12.401$.
+3. Límites para $\sigma^2$: $135.36/39.364 = 3.439$ MPa² y $135.36/12.401 = 10.915$ MPa².
+4. Límites para $\sigma$: $\sqrt{3.439} = 1.854$ MPa y $\sqrt{10.915} = 3.304$ MPa.
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular $n$ y $s^2$.
+2. Calcular los dos valores críticos con `qchisq()`, recordando que recibe el área a la izquierda.
+3. Aplicar la @eq-ic-varianza.
+4. Sacar la raíz de los límites para obtener el intervalo de $\sigma$.
+
+```{r}
+# 1) Datos
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+x <- cilindros$resistencia_mpa
+n <- length(x)
+s2 <- var(x)
+
+# 2) Valores críticos: el grande deja 0.025 a la derecha (0.975 a la izquierda)
+chi_grande <- qchisq(0.975, df = n - 1)
+chi_pequeno <- qchisq(0.025, df = n - 1)
+
+# 3) Intervalo para la varianza (MPa²)
+ic_var <- c((n - 1) * s2 / chi_grande, (n - 1) * s2 / chi_pequeno)
+ic_var
+
+# 4) Intervalo para la desviación estándar (MPa)
+sqrt(ic_var)
+```
+
+R base no tiene una función que dé este intervalo directamente; el cálculo con `qchisq()` es el método habitual.
+
+**Interpretación.** Con 95 % de confianza, la desviación estándar de la resistencia del concreto está entre 1.85 y 3.30 MPa. El intervalo es ancho: el límite superior casi duplica al inferior. Estimar la variabilidad con precisión pide muchos más datos que estimar la media.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+El intervalo de la @eq-ic-varianza depende mucho del supuesto de normalidad. Si los datos tienen colas pesadas o valores atípicos, el intervalo real puede contener a $\sigma^2$ muchas menos veces que el 95 % nominal, aun con muestras grandes. Antes de usarlo se revisa la forma de los datos con un histograma o un gráfico cuantil-cuantil.
+:::
+
+## Intervalos de predicción y de tolerancia {#sec-ic-prediccion-tolerancia}
+
+::: {.pregunta}
+¿Entre qué valores caerá la resistencia del próximo cilindro que se ensaye?
+:::
+
+El intervalo de confianza de la sección anterior habla de la media $\mu$, no de los cilindros individuales. Para el próximo cilindro, o para la mayoría de los cilindros del lote, hacen falta otros dos intervalos. Los tres responden preguntas distintas [@montgomery2018applied]:
+
+- **Intervalo de confianza.** ¿Dónde está la media de la población?
+- **Intervalo de predicción.** ¿Dónde caerá una observación futura?
+- **Intervalo de tolerancia.** ¿Dónde cae una proporción dada (por ejemplo, el 90 %) de todas las observaciones de la población?
+
+### Intervalo de predicción
+
+Una observación futura $X_{n+1}$ varía alrededor de $\mu$ con desviación $\sigma$, y además $\mu$ se estima con error. Al sumar las dos fuentes de variación, el intervalo de predicción para una observación de una población normal es
+
+$$
+\bar{x} - t_{\alpha/2,\,n-1}\; s\sqrt{1 + \frac{1}{n}} \;\le\; X_{n+1} \;\le\; \bar{x} + t_{\alpha/2,\,n-1}\; s\sqrt{1 + \frac{1}{n}}
+$$ {#eq-ic-prediccion}
+
+donde $\bar{x}$ y $s$ son la media y la desviación de la muestra de $n$ datos. Compare con la @eq-ic-media-t: el término $1/n$ es la incertidumbre de la media, y el 1 que se le suma es la variación propia de un cilindro. Aunque $n$ crezca sin límite, el intervalo de predicción no se angosta por debajo de $\pm z_{\alpha/2}\,\sigma$.
+
+### Intervalo de tolerancia
+
+Un intervalo de tolerancia tiene dos porcentajes: contiene al menos una proporción $P$ de la población, con un nivel de confianza $100(1-\alpha)$ %. Para una población normal tiene la forma
+
+$$
+\bar{x} \pm k\, s
+$$ {#eq-ic-tolerancia}
+
+donde $k$ es el factor de tolerancia, que depende de $n$, de $P$ y de la confianza. Se busca en tablas o se calcula [@montgomery2018applied]. Una aproximación precisa, debida a Howe [-@howe1969two], es
+
+$$
+k \approx z_{(1-P)/2}\,\sqrt{\frac{(n-1)\left(1 + \frac{1}{n}\right)}{\chi^2_{1-\alpha,\,n-1}}}
+$$ {#eq-ic-k-howe}
+
+donde $z_{(1-P)/2}$ es el valor de la normal que deja $(1-P)/2$ a la derecha y $\chi^2_{1-\alpha,\,n-1}$ es el valor de la chi-cuadrado que deja $1 - \alpha$ a la derecha (es decir, $\alpha$ a la izquierda). Para $n = 25$, $P = 0.90$ y 95 % de confianza da $k = 2.208$; el valor exacto es 2.215.
+
+::: {.callout-note title="Ejemplo: tres intervalos para el mismo lote de concreto"}
+
+**Planteamiento.** Con los 25 cilindros hipotéticos ($\bar{x} = 32.15$ MPa, $s = 2.375$ MPa), calcule al 95 %: a) un intervalo de confianza para la media; b) un intervalo de predicción para el próximo cilindro; y c) un intervalo de tolerancia que contenga al menos el 90 % de los cilindros del lote.
+
+**Solución:**
+
+1. Valor crítico: $t_{0.025,\,24} = 2.064$.
+2. Confianza: $E = 2.064 \times 2.375/\sqrt{25} = 0.980$ MPa. Intervalo: $[31.17,\ 33.13]$ MPa.
+3. Predicción: $E = 2.064 \times 2.375 \times \sqrt{1 + 1/25} = 2.064 \times 2.375 \times 1.0198 = 4.999$ MPa. Intervalo: $[27.15,\ 37.15]$ MPa.
+4. Tolerancia: $z_{0.05} = 1.645$ y $\chi^2_{0.95,\,24} = 13.848$, así que $k = 1.645\sqrt{24 \times 1.04/13.848} = 1.645 \times 1.3425 = 2.208$. El margen es $k\,s = 2.208 \times 2.375 = 5.244$ MPa. Intervalo: $[26.91,\ 37.40]$ MPa.
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular $n$, $\bar{x}$ y $s$.
+2. Calcular el intervalo de confianza con la @eq-ic-media-t y comprobar con `t.test()`.
+3. Calcular el intervalo de predicción con la @eq-ic-prediccion.
+4. Calcular $k$ con la @eq-ic-k-howe y el intervalo de tolerancia con la @eq-ic-tolerancia.
+5. Comprobar el de tolerancia con el paquete `tolerance`.
+
+```{r}
+# 1) Datos
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+x <- cilindros$resistencia_mpa
+n <- length(x)
+media <- mean(x)
+s <- sd(x)
+t_crit <- qt(0.975, df = n - 1)
+
+# 2) Intervalo de confianza para la media
+E_conf <- t_crit * s / sqrt(n)
+ic_conf <- c(media - E_conf, media + E_conf)
+t.test(x)$conf.int
+
+# 3) Intervalo de predicción para un cilindro futuro
+E_pred <- t_crit * s * sqrt(1 + 1 / n)
+ic_pred <- c(media - E_pred, media + E_pred)
+
+# 4) Intervalo de tolerancia: 90 % de la población con 95 % de confianza
+P <- 0.90
+alfa <- 0.05
+k <- qnorm(1 - (1 - P) / 2) * sqrt((n - 1) * (1 + 1 / n) / qchisq(alfa, df = n - 1))
+ic_tol <- c(media - k * s, media + k * s)
+rbind(confianza = ic_conf, prediccion = ic_pred, tolerancia = ic_tol)
+
+# 5) Con el paquete tolerance (install.packages("tolerance") la primera vez)
+library(tolerance)
+normtol.int(x, alpha = 0.05, P = 0.90, side = 2, method = "HE2")   # aproximación de Howe
+normtol.int(x, alpha = 0.05, P = 0.90, side = 2, method = "EXACT") # factor k exacto
+```
+
+El paquete `tolerance` se agrega en este capítulo porque R base no calcula factores de tolerancia. Con `method = "HE2"` reproduce la @eq-ic-k-howe, y con `method = "EXACT"` da el factor exacto, que aquí cambia los límites en menos de 0.02 MPa.
+
+```{r}
+#| label: fig-ic-tres
+#| fig-cap: "Intervalos de confianza, de predicción y de tolerancia al 95 % para el lote de concreto."
+#| fig-alt: "Puntos de los 25 cilindros y tres barras horizontales; la de confianza es corta y las de predicción y tolerancia cubren casi todos los puntos."
+#| echo: false
+
+intervalos <- tibble(
+  tipo = factor(c("Confianza para μ", "Predicción de un cilindro", "Tolerancia (90 % del lote)"),
+                levels = rev(c("Confianza para μ", "Predicción de un cilindro", "Tolerancia (90 % del lote)"))),
+  li = c(ic_conf[1], ic_pred[1], ic_tol[1]),
+  ls = c(ic_conf[2], ic_pred[2], ic_tol[2])
+)
+ggplot() +
+  geom_point(data = tibble(x = x), aes(x = x, y = 0.4), colour = "grey45",
+             position = position_jitter(height = 0.15, seed = 1), size = 2) +
+  geom_errorbarh(data = intervalos, aes(xmin = li, xmax = ls, y = as.numeric(tipo) + 0.6),
+                 height = 0.25, linewidth = 1, colour = "#1C6BA0") +
+  geom_vline(xintercept = media, linetype = "dashed") +
+  scale_y_continuous(breaks = c(0.4, 1:3 + 0.6), labels = c("Datos", levels(intervalos$tipo))) +
+  labs(x = "Resistencia a compresión (MPa)", y = NULL) +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** La @fig-ic-tres muestra la diferencia de tamaño. La media del lote se conoce con un margen de ±1 MPa, pero el próximo cilindro puede dar entre 27 y 37 MPa, y el 90 % de los cilindros cae, con 95 % de confianza, entre 26.9 y 37.4 MPa. Si la especificación fuera que casi ningún cilindro bajara de 28 MPa, el intervalo de confianza para la media no serviría para revisarla; harían falta los otros dos.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+El error más común con estos tres intervalos es usar el de confianza para hablar de cilindros individuales. "La resistencia está entre 31.2 y 33.1 MPa con 95 % de confianza" no quiere decir que el 95 % de los cilindros caiga en ese rango; en este lote, la mayoría de los cilindros cae fuera de él.
+:::
+
+## Tamaño de muestra {#sec-ic-tamano}
+
+Antes de un muestreo conviene decidir cuántos datos hacen falta. Si se fija el margen de error máximo $E$ que se acepta, se despeja $n$ de la fórmula del intervalo.
+
+Para la media con $\sigma$ conocida, de la @eq-ic-media-z:
+
+$$
+n = \left(\frac{z_{\alpha/2}\,\sigma}{E}\right)^2
+$$ {#eq-ic-n-media}
+
+donde $\sigma$ es la desviación estándar de la población y $E$ es el margen de error deseado, en las mismas unidades. Para una proporción, de la @eq-ic-proporcion:
+
+$$
+n = \frac{z_{\alpha/2}^2\; p^*\,(1-p^*)}{E^2}
+$$ {#eq-ic-n-proporcion}
+
+donde $p^*$ es una estimación previa de la proporción. Si no hay ninguna, se usa $p^* = 0.5$, que da el $n$ más grande posible y por tanto el más seguro [@illowsky2018introductory]. En los dos casos el resultado se redondea siempre hacia arriba.
+
+::: {.callout-note title="Ejemplo: cuántos cilindros ensayar"}
+
+**Planteamiento.** a) Se quiere estimar la resistencia media de un concreto con un margen de error de 1 MPa y 95 % de confianza. Por ensayos anteriores se sabe que $\sigma \approx 2.4$ MPa. ¿Cuántos cilindros hay que ensayar? b) Se quiere estimar la proporción de cilindros que no cumplen con un margen de 0.05 y 95 % de confianza. ¿Cuántos se necesitan sin información previa, y cuántos si se sabe que la proporción ronda el 8 %?
+
+**Solución:**
+
+1. Media: $n = (1.960 \times 2.4/1)^2 = 4.704^2 = 22.13$. Se redondea hacia arriba: 23 cilindros.
+2. Proporción sin información previa: $n = 1.960^2 \times 0.5 \times 0.5/0.05^2 = 0.9604/0.0025 = 384.2$, es decir, 385 cilindros.
+3. Proporción con $p^* = 0.08$: $n = 1.960^2 \times 0.08 \times 0.92/0.05^2 = 0.2827/0.0025 = 113.1$, es decir, 114 cilindros.
+
+**Pseudocódigo**
+
+1. Guardar $\sigma$, $E$ y la confianza.
+2. Aplicar la @eq-ic-n-media y redondear hacia arriba con `ceiling()`.
+3. Aplicar la @eq-ic-n-proporcion con $p^* = 0.5$ y con $p^* = 0.08$.
+
+```{r}
+z <- qnorm(0.975)
+
+# 1) Media
+sigma <- 2.4
+E <- 1
+ceiling((z * sigma / E)^2)
+
+# 2) y 3) Proporción
+E_p <- 0.05
+p_previa <- c(0.5, 0.08)
+ceiling(z^2 * p_previa * (1 - p_previa) / E_p^2)
+```
+
+**Interpretación.** Para la media bastan 23 cilindros, pero para estimar la fracción defectuosa con ±5 % harían falta entre 114 y 385. Las proporciones piden muestras mucho más grandes que las medias. Por eso, en control de calidad, la resistencia se resume con la media y la desviación estándar y no solo con el conteo de cilindros que no cumplen.
+
+:::
+
+La @fig-ic-tamano permite repetir el cálculo con otros valores.
+
+::: {#fig-ic-tamano}
+
+```{=html}
+<div class="interactivo" id="int-tamano-muestra">
+  <label><span>Desviación estándar <i>σ</i>:</span> <output>2.4</output>
+    <input type="range" min="0.5" max="10" step="0.1" value="2.4" data-ctrl="sigma"></label>
+  <label><span>Margen de error <i>E</i>:</span> <output>1.0</output>
+    <input type="range" min="0.1" max="5" step="0.1" value="1" data-ctrl="E"></label>
+  <label><span>Nivel de confianza (%):</span> <output>95</output>
+    <input type="range" min="80" max="99.9" step="0.1" value="95" data-ctrl="conf"></label>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-tamano-muestra");
+  var cs = raiz.querySelector('[data-ctrl="sigma"]'), cE = raiz.querySelector('[data-ctrl="E"]'),
+      cc = raiz.querySelector('[data-ctrl="conf"]'), salidas = raiz.querySelectorAll("output"),
+      texto = raiz.querySelector(".resultado");
+  function qnorm(p) {
+    var a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.3577518672690, -30.66479806614716, 2.506628277459239],
+        b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572],
+        c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783],
+        d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416], q, r;
+    if (p < 0.02425) { q = Math.sqrt(-2 * Math.log(p));
+      return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+    if (p > 1 - 0.02425) return -qnorm(1 - p);
+    q = p - 0.5; r = q * q;
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  }
+  function calcular() {
+    var s = parseFloat(cs.value), E = parseFloat(cE.value), conf = parseFloat(cc.value) / 100;
+    salidas[0].textContent = s.toFixed(1); salidas[1].textContent = E.toFixed(1); salidas[2].textContent = (conf * 100).toFixed(1);
+    var z = qnorm(1 - (1 - conf) / 2), bruto = Math.pow(z * s / E, 2), n = Math.ceil(bruto - 1e-9);
+    texto.innerHTML = "<i>z</i><sub><i>α</i>/2</sub> = " + z.toFixed(3) + ";  <i>n</i> = (" + z.toFixed(3) + " × " + s.toFixed(1) +
+      " / " + E.toFixed(1) + ")² = " + bruto.toFixed(2) + " → <b>" + n + "</b> datos";
+  }
+  [cs, cE, cc].forEach(function (el) { el.addEventListener("input", calcular); });
+  calcular();
+})();
+</script>
+```
+
+Calculadora del tamaño de muestra para estimar una media con la @eq-ic-n-media. Duplicar la precisión (reducir $E$ a la mitad) cuadruplica $n$.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+La @eq-ic-n-media necesita $\sigma$, que todavía no se conoce porque no se ha muestreado. Se usa una estimación de un estudio anterior, de un muestreo piloto o, como último recurso, el rango esperado de los datos dividido entre 4. Si al final se usa $s$ y la $t$ en lugar de $\sigma$ y la $z$, el $n$ calculado queda un poco corto en muestras pequeñas; conviene sumarle unos cuantos datos.
+:::
+
+## Resumen de fórmulas {#sec-ic-resumen}
+
+El @tbl-ic-resumen reúne los intervalos del capítulo.
+
+| Se estima | Información disponible | Distribución | Intervalo |
+|:--|:--|:-:|:-:|
+| Media $\mu$ | $\sigma$ conocida | Normal | $\bar{x} \pm z_{\alpha/2}\,\sigma/\sqrt{n}$ |
+| Media $\mu$ | $\sigma$ desconocida | $t$ con $n-1$ g. l. | $\bar{x} \pm t_{\alpha/2,\,n-1}\,s/\sqrt{n}$ |
+| Proporción $p$ | $n\hat{p} \ge 5$ y $n(1-\hat{p}) \ge 5$ | Normal | $\hat{p} \pm z_{\alpha/2}\sqrt{\hat{p}(1-\hat{p})/n}$ |
+| Varianza $\sigma^2$ | Población normal | $\chi^2$ con $n-1$ g. l. | $\left[\dfrac{(n-1)s^2}{\chi^2_{\alpha/2,\,n-1}},\ \dfrac{(n-1)s^2}{\chi^2_{1-\alpha/2,\,n-1}}\right]$ |
+| Observación futura | Población normal | $t$ con $n-1$ g. l. | $\bar{x} \pm t_{\alpha/2,\,n-1}\,s\sqrt{1+1/n}$ |
+| Proporción $P$ de la población | Población normal | Factor $k$ | $\bar{x} \pm k\,s$ |
+
+: Intervalos bilaterales del capítulo. {#tbl-ic-resumen}
+
+## Ejercicios propuestos
+
+1. Una muestra de 16 mediciones de caudal en un canal dio $\bar{x} = 24.5$ m³/s y $s = 4.0$ m³/s. Construya a mano y con R un intervalo de confianza del 95 % para el caudal medio. ¿Qué supuesto necesita?
+2. Con los datos de `datos/espesor_carpeta_hipotetico.csv`, construya intervalos del 90 %, 95 % y 99 % para el espesor medio de la carpeta asfáltica. Explique por qué el ancho cambia como cambia.
+3. En una inspección de 240 soldaduras, 18 presentaron defectos. Construya los intervalos de Wald, de Wilson y exacto del 95 % para la proporción de soldaduras defectuosas.
+4. Para los tiempos de falla de las bombas del capítulo anterior, construya un intervalo de confianza del 95 % para el tiempo medio usando `t.test()`. ¿Es razonable el supuesto de normalidad para esos datos? Haga un histograma.
+5. Con los diez esfuerzos de fluencia de las varillas, calcule un intervalo de predicción del 95 % para la próxima varilla y un intervalo de tolerancia que contenga el 95 % de las varillas con 95 % de confianza.
+6. Se quiere estimar la proporción de viviendas de un cantón que tienen conexión al alcantarillado, con un margen de 3 % y 95 % de confianza. ¿Cuántas viviendas hay que visitar?
+7. En el interactivo de la @fig-ic-interactivo, fije el nivel de confianza en 80 % y tome diez tandas de 50 muestras. Anote cuántos intervalos fallan en cada tanda y compare el promedio con el valor esperado.
+
+## Lecturas recomendadas
+
+- @montgomery2018applied, capítulo 8: intervalos de confianza, de predicción y de tolerancia para una muestra, con tablas del factor $k$.
+- @walpole2012probabilidad, capítulo 9: estimación por intervalos para una y dos muestras, en español.
+- @illowsky2018introductory, capítulo 8: intervalos de confianza con muchos ejercicios resueltos.
+- @agresti1998approximate: por qué el intervalo de Wald para proporciones falla y qué usar en su lugar.
