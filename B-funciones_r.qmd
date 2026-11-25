@@ -83,6 +83,11 @@ Escriba parte del nombre de una función o de lo que hace, como `media` o `csv`.
 | `addmargins()` | Agrega totales a un cuadro de contingencia | `addmargins(table(a, b))` | 8 |
 | `cut()` | Agrupa números en intervalos (clases) | `cut(x, breaks = 4)` | 4 |
 | `ifelse()` | Elige entre dos valores según una condición | `ifelse(x >= 28, "Cumple", "No cumple")` | 3 |
+| `fivenum()` | Los cinco números del diagrama de caja: mínimo, cuartiles y máximo | `fivenum(x)` | 9 |
+| `skewness()` | Coeficiente de asimetría [e1071] | `skewness(x, type = 2)` | 9 |
+| `log()`, `exp()` | Logaritmo natural y su inversa | `log(10)` | 9 |
+| `cov()` | Covarianza de dos variables | `cov(x, y)` | 24 |
+| `rowSums()`, `colSums()` | Suma por filas o por columnas de una matriz o data frame | `rowSums(cuadro)` | 10 |
 
 : Funciones para calcular y resumir datos numéricos. {#tbl-apb-calculos}
 
@@ -161,6 +166,8 @@ Un gráfico de ggplot2 se arma por capas que se suman con `+` [@wickham2016ggplo
 | `labs()` | Títulos de los ejes y de la leyenda | `+ labs(x = "Edad (días)", y = "Resistencia (MPa)")` | 4 |
 | `theme_minimal()` | Aspecto limpio, con fondo blanco | `+ theme_minimal()` | 4 |
 | `ggsave()` | Guarda el último gráfico en un archivo | `ggsave("figura.png", width = 7, height = 4)` | 4 |
+| `geom_bar()` | Capa de barras que cuenta los casos de cada categoría | `+ geom_bar()` | 8 |
+| `geom_line()` | Capa de líneas que unen los puntos | `+ geom_line()` | 10 |
 
 : Funciones del paquete ggplot2. {#tbl-apb-ggplot2}
 
@@ -213,6 +220,10 @@ Un gráfico de ggplot2 se arma por capas que se suman con `+` [@wickham2016ggplo
 | `weighted.mean()` | Promedio ponderado (valor esperado de una discreta) | `weighted.mean(0:3, w = c(1, 3, 3, 1))` | 13 |
 | `qqnorm()`, `qqline()` | Gráfico Q-Q para revisar normalidad | `qqnorm(x); qqline(x)` | 16 |
 | `replicate()` | Repite una instrucción y guarda los resultados | `replicate(1000, mean(sample(x, 30)))` | 17 |
+| `expand.grid()` | Todas las combinaciones de varios vectores (espacio muestral) | `expand.grid(c1 = c("C", "N"), c2 = c("C", "N"))` | 10 |
+| `union()`, `intersect()`, `setdiff()` | Unión, intersección y diferencia de conjuntos | `union(A, B)` | 10 |
+| `combn()` | Lista de todas las combinaciones de $k$ elementos | `combn(5, 2)` | 11 |
+| `uniroot()` | Busca el valor donde una función vale cero | `uniroot(f, c(0, 10))` | 13 |
 
 : Funciones de probabilidad y distribuciones. {#tbl-apb-distribuciones}
 
@@ -286,6 +297,14 @@ Las funciones `p` dan siempre el área a la izquierda. Para el área a la derech
 | `anova()` | Cuadro de análisis de varianza del modelo | `anova(modelo)` | 25 |
 | `residuals()`, `fitted()` | Residuos y valores ajustados | `residuals(modelo)` | 27 |
 | `plot()` | Gráficos de diagnóstico de un modelo | `plot(modelo)` | 27 |
+| `sigma()` | Desviación estándar de los residuos del modelo | `sigma(modelo)` | 25 |
+| `vif()` | Factor de inflación de la varianza de cada predictor [car] | `vif(modelo)` | 26 |
+| `rstandard()`, `rstudent()` | Residuos estandarizados y estudentizados | `rstandard(modelo)` | 27 |
+| `hatvalues()` | Apalancamiento de cada observación | `hatvalues(modelo)` | 27 |
+| `cooks.distance()` | Distancia de Cook (influencia de cada observación) | `cooks.distance(modelo)` | 27 |
+| `bptest()` | Prueba de Breusch-Pagan de varianza constante [lmtest] | `bptest(modelo)` | 27 |
+| `dwtest()` | Prueba de Durbin-Watson de residuos independientes [lmtest] | `dwtest(modelo)` | 27 |
+| `boxcox()` | Busca la transformación de Box-Cox de la respuesta [MASS] | `boxcox(modelo)` | 27 |
 
 : Funciones de correlación y regresión. {#tbl-apb-regresion}
 
@@ -306,6 +325,7 @@ Las funciones `p` dan siempre el área a la izquierda. Para el área a la derech
 | `kruskal.test()` | Prueba de Kruskal-Wallis | `kruskal.test(mpa ~ mezcla, data = datos)` | 29 |
 | `interaction.plot()` | Gráfico de interacción entre dos factores | `interaction.plot(datos$a, datos$b, datos$y)` | 30 |
 | `model.matrix()` | Matriz de signos de un factorial 2^k | `model.matrix(~ A * B * C, data = datos)` | 30 |
+| `leveneTest()` | Prueba de Levene de igualdad de varianzas [car] | `leveneTest(mpa ~ mezcla, data = datos)` | 29 |
 
 : Funciones de diseño de experimentos. {#tbl-apb-experimentos}
 
