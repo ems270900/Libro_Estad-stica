@@ -27,3 +27,9 @@
 
 - Sin epígrafe, por decisión del autor.
 - Referencias cruzadas a las Partes IV a VI y al Apéndice A.
+
+## Cambios (2026-11-25): ejemplos de otras ramas
+
+- A pedido del autor (menos ejemplos de concreto), el hilo del capítulo pasa del ensayo de curado de cilindros a una prueba de jarras con cuatro coagulantes (sulfato de aluminio, sulfato férrico, PAC y cloruro férrico) y remoción de turbiedad (%). Cambian el texto de entrada, el vocabulario, la unidad experimental (jarra y alícuotas), la aleatorización, el bloqueo (muestras de agua cruda), el ejemplo resuelto, su figura y su cuadro.
+- Datos nuevos: `datos/jarras_coagulantes_hipotetico.csv` (reemplaza a `curado_concreto_hipotetico.csv`). Son los mismos valores del curado más 50, así que todas las sumas de cuadrados, F = 34.67, η² = 0.867 y los grados de libertad no cambian. Verificado con R 4.3.3 (`aov()` y cálculo manual).
+- Las etiquetas `fig-dce-curado` y `tbl-dce-anova-curado` se conservan para no romper referencias.
