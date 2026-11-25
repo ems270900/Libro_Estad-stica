@@ -96,6 +96,14 @@ resistencia[3:5]        # del tercero al quinto
 resistencia[-1]         # todos menos el primero
 ```
 
+Con los corchetes también se cambia un elemento. Si el tercer cilindro se registró mal y su valor correcto es 26.9 MPa, se asigna el valor nuevo a esa posición:
+
+```{r}
+resistencia[3] <- 26.9
+resistencia
+resistencia[3] <- 26.8   # se devuelve el valor original para los ejemplos siguientes
+```
+
 También se puede seleccionar con una condición, como se verá en la @sec-obj-operadores.
 
 ## Tipos de datos {#sec-obj-tipos}
@@ -222,6 +230,103 @@ resistencia >= 27 & resistencia <= 29    # entre 27 y 29 MPa
 Para comparar se escriben dos signos de igual (`==`). Un solo signo (`=`) asigna un valor, como `<-`. Escribir `resistencia = 28` en vez de `resistencia == 28` borra los datos y los cambia por el número 28.
 :::
 
+La función `which()` responde a otra pregunta: no cuáles valores cumplen, sino en qué posiciones están. `which.max()` y `which.min()` dan la posición del valor más alto y del más bajo:
+
+```{r}
+which(resistencia >= 28)   # posiciones de los cilindros que cumplen
+which.min(resistencia)     # posición del cilindro más débil
+```
+
+### Interactivo: seleccionar elementos de un vector
+
+En el interactivo de la @fig-obj-seleccion se escribe lo que va dentro de los corchetes de `resistencia[ ]` y se ve qué elementos elige R. Acepta posiciones (`3`, `2:5`, `c(1, 8)`, `-1`) y condiciones (`resistencia >= 28`, `resistencia > 27 & resistencia < 29`). Los botones cargan algunos ejemplos.
+
+::: {#fig-obj-seleccion}
+
+```{=html}
+<div class="interactivo" id="int-seleccion">
+  <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem; font-family:monospace;">
+    <span>resistencia[</span>
+    <input type="text" value="resistencia >= 28" aria-label="Índice o condición" spellcheck="false"
+      style="flex:1 1 220px; font-family:monospace; padding:0.2rem 0.4rem; border:1px solid currentColor; border-radius:4px; background:transparent; color:inherit;">
+    <span>]</span>
+  </div>
+  <div class="ejemplos" style="display:flex; flex-wrap:wrap; gap:0.3rem; margin:0.5rem 0;">
+    <button type="button" class="archivo">3</button>
+    <button type="button" class="archivo">2:5</button>
+    <button type="button" class="archivo">c(1, 8)</button>
+    <button type="button" class="archivo">-1</button>
+    <button type="button" class="archivo">-c(2, 4)</button>
+    <button type="button" class="archivo">resistencia &lt; 27</button>
+    <button type="button" class="archivo">resistencia &gt; 27 &amp; resistencia &lt; 29</button>
+    <button type="button" class="archivo">resistencia &lt; 26 | resistencia &gt; 30</button>
+  </div>
+  <div class="celdas" style="display:flex; flex-wrap:wrap; gap:0.35rem; justify-content:center;"></div>
+  <pre class="salida-sel" aria-live="polite" style="text-align:left; margin:0.6rem 0 0; padding:0.4rem 0.6rem; font-size:0.9rem; border-radius:4px; white-space:pre-wrap;"></pre>
+</div>
+<script>
+(function () {
+  var x = [27.4, 29.1, 26.8, 30.2, 28.5, 27.9, 29.6, 25.3];
+  var raiz = document.getElementById("int-seleccion"), entrada = raiz.querySelector("input");
+  var celdas = raiz.querySelector(".celdas"), salida = raiz.querySelector(".salida-sel");
+  function numeros(s) {
+    s = s.trim(); var m;
+    if ((m = s.match(/^c\((.*)\)$/))) {
+      var r = []; m[1].split(",").forEach(function (p) { var q = numeros(p); if (q === null) r = null; else if (r) r = r.concat(q); });
+      return r;
+    }
+    if ((m = s.match(/^(\d+)\s*:\s*(\d+)$/))) {
+      var a = +m[1], b = +m[2], v = []; for (var i = a; a <= b ? i <= b : i >= b; i += a <= b ? 1 : -1) v.push(i); return v;
+    }
+    if (/^\d+$/.test(s)) return [+s];
+    return null;
+  }
+  function condicion(s) {
+    var o = s.split("|").map(function (parte) {
+      var y = parte.split("&").map(function (atomo) {
+        var m = atomo.trim().match(/^(resistencia|x)\s*(>=|<=|==|!=|>|<)\s*(-?\d+(\.\d+)?)$/);
+        if (!m) return null;
+        var v = +m[3];
+        return x.map(function (e) { return { ">=": e >= v, "<=": e <= v, "==": e === v, "!=": e !== v, ">": e > v, "<": e < v }[m[2]]; });
+      });
+      if (y.some(function (q) { return q === null; })) return null;
+      return x.map(function (e, i) { return y.every(function (q) { return q[i]; }); });
+    });
+    if (o.some(function (q) { return q === null; })) return null;
+    return x.map(function (e, i) { return o.some(function (q) { return q[i]; }); });
+  }
+  function evaluar(s) {
+    s = s.trim();
+    if (/resistencia|x/.test(s)) { var mask = condicion(s); if (!mask) return null; var p = []; mask.forEach(function (b, i) { if (b) p.push(i + 1); }); return p; }
+    var neg = false;
+    if (s.charAt(0) === "-") { neg = true; s = s.slice(1); }
+    var pos = numeros(s); if (!pos) return null;
+    if (neg) return x.map(function (e, i) { return i + 1; }).filter(function (i) { return pos.indexOf(i) < 0; });
+    return pos;
+  }
+  function actualizar() {
+    var pos = evaluar(entrada.value), h = "";
+    x.forEach(function (e, i) {
+      var sel = pos && pos.indexOf(i + 1) >= 0;
+      h += '<div style="text-align:center; min-width:3.4rem; padding:0.25rem; border-radius:4px; border:1px solid ' + (sel ? "#1C6BA0" : "rgba(128,128,128,0.4)") + '; background:' + (sel ? "rgba(28,107,160,0.18)" : "transparent") + ';">' +
+           '<div style="font-size:0.75rem; opacity:0.7;">[' + (i + 1) + ']</div><div style="font-weight:' + (sel ? 700 : 400) + ';">' + e.toFixed(1) + "</div></div>";
+    });
+    celdas.innerHTML = h;
+    if (!pos) { salida.textContent = "No se reconoce esa forma. Pruebe con una de las de los botones."; return; }
+    var vals = pos.map(function (p) { return p >= 1 && p <= x.length ? x[p - 1].toFixed(1) : "NA"; });
+    salida.textContent = pos.length ? "[1] " + vals.join(" ") + (vals.indexOf("NA") >= 0 ? "\n(NA: esa posición no existe; el vector tiene 8 elementos)" : "") : "numeric(0)\n(ningún elemento cumple)";
+  }
+  entrada.addEventListener("input", actualizar);
+  raiz.querySelector(".ejemplos").addEventListener("click", function (e) { if (e.target.tagName === "BUTTON") { entrada.value = e.target.textContent; actualizar(); } });
+  actualizar();
+})();
+</script>
+```
+
+Selección de elementos de un vector por posición o por condición.
+
+:::
+
 ### Calculadora de operadores
 
 El interactivo de la @fig-obj-calculadora muestra el resultado de cada operador con dos números. Cambie los valores de $a$ y $b$ y observe, por ejemplo, qué pasa con `%%` y `%/%` cuando $b$ divide exactamente a $a$.
@@ -274,22 +379,22 @@ Resultado de los operadores de R para dos números. Los valores se actualizan al
 
 Una función recibe uno o más valores, hace un cálculo y devuelve un resultado. Se escribe con su nombre y, entre paréntesis, los valores que recibe, llamados argumentos. Ya se usaron varias: `c()`, `seq()`, `class()`. El @tbl-obj-funciones resume las que más se usan para resumir un vector numérico.
 
-```{r}
-#| label: tbl-obj-funciones
-#| tbl-cap: "Funciones básicas para vectores numéricos."
-#| echo: false
+| Función | Qué hace | Ejemplo con `x <- c(4, 1, 3)` |
+|:--|:--|:--|
+| `length(x)` | Número de elementos | 3 |
+| `sum(x)`, `prod(x)` | Suma y producto | 8, 12 |
+| `mean(x)`, `median(x)` | Promedio y mediana | 2.67, 3 |
+| `min(x)`, `max(x)`, `range(x)` | Mínimo, máximo, y los dos juntos | 1, 4, (1, 4) |
+| `sd(x)`, `var(x)` | Desviación estándar y varianza | 1.53, 2.33 |
+| `sort(x)`, `rev(x)` | Ordena de menor a mayor; invierte el orden | (1, 3, 4); (3, 1, 4) |
+| `cumsum(x)` | Suma acumulada | (4, 5, 8) |
+| `which.max(x)`, `which.min(x)` | Posición del máximo y del mínimo | 1, 2 |
+| `unique(x)`, `table(x)` | Valores distintos; cuántas veces aparece cada uno | |
+| `round(x, 1)` | Redondea a un decimal | |
+| `sqrt(x)`, `abs(x)`, `exp(x)`, `log(x)` | Raíz, valor absoluto, exponencial, logaritmo natural | |
+| `summary(x)` | Resumen: mínimo, cuartiles, media y máximo | |
 
-data.frame(
-  f = c("length(x)", "sum(x)", "mean(x)", "median(x)", "min(x), max(x)", "range(x)",
-        "sd(x)", "sort(x)", "round(x, 1)", "sqrt(x)", "abs(x)", "summary(x)"),
-  hace = c("Número de elementos", "Suma", "Promedio", "Mediana", "Mínimo y máximo",
-           "Mínimo y máximo juntos", "Desviación estándar", "Ordena de menor a mayor",
-           "Redondea a 1 decimal", "Raíz cuadrada", "Valor absoluto",
-           "Resumen: mínimo, cuartiles, media y máximo")
-) %>%
-  kbl(col.names = c("Función", "Qué hace"), align = "ll") %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
-```
+: Funciones básicas para vectores numéricos. {#tbl-obj-funciones}
 
 Los argumentos pueden ir en orden o con su nombre. Las dos líneas siguientes hacen lo mismo, pero la segunda se entiende mejor:
 
@@ -346,6 +451,31 @@ mean(resistencia >= 28)
 
 :::
 
+### Redondear
+
+Además de `round()`, R tiene otras tres funciones de redondeo, que se usan en situaciones distintas:
+
+```{r}
+round(28.46, 1)     # al decimal más cercano: 28.5
+signif(28.46, 2)    # a 2 cifras significativas: 28
+ceiling(7.43)       # hacia arriba: 8 (útil para contar camiones o bolsas)
+floor(7.93)         # hacia abajo: 7
+```
+
+`round()` tiene una particularidad: cuando el número está justo a la mitad, redondea al par más cercano. Así, `round(2.5)` da 2 y `round(3.5)` da 4. Es la regla de la norma internacional para aritmética en computadora (IEC 60559) y evita que, al redondear muchos datos, los resultados se corran siempre hacia arriba. En la práctica rara vez cambia algo, pero conviene saberlo para no sorprenderse.
+
+### Los decimales en la computadora
+
+La computadora guarda los números en binario, y muchos decimales que en base 10 son exactos, como 0.1, en binario tienen infinitas cifras y se guardan con un error diminuto. Casi nunca se nota, salvo al comparar con `==`:
+
+```{r}
+0.1 + 0.2 == 0.3
+0.1 + 0.2 - 0.3            # la diferencia es muy pequeña, pero no es cero
+isTRUE(all.equal(0.1 + 0.2, 0.3))
+```
+
+Para comparar dos números con decimales que vienen de cálculos se usa `all.equal()`, que los considera iguales si la diferencia es despreciable, o se redondean antes de comparar: `round(0.1 + 0.2, 10) == 0.3`. Con números enteros, `==` funciona sin problema.
+
 ## Valores faltantes {#sec-obj-na}
 
 En los datos reales falta información con frecuencia: un cilindro se dañó antes del ensayo, un contador de vehículos dejó de registrar una hora. R marca un dato faltante con `NA` (del inglés *not available*), sin comillas.
@@ -367,6 +497,96 @@ sum(is.na(asentamiento))     # ¿cuántos faltan?
 Quitar los faltantes no es gratis: el promedio se calcula con menos datos. Antes de usar `na.rm = TRUE` conviene saber cuántos datos faltan y por qué. Si faltan muchos, o faltan justo los valores altos o bajos, el resultado puede quedar sesgado.
 :::
 
+## Texto {#sec-obj-texto}
+
+Un valor de texto se escribe entre comillas, dobles o sencillas: `"Puente"` o `'Puente'`. Las funciones de texto más útiles para un análisis son pocas:
+
+```{r}
+paste("Cilindro", 5)                 # une con un espacio
+paste0("M", 1:4)                     # une sin espacio: códigos de muestras
+nchar("Pavimento")                   # número de caracteres
+toupper("puente")                    # a mayúsculas (tolower() hace lo contrario)
+```
+
+`paste()` es la forma de escribir un resultado como una frase. Combinada con `round()`, produce textos listos para un informe:
+
+```{r}
+media <- mean(resistencia)
+paste("La resistencia media del lote es", round(media, 1), "MPa.")
+```
+
+Para que R escriba siempre el mismo número de decimales, aunque el último sea cero, se usa `format()` con el argumento `nsmall`: `format(28.10, nsmall = 2)` da `"28.10"`, mientras que `round(28.10, 2)` muestra 28.1.
+
+## Matrices y listas {#sec-obj-matrices}
+
+### Matrices
+
+Una matriz es un cuadro de números con filas y columnas, todos del mismo tipo. Se crea con `matrix()`, dando los valores, el número de filas y si se llena por filas (`byrow = TRUE`) o por columnas. Las matrices aparecen en la Parte VI, donde la regresión múltiple se resuelve con álgebra de matrices; por ahora basta con saber crearlas y leerlas.
+
+```{r}
+# Resistencia media (MPa) de dos mezclas a tres edades, datos hipotéticos
+r_edad <- matrix(c(19.8, 25.1, 30.4,
+                   21.6, 27.3, 33.0),
+                 nrow = 2, byrow = TRUE,
+                 dimnames = list(c("A", "B"), c("7 d", "14 d", "28 d")))
+r_edad
+dim(r_edad)        # filas y columnas
+r_edad[2, 3]       # fila 2, columna 3
+r_edad["A", ]      # toda la fila A
+```
+
+Igual que en un data frame, entre corchetes van primero las filas y después las columnas. Las funciones `rowMeans()` y `colMeans()` dan el promedio de cada fila y de cada columna, y `t()` intercambia filas y columnas (la transpuesta).
+
+### Listas
+
+Una lista guarda objetos de distinto tipo y tamaño bajo un mismo nombre: un texto, un número y un vector, por ejemplo. Cada elemento se toma con `$` y su nombre, o con doble corchete y su posición:
+
+```{r}
+ensayo <- list(proyecto = "Edificio",
+               fc_mpa = 28,
+               resistencias = c(27.6, 30.9, 30.1))
+ensayo$proyecto
+ensayo[[3]]
+str(ensayo)
+```
+
+Las listas parecen un detalle técnico, pero aparecen en todas partes: un data frame es una lista de columnas del mismo largo, y muchas funciones estadísticas, como `t.test()` o `lm()`, devuelven sus resultados en una lista de la que se toman las piezas con `$`.
+
+::: {.callout-note title="Ejemplo: resistencia media por mezcla y por edad"}
+
+**Planteamiento.** Con la matriz `r_edad` (datos hipotéticos), calcule la resistencia media de cada mezcla sobre las tres edades, la media de cada edad sobre las dos mezclas y, para cada mezcla, qué fracción de la resistencia a 28 días se alcanzó a los 7 días.
+
+**Solución:**
+
+1. Media de la mezcla A: $(19.8 + 25.1 + 30.4) / 3 = 75.3 / 3 = 25.10$ MPa. Media de la mezcla B: $(21.6 + 27.3 + 33.0) / 3 = 81.9 / 3 = 27.30$ MPa.
+2. Media por edad: a 7 días, $(19.8 + 21.6) / 2 = 20.70$ MPa; a 14 días, $(25.1 + 27.3) / 2 = 26.20$ MPa; a 28 días, $(30.4 + 33.0) / 2 = 31.70$ MPa.
+3. Fracción a 7 días: mezcla A, $19.8 / 30.4 = 0.651$; mezcla B, $21.6 / 33.0 = 0.655$.
+
+**Pseudocódigo**
+
+1. Crear la matriz con las mezclas en filas y las edades en columnas.
+2. Calcular la media de cada fila y de cada columna.
+3. Dividir la columna de 7 días entre la de 28 días.
+
+```{r}
+# 1) Matriz (filas: mezclas; columnas: edades)
+r_edad <- matrix(c(19.8, 25.1, 30.4,
+                   21.6, 27.3, 33.0),
+                 nrow = 2, byrow = TRUE,
+                 dimnames = list(c("A", "B"), c("7 d", "14 d", "28 d")))
+
+# 2) Medias por fila y por columna
+rowMeans(r_edad)
+colMeans(r_edad)
+
+# 3) Fracción de la resistencia a 28 días alcanzada a los 7 días
+round(r_edad[, "7 d"] / r_edad[, "28 d"], 3)
+```
+
+**Interpretación.** La mezcla B es más resistente a todas las edades, unos 2 MPa por encima de la A en promedio, pero las dos ganan resistencia al mismo ritmo: a los 7 días ambas tienen cerca del 65 % de su resistencia a 28 días. Con una sola división R calculó la fracción de las dos mezclas a la vez, porque las operaciones con vectores son elemento por elemento.
+
+:::
+
 ## Ejercicios propuestos
 
 1. Cree los objetos `luz_m <- 6.5` y `carga_knm <- 18` (carga uniforme en kN/m). Calcule el momento máximo de una viga simplemente apoyada, $M = w L^2 / 8$, en kN·m.
@@ -377,6 +597,13 @@ Quitar los faltantes no es gratis: el promedio se calcula con menos datos. Antes
 6. El vector `c("A", "B", "B", "C", "A", "B")` indica el tipo de suelo de seis perforaciones. Conviértalo en factor y cuente cuántas perforaciones hay de cada tipo.
 7. Los conteos horarios de una estación son `c(320, 415, NA, 510, 488, NA, 402)`. Calcule el promedio con los datos disponibles y diga cuántas horas faltan.
 8. En la calculadora de la @fig-obj-calculadora, busque dos valores de $a$ y $b$ para los que `a %% b` dé 0. ¿Qué significa ese resultado?
+9. Con el vector `resistencia`, use `which()` para encontrar las posiciones de los cilindros con menos de 27 MPa. Cambie el valor del cilindro más débil por 25.8 y vuelva a calcular la media.
+10. En el interactivo de la @fig-obj-seleccion, escriba la condición que elige los cilindros con resistencia mayor que 29 MPa. Luego escriba la que elige todos menos el primero y el último. Compruebe las dos en R.
+11. Redondee 28.4567 a dos decimales, a tres cifras significativas, hacia arriba y hacia abajo. ¿Qué da `round(0.5)`? ¿Y `round(1.5)`?
+12. Compruebe que `0.3 - 0.1 == 0.2` da `FALSE`. Escriba una comparación que dé `TRUE` para esos mismos números.
+13. Cree con `paste0()` los códigos de 12 muestras de suelo, de `"S01"` a `"S12"`. Pista: `sprintf("S%02d", 1:12)` escribe los números con dos cifras.
+14. Cree una matriz de 3 filas y 2 columnas con el largo y el ancho (m) de tres losas: 6.0 × 4.5, 5.2 × 4.0 y 7.1 × 3.8. Calcule el área de cada losa multiplicando sus dos columnas.
+15. Cree una lista con el nombre de un proyecto, su resistencia de diseño y un vector con cinco resistencias. Calcule la media de las resistencias tomándolas de la lista con `$`.
 
 ## Lecturas recomendadas
 
