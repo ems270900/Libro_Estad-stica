@@ -17,3 +17,4 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
 | 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
 | 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |

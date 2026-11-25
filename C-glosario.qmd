@@ -1,0 +1,229 @@
+---
+title: "Glosario español-inglés"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+La mayoría de los libros de estadística, la ayuda de R y los mensajes que R escribe en la consola están en inglés. Este glosario da la traducción de los términos del libro y una definición corta, en palabras sencillas, para recordar qué significa cada uno. La definición completa está en el capítulo donde se presenta el término.
+
+El @tbl-apc-glosario va en orden alfabético del español. El @tbl-apc-salidas traduce las palabras que aparecen en las salidas de las funciones de R, y el @tbl-apc-errores, los mensajes de error y de advertencia más comunes.
+
+## Buscar un término {#sec-apc-buscar}
+
+Escriba una palabra en español o en inglés. Los cuadros muestran solo las filas que la contienen.
+
+```{=html}
+<div class="interactivo buscador" id="buscar-glosario">
+  <label><span>Buscar:</span>
+    <input type="search" placeholder="Por ejemplo: varianza, p-value, residual" aria-label="Buscar un término en el glosario"></label>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+```
+
+
+## Términos estadísticos {#sec-apc-terminos}
+
+| Español | Inglés | Qué significa |
+|:--|:--|:--|
+| Aleatorización | Randomization | Asignar los tratamientos a las unidades experimentales al azar. |
+| Análisis de varianza (ANOVA) | Analysis of variance (ANOVA) | Método que compara las medias de varios grupos a partir de sus varianzas. |
+| Apalancamiento | Leverage | Cuánto pesa una observación en la recta de regresión por tener un valor de $x$ alejado de los demás. |
+| Asimetría | Skewness | Falta de simetría de una distribución: una cola más larga que la otra. |
+| Atípico, valor atípico | Outlier | Dato muy alejado del resto. |
+| Axioma | Axiom | Regla básica que se acepta sin demostración; la probabilidad se construye con tres. |
+| Bloque | Block | Grupo de unidades parecidas entre sí, que se usa para quitar una fuente de variación conocida. |
+| Bondad de ajuste | Goodness of fit | Qué tan bien describe un modelo o una distribución a los datos observados. |
+| Caja y bigotes, diagrama de | Box plot, box-and-whisker plot | Gráfico que muestra la mediana, los cuartiles y los valores atípicos. |
+| Coeficiente de correlación | Correlation coefficient | Número entre −1 y 1 que mide la fuerza de la relación lineal entre dos variables. |
+| Coeficiente de determinación ($R^2$) | Coefficient of determination | Fracción de la variación de $y$ que explica el modelo de regresión. |
+| Coeficiente de variación | Coefficient of variation | Desviación estándar dividida entre la media; mide la variabilidad relativa. |
+| Combinación | Combination | Forma de elegir $k$ elementos de $n$ sin que importe el orden. |
+| Comparaciones múltiples | Multiple comparisons | Pruebas que comparan los grupos de dos en dos después de un ANOVA. |
+| Covarianza | Covariance | Medida de cómo varían juntas dos variables. |
+| Cuadro de contingencia | Contingency table | Cuadro que cuenta cuántas observaciones caen en cada combinación de dos variables categóricas. |
+| Cuadro de frecuencias | Frequency table | Cuadro que dice cuántas veces aparece cada valor o cada intervalo. |
+| Cuantil | Quantile | Valor que deja por debajo una fracción dada de los datos. |
+| Cuartil | Quartile | Cuantil que divide los datos en cuatro partes iguales. |
+| Dato | Data point, observation | Un valor medido o registrado. |
+| Datos | Data | Conjunto de valores medidos o registrados. |
+| Desviación estándar | Standard deviation | Medida de dispersión: distancia típica de los datos a su media, en las mismas unidades. |
+| Diagrama de dispersión | Scatter plot | Gráfico de puntos de una variable contra otra. |
+| Diagrama de Venn | Venn diagram | Dibujo de los eventos como regiones dentro del espacio muestral. |
+| Diseño de experimentos | Design of experiments (DOE) | Planear un ensayo para obtener la mayor información con el menor número de corridas. |
+| Diseño factorial | Factorial design | Experimento que prueba todas las combinaciones de los niveles de dos o más factores. |
+| Distribución de probabilidad | Probability distribution | Regla que dice qué valores puede tomar una variable aleatoria y con qué probabilidad. |
+| Distribución muestral | Sampling distribution | Distribución de un estadístico, como la media, al repetir el muestreo muchas veces. |
+| Distribución normal | Normal distribution | Distribución continua con forma de campana, simétrica alrededor de la media. |
+| Error estándar | Standard error | Desviación estándar de un estimador; mide cuánto cambiaría de una muestra a otra. |
+| Error tipo I | Type I error | Rechazar la hipótesis nula cuando es verdadera. |
+| Error tipo II | Type II error | No rechazar la hipótesis nula cuando es falsa. |
+| Espacio muestral | Sample space | Conjunto de todos los resultados posibles de un experimento aleatorio. |
+| Estadística descriptiva | Descriptive statistics | Resumir y presentar datos con cuadros, gráficos y medidas. |
+| Estadística inferencial | Inferential statistics | Sacar conclusiones sobre una población a partir de una muestra. |
+| Estadístico | Statistic | Número calculado con los datos de una muestra, como la media muestral. |
+| Estadístico de prueba | Test statistic | Número calculado con la muestra que se compara con un valor crítico para decidir. |
+| Estimación | Estimate | Valor numérico que da un estimador con una muestra concreta. |
+| Estimador | Estimator | Fórmula que se usa para estimar un parámetro a partir de la muestra. |
+| Estudio observacional | Observational study | Estudio en el que se mide sin intervenir ni asignar tratamientos. |
+| Evento | Event | Conjunto de resultados del espacio muestral. |
+| Eventos independientes | Independent events | Eventos en los que saber que ocurrió uno no cambia la probabilidad del otro. |
+| Eventos mutuamente excluyentes | Mutually exclusive events | Eventos que no pueden ocurrir al mismo tiempo. |
+| Experimento | Experiment | Estudio en el que se aplican tratamientos y se mide la respuesta. |
+| Factor | Factor | Variable que se controla en un experimento; en R, vector de categorías. |
+| Frecuencia relativa | Relative frequency | Número de veces que aparece un valor dividido entre el total de datos. |
+| Función de densidad de probabilidad (FDP) | Probability density function (PDF) | Curva cuya área entre dos valores da la probabilidad de una variable continua. |
+| Función de distribución acumulada (FDA) | Cumulative distribution function (CDF) | Probabilidad de que la variable sea menor o igual que un valor: $P(X \le x)$. |
+| Función de probabilidad | Probability mass function (PMF) | Probabilidad de cada valor de una variable discreta. |
+| Grados de libertad | Degrees of freedom | Número de valores que pueden variar libremente; define la forma de $t$, $\chi^2$ y $F$. |
+| Hipótesis alternativa ($H_1$) | Alternative hypothesis | Lo que se quiere demostrar con la prueba. |
+| Hipótesis nula ($H_0$) | Null hypothesis | Afirmación que se mantiene mientras los datos no muestren lo contrario. |
+| Histograma | Histogram | Gráfico de barras pegadas que muestra cuántos datos caen en cada intervalo. |
+| Interacción | Interaction | Cuando el efecto de un factor depende del nivel de otro factor. |
+| Intervalo de confianza | Confidence interval | Rango de valores que, con cierto nivel de confianza, contiene al parámetro. |
+| Intervalo de predicción | Prediction interval | Rango donde se espera que caiga una observación nueva. |
+| Intervalo de tolerancia | Tolerance interval | Rango que contiene una fracción dada de la población con cierto nivel de confianza. |
+| Ley de los grandes números | Law of large numbers | Al repetir un experimento muchas veces, la frecuencia relativa se acerca a la probabilidad. |
+| Máxima verosimilitud | Maximum likelihood | Método que elige los parámetros que hacen más probables los datos observados. |
+| Media | Mean | Suma de los datos dividida entre su número (promedio). |
+| Media ponderada | Weighted mean | Promedio en el que cada dato pesa distinto. |
+| Mediana | Median | Valor central de los datos ordenados. |
+| Medida de tendencia central | Measure of central tendency | Número que indica el centro de los datos: media, mediana o moda. |
+| Mínimos cuadrados | Least squares | Método que ajusta la recta que hace mínima la suma de los residuos al cuadrado. |
+| Moda | Mode | Valor que más se repite. |
+| Muestra | Sample | Parte de la población que se mide. |
+| Muestra aleatoria | Random sample | Muestra en la que cada elemento de la población tiene la misma oportunidad de salir. |
+| Muestras pareadas | Paired samples | Dos mediciones hechas sobre el mismo elemento, como antes y después. |
+| Nivel de confianza | Confidence level | Porcentaje de intervalos que contendrían al parámetro si se repitiera el muestreo. |
+| Nivel de significancia ($\alpha$) | Significance level | Probabilidad de error tipo I que se acepta al decidir. |
+| Ojiva | Ogive, cumulative frequency plot | Gráfico de frecuencias acumuladas. |
+| Parámetro | Parameter | Número que describe a la población, como la media poblacional $\mu$. |
+| Percentil | Percentile | Cuantil expresado en porcentaje: el percentil 90 deja por debajo el 90 % de los datos. |
+| Permutación | Permutation | Forma de ordenar $k$ elementos elegidos de $n$, cuando importa el orden. |
+| Población | Population | Conjunto completo de elementos que se quiere estudiar. |
+| Potencia de una prueba | Power of a test | Probabilidad de rechazar la hipótesis nula cuando es falsa. |
+| Probabilidad | Probability | Número entre 0 y 1 que mide qué tan posible es un evento. |
+| Probabilidad condicional | Conditional probability | Probabilidad de un evento sabiendo que ocurrió otro. |
+| Probabilidad total | Total probability | Regla que suma las probabilidades de un evento en cada uno de los casos posibles. |
+| Proporción | Proportion | Fracción de los elementos que cumplen una condición. |
+| Prueba bilateral | Two-sided test, two-tailed test | Prueba en la que la hipótesis alternativa es "distinto de". |
+| Prueba de hipótesis | Hypothesis test | Procedimiento para decidir con datos si se rechaza la hipótesis nula. |
+| Prueba unilateral | One-sided test, one-tailed test | Prueba en la que la hipótesis alternativa es "mayor que" o "menor que". |
+| Rango | Range | Diferencia entre el valor máximo y el mínimo. |
+| Rango intercuartílico | Interquartile range (IQR) | Diferencia entre el tercer y el primer cuartil. |
+| Regresión lineal | Linear regression | Modelo que describe una variable como una recta en función de otra u otras. |
+| Repetición | Replication | Aplicar el mismo tratamiento a varias unidades experimentales. |
+| Residuo | Residual | Diferencia entre el valor observado y el que predice el modelo. |
+| Sesgo | Bias | Diferencia entre el valor promedio de un estimador y el parámetro que estima. |
+| Simulación | Simulation | Repetir un experimento en la computadora con números al azar. |
+| Supuesto | Assumption | Condición que debe cumplirse para que un método dé resultados válidos. |
+| Tamaño de muestra | Sample size | Número de elementos de la muestra, $n$. |
+| Teorema de Bayes | Bayes' theorem | Regla para actualizar una probabilidad cuando se conoce nueva información. |
+| Teorema del límite central | Central limit theorem | La media de muchas observaciones sigue aproximadamente una normal, sea cual sea la distribución original. |
+| Tratamiento | Treatment | Condición que se aplica a una unidad experimental, como un tipo de mezcla. |
+| Unidad experimental | Experimental unit | Elemento al que se le aplica un tratamiento, como un cilindro o una viga. |
+| Valor crítico | Critical value | Valor que separa la región donde se rechaza la hipótesis nula de la región donde no. |
+| Valor esperado | Expected value | Promedio a largo plazo de una variable aleatoria. |
+| Valor $p$ | $p$-value | Probabilidad de obtener un resultado tan extremo como el observado si $H_0$ fuera cierta. |
+| Variable aleatoria | Random variable | Número cuyo valor depende del resultado de un experimento aleatorio. |
+| Variable categórica | Categorical variable | Variable cuyos valores son categorías, como el tipo de suelo. |
+| Variable continua | Continuous variable | Variable que puede tomar cualquier valor en un intervalo, como una resistencia. |
+| Variable dependiente, de respuesta | Response variable, dependent variable | Variable que se quiere explicar o predecir. |
+| Variable discreta | Discrete variable | Variable que toma valores separados, como un conteo de vehículos. |
+| Variable independiente, predictora | Predictor, explanatory variable | Variable que se usa para explicar o predecir otra. |
+| Varianza | Variance | Promedio de las distancias al cuadrado de los datos a su media. |
+
+: Glosario de términos estadísticos, en orden alfabético del español. {#tbl-apc-glosario}
+
+## Palabras de las salidas de R {#sec-apc-salidas}
+
+Las funciones de R escriben sus resultados en inglés. El @tbl-apc-salidas traduce las palabras que aparecen en las salidas de `summary()`, `t.test()`, `lm()`, `anova()`, `aov()` y las demás pruebas del libro.
+
+| Aparece en R | Significa | Dónde aparece |
+|:--|:--|:--|
+| `Min.`, `Max.` | Mínimo, máximo | `summary()` |
+| `1st Qu.`, `3rd Qu.` | Primer cuartil, tercer cuartil | `summary()` |
+| `Median`, `Mean` | Mediana, media | `summary()` |
+| `NA` (*not available*) | Valor faltante | Cualquier salida |
+| `One Sample t-test` | Prueba $t$ para una muestra | `t.test()` |
+| `Welch Two Sample t-test` | Prueba $t$ para dos muestras con varianzas distintas | `t.test()` |
+| `Paired t-test` | Prueba $t$ para muestras pareadas | `t.test(..., paired = TRUE)` |
+| `data:` | Datos que se usaron | Todas las pruebas |
+| `t`, `df` | Estadístico $t$, grados de libertad | `t.test()` |
+| `p-value` | Valor $p$ | Todas las pruebas |
+| `alternative hypothesis: true mean is not equal to 28` | Hipótesis alternativa: la media verdadera es distinta de 28 | `t.test()` |
+| `95 percent confidence interval` | Intervalo de confianza de 95 % | `t.test()`, `prop.test()`, `cor.test()` |
+| `sample estimates`, `mean of x` | Estimaciones con la muestra, media de x | `t.test()` |
+| `Pearson's Chi-squared test` | Prueba chi-cuadrado de Pearson | `chisq.test()` |
+| `with Yates' continuity correction` | Con la corrección de continuidad de Yates | `chisq.test()`, `prop.test()` |
+| `X-squared` | Estadístico chi-cuadrado | `chisq.test()`, `prop.test()` |
+| `Pearson's product-moment correlation` | Correlación de Pearson | `cor.test()` |
+| `F test to compare two variances` | Prueba $F$ para comparar dos varianzas | `var.test()` |
+| `num df`, `denom df` | Grados de libertad del numerador y del denominador | `var.test()` |
+| `ratio of variances` | Cociente de las varianzas | `var.test()` |
+| `Shapiro-Wilk normality test` | Prueba de normalidad de Shapiro-Wilk | `shapiro.test()` |
+| `Call:` | Instrucción con la que se ajustó el modelo | `summary(lm())` |
+| `Residuals:` | Resumen de los residuos | `summary(lm())` |
+| `Coefficients:` | Coeficientes del modelo | `summary(lm())` |
+| `Estimate` | Valor estimado del coeficiente | `summary(lm())` |
+| `Std. Error` | Error estándar del coeficiente | `summary(lm())` |
+| `t value`, `Pr(>\|t\|)` | Estadístico $t$ y su valor $p$ | `summary(lm())` |
+| `(Intercept)` | Intercepto (ordenada en el origen) | `summary(lm())` |
+| `Signif. codes` | Códigos de significancia (asteriscos según el valor $p$) | `summary(lm())`, `summary(aov())` |
+| `Residual standard error` | Desviación estándar de los residuos | `summary(lm())` |
+| `on 6 degrees of freedom` | Con 6 grados de libertad | `summary(lm())` |
+| `Multiple R-squared`, `Adjusted R-squared` | $R^2$ y $R^2$ ajustado | `summary(lm())` |
+| `F-statistic: ... on 1 and 6 DF` | Estadístico $F$ con 1 y 6 grados de libertad | `summary(lm())` |
+| `Analysis of Variance Table` | Cuadro de análisis de varianza | `anova()` |
+| `Response:` | Variable de respuesta | `anova()` |
+| `Df` | Grados de libertad | `anova()`, `summary(aov())` |
+| `Sum Sq` | Suma de cuadrados | `anova()`, `summary(aov())` |
+| `Mean Sq` | Cuadrado medio (suma de cuadrados entre grados de libertad) | `anova()`, `summary(aov())` |
+| `F value`, `Pr(>F)` | Estadístico $F$ y su valor $p$ | `anova()`, `summary(aov())` |
+| `Tukey multiple comparisons of means` | Comparaciones múltiples de medias de Tukey | `TukeyHSD()` |
+| `95% family-wise confidence level` | Nivel de confianza de 95 % para el conjunto de comparaciones | `TukeyHSD()` |
+| `diff`, `lwr`, `upr`, `p adj` | Diferencia, límite inferior, límite superior, valor $p$ ajustado | `TukeyHSD()` |
+
+: Palabras en inglés de las salidas de R. {#tbl-apc-salidas}
+
+## Mensajes de error y advertencia {#sec-apc-errores}
+
+Un mensaje que empieza con `Error` detiene la instrucción. Uno que empieza con `Warning` es una advertencia: R hizo el cálculo, pero algo puede estar mal y conviene revisarlo. El @tbl-apc-errores traduce los mensajes que más aparecen al empezar y dice qué revisar.
+
+| Mensaje de R | Qué quiere decir | Qué revisar |
+|:--|:--|:--|
+| `object 'x' not found` | No existe un objeto llamado `x` | Que el objeto se haya creado antes y que el nombre esté bien escrito, con las mismas mayúsculas. |
+| `could not find function "f"` | No existe una función llamada `f` | El nombre de la función o que se haya cargado su paquete con `library()`. |
+| `there is no package called 'x'` | El paquete no está instalado | Instalarlo con `install.packages("x")`. |
+| `unexpected symbol` | Hay algo de más o de menos en la instrucción | Una coma, un paréntesis o unas comillas que faltan. |
+| `unexpected ')'` | Sobra un paréntesis | Contar los paréntesis que abren y los que cierran. |
+| `cannot open file 'x.csv': No such file or directory` | El archivo no está donde R lo busca | El nombre del archivo y la carpeta de trabajo (`getwd()`). |
+| `non-numeric argument to binary operator` | Se intentó hacer una cuenta con un texto | Que la columna sea numérica (`class()`, `str()`). |
+| `NAs introduced by coercion` | Al convertir a número, algunos valores no se pudieron convertir y quedaron como `NA` | Textos o comas decimales dentro de una columna de números. |
+| `argument is not numeric or logical: returning NA` | Se pidió un promedio de algo que no es numérico | El tipo de la columna con `class()`. |
+
+: Mensajes frecuentes de error y advertencia de R. {#tbl-apc-errores}
+
+```{=html}
+<script>
+(function () {
+  var caja = document.getElementById("buscar-glosario");
+  if (!caja) return;
+  var entrada = caja.querySelector("input"), aviso = caja.querySelector(".resultado");
+  // Filas de los cuadros de este apéndice (sus etiquetas empiezan con tbl-apc-)
+  var filas = Array.prototype.slice.call(document.querySelectorAll('[id^="tbl-apc-"] tbody tr'));
+  // Quita tildes y mayúsculas para comparar
+  function limpiar(t) { return t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  var textos = filas.map(function (tr) { return limpiar(tr.textContent); });
+  entrada.addEventListener("input", function () {
+    var q = limpiar(entrada.value.trim()), n = 0;
+    filas.forEach(function (tr, i) {
+      var ok = !q || textos[i].indexOf(q) >= 0;
+      tr.style.display = ok ? "" : "none";
+      if (ok) n++;
+    });
+    aviso.textContent = !q ? "" : n === 0 ? "Ningún término coincide. Pruebe con otra palabra." :
+      n === 1 ? "Una fila coincide." : n + " filas coinciden.";
+  });
+})();
+</script>
+```

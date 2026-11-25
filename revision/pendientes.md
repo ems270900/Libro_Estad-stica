@@ -19,6 +19,13 @@
 - Epígrafes: el del capítulo 10 es de Laplace (*Essai philosophique sur les probabilités*, 1814) y el del capítulo 12 de Joseph Butler (*The Analogy of Religion*, 1736, introducción). El capítulo 11 no lleva epígrafe porque no se encontró uno con fuente verificable; el autor puede proponer uno.
 - `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
 
+## Apéndices
+
+- Apéndice B: las funciones de las partes II a VII se anotaron con el capítulo previsto en la estructura. Al cerrar cada parte se revisa qué funciones usa de verdad y se ajusta la columna "Cap." y las filas.
+- Apéndice C: agregar los términos nuevos que aparezcan en las partes II a VII.
+- Notación de las tablas: $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha. Los capítulos 16 a 23 deben usar la misma convención.
+- Revisión del autor de los tres apéndices.
+
 ## Decisiones del autor
 
 - Publicación en la web: no se publica sin su permiso.
