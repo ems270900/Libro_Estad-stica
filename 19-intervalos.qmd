@@ -34,7 +34,7 @@ La @fig-ic-anatomia pone nombre a cada parte con los números del lote de concre
 
 ```{r}
 #| label: fig-ic-anatomia
-#| fig-cap: "Partes de un intervalo de confianza del 95 % para la media del lote de concreto."
+#| fig-cap: "Partes de un intervalo de confianza."
 #| fig-alt: "Una barra horizontal de 31.17 a 33.13 MPa con un punto central en 32.15; flechas indican la estimación puntual, el margen de error a cada lado y los límites inferior y superior."
 #| fig-height: 3
 #| echo: false
@@ -393,7 +393,7 @@ Si un intervalo dice ser del 95 %, ¿contiene al parámetro el 95 % de las veces
 
 Para la media con datos normales, sí. Para una proporción con el intervalo de Wald, muchas veces no. La razón es que $\hat{p}$ solo puede tomar los valores $0, 1/n, 2/n, \dots, 1$, y la aproximación normal es mala cuando $p$ está cerca de 0 o de 1. El caso extremo es $x = 0$: el intervalo de Wald da $[0,\ 0]$, un intervalo de ancho cero que afirma que la proporción es exactamente cero.
 
-La probabilidad real de que el intervalo contenga a $p$ se llama cobertura, y para una proporción se puede calcular exactamente: se suma la probabilidad binomial de cada resultado $x$ cuyo intervalo contiene a $p$. La @fig-ic-int-cobertura hace ese cálculo para los intervalos de Wald y de Wilson en función del valor verdadero de $p$ [@agresti1998approximate].
+La probabilidad real de que el intervalo contenga a $p$ se llama cobertura, y para una proporción se puede calcular exactamente: se suma la probabilidad binomial de cada resultado $x$ cuyo intervalo contiene a $p$. La @fig-ic-int-cobertura hace ese cálculo para los intervalos de Wilson (azul) y de Wald (naranja) en función del valor verdadero de $p$; los valores menores que 0.5 se dibujan en 0.5 [@agresti1998approximate].
 
 ::: {#fig-ic-int-cobertura}
 
@@ -454,7 +454,7 @@ La probabilidad real de que el intervalo contenga a $p$ se llama cobertura, y pa
 </script>
 ```
 
-Cobertura real de los intervalos del 95 % de Wilson (azul) y de Wald (naranja) para una proporción. Los valores bajo 0.5 se dibujan en 0.5.
+Cobertura real de los intervalos de Wilson y de Wald.
 
 :::
 
@@ -800,7 +800,7 @@ ggplot() +
 El error más común con estos tres intervalos es usar el de confianza para hablar de cilindros individuales. "La resistencia está entre 31.2 y 33.1 MPa con 95 % de confianza" no quiere decir que el 95 % de los cilindros caiga en ese rango; en este lote, la mayoría de los cilindros cae fuera de él.
 :::
 
-La @fig-ic-int-tres muestra por qué el intervalo de predicción nunca se vuelve tan angosto como el de confianza. Se fija la desviación estándar del lote, $s = 2.375$ MPa, y se cambia el número de cilindros ensayados.
+La @fig-ic-int-tres muestra por qué el intervalo de predicción nunca se vuelve tan angosto como el de confianza. Se fija la desviación estándar del lote, $s = 2.375$ MPa, y se cambia el número de cilindros ensayados. La curva azul es el margen del intervalo de confianza y la naranja, el del intervalo de predicción.
 
 ::: {#fig-ic-int-tres}
 
@@ -875,7 +875,7 @@ La @fig-ic-int-tres muestra por qué el intervalo de predicción nunca se vuelve
 </script>
 ```
 
-Margen de error al 95 % del intervalo de confianza para la media (azul) y del intervalo de predicción para un cilindro (naranja), con $s = 2.375$ MPa.
+Márgenes de error de los intervalos de confianza y de predicción.
 
 :::
 

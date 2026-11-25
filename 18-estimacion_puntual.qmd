@@ -22,7 +22,7 @@ La @fig-est-poblacion-muestra lo muestra con un lote de 1000 elementos, por ejem
 
 ```{r}
 #| label: fig-est-poblacion-muestra
-#| fig-cap: "Un lote de 1000 elementos y una muestra aleatoria de 25 (cuadros marcados). A la derecha, la distribución del lote y los valores de la muestra."
+#| fig-cap: "Lote de 1000 elementos y muestra aleatoria de 25."
 #| fig-alt: "A la izquierda, una cuadrícula de 1000 cuadros coloreados según su espesor, con 25 de ellos marcados con un borde negro. A la derecha, un histograma del lote con los 25 valores de la muestra como puntos debajo y dos líneas verticales para la media del lote y la de la muestra."
 #| fig-width: 9
 #| fig-height: 3.8
@@ -249,7 +249,7 @@ El mejor estimador es el de arriba a la izquierda, insesgado y con poca varianza
 </script>
 ```
 
-Sesgo y dispersión de un estimador. El promedio de las distancias al cuadrado hasta el centro es la suma del sesgo al cuadrado y de la varianza.
+Sesgo, dispersión y error cuadrático medio.
 
 :::
 
@@ -335,7 +335,7 @@ La @fig-est-int-ee pone las dos cantidades lado a lado. La población es la de l
 </script>
 ```
 
-Datos individuales y medias muestrales de una variable asimétrica. Al subir $n$, el histograma de las medias se angosta como $\sigma/\sqrt{n}$ y se vuelve simétrico; el de los datos no cambia.
+Datos individuales y medias muestrales.
 
 :::
 
@@ -353,11 +353,11 @@ Entre dos estimadores se prefiere el de menor ECM. Si los dos son insesgados, el
 
 Un estimador es consistente si se acerca al parámetro a medida que crece la muestra. La media, la varianza muestral y la proporción muestral lo son. La consistencia es la garantía mínima: con suficientes datos, el estimador termina dando el valor correcto.
 
-La @fig-est-consistencia muestra la consistencia con un aforo de tránsito simulado. En una carretera, el 15 % de los vehículos son pesados. Se cuentan vehículos uno por uno y, después de cada uno, se recalcula la proporción de pesados. Cada línea es un aforo distinto.
+La @fig-est-consistencia muestra la consistencia con un aforo de tránsito simulado. En una carretera, el 15 % de los vehículos son pesados. Se cuentan vehículos uno por uno y, después de cada uno, se recalcula la proporción de pesados. Cada línea es un aforo distinto y la línea discontinua marca la proporción real.
 
 ```{r}
 #| label: fig-est-consistencia
-#| fig-cap: "Proporción acumulada de vehículos pesados en cinco aforos simulados. La línea discontinua es la proporción real, 0.15."
+#| fig-cap: "Proporción acumulada de vehículos pesados en cinco aforos simulados."
 #| fig-alt: "Cinco líneas que oscilan mucho con pocos vehículos contados y se juntan alrededor de 0.15 cuando se cuentan miles."
 #| cache: true
 #| echo: false
@@ -765,7 +765,7 @@ c(momentos = x_T(50, u_mom, alfa_mom), max_verosimilitud = x_T(50, u_mv, alfa_mv
 
 ```{r}
 #| label: fig-est-gumbel
-#| fig-cap: "Histograma de la lluvia máxima diaria anual y densidades de Gumbel ajustadas por los dos métodos."
+#| fig-cap: "Lluvia máxima diaria anual y densidades de Gumbel ajustadas."
 #| fig-alt: "Histograma asimétrico a la derecha con dos curvas casi superpuestas; la de máxima verosimilitud es un poco más alta en la moda."
 #| echo: false
 
