@@ -6,7 +6,7 @@ suppress-bibliography: true
 
 ::: {.quote-block}
 "My object is to place beyond doubt the existence of a simple and far-reaching law that governs the hereditary transmission [...] that the mean filial regression towards mediocrity was directly proportional to the parental deviation from it."\
-— *Francis Galton, citado por @watkinssfintroduction [tema 3].*
+— *Francis Galton, citado por @watkinsintroduction [tema 3].*
 :::
 
 La correlación del capítulo 24 dice que la resistencia del concreto baja cuando sube la relación agua/cemento, y que la asociación es muy fuerte. Pero quien diseña una mezcla necesita algo más concreto: cuántos MPa se pierden si la relación pasa de 0.50 a 0.55, o qué resistencia se espera con una relación de 0.62. La regresión lineal simple responde esas preguntas con la ecuación de una recta, $\hat{y} = b_0 + b_1 x$, ajustada a los datos. Este capítulo explica cómo se calcula esa recta a mano y con `lm()`, cómo se interpretan sus coeficientes, qué tan confiable es y cómo se usa para predecir sin salirse del rango de los datos.
@@ -313,7 +313,7 @@ La pendiente describe una asociación en los datos observados. Decir que "si se 
 
 ### Descomposición de la variación
 
-La variación total de la respuesta alrededor de su media se puede partir en dos: la parte que explica la recta y la parte que queda en los residuos [@montgomery2012introduction, cap. 2; @lanesfintroduction, cap. 14]:
+La variación total de la respuesta alrededor de su media se puede partir en dos: la parte que explica la recta y la parte que queda en los residuos [@montgomery2012introduction, cap. 2; @laneintroduction, cap. 14]:
 
 $$
 \underbrace{\sum (y_i - \bar{y})^2}_{SST} = \underbrace{\sum (\hat{y}_i - \bar{y})^2}_{SSR} + \underbrace{\sum (y_i - \hat{y}_i)^2}_{SSE}
@@ -394,7 +394,7 @@ Un $R^2$ alto no demuestra que la recta sea el modelo correcto ni que haya relac
 
 Con otras diez mezclas se obtendría otra recta. La pendiente $b_1$ es, entonces, una estimación con incertidumbre, y se puede calcular su error estándar, probar hipótesis y armar un intervalo de confianza, como en los capítulos 19 a 21. Para eso se suponen errores independientes, con media cero, varianza constante $\sigma^2$ y distribución normal. El capítulo 27 explica cómo revisar esos supuestos.
 
-El error estándar de la pendiente es [@montgomery2012introduction, cap. 2; @lanesfintroduction, cap. 14]
+El error estándar de la pendiente es [@montgomery2012introduction, cap. 2; @laneintroduction, cap. 14]
 
 $$
 SE(b_1) = \frac{s}{\sqrt{S_{xx}}}
@@ -485,13 +485,13 @@ confint(modelo, level = 0.95)
 
 :::
 
-## Tabla de análisis de varianza {#sec-rls-anova}
+## Cuadro de análisis de varianza {#sec-rls-anova}
 
-La descomposición de la @eq-rls-descomposicion se suele presentar en una tabla de análisis de varianza (ANOVA), con la estructura del @tbl-rls-anova-general. La misma tabla aparece en la regresión múltiple (capítulo 26) y en el diseño de experimentos (Parte VII).
+La descomposición de la @eq-rls-descomposicion se suele presentar en un cuadro de análisis de varianza (ANOVA), con la estructura del @tbl-rls-anova-general. El mismo cuadro aparece en la regresión múltiple (capítulo 26) y en el diseño de experimentos (Parte VII).
 
 ```{r}
 #| label: tbl-rls-anova-general
-#| tbl-cap: "Tabla ANOVA de la regresión lineal simple."
+#| tbl-cap: "Cuadro ANOVA de la regresión lineal simple."
 #| echo: false
 
 data.frame(
@@ -508,9 +508,9 @@ data.frame(
 
 El estadístico $F$ compara la variación que explica la recta con la que queda sin explicar. Si $H_0: \beta_1 = 0$ es cierta, sigue una distribución $F$ con 1 y $n - 2$ grados de libertad, y se rechaza $H_0$ si $F > F_{1-\alpha;\,1,\,n-2}$. En la regresión simple esta prueba es la misma que la prueba $t$ de la pendiente, porque $F = t^2$.
 
-::: {.callout-note title="Ejemplo: tabla ANOVA del modelo de las mezclas"}
+::: {.callout-note title="Ejemplo: cuadro ANOVA del modelo de las mezclas"}
 
-**Planteamiento.** Arme la tabla ANOVA del modelo de las diez mezclas y haga la prueba $F$ con $\alpha = 0.05$.
+**Planteamiento.** Arme la cuadro ANOVA del modelo de las diez mezclas y haga la prueba $F$ con $\alpha = 0.05$.
 
 **Solución:**
 
@@ -522,7 +522,7 @@ El estadístico $F$ compara la variación que explica la recta con la que queda 
 
 ```{r}
 #| label: tbl-rls-anova
-#| tbl-cap: "Tabla ANOVA de la regresión de la resistencia contra la relación agua/cemento."
+#| tbl-cap: "Cuadro ANOVA de la regresión de la resistencia contra la relación agua/cemento."
 #| echo: false
 
 av <- anova(mod_mezclas)
@@ -782,7 +782,7 @@ Una recta con $R^2 = 0.99$ no autoriza a extrapolar. Antes de usar el modelo hay
 
 1. Para seis observaciones se tiene $n = 6$, $\sum x = 21$, $\sum y = 72$, $\sum x^2 = 91$, $\sum xy = 287$ y $\sum y^2 = 938$. Calcule a mano $b_1$, $b_0$, la predicción para $x = 4.5$, $r$ y $R^2$.
 2. Con los datos de la viga del capítulo 24, ejercicio 2, ajuste a mano la recta de deflexión contra carga, interprete la pendiente en mm por cada 10 kN y diga si el intercepto tiene sentido físico. Compruebe con `lm()`.
-3. Complete la tabla ANOVA de una regresión simple con $n = 12$: $SST = 200$ y $SSE = 20$. Calcule $MSR$, $MSE$, $F$ y $R^2$, y decida con $\alpha = 0.05$.
+3. Complete la cuadro ANOVA de una regresión simple con $n = 12$: $SST = 200$ y $SSE = 20$. Calcule $MSR$, $MSE$, $F$ y $R^2$, y decida con $\alpha = 0.05$.
 4. En una regresión con $n = 10$ se obtuvo $b_1 = -3.2$ y $SE(b_1) = 0.8$. Pruebe $H_0: \beta_1 = 0$ con $\alpha = 0.05$ y calcule el intervalo del 95 % para $\beta_1$.
 5. En una regresión simple con $n = 10$ se sabe que $SST = 250$ y $R^2 = 0.84$. Calcule $SSR$, $SSE$, $MSE$, $s$ y $F$.
 6. Con el modelo de las mezclas, calcule con `predict()` los intervalos del 95 % para $x_0 = 0.40$, $0.55$ y $0.70$. ¿Dónde es más angosto el intervalo para la media? Explique con la @eq-rls-se-media por qué.
@@ -792,6 +792,6 @@ Una recta con $R^2 = 0.99$ no autoriza a extrapolar. Antes de usar el modelo hay
 ## Lecturas recomendadas
 
 - @illowsky2018introductory, capítulo 12: presenta la recta de mínimos cuadrados, la predicción y los valores atípicos con ejemplos sencillos.
-- @lanesfintroduction, capítulo 14: explica la partición de las sumas de cuadrados, el error estándar de la estimación y la inferencia sobre $b$ y $r$, con buenos gráficos.
+- @laneintroduction, capítulo 14: explica la partición de las sumas de cuadrados, el error estándar de la estimación y la inferencia sobre $b$ y $r$, con buenos gráficos.
 - @montgomery2012introduction, capítulo 2: el desarrollo completo de la regresión simple, con las demostraciones que aquí se resumen. Es la referencia para quien quiera ir más a fondo.
 - @ayala2026estadistica, capítulo 8: regresión lineal simple con R, en español.

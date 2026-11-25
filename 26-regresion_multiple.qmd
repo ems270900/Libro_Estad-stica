@@ -172,7 +172,7 @@ En este ejemplo las nueve combinaciones forman un diseño completo: cada altura 
 
 ## La regresión en forma matricial {#sec-rlm-matricial}
 
-Con tres o más predictores, escribir y resolver las ecuaciones normales a mano se vuelve largo. El álgebra lineal permite escribir el modelo para todas las observaciones en una sola línea. Esta sección explica la notación paso a paso; no hace falta haber llevado un curso de álgebra lineal para seguirla.
+Con tres o más predictores, escribir y resolver las ecuaciones normales a mano se vuelve largo. Con álgebra lineal se escribe el modelo para todas las observaciones en una sola línea. Esta sección explica la notación paso a paso; no hace falta haber llevado un curso de álgebra lineal para seguirla.
 
 Un vector es una lista ordenada de números, escrita en columna. Una matriz es un cuadro de números con filas y columnas. Con los datos del relleno:
 
@@ -224,7 +224,7 @@ La última línea del código muestra que $\mathbf{X}^{\mathsf T}\mathbf{e} = \m
 
 ## Calidad del ajuste y prueba global {#sec-rlm-anova}
 
-La descomposición $SST = SSR + SSE$ y la tabla ANOVA del capítulo 25 siguen igual, con un cambio en los grados de libertad: la regresión tiene $p$ (uno por predictor) y el error tiene $n - p - 1$ (se estimaron $p + 1$ coeficientes). El cuadrado medio del error, $MSE = SSE/(n - p - 1)$, estima la varianza de los errores.
+La descomposición $SST = SSR + SSE$ y la cuadro ANOVA del capítulo 25 siguen igual, con un cambio en los grados de libertad: la regresión tiene $p$ (uno por predictor) y el error tiene $n - p - 1$ (se estimaron $p + 1$ coeficientes). El cuadrado medio del error, $MSE = SSE/(n - p - 1)$, estima la varianza de los errores.
 
 La prueba $F$ ahora es una prueba global [@montgomery2012introduction, cap. 3]:
 
@@ -244,9 +244,9 @@ $$ {#eq-rlm-r2aj}
 
 donde $n$ es el número de observaciones y $p$ el de predictores. Si un predictor nuevo no aporta lo suficiente para compensar el grado de libertad que consume, $R^2_{\text{aj}}$ baja.
 
-::: {.callout-note title="Ejemplo: tabla ANOVA y R² del modelo del relleno"}
+::: {.callout-note title="Ejemplo: cuadro ANOVA y R² del modelo del relleno"}
 
-**Planteamiento.** Con el modelo $\hat{y} = 5.778 + 6\,x_1 + 4\,x_2$, arme la tabla ANOVA, haga la prueba global con $\alpha = 0.05$ y calcule $R^2$ y $R^2_{\text{aj}}$.
+**Planteamiento.** Con el modelo $\hat{y} = 5.778 + 6\,x_1 + 4\,x_2$, arme la cuadro ANOVA, haga la prueba global con $\alpha = 0.05$ y calcule $R^2$ y $R^2_{\text{aj}}$.
 
 **Solución:**
 
@@ -601,7 +601,7 @@ Un buen modelo de regresión se arma con criterio técnico: se empieza por los p
 ## Ejercicios propuestos
 
 1. En un modelo con dos predictores centrados se tiene $n = 5$, $\sum y = 50$, $\sum x_1 = \sum x_2 = 0$, $\sum x_1^2 = 10$, $\sum x_2^2 = 20$, $\sum x_1 x_2 = 0$, $\sum x_1 y = 15$ y $\sum x_2 y = -20$. Plantee las ecuaciones normales, calcule $b_0$, $b_1$ y $b_2$, y prediga $y$ para $x_1 = 2$ y $x_2 = 3$.
-2. Un modelo con $p = 3$ predictores y $n = 15$ observaciones tiene $SST = 164$ y $SSE = 44$. Complete la tabla ANOVA, haga la prueba global con $\alpha = 0.05$ y calcule $R^2$ y $R^2_{\text{aj}}$.
+2. Un modelo con $p = 3$ predictores y $n = 15$ observaciones tiene $SST = 164$ y $SSE = 44$. Complete la cuadro ANOVA, haga la prueba global con $\alpha = 0.05$ y calcule $R^2$ y $R^2_{\text{aj}}$.
 3. Complete el cuadro de coeficientes de un modelo con $t_{\text{crit}} = 2.12$: el intercepto vale 12.5 con error estándar 2.5; el coeficiente de $x_1$ tiene error estándar 0.4 y $t = 3.5$; el de $x_2$ vale $-0.9$ con $t = -3.0$. Diga cuáles coeficientes son distintos de cero.
 4. Se estimó $\widehat{\text{consumo}} = 18.4 + 0.62\,(\text{área}) - 1.8\,(\text{aislamiento})$, con el consumo eléctrico mensual de una vivienda en kWh, el área en m² y el aislamiento en una escala numérica. Interprete los tres coeficientes y diga qué precaución tomar con el intercepto.
 5. Con los datos del relleno, ajuste las dos regresiones simples (asentamiento contra altura y asentamiento contra espesor). Compare sus pendientes y su $R^2$ con los del modelo múltiple y explique por qué las pendientes coinciden en este caso.
@@ -612,6 +612,6 @@ Un buen modelo de regresión se arma con criterio técnico: se empieza por los p
 ## Lecturas recomendadas
 
 - @montgomery2012introduction, capítulos 3 y 9: la regresión múltiple en forma matricial, las pruebas de los coeficientes y el diagnóstico de la multicolinealidad, con ejemplos de ingeniería.
-- @lanesfintroduction, capítulo 14: una introducción sencilla a la regresión múltiple y a la interpretación de los coeficientes parciales.
+- @laneintroduction, capítulo 14: una introducción sencilla a la regresión múltiple y a la interpretación de los coeficientes parciales.
 - @fox2019companion: cómo ajustar e interpretar modelos de regresión con R, incluidos predictores categóricos e interacciones.
 - @wasserman2004all, capítulo 13: la regresión lineal desde la teoría, para quien busca un tratamiento más formal.

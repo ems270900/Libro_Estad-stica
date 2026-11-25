@@ -6,7 +6,7 @@ suppress-bibliography: true
 
 ::: {.quote-block}
 "Reflection soon made it clear to me that not only were the two new problems identical in principle with the old one of kinship which I had already solved, but that all three of them were no more than special cases of a much more general problem, namely, that of Correlation."\
-— *Francis Galton, citado por @watkinssfintroduction [tema 3].*
+— *Francis Galton, citado por @watkinsintroduction [tema 3].*
 :::
 
 En un laboratorio de materiales se ensaya la resistencia de cilindros hechos con distintas relaciones agua/cemento. En una carretera se mide el deterioro de cada tramo y el tránsito que soporta. En una cuenca se registran la lluvia y el caudal. En los tres casos la pregunta es la misma: cuando una variable cambia, ¿la otra cambia con ella? Este capítulo explica cómo verlo en un gráfico y cómo medirlo con un número, la correlación. También explica qué no dice ese número, porque dos variables que se mueven juntas no siempre tienen una relación de causa y efecto.
@@ -32,7 +32,7 @@ En casi todos los problemas de ingeniería una de las dos variables es la que in
 
 ### El diagrama de dispersión
 
-El primer paso para estudiar una asociación es el diagrama de dispersión: un punto por cada par de valores $(x_i, y_i)$, con $X$ en el eje horizontal y $Y$ en el vertical. La @sec-graf-base explica cómo hacerlo con `plot()` y la @sec-graf-ggplot con `geom_point()`. En el diagrama se miran cuatro cosas [@lanesfintroduction, cap. 4]:
+El primer paso para estudiar una asociación es el diagrama de dispersión: un punto por cada par de valores $(x_i, y_i)$, con $X$ en el eje horizontal y $Y$ en el vertical. La @sec-graf-base explica cómo hacerlo con `plot()` y la @sec-graf-ggplot con `geom_point()`. En el diagrama se miran cuatro cosas [@laneintroduction, cap. 4]:
 
 1. **Dirección.** Si al crecer $X$ crece $Y$, la asociación es positiva. Si al crecer $X$ baja $Y$, es negativa.
 2. **Forma.** Los puntos pueden seguir una recta, una curva o ningún patrón.
@@ -243,7 +243,7 @@ $$
 H_0: \rho = 0 \qquad \text{contra} \qquad H_1: \rho \neq 0
 $$
 
-y el estadístico de prueba es [@illowsky2018introductory, cap. 12; @lanesfintroduction, cap. 14]
+y el estadístico de prueba es [@illowsky2018introductory, cap. 12; @laneintroduction, cap. 14]
 
 $$
 t = r \, \sqrt{\frac{n - 2}{1 - r^2}}
@@ -294,7 +294,7 @@ cor.test(x, y)
 :::
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
-El intervalo de confianza de `cor.test()` usa la transformación $z$ de Fisher. La cantidad $z = \tfrac{1}{2}\ln\!\left(\tfrac{1+r}{1-r}\right)$ tiene, aproximadamente, distribución normal con desviación estándar $1/\sqrt{n-3}$ [@lanesfintroduction, cap. 10]. Se calcula el intervalo $z \pm 1.96/\sqrt{n-3}$ y se devuelve a la escala de $r$ con la tangente hiperbólica. En R: `tanh(atanh(r) + c(-1, 1) * qnorm(0.975) / sqrt(n - 3))`, que da los mismos límites que `cor.test()`.
+El intervalo de confianza de `cor.test()` usa la transformación $z$ de Fisher. La cantidad $z = \tfrac{1}{2}\ln\!\left(\tfrac{1+r}{1-r}\right)$ tiene, aproximadamente, distribución normal con desviación estándar $1/\sqrt{n-3}$ [@laneintroduction, cap. 10]. Se calcula el intervalo $z \pm 1.96/\sqrt{n-3}$ y se devuelve a la escala de $r$ con la tangente hiperbólica. En R: `tanh(atanh(r) + c(-1, 1) * qnorm(0.975) / sqrt(n - 3))`, que da los mismos límites que `cor.test()`.
 :::
 
 ::: {.callout-warning title="Cuidado"}
@@ -658,6 +658,6 @@ Si los datos cubren solo una parte del rango de $X$, la correlación sale más b
 ## Lecturas recomendadas
 
 - @illowsky2018introductory, capítulo 12: explica con muchos ejemplos el diagrama de dispersión, el coeficiente $r$ y su prueba, a nivel muy introductorio y con licencia abierta.
-- @lanesfintroduction, capítulo 4: muestra con gráficos cómo se ven distintos valores de $r$ y cómo se calcula paso a paso.
+- @laneintroduction, capítulo 4: muestra con gráficos cómo se ven distintos valores de $r$ y cómo se calcula paso a paso.
 - @helsel2020statistical, capítulo 8: compara Pearson, Spearman y Kendall con datos de recursos hídricos y recomienda cuándo usar cada uno.
 - @anscombe1973graphs: el artículo original del cuarteto, corto y fácil de leer, sobre por qué graficar antes de calcular.
