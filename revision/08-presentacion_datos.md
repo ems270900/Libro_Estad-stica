@@ -17,3 +17,7 @@ Fecha: 2026-11-25. Estado: borrador.
 - Interactivos nuevos: ancho y punto de partida de las clases (`#fig-pres-int-origen`); inicio del eje y factor de mentira (`#fig-pres-int-eje`).
 - Ejercicios 9 a 13 nuevos (ambiental: quejas de un acueducto; hidráulica; lectura de interactivos).
 - Fuentes nuevas verificadas (DOI en Crossref): Cleveland y McGill (1984), Scott (1979), Freedman y Diaconis (1981); libros: Tufte (2001), Montgomery (2013).
+
+## Cambios del 2026-11-25: límites de Tukey y reorganización de gráficos
+
+- Recibe del capítulo 4: cuándo usar barras y cuándo no (orden, horizontales, eje desde cero), cuándo usar el histograma (`sec-pres-hist-uso`), qué buscar en una nube de puntos con `fig-graf-dispersion-patrones` y el aviso de correlación y causa, y cuándo usar líneas en series de tiempo (`sec-pres-series`). Cada sección remite al código del capítulo 4.
