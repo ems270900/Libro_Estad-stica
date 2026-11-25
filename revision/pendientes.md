@@ -18,7 +18,8 @@
 - Revisión del autor de los capítulos 7 a 9.
 ## Parte III (Probabilidad)
 
-- Revisión del autor de los capítulos 10 a 12.
+- Revisión del autor de los capítulos 10 a 12, ampliados el 2026-11-25 (secciones nuevas, cinco interactivos nuevos, cuatro ejemplos nuevos y errores frecuentes por capítulo).
+- Referencias nuevas de la ampliación (Ang y Tang, 2007; Benjamin y Cornell, 1970; Chow et al., 1988; Feller, 1968; Friendly, 1994; Gigerenzer y Hoffrage, 1995): se citan por capítulo o sin página. Si el autor tiene los libros a mano, conviene precisar capítulo o página.
 - Los datos de atrasos de obra, de varillas, de plantas de concreto y de ensayos en pilotes son hipotéticos. Si el autor tiene datos reales publicables (por ejemplo, de un informe de laboratorio con permiso), se pueden sustituir.
 - `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
 
@@ -75,3 +76,8 @@
 ## Estética (2026-11-25)
 
 - Los gráficos de R y los interactivos de los capítulos conservan sus colores propios (azul #1C6BA0 y naranja #E69F00); solo cambió la interfaz.
+
+## Diversificación de ejemplos entre ramas (2026-11-25)
+
+- Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Faltan las Partes V y I a IV.
+- La prueba de jarras usa dosis "recomendadas por el proveedor" sin dar valores en mg/L; si el autor quiere dosis típicas, hay que citarlas de un manual de potabilización.

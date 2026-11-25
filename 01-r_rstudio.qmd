@@ -24,23 +24,23 @@ Se instala primero R y después RStudio, en ese orden, porque RStudio busca a R 
 
 Se entra a la página de CRAN, la red de servidores que distribuye R (<https://cran.r-project.org>), y se elige "Download R for Windows" (@fig-r-cran).
 
-![Página principal de CRAN. El enlace para Windows está en el recuadro superior. Fuente: captura de <https://cran.r-project.org>.](assets/img/cap01/cran_inicio.png){#fig-r-cran fig-alt="Página de CRAN con los enlaces de descarga de R para Linux, macOS y Windows" width="75%"}
+![Página principal de CRAN. Fuente: CRAN.](assets/img/cap01/cran_inicio.png){#fig-r-cran fig-alt="Página de CRAN con los enlaces de descarga de R para Linux, macOS y Windows" width="75%"}
 
 En la página siguiente se elige "base" o "install R for the first time" (@fig-r-cran-windows) y después el enlace de descarga de la versión más reciente. Se descarga un archivo con un nombre parecido a `R-4.x.x-win.exe`. Se ejecuta con doble clic y se aceptan las opciones que vienen marcadas: idioma, carpeta de instalación y componentes.
 
-![Página de R para Windows. El enlace "base" lleva al instalador. Fuente: captura de <https://cran.r-project.org/bin/windows/>.](assets/img/cap01/cran_windows.png){#fig-r-cran-windows fig-alt="Página de CRAN para Windows con el enlace base resaltado" width="75%"}
+![Página de R para Windows. Fuente: CRAN.](assets/img/cap01/cran_windows.png){#fig-r-cran-windows fig-alt="Página de CRAN para Windows con el enlace base resaltado" width="75%"}
 
 ### Paso 2: instalar RStudio
 
 En la página de descarga de Posit, la empresa que desarrolla RStudio (<https://docs.posit.co/ide/user/download.html>), la página reconoce que la computadora usa Windows y ofrece el botón Download installer (@fig-r-posit). Se descarga el instalador, se ejecuta y se aceptan las opciones por defecto. La página también tiene el enlace a R, por si no se hizo el paso 1.
 
-![Página de descarga de RStudio Desktop. Fuente: captura de <https://docs.posit.co/ide/user/download.html>.](assets/img/cap01/posit_descarga.png){#fig-r-posit fig-alt="Página Download RStudio de Posit con el recuadro Recommended for you y los botones Download installer y Download zip archive" width="75%"}
+![Página de descarga de RStudio Desktop. Fuente: Posit.](assets/img/cap01/posit_descarga.png){#fig-r-posit fig-alt="Página Download RStudio de Posit con el recuadro Recommended for you y los botones Download installer y Download zip archive" width="75%"}
 
 ### Paso 3: abrir RStudio
 
 Se abre RStudio desde el menú de inicio (no R, que también queda instalado). La primera vez la ventana se ve como en la @fig-r-inicio. Si en la consola aparece un mensaje que empieza con "R version 4.", la instalación quedó bien.
 
-![RStudio recién abierto, antes de crear un script. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_inicio.png){#fig-r-inicio fig-alt="Ventana de RStudio con la consola a la izquierda y los paneles de entorno y archivos a la derecha" width="85%"}
+![RStudio recién abierto. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_inicio.png){#fig-r-inicio fig-alt="Ventana de RStudio con la consola a la izquierda y los paneles de entorno y archivos a la derecha" width="85%"}
 
 En macOS el procedimiento es el mismo, con los instaladores para Mac de las mismas páginas.
 
@@ -52,11 +52,11 @@ Conviene que la ruta de la carpeta de trabajo no tenga tildes, eñes ni espacios
 
 RStudio se organiza en cuatro paneles (@fig-r-paneles). Al abrirlo por primera vez solo se ven tres, porque el editor aparece cuando se crea un script. Se crea con el menú File > New File > R Script (@fig-r-nuevo-script) o con el atajo Ctrl + Shift + N. Los menús de RStudio están en inglés; en el texto se escriben tal como aparecen en pantalla.
 
-![Creación de un script nuevo desde el menú File. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_nuevo_script.png){#fig-r-nuevo-script fig-alt="Menú File de RStudio desplegado con la opción New File y el submenú R Script" width="85%"}
+![Creación de un script nuevo. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_nuevo_script.png){#fig-r-nuevo-script fig-alt="Menú File de RStudio desplegado con la opción New File y el submenú R Script" width="85%"}
 
 Las capturas de este libro se tomaron con la versión de RStudio que funciona en el navegador. La de escritorio que se instala en el paso 2 es igual, salvo por dos detalles de la esquina superior derecha: no muestra el nombre de usuario (en las capturas, "estudiante") ni el botón para cerrar la sesión.
 
-![Los cuatro paneles de RStudio. La posición de cada panel se puede cambiar en Tools > Global Options > Pane Layout.](assets/img/cap01/paneles_rstudio.png){#fig-r-paneles fig-alt="Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha" width="80%"}
+![Los cuatro paneles de RStudio.](assets/img/cap01/paneles_rstudio.png){#fig-r-paneles fig-alt="Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha" width="80%"}
 
 - **Editor de código.** Es un editor de texto donde se escribe el código y se guarda en un archivo con extensión `.R`, llamado script. Lo que se escribe ahí no se ejecuta hasta que se envía a la consola.
 - **Consola.** Es donde R recibe las instrucciones y responde. Se puede escribir directamente en ella, pero lo que se escribe ahí no queda guardado.
@@ -65,7 +65,7 @@ Las capturas de este libro se tomaron con la versión de RStudio que funciona en
 
 La @fig-r-cuatro muestra los cuatro paneles en uso: un script con tres líneas, la consola con los resultados, el entorno con los objetos creados y un gráfico en la pestaña Plots.
 
-![Los cuatro paneles de RStudio durante una sesión de trabajo. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_cuatro_paneles.png){#fig-r-cuatro fig-alt="Ventana de RStudio con un script arriba a la izquierda, la consola abajo, el entorno con objetos arriba a la derecha y un gráfico abajo a la derecha" width="85%"}
+![Paneles de RStudio durante una sesión. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_cuatro_paneles.png){#fig-r-cuatro fig-alt="Ventana de RStudio con un script arriba a la izquierda, la consola abajo, el entorno con objetos arriba a la derecha y un gráfico abajo a la derecha" width="85%"}
 
 La regla para trabajar es sencilla: el código se escribe en el script y se envía a la consola. Así, al terminar, queda un archivo con todos los pasos del análisis, que se puede abrir otro día y volver a correr.
 
@@ -97,7 +97,7 @@ Los atajos ahorran tiempo desde el primer día. El @tbl-r-atajos reúne los que 
 | Tab | Completa el nombre de un objeto o de una función |
 | Esc | Cancela una instrucción incompleta en la consola |
 
-: Atajos de teclado de RStudio que se usan en este libro. {#tbl-r-atajos}
+: Atajos de teclado de RStudio. {#tbl-r-atajos}
 
 El atajo Tab merece práctica: al escribir las primeras letras de una función, como `me`, y presionar Tab, RStudio muestra las funciones que empiezan así (`mean`, `median`, `merge`...) con una descripción corta de cada una. Además de ahorrar teclas, evita errores de escritura.
 
@@ -134,7 +134,7 @@ Un detalle que confunde al principio: en R, `log()` es el logaritmo natural (el 
 
 Todo lo que va después del símbolo `#` es un comentario: R no lo ejecuta. Los comentarios sirven para explicar qué hace cada línea, y se usan en todo el libro.
 
-### Del script a la consola
+### Enviar líneas del script a la consola
 
 Para enviar una línea del script a la consola se coloca el cursor en ella y se presiona Ctrl + Enter (en Mac, Cmd + Enter). Si se seleccionan varias líneas, se envían todas. El botón Run, arriba a la derecha del editor, hace lo mismo.
 
@@ -195,7 +195,7 @@ Un proyecto es una carpeta con un archivo de extensión `.Rproj`. Al abrir ese a
 3. En Directory name se escribe el nombre de la carpeta (por ejemplo, `estadistica`) y con Browse se elige dónde crearla.
 4. Se presiona Create Project. RStudio se reinicia dentro del proyecto, y su nombre aparece en la esquina superior derecha.
 
-![Diálogo para crear un proyecto nuevo. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_nuevo_proyecto.png){#fig-r-proyecto fig-alt="Diálogo New Project de RStudio con las opciones New Directory, Existing Directory y Version Control" width="70%"}
+![Creación de un proyecto nuevo. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_nuevo_proyecto.png){#fig-r-proyecto fig-alt="Diálogo New Project de RStudio con las opciones New Directory, Existing Directory y Version Control" width="70%"}
 
 Dentro de esa carpeta conviene crear una subcarpeta `datos/` para los archivos de datos y guardar ahí los scripts. Con la función `getwd()` (del inglés *get working directory*) se consulta cuál es la carpeta de trabajo:
 
@@ -275,7 +275,7 @@ En el interactivo de la @fig-r-rutas, al elegir un archivo del proyecto se muest
 </script>
 ```
 
-Rutas relativa y absoluta de los archivos de un proyecto según la carpeta de trabajo.
+Rutas relativa y absoluta en un proyecto.
 
 :::
 
@@ -301,7 +301,7 @@ library(dplyr)
 
 El nombre del paquete va entre comillas en `install.packages()` y sin comillas en `library()`. También se puede instalar desde el menú Tools > Install Packages, escribiendo el nombre en el diálogo (@fig-r-instalar).
 
-![Instalación de un paquete desde el menú Tools > Install Packages. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_instalar_paquete.png){#fig-r-instalar fig-alt="Diálogo Install Packages de RStudio con el nombre dplyr escrito en el campo Packages" width="60%"}
+![Instalación de un paquete. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_instalar_paquete.png){#fig-r-instalar fig-alt="Diálogo Install Packages de RStudio con el nombre dplyr escrito en el campo Packages" width="60%"}
 
 Los paquetes que se usan en la Parte I son pocos y se pueden instalar de una vez:
 
@@ -329,7 +329,7 @@ help(mean)   # hace lo mismo
 
 La ayuda se abre en el panel inferior derecho (@fig-r-ayuda). Tiene siempre las mismas secciones: Description (qué hace la función), Usage (cómo se escribe), Arguments (qué datos recibe), Value (qué devuelve) y Examples. Los ejemplos del final se pueden copiar a la consola para ver la función en acción.
 
-![Página de ayuda de la función `mean()`. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_ayuda.png){#fig-r-ayuda fig-alt="Panel Help de RStudio con la página de la función mean y sus secciones Description, Usage y Arguments" width="85%"}
+![Ayuda de la función `mean()`. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_ayuda.png){#fig-r-ayuda fig-alt="Panel Help de RStudio con la página de la función mean y sus secciones Description, Usage y Arguments" width="85%"}
 
 Equivocarse es parte normal de programar. Los mensajes de R tienen dos tipos:
 
@@ -358,13 +358,13 @@ El @tbl-r-errores reúne los errores que más se repiten en las primeras semanas
 Cuando un mensaje de error no se entiende, copiarlo tal cual en un buscador casi siempre lleva a alguien que tuvo el mismo problema. Los mensajes de R están en inglés, y se encuentran más respuestas buscándolos en inglés.
 :::
 
-![Mensaje de error en la consola al usar un objeto que no existe. Fuente: captura de RStudio (Posit).](assets/img/cap01/rstudio_error.png){#fig-r-error fig-alt="Consola de RStudio con el mensaje en rojo Error: object resistencia not found" width="75%"}
+![Error por un objeto que no existe. Fuente: RStudio (Posit).](assets/img/cap01/rstudio_error.png){#fig-r-error fig-alt="Consola de RStudio con el mensaje en rojo Error: object resistencia not found" width="75%"}
 
 ## Cómo se organiza un análisis {#sec-r-flujo}
 
 Casi todo análisis de datos sigue los mismos pasos (@fig-r-flujo): se importan los datos, se ordenan para que cada columna sea una variable y cada fila una observación, se transforman (se calculan columnas nuevas, se filtran filas, se resumen grupos), se visualizan y se comunican los resultados. Los capítulos 3 a 5 siguen ese orden.
 
-![Pasos de un análisis de datos y capítulo de la Parte I donde se estudia cada uno. Fuente: con base en @wickham2017r4ds.](assets/img/cap01/flujo_analisis.png){#fig-r-flujo fig-alt="Cinco recuadros unidos por flechas: importar, ordenar, transformar, visualizar y comunicar, con el capítulo correspondiente debajo de cada uno" width="80%"}
+![Pasos de un análisis de datos. Fuente: con base en @wickham2017r4ds.](assets/img/cap01/flujo_analisis.png){#fig-r-flujo fig-alt="Cinco recuadros unidos por flechas: importar, ordenar, transformar, visualizar y comunicar, con el capítulo correspondiente debajo de cada uno" width="80%"}
 
 ## Ejercicios propuestos
 

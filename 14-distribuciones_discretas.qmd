@@ -27,7 +27,7 @@ R tiene cuatro funciones para cada distribución, y todas siguen la misma regla 
 
 ```{r}
 #| label: tbl-disc-funciones-r
-#| tbl-cap: "Las cuatro funciones de R para cada distribución, con la binomial como ejemplo."
+#| tbl-cap: "Funciones d, p, q y r de R."
 #| echo: false
 
 tibble(
@@ -121,7 +121,7 @@ La @fig-disc-binomial-formas muestra cómo cambia la forma de la distribución c
 
 ```{r}
 #| label: fig-disc-binomial-formas
-#| fig-cap: "Distribución binomial con n = 12 para tres valores de p."
+#| fig-cap: "Binomial con n = 12 y tres valores de p."
 #| fig-alt: "Tres gráficos de bastones: con p igual a 0.1 los valores se concentran cerca de 1, con 0.5 cerca de 6 y con 0.8 cerca de 10"
 #| echo: false
 #| fig-width: 8
@@ -190,7 +190,7 @@ El argumento `lower.tail = FALSE` pide la cola superior, $P(X > x)$, y evita res
 
 ```{r}
 #| label: tbl-disc-cilindros
-#| tbl-cap: "Distribución binomial del número de cilindros que no cumplen (n = 12, p = 0.10)."
+#| tbl-cap: "Cilindros que no cumplen (binomial)."
 #| echo: false
 
 tibble(x = 0:6, px = dbinom(x, 12, 0.1), Fx = pbinom(x, 12, 0.1)) %>%
@@ -472,7 +472,7 @@ mean(x >= 6)   # proporción observada en los datos
 
 ```{r}
 #| label: tbl-disc-camiones
-#| tbl-cap: "Frecuencias observadas y esperadas con Poisson (λ = 2.975) de camiones por intervalo."
+#| tbl-cap: "Camiones por intervalo: observados y Poisson."
 #| echo: false
 
 comparacion %>%
@@ -507,7 +507,7 @@ comparacion %>%
 
 :::
 
-### Aproximación de Poisson a la binomial {#sec-disc-aprox-poisson}
+### La Poisson como aproximación de la binomial {#sec-disc-aprox-poisson}
 
 Cuando el número de ensayos $n$ es grande y la probabilidad de éxito $p$ es pequeña, la binomial se parece mucho a una Poisson con $\lambda = np$. Una regla usual es aplicarla cuando $n \ge 20$ y $p \le 0.05$ [@illowsky2018introductory, cap. 4]. Antes de las computadoras era un atajo valioso, porque $\binom{n}{x}$ con $n$ grande es difícil de calcular a mano. Hoy sirve sobre todo para entender por qué la Poisson describe eventos raros: cada uno de muchos "intentos" tiene una probabilidad pequeña de producir el evento.
 
@@ -515,7 +515,7 @@ Por ejemplo, en un puente con 400 soldaduras, cada una defectuosa con probabilid
 
 ```{r}
 #| label: tbl-disc-aprox-poisson
-#| tbl-cap: "Binomial (n = 400, p = 0.005) y su aproximación de Poisson (λ = 2)."
+#| tbl-cap: "Binomial y su aproximación de Poisson."
 #| echo: false
 
 tibble(x = 0:6, binom = dbinom(x, 400, 0.005), pois = dpois(x, 2),
@@ -634,7 +634,7 @@ En el interactivo de la @fig-disc-interactivo se elige una distribución y se mu
 </script>
 ```
 
-Distribuciones discretas. Elija la distribución y mueva los parámetros y el umbral $k$.
+Distribuciones discretas.
 
 :::
 

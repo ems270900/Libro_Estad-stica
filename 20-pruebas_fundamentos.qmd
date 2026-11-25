@@ -36,7 +36,7 @@ Según lo que se quiera demostrar, la alternativa puede tener tres formas, que s
 | es mayor que el valor de referencia | $\mu \le \mu_0$ | $\mu > \mu_0$ | Unilateral derecha |
 | es menor que el valor de referencia | $\mu \ge \mu_0$ | $\mu < \mu_0$ | Unilateral izquierda |
 
-: Las tres formas de una prueba de hipótesis para la media. {#tbl-ph-formas}
+: Formas de una prueba para la media. {#tbl-ph-formas}
 
 ::: {.callout-tip title="En la práctica"}
 La forma de $H_1$ se decide con la pregunta de ingeniería, antes de ver los datos. Si un contratista debe colocar una carpeta asfáltica de al menos 50 mm y se quiere demostrar que no cumplió, la alternativa es $H_1: \mu < 50$ mm. Si se quiere demostrar que un aditivo aumenta la resistencia, es $H_1: \mu > \mu_0$. Si solo se quiere saber si un proceso se salió de su valor objetivo, en cualquier dirección, la prueba es bilateral. Escoger la forma después de mirar los datos, para que el resultado salga significativo, invalida la prueba.
@@ -56,7 +56,7 @@ La región de rechazo, o región crítica, es el conjunto de valores del estadí
 
 ```{r}
 #| label: fig-ph-regiones
-#| fig-cap: "Regiones de rechazo (en color) de una prueba con estadístico normal estándar y α = 0.05."
+#| fig-cap: "Regiones de rechazo con α = 0.05."
 #| fig-alt: "Tres curvas normales. En la bilateral se sombrean las dos colas más allá de ±1.96; en la derecha, la cola sobre 1.645; en la izquierda, la cola bajo −1.645."
 #| fig-width: 9
 #| fig-height: 3.2
@@ -207,7 +207,7 @@ t.test(x, mu = mu0, alternative = "two.sided")
 
 ```{r}
 #| label: fig-ph-varillas
-#| fig-cap: "Distribución t con 9 grados de libertad, región de rechazo para α = 0.05 y estadístico observado."
+#| fig-cap: "Región de rechazo y estadístico t observado."
 #| fig-alt: "Curva t con las dos colas sombreadas más allá de ±2.262 y una línea vertical en −3.45, dentro de la cola izquierda."
 #| echo: false
 
@@ -320,7 +320,7 @@ La @fig-ph-interactivo muestra de dónde salen $\alpha$ y $\beta$. La curva de l
 </script>
 ```
 
-Errores tipo I y II en una prueba bilateral con $\sigma$ conocida. Al subir $n$ o $\delta/\sigma$ la curva de $H_1$ se aleja y la potencia aumenta; al bajar $\alpha$, la potencia baja.
+Errores tipo I y II y potencia.
 
 :::
 
@@ -363,7 +363,7 @@ power.t.test(power = 0.90, delta = 3, sd = 3.3, sig.level = 0.05, type = "one.sa
 
 ```{r}
 #| label: fig-ph-curva-potencia
-#| fig-cap: "Potencia de la prueba t bilateral para detectar una caída de 3 MPa, según el número de varillas."
+#| fig-cap: "Potencia de la prueba t según n."
 #| fig-alt: "Curva creciente que pasa de 0.2 con 3 varillas a casi 1 con 30; líneas de referencia en potencia 0.80 y 0.90."
 #| echo: false
 

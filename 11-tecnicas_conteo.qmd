@@ -6,7 +6,7 @@ suppress-bibliography: true
 
 La probabilidad clásica del capítulo anterior es un cociente: casos favorables entre casos posibles. Con un dado los casos se cuentan con los dedos, pero con un lote de 15 pernos del que se sacan 3 para inspección ya hay 455 muestras posibles, y nadie quiere escribirlas todas. Las técnicas de conteo son reglas para saber cuántos elementos tiene un conjunto sin hacer la lista completa. Además de servir para calcular probabilidades, responden preguntas de planificación: cuántas mezclas de prueba hay que preparar, cuántas rutas de inspección existen o de cuántas formas se puede escoger una muestra. Todas salen de una sola idea, el principio multiplicativo, y se diferencian en dos preguntas: si importa el orden y si los elementos se pueden repetir.
 
-Este capítulo sigue a @bertsekas2008introduction [sec. 1.6], @laneintroduction [cap. 5] y @watkinsintroduction [sec. 5.4]. En R se usan funciones de base: `factorial()`, `choose()`, `prod()`, `expand.grid()` y `combn()`.
+Este capítulo sigue a @bertsekas2008introduction [sec. 1.6], @laneintroduction [cap. 5] y @watkinsintroduction [sec. 5.4]. El tratamiento clásico de estas técnicas, con muchos problemas de ocupación y de muestreo, está en @feller1968introduction [cap. 2]. En R se usan funciones de base: `factorial()`, `choose()`, `prod()`, `expand.grid()` y `combn()`.
 
 ## Principio multiplicativo {#sec-conteo-multiplicativo}
 
@@ -28,7 +28,7 @@ La @fig-conteo-arbol muestra el principio con un caso más pequeño: 2 cementos 
 
 ```{r}
 #| label: fig-conteo-arbol
-#| fig-cap: "Diagrama de árbol para escoger un cemento (C1 o C2) y un agregado (A1, A2 o A3)."
+#| fig-cap: "Diagrama de árbol de cemento y agregado."
 #| fig-alt: "Árbol que parte de un punto, se abre en dos ramas C1 y C2, y cada una se abre en tres ramas A1, A2 y A3, para un total de seis hojas"
 #| echo: false
 #| fig-width: 7
@@ -93,6 +93,17 @@ nrow(mezclas)
 
 El principio multiplicativo se usa cuando las etapas van una después de la otra ("y"). Cuando hay que escoger entre alternativas que no pueden darse a la vez ("o"), los conteos se suman. Si una inspección se puede encargar a una de 5 personas de planta o a una de 3 personas externas, hay $5 + 3 = 8$ opciones. Es la versión para conteos del axioma de aditividad del capítulo anterior: las alternativas deben ser mutuamente excluyentes. Una regla práctica para no confundirse es leer el problema en voz alta: "y" suele indicar producto, y "o" entre casos que se excluyen suele indicar suma.
 
+
+### Cuándo vale el principio multiplicativo
+
+El principio multiplicativo exige una sola condición: que el número de opciones de cada etapa sea siempre el mismo, sin importar qué se escogió antes. Las opciones concretas pueden cambiar (si la persona A ya dirige, no puede inspeccionar), pero su cantidad no. Si la cantidad cambia según el camino, el producto da un resultado equivocado y hay que contar por casos o dibujar el árbol completo.
+
+Un ejemplo de transportes muestra la diferencia. Una cuadrilla escoge primero un tramo de carretera, de 4 posibles, y después un tipo de reparación. En tres de los tramos se puede bachear, sellar fisuras o recarpetear, pero en el cuarto, que es de lastre, solo se puede bachear. El total no es $4 \times 3 = 12$, porque la segunda etapa no tiene siempre 3 opciones: hay $3 \times 3 + 1 \times 1 = 10$ planes. Aquí se usó el principio multiplicativo dentro de cada caso y el aditivo entre los casos.
+
+::: {.callout-tip title="En la práctica"}
+Ante un problema de conteo que no se sabe por dónde empezar, conviene dibujar las primeras ramas del árbol a mano. Si todas las ramas de un mismo nivel se abren en la misma cantidad de ramas, el principio multiplicativo sirve; si no, el dibujo muestra cuáles casos hay que separar.
+:::
+
 ## Factorial {#sec-conteo-factorial}
 
 ¿De cuántas formas se pueden ordenar 5 tareas de inspección distintas en una jornada? La primera tarea se escoge entre 5, la segunda entre las 4 que quedan, la tercera entre 3, la cuarta entre 2 y la última es la que sobra. Por el principio multiplicativo hay $5 \times 4 \times 3 \times 2 \times 1 = 120$ órdenes. Ese producto aparece tanto que tiene nombre y símbolo propio: el factorial de $n$, que se escribe $n!$,
@@ -111,6 +122,40 @@ prod(5:1)        # 5 × 4 × 3 × 2 × 1
 factorial(0)
 factorial(10)
 ```
+
+
+La @fig-conteo-crecimiento compara el factorial con otras dos cantidades que también crecen: $n^2$ y $2^n$. El eje vertical está en escala logarítmica, y aun así el factorial se dispara. Con 15 sitios que visitar hay $15! \approx 1.3 \times 10^{12}$ órdenes posibles; una computadora que revisara un millón de órdenes por segundo tardaría unos 15 días en recorrerlos todos. Por eso, cuando un problema crece, se usan las fórmulas en vez de hacer la lista.
+
+```{r}
+#| label: fig-conteo-crecimiento
+#| fig-cap: "Crecimiento de n², 2ⁿ y n!."
+#| fig-alt: "Tres curvas en escala logarítmica. La de n al cuadrado crece despacio hasta 400, la de 2 a la n llega a cerca de un millón y la de n factorial supera 10 a la 18"
+#| echo: false
+
+crec <- data.frame(n = rep(1:20, 3),
+                   funcion = rep(c("n²", "2ⁿ", "n!"), each = 20))
+crec$valor <- c((1:20)^2, 2^(1:20), factorial(1:20))
+crec$funcion <- factor(crec$funcion, levels = c("n!", "2ⁿ", "n²"))
+ggplot(crec, aes(n, valor, color = funcion)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 1.8) +
+  scale_y_log10(breaks = 10^seq(0, 18, by = 3),
+                labels = c("1", "1 000", "10⁶", "10⁹", "10¹²", "10¹⁵", "10¹⁸")) +
+  scale_color_manual(values = c("n!" = "#1C6BA0", "2ⁿ" = "#E69F00", "n²" = "#009E73")) +
+  labs(x = "n", y = "Valor (escala logarítmica)", color = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**Aproximación de Stirling.** Para $n$ grande, el factorial se aproxima con la fórmula de Stirling [@feller1968introduction, cap. 2]:
+
+$$
+n! \approx \sqrt{2 \pi n} \left( \frac{n}{e} \right)^n,
+$$ {#eq-conteo-stirling}
+
+donde $e \approx 2.718$ es la base de los logaritmos naturales. Con $n = 10$ da 3 598 696, contra el valor exacto de 3 628 800: un error de 0.83 %. El error relativo baja a medida que $n$ crece. La fórmula sirve para estimar el tamaño de números que una calculadora no puede mostrar, y se usa para demostrar la aproximación normal a la binomial, que se presenta en el capítulo 16.
+:::
 
 ## Permutaciones {#sec-conteo-permutaciones}
 
@@ -164,6 +209,50 @@ sum(distintas)
 `expand.grid()` forma las $7^3 = 343$ ternas, incluidas las que repiten a una persona. La condición `distintas` es `TRUE` solo si las tres posiciones son personas diferentes, y `sum()` cuenta los `TRUE`.
 
 **Interpretación.** Hay 210 formas de asignar los cargos. Si la asignación se hiciera al azar, la probabilidad de un arreglo particular sería $1/210 \approx 0.0048$.
+
+:::
+
+::: {.callout-note title="Ejemplo: orden de visita de puentes en una ruta de inspección"}
+
+**Planteamiento.** Una cuadrilla de mantenimiento vial debe inspeccionar en una jornada los 6 puentes de una ruta (P1 a P6), uno después del otro. (a) ¿Cuántos órdenes de visita hay? (b) Si P1 debe ser el primero porque tiene un reporte de daño urgente, ¿cuántos órdenes quedan? (c) Si P3 y P4 están sobre la misma quebrada y deben visitarse uno inmediatamente después del otro (en cualquier orden), ¿cuántos órdenes hay? (d) Si el orden se escogiera al azar, ¿cuál sería la probabilidad de que P3 y P4 queden seguidos?
+
+**Solución:**
+
+1. (a) Se ordenan los 6 puentes sin repetir: $6! = 720$ órdenes.
+2. (b) El primer lugar ya está ocupado por P1. Quedan 5 puentes para 5 lugares: $5! = 120$.
+3. (c) Se trata a P3 y P4 como un solo bloque. Entonces hay 5 objetos que ordenar (el bloque y los otros 4 puentes): $5! = 120$ formas. Dentro del bloque, P3 puede ir antes o después de P4: 2 formas. Por el principio multiplicativo, $2 \times 120 = 240$.
+4. (d) Con la probabilidad clásica: $240/720 = 1/3 \approx 0.333$.
+
+**Pseudocódigo**
+
+1. Calcular los cuatro incisos con `factorial()`.
+2. Generar todos los órdenes: formar todas las filas de 6 posiciones con los números 1 a 6 y quedarse con las que no repiten ningún puente.
+3. Contar los órdenes que cumplen cada condición.
+
+```{r}
+#| cache: true
+# 1) Fórmulas
+factorial(6)            # (a) todos los órdenes
+factorial(5)            # (b) P1 fijo al inicio
+2 * factorial(5)        # (c) P3 y P4 juntos, en cualquier orden
+2 * factorial(5) / factorial(6)   # (d) probabilidad
+
+# 2) Enumeración: 6^6 = 46 656 filas, de las que se conservan las que no repiten puente
+todas <- expand.grid(rep(list(1:6), 6))
+ordenes <- todas[apply(todas, 1, function(f) length(unique(f)) == 6), ]
+nrow(ordenes)
+
+# 3) Condiciones
+sum(ordenes[, 1] == 1)                                 # (b) P1 va primero
+pos3 <- apply(ordenes, 1, function(f) which(f == 3))   # lugar de P3 en cada orden
+pos4 <- apply(ordenes, 1, function(f) which(f == 4))   # lugar de P4
+sum(abs(pos3 - pos4) == 1)                             # (c) P3 y P4 seguidos
+mean(abs(pos3 - pos4) == 1)                            # (d)
+```
+
+`rep(list(1:6), 6)` crea una lista con seis copias del vector `1:6`, una por cada lugar de la ruta, y `expand.grid()` forma todas sus combinaciones. `length(unique(f)) == 6` es `TRUE` solo si la fila tiene los seis puentes sin repetir. `which(f == 3)` dice en qué lugar de la ruta quedó P3; si la diferencia entre los lugares de P3 y P4 es 1, están seguidos.
+
+**Interpretación.** Con 6 puentes, las 720 rutas se pueden revisar una por una en una computadora para escoger la más corta. Con 15 puentes ya serían $1.3 \times 10^{12}$ rutas, y por eso los programas de planificación de rutas usan métodos de optimización que no revisan todas. El truco del bloque del inciso (c) sirve siempre que algunos elementos deban quedar juntos.
 
 :::
 
@@ -306,7 +395,7 @@ El @tbl-conteo-orden muestra la diferencia entre permutaciones y combinaciones c
 
 ```{r}
 #| label: tbl-conteo-orden
-#| tbl-cap: "Arreglos de 2 elementos tomados de {A, B, C, D}: con orden hay 12, sin orden hay 6."
+#| tbl-cap: "Arreglos con orden y sin orden."
 #| echo: false
 
 library(kableExtra)
@@ -406,6 +495,40 @@ sum(con_certificado)
 
 :::
 
+### Triángulo de Pascal
+
+Si se escriben los valores de $C(n, k)$ en filas, una para cada $n = 0, 1, 2, \ldots$, se obtiene el triángulo de Pascal de la @fig-conteo-pascal. Cada número es la suma de los dos que tiene encima:
+
+$$
+\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k},
+$$ {#eq-conteo-pascal}
+
+donde $1 \le k \le n - 1$. La razón se entiende sin álgebra [@blitzstein2019introduction, cap. 1]. Suponga que de $n$ técnicos se escogen $k$ y que entre los $n$ está Ana. Cada grupo posible incluye a Ana o no la incluye. Los que la incluyen se completan escogiendo $k - 1$ de los otros $n - 1$ técnicos; los que no la incluyen escogen los $k$ entre esos mismos $n - 1$. Los dos casos no se traslapan, así que se suman.
+
+```{r}
+#| label: fig-conteo-pascal
+#| fig-cap: "Triángulo de Pascal hasta n = 8."
+#| fig-alt: "Triángulo de números con unos en los bordes; en la fila 6 se resalta el 15 y en la fila 5 se resaltan el 5 y el 10 que están encima de él"
+#| echo: false
+#| fig-width: 7
+#| fig-height: 4.5
+#| out-width: "75%"
+
+pascal <- do.call(rbind, lapply(0:8, function(n)
+  data.frame(n = n, k = 0:n, valor = choose(n, 0:n))))
+pascal$x <- pascal$k - pascal$n / 2
+pascal$tono <- "normal"
+pascal$tono[pascal$n == 5 & pascal$k %in% c(1, 2)] <- "suma"
+pascal$tono[pascal$n == 6 & pascal$k == 2] <- "resultado"
+ggplot(pascal, aes(x, -n, label = valor, fill = tono)) +
+  geom_label(size = 4, label.size = 0.2) +
+  scale_fill_manual(values = c(normal = "white", suma = "#f6d79a", resultado = "#E69F00"), guide = "none") +
+  annotate("text", x = -5.3, y = -(0:8), label = paste0("n = ", 0:8), hjust = 0, size = 3.6, color = "grey35") +
+  theme_void()
+```
+
+El triángulo también muestra dos propiedades que ya se vieron. Cada fila es simétrica, porque $C(n, k) = C(n, n - k)$. Además, cada fila suma $2^n$: por ejemplo, $1 + 4 + 6 + 4 + 1 = 16 = 2^4$. Esa suma cuenta todos los subconjuntos posibles de $n$ elementos, de cualquier tamaño, porque cada elemento puede quedar dentro o fuera (dos opciones por elemento, principio multiplicativo). Los números del triángulo vuelven a aparecer en el capítulo 14 como coeficientes de la distribución binomial.
+
 ### Combinaciones con repetición
 
 A veces se escogen $k$ elementos de $n$ tipos, sin importar el orden, pero se puede escoger el mismo tipo varias veces. Por ejemplo, un pedido de 5 bolsas de cemento de 3 marcas: interesa cuántas bolsas hay de cada marca, no el orden en que se cargaron. El número de selecciones es [@bertsekas2008introduction, sec. 1.6]
@@ -468,6 +591,40 @@ Casi todos los errores en los problemas de conteo vienen de usar la fórmula equ
 : Fórmulas de conteo según el orden y la repetición. {#tbl-conteo-formulas}
 
 Para decidir si importa el orden, una prueba sencilla es intercambiar dos elementos del arreglo y preguntarse si el resultado cambia. En una asignación de cargos cambia (la persona que dirigía ahora inspecciona); en una comisión sin cargos no cambia (siguen siendo las mismas personas).
+
+La @fig-conteo-decision ordena las mismas preguntas como un diagrama de decisión. Se recorre de arriba hacia abajo respondiendo cada pregunta sobre el problema concreto.
+
+```{r}
+#| label: fig-conteo-decision
+#| fig-cap: "Diagrama de decisión para escoger la fórmula de conteo."
+#| fig-alt: "Diagrama de árbol. Arriba la pregunta importa el orden; si la respuesta es sí, se pregunta si se pueden repetir y se llega a permutación con repetición o a permutación; si es no, se llega a combinación con repetición o a combinación. Abajo una nota con los casos especiales"
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5.2
+#| out-width: "90%"
+
+cajas <- data.frame(
+  x = c(5, 2.5, 7.5, 1.2, 3.8, 6.2, 8.8),
+  y = c(5, 3.4, 3.4, 1.6, 1.6, 1.6, 1.6),
+  et = c("¿Importa el orden?", "¿Se pueden repetir\nlos elementos?", "¿Se pueden repetir\nlos elementos?",
+         "Permutación\ncon repetición\nnᵏ", "Permutación\n\nn! / (n − k)!",
+         "Combinación\ncon repetición\nC(n + k − 1, k)", "Combinación\n\nC(n, k)"),
+  tipo = c("pregunta", "pregunta", "pregunta", "hoja", "hoja", "hoja", "hoja"))
+flechas <- data.frame(x = c(5, 5, 2.5, 2.5, 7.5, 7.5), y = c(5, 5, 3.4, 3.4, 3.4, 3.4),
+                      xend = c(2.5, 7.5, 1.2, 3.8, 6.2, 8.8), yend = c(3.4, 3.4, 1.6, 1.6, 1.6, 1.6),
+                      et = c("Sí", "No", "Sí", "No", "Sí", "No"))
+ggplot() +
+  geom_segment(data = flechas, aes(x, y, xend = xend, yend = yend), color = "grey40", linewidth = 0.7) +
+  geom_label(data = flechas, aes((x + xend) / 2, (y + yend) / 2, label = et), size = 5, label.size = 0, fill = "white") +
+  geom_label(data = cajas, aes(x, y, label = et, fill = tipo), size = 5, label.padding = unit(0.4, "lines")) +
+  scale_fill_manual(values = c(pregunta = "#e3eef6", hoja = "#fbe7c2"), guide = "none") +
+  annotate("text", x = 5, y = c(0.35, -0.05), size = 4.6, color = "grey25",
+           label = c("Casos especiales: elementos en círculo, (n − 1)!,",
+                     "y ordenar n elementos con grupos de elementos iguales, n! / (n₁! n₂! ⋯ nᵣ!)")) +
+  xlim(-0.2, 10.2) + ylim(-0.3, 5.5) +
+  theme_void()
+```
+
 
 ::: {.callout-warning title="Cuidado"}
 Las palabras del enunciado engañan. En el lenguaje común se dice "la combinación del candado", pero en un candado el orden de los dígitos sí importa (1-2-3 no abre si la clave es 3-2-1), así que es una permutación con repetición. En el sentido técnico de este capítulo, "combinación" se reserva para las selecciones en las que el orden no importa.
@@ -565,7 +722,7 @@ body.quarto-dark #int-conteo .cuadro-conteo th, body.quarto-dark #int-conteo .cu
 </script>
 ```
 
-Calculadora de conteo. Mueva $n$ y $k$; con números pequeños se muestra la lista de arreglos.
+Calculadora de conteo.
 
 :::
 
@@ -616,6 +773,98 @@ mean(defectuosos >= 1)    # al menos uno
 
 :::
 
+### Interactivo: ¿cuántos elementos inspeccionar?
+
+El ejemplo de los pernos responde una pregunta de planificación: con una muestra de 3, ¿qué tan probable es detectar que el lote tiene defectos? El mismo cálculo sirve para cualquier lote de $N$ elementos con $D$ defectuosos del que se inspeccionan $n$ al azar y sin reemplazo. La probabilidad de que la muestra tenga exactamente $x$ defectuosos se cuenta igual que en el ejemplo: se escogen $x$ de los $D$ defectuosos y $n - x$ de los $N - D$ buenos, y se divide entre todas las muestras posibles,
+
+$$
+P(x \text{ defectuosos}) = \frac{\dbinom{D}{x} \dbinom{N - D}{n - x}}{\dbinom{N}{n}},
+$$ {#eq-conteo-inspeccion}
+
+donde $N$ es el tamaño del lote, $D$ el número de defectuosos, $n$ el tamaño de la muestra y $x$ el número de defectuosos en la muestra. Esta es la fórmula de la distribución hipergeométrica, que se estudia en el capítulo 14 [@bertsekas2008introduction, sec. 1.6].
+
+En el interactivo de la @fig-conteo-int-inspeccion se mueven $N$, $D$ y $n$. Las barras dan la probabilidad de cada número de defectuosos en la muestra, y la barra de cero (en ámbar) es la probabilidad de que la inspección no detecte nada. Debajo aparece el tamaño de muestra mínimo para detectar al menos un defectuoso con probabilidad 0.90. Conviene probar con un lote grande y pocos defectuosos (por ejemplo, $N = 60$ y $D = 2$) para ver cuántos elementos hacen falta.
+
+::: {#fig-conteo-int-inspeccion}
+
+```{=html}
+<div class="interactivo" id="int-inspeccion">
+  <label><span>Tamaño del lote <i>N</i>:</span> <output class="s-N">15</output>
+    <input class="c-N" type="range" min="5" max="60" step="1" value="15"></label>
+  <label><span>Defectuosos en el lote <i>D</i>:</span> <output class="s-D">4</output>
+    <input class="c-D" type="range" min="0" max="60" step="1" value="4"></label>
+  <label><span>Tamaño de la muestra <i>n</i>:</span> <output class="s-n">3</output>
+    <input class="c-n" type="range" min="1" max="60" step="1" value="3"></label>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Gráfico de barras con la probabilidad de cada número de defectuosos en la muestra"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-inspeccion");
+  var cN = raiz.querySelector(".c-N"), cD = raiz.querySelector(".c-D"), cn = raiz.querySelector(".c-n");
+  var sN = raiz.querySelector(".s-N"), sD = raiz.querySelector(".s-D"), sn = raiz.querySelector(".s-n");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var w = 640, h = 260, ml = 50, mr = 14, mt = 14, mb = 42;
+  // Logaritmo de C(a, b) como suma de logaritmos, para evitar números enormes
+  function lcomb(a, b) {
+    if (b < 0 || b > a) return -Infinity;
+    var r = 0;
+    for (var i = 1; i <= b; i++) r += Math.log(a - b + i) - Math.log(i);
+    return r;
+  }
+  function prob(N, D, n, x) { return Math.exp(lcomb(D, x) + lcomb(N - D, n - x) - lcomb(N, n)); }
+  function dibujar() {
+    var N = parseInt(cN.value, 10);
+    cD.max = N; cn.max = N;
+    var D = Math.min(parseInt(cD.value, 10), N), n = Math.min(parseInt(cn.value, 10), N);
+    sN.textContent = N; sD.textContent = D; sn.textContent = n;
+    var xmax = Math.min(n, D), ps = [], pmax = 0;
+    for (var x = 0; x <= xmax; x++) { ps.push(prob(N, D, n, x)); pmax = Math.max(pmax, ps[x]); }
+    var paso = pmax <= 0.5 ? 0.1 : 0.2;
+    var techo = Math.min(1, Math.ceil(pmax / paso - 1e-9) * paso);
+    var anchoBarra = (w - ml - mr) / (xmax + 1);
+    var sy = function (y) { return h - mb - y / techo * (h - mt - mb); };
+    var s = "";
+    for (var t = 0; t <= techo + 1e-9; t += paso) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(t) + '" y2="' + sy(t) + '" style="stroke-opacity:0.2"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t.toFixed(2) + '</text>';
+    }
+    ps.forEach(function (p, x) {
+      var bx = ml + x * anchoBarra + anchoBarra * 0.15, bw = anchoBarra * 0.7;
+      var color = x === 0 ? "fill:#E69F00" : "fill:var(--serie-1)";
+      s += '<rect x="' + bx.toFixed(1) + '" y="' + sy(p).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (h - mb - sy(p)).toFixed(1) + '" style="' + color + '"/>';
+      if (xmax <= 20 || x % 2 === 0) s += '<text class="eje-texto" x="' + (bx + bw / 2).toFixed(1) + '" y="' + (h - mb + 15) + '" text-anchor="middle">' + x + '</text>';
+    });
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Defectuosos en la muestra</text>' +
+         '<text class="eje-texto" x="13" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 13 ' + ((mt + h - mb) / 2) + ')">Probabilidad</text>';
+    svg.innerHTML = s;
+    var p0 = ps[0], minimo = null;
+    for (var m = 1; m <= N; m++) { if (1 - prob(N, D, m, 0) >= 0.9) { minimo = m; break; } }
+    texto.textContent = "P(no detectar ningún defectuoso) = " + p0.toFixed(4) + ".   P(detectar al menos uno) = " + (1 - p0).toFixed(4) + ".   " +
+      (D === 0 ? "El lote no tiene defectuosos." :
+       "Para detectar al menos uno con probabilidad 0.90 hay que inspeccionar al menos " + minimo + " de los " + N + " elementos.");
+  }
+  [cN, cD, cn].forEach(function (c) { c.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Probabilidad del número de defectuosos en una muestra.
+
+:::
+
+## Errores frecuentes {#sec-conteo-errores}
+
+Estos son los errores que más aparecen en los problemas de conteo [@laneintroduction, cap. 5; @blitzstein2019introduction, cap. 1]:
+
+1. **Usar combinaciones cuando el orden importa, o al revés.** La prueba del intercambio de la @sec-conteo-escoger resuelve casi todos los casos: si al cambiar de lugar dos elementos el resultado es otro, importa el orden.
+2. **Contar con orden los casos posibles y sin orden los favorables.** En la probabilidad clásica, numerador y denominador deben contarse con la misma regla. Si los casos posibles son $C(15, 3)$, los favorables también se cuentan con combinaciones.
+3. **Contar dos veces en los problemas de "al menos uno".** En el ejemplo de la comisión es tentador razonar así: "escojo primero un técnico certificado (4 formas) y después 2 técnicos cualesquiera de los 9 restantes ($C(9, 2) = 36$)", lo que da $4 \times 36 = 144$, más que las 120 comisiones que existen. El error es que una comisión con dos certificados, por ejemplo {Ana, Luis, Marta} con Ana y Luis certificados, se cuenta una vez cuando Ana es "el certificado escogido primero" y otra vez cuando lo es Luis. El complemento evita el problema.
+4. **Usar la fórmula circular cuando hay un punto de referencia.** Si el círculo tiene una marca fija (una puerta, una tubería de entrada, el norte), girar el arreglo sí lo cambia, y el conteo es $n!$, no $(n - 1)!$.
+5. **Multiplicar cuando hay que sumar.** "Un técnico de planta o uno externo" es una suma de opciones; "un técnico de planta y uno externo" es un producto.
+
 ## Ejercicios propuestos
 
 1. Una ruta de inspección pasa por un puente, luego por una alcantarilla y luego por un muro. Hay 3 cuadrillas que pueden revisar el puente, 2 que pueden revisar la alcantarilla y 4 que pueden revisar el muro. ¿Cuántas asignaciones de cuadrillas hay si una cuadrilla puede repetir? ¿Y si debe ser una cuadrilla distinta en cada sitio y las 5 cuadrillas pueden hacer cualquier trabajo? Haga los dos cálculos a mano y compruébelos con `expand.grid()`.
@@ -631,9 +880,15 @@ mean(defectuosos >= 1)    # al menos uno
 11. En un grupo de $m$ personas, la probabilidad de que al menos dos cumplan años el mismo día (sin contar el 29 de febrero y suponiendo los 365 días igual de probables) es $1 - P(365, m)/365^m$. Escriba una función de R que la calcule para cualquier $m$ y encuentre el menor $m$ con el que la probabilidad pasa de 0.5. Sugerencia: para evitar números enormes, calcule $P(365, m)/365^m$ como `prod((365 - m + 1):365 / 365)`.
 12. Con el interactivo de la @fig-conteo-int-calculadora, tome $n = 4$ y $k = 3$ y compare la lista de permutaciones con la de combinaciones. ¿Cuántas permutaciones le corresponden a cada combinación? ¿Qué número de la fórmula de la @eq-conteo-combinaciones explica esa relación?
 
+13. Una red de monitoreo de aguas subterráneas tiene 10 pozos, 3 de ellos cerca de un relleno sanitario. Para un muestreo adicional se escogen 4 pozos al azar. Calcule la probabilidad de que la muestra incluya al menos uno de los 3 pozos cercanos al relleno, por casos y por complemento. Compruebe el resultado con `combn()` y con el interactivo de la @fig-conteo-int-inspeccion (piense qué papel hacen los pozos cercanos al relleno).
+14. Un estudio geotécnico tiene 8 puntos posibles de perforación y el presupuesto alcanza para 3 sondeos. (a) ¿Cuántos planes de perforación distintos hay? (b) Si 2 puntos son obligatorios porque ahí irán las pilas del puente, ¿cuántos planes quedan? (c) Si además importa el orden en que se perforan, porque la máquina se traslada de un punto al siguiente, ¿cuántos planes hay en (a)?
+15. En el interactivo de la @fig-conteo-int-inspeccion, tome un lote de $N = 40$ elementos con $D = 2$ defectuosos. ¿Cuántos elementos hay que inspeccionar para detectar al menos uno con probabilidad 0.90? Compruebe el resultado con `choose()` en un ciclo `for`.
+16. Explique con sus palabras por qué el cálculo $4 \times C(9, 2) = 144$ del tercer error frecuente cuenta de más. Escriba una comisión concreta que se cuente tres veces con ese razonamiento.
+
 ## Lecturas recomendadas
 
 - @bertsekas2008introduction, sección 1.6: deduce todas las fórmulas de conteo del principio multiplicativo, con ejemplos resueltos de probabilidad.
 - @laneintroduction, capítulo 5: explica permutaciones y combinaciones con listas pequeñas que se pueden revisar a mano (libro de dominio público).
 - @blitzstein2019introduction, sección 1.4: incluye el argumento de estrellas y barras y el problema de los cumpleaños, con simulaciones.
 - @watkinsintroduction, sección 5.4: presenta el principio fundamental del conteo y su uso en probabilidad, con código de R.
+- @feller1968introduction, capítulo 2: el tratamiento clásico del análisis combinatorio, con la fórmula de Stirling y problemas de muestreo con y sin reemplazo.
