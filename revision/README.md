@@ -17,3 +17,4 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 7. La estadística en la ingeniería civil | Borrador | [07-estadistica_ingenieria.md](07-estadistica_ingenieria.md) | Parte II |
 | 8. Presentación de datos: cuadros y gráficos | Borrador | [08-presentacion_datos.md](08-presentacion_datos.md) | Parte II |
 | 9. Medidas de tendencia central, posición y variabilidad | Borrador | [09-medidas_descriptivas.md](09-medidas_descriptivas.md) | Parte II |
+| Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
