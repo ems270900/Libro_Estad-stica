@@ -1046,3 +1046,19 @@ body.quarto-dark .interactivo button { background: #2f7fb8; }
   .portada-banda-texto { flex: 0 0 auto; }
   .portada-banda-autor { margin-left: 0; }
 }
+
+/* Interactivos de la Parte V (inferencia): intervalos que aciertan o fallan,
+   áreas de error tipo I y II, segunda curva y casillas para escribir números. */
+.interactivo .ic-cubre { stroke: #1C6BA0; fill: #1C6BA0; stroke-width: 2; }
+.interactivo .ic-falla { stroke: #D55E00; fill: #D55E00; stroke-width: 2.5; }
+.interactivo .area-alfa { fill: #E69F00; opacity: 0.75; }
+.interactivo .area-beta { fill: #9aa3ad; opacity: 0.45; }
+.interactivo .curva-2 { stroke: #009E73; stroke-dasharray: 6 3; }
+.interactivo .barra-obs { fill: #1C6BA0; }
+.interactivo .barra-esp { fill: #E69F00; opacity: 0.8; }
+.interactivo input[type=number] { width: 5.5rem; padding: 0.15rem 0.3rem; font-variant-numeric: tabular-nums; }
+.interactivo table.entrada { border-collapse: collapse; margin: 0.4rem 0; }
+.interactivo table.entrada td, .interactivo table.entrada th { padding: 0.2rem 0.5rem; text-align: center; }
+body.quarto-dark .interactivo .ic-cubre { stroke: #8fb8ff; fill: #8fb8ff; }
+body.quarto-dark .interactivo .curva-2 { stroke: #5fd3a8; }
+body.quarto-dark .interactivo input[type=number] { background: #2a3040; color: #e6e6e6; border: 1px solid #4a5060; }

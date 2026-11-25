@@ -70,6 +70,7 @@ La @fig-est-sesgo lo muestra con una simulación. Se tomaron 10 000 muestras de 
 ```{r}
 #| label: fig-est-sesgo
 #| fig-cap: "Distribución de dos estimadores de la varianza en 10 000 muestras de tamaño 5. La línea discontinua es el valor verdadero."
+#| cache: true
 #| fig-alt: "Dos curvas de densidad. La del estimador que divide entre n tiene su promedio a la izquierda del valor verdadero; la que divide entre n menos 1 lo tiene sobre él."
 #| echo: false
 
