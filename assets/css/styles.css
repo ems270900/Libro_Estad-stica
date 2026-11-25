@@ -1046,3 +1046,23 @@ body.quarto-dark .interactivo button { background: #2f7fb8; }
   .portada-banda-texto { flex: 0 0 auto; }
   .portada-banda-autor { margin-left: 0; }
 }
+
+/* Interactivos de la Parte VII (diseño de experimentos) */
+.interactivo .int-resultado { margin: 0.5rem 0 0; font-size: 0.93rem; }
+.interactivo .barra { fill: #9ec3de; }
+.interactivo .barra-activa { fill: #1C6BA0; }
+.interactivo .punto { fill: #1C6BA0; fill-opacity: 0.75; }
+.interactivo .punto-b { fill: #E69F00; fill-opacity: 0.85; }
+.interactivo .media-grupo { stroke: #B3541E; stroke-width: 3; }
+.interactivo .media-general { stroke: #6c757d; stroke-width: 1.5; stroke-dasharray: 6,4; }
+.interactivo .linea-a { fill: none; stroke: #1C6BA0; stroke-width: 3; }
+.interactivo .linea-b { fill: none; stroke: #E69F00; stroke-width: 3; }
+.interactivo .linea-lote { fill: none; stroke: #6c757d; stroke-width: 1.2; stroke-opacity: 0.7; }
+.interactivo table.int-cuadro { margin: 0.5rem auto 0; font-size: 0.9rem; border-collapse: collapse; }
+.interactivo table.int-cuadro th, .interactivo table.int-cuadro td { padding: 0.15rem 0.6rem; border-bottom: 1px solid #d5dbe3; text-align: center; }
+body.quarto-dark .interactivo .barra { fill: #4a6f8f; }
+body.quarto-dark .interactivo .barra-activa { fill: #8fb8ff; }
+body.quarto-dark .interactivo .punto { fill: #8fb8ff; }
+body.quarto-dark .interactivo .linea-a { stroke: #8fb8ff; }
+body.quarto-dark .interactivo .media-grupo { stroke: #f0a06a; }
+body.quarto-dark .interactivo table.int-cuadro th, body.quarto-dark .interactivo table.int-cuadro td { border-color: #3a4050; }

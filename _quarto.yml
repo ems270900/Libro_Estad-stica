@@ -73,6 +73,12 @@ book:
         - 26-regresion_multiple.qmd
         - 27-diagnostico_regresion.qmd
 
+    - part: "Diseño de experimentos"
+      chapters:
+        - 28-anova_un_factor.qmd
+        - 29-comparaciones_bloques.qmd
+        - 30-factoriales.qmd
+
     - epilogo.qmd
     - 99-Referencias.qmd
 

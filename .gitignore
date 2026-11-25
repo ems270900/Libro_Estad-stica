@@ -5,6 +5,7 @@
 /_cache/
 *_cache/
 /_freeze/
+/*_cache/
 *_files/
 *.quarto_ipynb
 index.tex
@@ -33,3 +34,5 @@ assets/img/Originals/
 # Salidas de herramientas/publicar.R
 /_publicar/
 /salidas/
+
+**/*.quarto_ipynb
