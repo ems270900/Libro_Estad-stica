@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Todos los modelos están equivocados, pero algunos son útiles."\
-— *George E. P. Box [-@box1979robustness, p. 202]. Traducción propia.*
-:::
-
 Doce cilindros de concreto hechos con la misma mezcla, el mismo día y por la misma persona no dan la misma resistencia a compresión. Uno falla a 28.3 MPa y otro a 36.1 MPa. La lluvia máxima de un año tampoco se repite al siguiente, ni el tránsito de un lunes es igual al del lunes anterior. La ingeniería civil trabaja todo el tiempo con datos que varían, y aun así tiene que decidir: qué resistencia se especifica, qué caudal se usa para diseñar un puente o cuántos carriles necesita una carretera. La estadística es la disciplina que ordena esos datos, mide cuánto varían y dice cuánta confianza merece una conclusión sacada de ellos. Los capítulos 7 a 9 forman la Parte II del libro, la estadística descriptiva, y este primero presenta el vocabulario que se usa en todo lo que sigue.
 
 ## Qué es la estadística {#sec-est-que-es}

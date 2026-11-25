@@ -12,11 +12,6 @@ Plantilla de capítulo. Ver GUIA_ESTILO.md.
 Los datos, valores y textos de esta plantilla son de muestra: no son contenido del libro.
 -->
 
-::: {.quote-block}
-"Frase breve con fuente verificada (libro, discurso o artículo). Si no se puede verificar, quitar el epígrafe. Nunca citas bíblicas."\
-— *Autor*
-:::
-
 Párrafo de entrada, de tres a cinco oraciones. Dice qué problema de ingeniería resuelve el capítulo y por qué le importa a quien diseña, ensaya o decide. No empieza con "En este capítulo se abordará".
 
 ## Concepto principal {#sec-tema-concepto}

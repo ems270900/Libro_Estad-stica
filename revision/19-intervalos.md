@@ -10,4 +10,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Datos: `varillas_fluencia_hipoteticas.csv` (valores del material del curso, Semana 6), `lote_cilindros_hipotetico.csv`.
 - Fuentes: Montgomery y Runger (2014), Walpole et al. (2012), Illowsky y Dean (2018), Neyman (1937), Student (1908), Wilson (1927), Clopper y Pearson (1934), Agresti y Coull (1998), Howe (1969).
 - Cambio respecto del material del curso: las varillas se presentan con esfuerzo de fluencia (objetivo 300 MPa) en lugar de resistencia a la tracción, que en acero de refuerzo es bastante mayor.
-- Pendiente: epígrafe.
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

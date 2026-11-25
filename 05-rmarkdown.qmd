@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Cambiemos nuestra actitud tradicional ante la construcción de programas: en lugar de imaginar que nuestra tarea principal es indicarle a una computadora qué hacer, concentrémonos en explicarles a seres humanos qué queremos que haga la computadora."\
-— *Donald E. Knuth [-@knuth1984literate, p. 97]. Traducción propia.*
-:::
-
 Un informe de laboratorio hecho de la forma tradicional tiene tres piezas separadas: una hoja de cálculo con los datos, un programa o una calculadora para los resultados y un procesador de texto donde se copian los números y se pegan los gráficos. Si aparece un dato corregido, hay que repetir los cálculos, volver a copiar cada número y volver a pegar cada gráfico, y es fácil que alguno quede desactualizado. R Markdown junta las tres piezas en un solo archivo: el texto, el código y los resultados viven juntos, y el documento se vuelve a generar completo con un clic. A esa propiedad se le llama reproducibilidad: cualquier persona con el archivo y los datos obtiene el mismo informe. Este capítulo explica cómo se arma un documento de R Markdown, cómo se compila a HTML y cómo se incluyen cuadros, ecuaciones y resultados dentro del texto [@xie2018rmarkdown].
 
 ## Qué es un documento de R Markdown {#sec-rmd-que-es}

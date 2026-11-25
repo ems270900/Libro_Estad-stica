@@ -38,9 +38,9 @@ estilo <- function(k, letra = 13) {
 
 Todas las tablas se leen con los mismos pasos:
 
-1. Identificar la distribución: normal estándar $Z$, $t$ de Student, chi-cuadrado $\chi^2$, $F$ de Fisher o binomial.
-2. Ubicar sus parámetros: los grados de libertad $\nu$ (letra griega *nu*) en $t$ y en $\chi^2$, el par $\nu_1$ y $\nu_2$ en $F$, o $n$ y $p$ en la binomial.
-3. Revisar qué área da la tabla. La tabla $Z$ y la binomial dan el área a la izquierda, $P(X \le x)$. Las tablas $t$, $\chi^2$ y $F$ dan el valor que deja un área $\alpha$ a la derecha.
+1. Identificar la distribución: normal estándar $Z$, $t$ de Student, chi-cuadrado $\chi^2$, $F$ de Fisher, binomial o rango estudentizado $q$.
+2. Ubicar sus parámetros: los grados de libertad $\nu$ (letra griega *nu*) en $t$ y en $\chi^2$, el par $\nu_1$ y $\nu_2$ en $F$, $n$ y $p$ en la binomial, o $k$ y $gl_E$ en el rango estudentizado.
+3. Revisar qué área da la tabla. La tabla $Z$ y la binomial dan el área a la izquierda, $P(X \le x)$. Las tablas $t$, $\chi^2$, $F$ y $q$ dan el valor que deja un área $\alpha$ a la derecha.
 4. Leer el número en el cruce de la fila y la columna.
 
 El paso 3 es la causa de la mayoría de los errores. Antes de leer cualquier número conviene dibujar la curva y sombrear el área que se busca, como en las figuras de cada sección.
@@ -471,6 +471,74 @@ dbinom(2, size = 20, prob = 0.10)       # exactamente 2
 ```
 
 **Interpretación.** Aunque solo 10 % de las probetas salga defectuosa, en una de cada tres muestras de 20 aparecerían más de 2 defectuosas. Encontrar 3 en una muestra no prueba, por sí solo, que el proceso empeoró.
+
+:::
+
+## Rango estudentizado para el método de Tukey {#sec-apa-q}
+
+Después de un análisis de varianza que rechaza la igualdad de medias, el método de Tukey compara todas las parejas de tratamientos con una sola distancia mínima (@sec-mc-tukey). Esa distancia usa el valor crítico $q_{\alpha;\,k,\,gl_E}$ de la distribución del rango estudentizado, que depende de dos números: la cantidad de medias que se comparan, $k$, y los grados de libertad del error del ANOVA, $gl_E$. Como la distribución describe la diferencia entre la media mayor y la menor, solo se usa la cola derecha: el valor deja un área $\alpha$ a la derecha, igual que en las tablas $t$, $\chi^2$ y $F$.
+
+En el @tbl-apa-q05 ($\alpha = 0.05$) y el @tbl-apa-q01 ($\alpha = 0.01$), las columnas son $k$ y las filas son $gl_E$. Los valores se calcularon con `qtukey(1 - alfa, nmeans = k, df = gl_E)`.
+
+```{r}
+#| label: calculo-q
+#| echo: false
+
+k_q <- c(2:10, 12, 15, 20)
+gl_q <- c(2:20, 24, 30, 40, 60, 120, Inf)
+
+cuadro_q <- function(alfa) {
+  m <- outer(gl_q, k_q, function(g, k) qtukey(1 - alfa, nmeans = k, df = g))
+  tab <- data.frame(inf_txt(gl_q), apply(m, 2, fmt, d = 2), check.names = FALSE)
+  tab %>%
+    kbl(col.names = c("<i>gl</i><sub>E</sub> \\ <i>k</i>", k_q),
+        escape = FALSE, align = "c") %>%
+    estilo(letra = 12) %>%
+    scroll_box(width = "100%")
+}
+```
+
+::: {.panel-tabset}
+
+### α = 0.05
+
+```{r}
+#| label: tbl-apa-q05
+#| tbl-cap: "Rango estudentizado: valores críticos $q_{0.05;k,gl_E}$."
+#| echo: false
+
+cuadro_q(0.05)
+```
+
+### α = 0.01
+
+```{r}
+#| label: tbl-apa-q01
+#| tbl-cap: "Rango estudentizado: valores críticos $q_{0.01;k,gl_E}$."
+#| echo: false
+
+cuadro_q(0.01)
+```
+
+:::
+
+::: {.callout-note title="Ejemplo: distancia de Tukey para cuatro mezclas de concreto"}
+
+**Planteamiento.** Un ANOVA compara la resistencia de $k = 4$ mezclas hipotéticas, con $n = 5$ cilindros por mezcla. El cuadrado medio del error es $CM_E = 2.50$ MPa². Encuentre el valor crítico $q$ con $\alpha = 0.05$ y la distancia mínima de Tukey.
+
+**Solución:**
+
+1. Grados de libertad del error: $gl_E = N - k = 20 - 4 = 16$.
+2. En el @tbl-apa-q05, columna $k = 4$ y fila 16: $q_{0.05;\,4,\,16} = 4.05$.
+3. Distancia mínima: $HSD = q\,\sqrt{CM_E/n} = 4.05\,\sqrt{2.50/5} = 4.05 \times 0.707 = 2.86$ MPa.
+
+```{r}
+q_crit <- qtukey(0.95, nmeans = 4, df = 16)
+q_crit
+q_crit * sqrt(2.50 / 5)   # distancia mínima de Tukey (MPa)
+```
+
+**Interpretación.** Dos mezclas tienen resistencias medias distintas si sus promedios difieren en más de 2.86 MPa. Con $k = 2$ el valor sería 3.00, porque con menos parejas hay menos oportunidades de encontrar una diferencia por azar.
 
 :::
 

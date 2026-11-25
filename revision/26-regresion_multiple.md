@@ -7,4 +7,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejemplos (Solución:, pseudocódigo, base R y función de R): asentamiento de un relleno (sumas, eliminación de Gauss, `solve()`, `lm()`); cuadro ANOVA, $R^2$ y $R^2_{\text{aj}}$; pruebas e intervalos de los coeficientes con $(\mathbf{X}^{\mathsf T}\mathbf{X})^{-1}$; resistencia con relación a/c, edad y aditivo (matriz de diseño hecha a mano y `lm()` con factor); VIF a mano y con `car::vif()`.
 - Paquete nuevo: car, solo para comprobar el VIF.
 - Figuras propias: rectas del plano del relleno. Interactivo: dos rectas con y sin aditivo según el coeficiente de interacción (`#fig-rlm-interactivo`).
-- Sin epígrafe: no se encontró una frase con fuente verificada.
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

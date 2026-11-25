@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"La teoría de las probabilidades no es, en el fondo, más que el sentido común reducido a cálculo."\
-— *Pierre-Simon Laplace*, Ensayo filosófico sobre las probabilidades (1814)
-:::
-
 ```{r}
 #| include: false
 library(tidyverse)

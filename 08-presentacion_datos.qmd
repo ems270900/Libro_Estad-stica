@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"El mayor valor de una imagen es cuando nos obliga a notar lo que nunca esperábamos ver."\
-— *John W. Tukey [-@tukey1977exploratory, p. vi]. Traducción propia.*
-:::
-
 Un archivo con 65 lluvias máximas anuales o con el inventario de 40 puentes es una lista de números y palabras que nadie puede leer de un vistazo. Antes de calcular cualquier medida, los datos se ordenan en cuadros de frecuencia y se dibujan. Un buen cuadro dice cuántos datos hay de cada tipo o en cada intervalo. Un buen gráfico muestra la forma de los datos: dónde se concentran, si hay valores muy alejados o si la variable cambia con el tiempo. El capítulo 4 enseñó a hacer gráficos en R; este capítulo explica cómo construir cuadros de frecuencia a mano y con R, qué gráfico corresponde a cada tipo de variable y qué errores de presentación conviene evitar.
 
 ```{r}

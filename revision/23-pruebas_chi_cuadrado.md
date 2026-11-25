@@ -8,4 +8,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Figuras propias (R): observados contra esperados de la Poisson, proporciones de tipo de falla por planta.
 - Datos: `llegada_camiones_hipotetica.csv`, `tipo_falla_cilindros_hipotetico.csv`.
 - Fuentes: Pearson (1900), Cochran (1954), Yates (1934), Montgomery y Runger (2014), Walpole et al. (2012), Illowsky y Dean (2018).
-- Pendiente: epígrafe.
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

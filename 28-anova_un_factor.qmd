@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Consultar al estadístico cuando el experimento ya terminó suele equivaler a pedirle una autopsia. Quizá pueda decir de qué murió el experimento."\
-— *Ronald A. Fisher, discurso presidencial ante el Primer Congreso Estadístico de la India, 1938* [@fisher1938presidential]
-:::
-
 Un laboratorio de materiales quiere saber si el método de curado cambia la resistencia del concreto a los 28 días. Puede revisar los registros de obras pasadas, donde cada contratista curó a su manera, o puede fabricar cilindros iguales, asignarles el método por sorteo y ensayarlos. La segunda opción es un experimento, y es la única de las dos que deja atribuir la diferencia al curado y no al contratista, al cemento o al clima. Este capítulo trata de cómo se planea un experimento para que sus datos respondan la pregunta, y de cómo se analizan cuando se comparan tres o más tratamientos con el análisis de varianza (ANOVA) de un factor. Las bases vienen de @fisher1935design y la presentación sigue a @montgomery2017design [cap. 1 a 3].
 
 ## Experimento y estudio observacional {#sec-dce-experimento}

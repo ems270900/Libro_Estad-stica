@@ -14,12 +14,11 @@
 ## Fuentes
 
 - Montgomery (2017), cap. 1 a 3: modelo, sumas de cuadrados, cuadro ANOVA. Fórmulas verificadas.
-- Fisher (1935): principios del diseño. Fisher (1938): epígrafe ("autopsia"), en Sankhyā 4(1), 14–17.
+- Fisher (1935): principios del diseño.
 - Hurlbert (1984): pseudorreplicación.
 - Lane, *Online Statistics Education* (dominio público), cap. 12 y 15. Illowsky y Dean (OpenStax), cap. 13.
 - Diapositivas de la Semana 8 del curso: estructura y datos del ejemplo (ajustados para que los residuos no sean idénticos en todos los grupos).
 
 ## Pendiente para el autor
 
-- Confirmar la traducción del epígrafe de Fisher (1938).
 - Los cálculos se verificaron con R 4.3.3 en la nube.

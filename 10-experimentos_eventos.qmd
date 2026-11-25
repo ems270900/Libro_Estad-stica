@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"La teoría de las probabilidades no es, en el fondo, más que el sentido común reducido a cálculo."\
-— *Pierre-Simon Laplace, Ensayo filosófico sobre las probabilidades (1814)*
-:::
-
 Un puente se diseña para una crecida que puede o no llegar durante su vida útil. Un lote de cilindros de concreto puede cumplir o no la resistencia especificada. Una obra puede atrasarse un día cualquiera por lluvia, por una falla del equipo o por ambas cosas. En los tres casos no se sabe de antemano qué va a pasar, pero sí se puede medir qué tan posible es cada resultado. Esa medida es la probabilidad, y este capítulo construye su lenguaje desde cero: qué es un experimento aleatorio, qué es un evento, cómo se combinan los eventos y qué reglas cumple cualquier probabilidad. Al final se comprueba con R, con las simulaciones que se aprendieron en el capítulo 6, que la frecuencia con que ocurre un evento se acerca a su probabilidad.
 
 Las ideas de este capítulo siguen a @bertsekas2008introduction [cap. 1] y a @illowsky2018introductory [cap. 3], donde el lector encuentra más ejemplos.

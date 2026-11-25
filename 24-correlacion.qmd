@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Reflection soon made it clear to me that not only were the two new problems identical in principle with the old one of kinship which I had already solved, but that all three of them were no more than special cases of a much more general problem, namely, that of Correlation."\
-— *Francis Galton, citado por @watkinsintroduction [tema 3].*
-:::
-
 En un laboratorio de materiales se ensaya la resistencia de cilindros hechos con distintas relaciones agua/cemento. En una carretera se mide el deterioro de cada tramo y el tránsito que soporta. En una cuenca se registran la lluvia y el caudal. En los tres casos la pregunta es la misma: cuando una variable cambia, ¿la otra cambia con ella? Este capítulo explica cómo verlo en un gráfico y cómo medirlo con un número, la correlación. También explica qué no dice ese número, porque dos variables que se mueven juntas no siempre tienen una relación de causa y efecto.
 
 ```{r}
