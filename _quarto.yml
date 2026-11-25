@@ -52,6 +52,12 @@ book:
     #     - 01-tema_corto.qmd
     #     - 02-otro_tema.qmd
 
+    - part: "Probabilidad"
+      chapters:
+        - 10-experimentos_eventos.qmd
+        - 11-tecnicas_conteo.qmd
+        - 12-probabilidad_condicional.qmd
+
     - epilogo.qmd
     - 99-Referencias.qmd
 

@@ -1,0 +1,812 @@
+---
+title: "Experimentos, eventos y axiomas de la probabilidad"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"La teoría de las probabilidades no es, en el fondo, más que el sentido común reducido a cálculo."\
+— *Pierre-Simon Laplace, Ensayo filosófico sobre las probabilidades (1814)*
+:::
+
+Un puente se diseña para una crecida que puede o no llegar durante su vida útil. Un lote de cilindros de concreto puede cumplir o no la resistencia especificada. Una obra puede atrasarse un día cualquiera por lluvia, por una falla del equipo o por ambas cosas. En los tres casos no se sabe de antemano qué va a pasar, pero sí se puede medir qué tan posible es cada resultado. Esa medida es la probabilidad, y este capítulo construye su lenguaje desde cero: qué es un experimento aleatorio, qué es un evento, cómo se combinan los eventos y qué reglas cumple cualquier probabilidad. Al final se comprueba con R, simulando miles de lanzamientos, que la frecuencia con que ocurre un evento se acerca a su probabilidad.
+
+Las ideas de este capítulo siguen a @bertsekas2008introduction [cap. 1] y a @illowsky2018introductory [cap. 3], donde el lector encuentra más ejemplos.
+
+## Experimentos deterministas y aleatorios {#sec-eventos-experimentos}
+
+Un experimento es cualquier proceso que produce un resultado que se puede observar o medir: ensayar un cilindro, contar los vehículos que pasan por un peaje en una hora, medir la lluvia de un día o lanzar un dado.
+
+- **Experimento determinista.** Si se repite en las mismas condiciones, siempre da el mismo resultado. Calentar agua pura a nivel del mar hasta que hierva da siempre 100 °C; sumar 2 + 3 da siempre 5.
+- **Experimento aleatorio.** Aunque se repita en las mismas condiciones, el resultado cambia de una vez a otra y no se puede predecir con certeza. Sí se conoce, en cambio, la lista de resultados posibles. Lanzar un dado, extraer una carta de una baraja o medir la resistencia de un cilindro de concreto son experimentos aleatorios.
+
+En ingeniería casi todo lo que se mide se comporta como un experimento aleatorio. Dos cilindros hechos con la misma mezcla, el mismo día y por la misma persona no fallan exactamente con la misma carga, porque hay pequeñas diferencias en la compactación, el curado y el ensayo. La probabilidad es el idioma que se usa para describir esa variación.
+
+::: {.pregunta}
+¿Cómo se puede asignar un número a algo que todavía no ha pasado?
+:::
+
+La respuesta corta es: primero se hace una lista ordenada de todo lo que puede pasar, y después se reparte entre esos resultados un total de 1 siguiendo tres reglas. Las dos secciones siguientes desarrollan ese camino.
+
+## Espacio muestral y eventos {#sec-eventos-espacio}
+
+El espacio muestral, que se escribe $S$ (algunos libros usan $\Omega$), es el conjunto de todos los resultados posibles de un experimento aleatorio. Cada resultado individual se llama punto muestral o resultado elemental. Al lanzar un dado una vez, el espacio muestral es
+
+$$
+S = \{1, 2, 3, 4, 5, 6\}.
+$$
+
+Un evento es cualquier subconjunto del espacio muestral, es decir, cualquier grupo de resultados. Los eventos se nombran con letras mayúsculas: $A$, $B$, $C$. Con el dado, el evento "sale un número par" es $A = \{2, 4, 6\}$. Se dice que el evento $A$ ocurre si el resultado del experimento es uno de sus elementos: si sale un 4, ocurrió $A$; si sale un 3, no ocurrió.
+
+Los eventos se clasifican así:
+
+- **Evento simple o elemental.** Tiene un solo resultado: "sale un 6" es $\{6\}$.
+- **Evento compuesto.** Tiene dos o más resultados: "sale un número par" es $\{2, 4, 6\}$.
+- **Evento seguro.** Es el propio espacio muestral $S$: siempre ocurre.
+- **Evento imposible.** Es el conjunto vacío $\emptyset$, que no tiene resultados: "sale un 7" con un dado común nunca ocurre.
+
+Hacer bien la lista del espacio muestral es el primer paso de cualquier problema de probabilidad. Un resultado que falta o que se cuenta dos veces arrastra el error a todos los cálculos siguientes. Para experimentos con varias etapas, como ensayar tres cilindros uno tras otro, la lista se arma combinando los resultados de cada etapa, y en R eso lo hace la función `expand.grid()`.
+
+::: {.callout-note title="Ejemplo: espacio muestral del ensayo de tres cilindros"}
+
+**Planteamiento.** Se ensayan tres cilindros de concreto y de cada uno se anota si cumple ($C$) o no cumple ($N$) la resistencia especificada. Escriba el espacio muestral y el evento $A$ = "al menos dos cilindros cumplen".
+
+**Solución:**
+
+1. Cada cilindro tiene dos resultados posibles, $C$ o $N$. Para tres cilindros, cada resultado del experimento es una lista de tres letras en orden: la primera para el cilindro 1, la segunda para el 2 y la tercera para el 3.
+2. Se escriben todas las listas posibles, cambiando primero la última letra:
+   $S = \{CCC, CCN, CNC, CNN, NCC, NCN, NNC, NNN\}$. Son $2 \times 2 \times 2 = 8$ resultados.
+3. El evento "al menos dos cumplen" reúne los resultados con dos o tres letras $C$:
+   $A = \{CCC, CCN, CNC, NCC\}$, que tiene 4 resultados.
+
+**Pseudocódigo**
+
+1. Definir los dos resultados posibles de un cilindro.
+2. Formar todas las combinaciones para los tres cilindros.
+3. Contar, en cada fila, cuántos cilindros cumplen.
+4. Quedarse con las filas en que cumplen dos o más.
+
+```{r}
+# 1) Resultados posibles de un cilindro
+resultado <- c("C", "N")
+
+# 2) Espacio muestral: todas las combinaciones de los tres cilindros
+S <- expand.grid(cil1 = resultado, cil2 = resultado, cil3 = resultado)
+S
+nrow(S)    # número de resultados del espacio muestral
+
+# 3) Cuántos cilindros cumplen en cada resultado
+cumplen <- rowSums(S == "C")
+
+# 4) Evento A: al menos dos cumplen
+A <- S[cumplen >= 2, ]
+A
+nrow(A)
+```
+
+En el código, `S == "C"` compara cada celda con la letra `"C"` y da `TRUE` o `FALSE`; `rowSums()` suma por filas, y como R cuenta cada `TRUE` como 1, el resultado es el número de cilindros que cumplen en cada fila. `expand.grid()` ordena las filas cambiando primero la primera columna, por eso el orden no es el mismo de la lista a mano, pero los 8 resultados son los mismos.
+
+**Interpretación.** El espacio muestral tiene 8 resultados y el evento $A$ tiene 4. Que $A$ tenga la mitad de los resultados no quiere decir todavía que su probabilidad sea 0.5: eso solo es cierto si los 8 resultados son igual de probables, lo que se discute en la @sec-eventos-clasica.
+
+:::
+
+## Operaciones con eventos {#sec-eventos-operaciones}
+
+Como los eventos son conjuntos, se combinan con las operaciones de la teoría de conjuntos. Estas operaciones responden preguntas de la forma "¿qué pasa si ocurre esto o aquello?" o "¿qué pasa si ocurren las dos cosas?". Se ilustran con un diagrama de Venn: un rectángulo que representa el espacio muestral $S$ y círculos dentro de él que representan los eventos [@bertsekas2008introduction, sec. 1.1].
+
+- **Unión** $A \cup B$ (se lee "$A$ o $B$"). Reúne los resultados que están en $A$, en $B$ o en ambos. Ocurre si ocurre al menos uno de los dos eventos.
+- **Intersección** $A \cap B$ (se lee "$A$ y $B$"). Reúne los resultados que están a la vez en $A$ y en $B$. Ocurre si ocurren los dos eventos.
+- **Complemento** $A^c$ (se lee "no $A$"; otros libros escriben $A'$ o $\overline{A}$). Reúne los resultados de $S$ que no están en $A$. Ocurre cuando $A$ no ocurre.
+- **Diferencia** $A - B$ (se lee "$A$ pero no $B$"). Reúne los resultados que están en $A$ y no en $B$. Es lo mismo que $A \cap B^c$.
+- **Eventos mutuamente excluyentes o disjuntos.** $A$ y $B$ son mutuamente excluyentes si no tienen resultados en común, es decir, si $A \cap B = \emptyset$. No pueden ocurrir al mismo tiempo.
+- **Inclusión** $A \subset B$ (se lee "$A$ está contenido en $B$"). Todo resultado de $A$ es también de $B$: si ocurre $A$, ocurre $B$.
+
+La @fig-eventos-venn muestra en azul la región que corresponde a cada operación.
+
+```{r}
+#| label: fig-eventos-venn
+#| fig-cap: "Operaciones con dos eventos en un diagrama de Venn. La región azul es el resultado de cada operación."
+#| fig-alt: "Seis diagramas de Venn con dos círculos A y B dentro de un rectángulo S; en cada uno se colorea la unión, la intersección, el complemento de A, la diferencia A menos B, la diferencia B menos A y el complemento de la unión"
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+#| out-width: "90%"
+
+library(ggplot2)
+rejilla <- expand.grid(x = seq(-2.3, 2.3, length.out = 230),
+                       y = seq(-1.45, 1.45, length.out = 150))
+en_a <- (rejilla$x + 0.6)^2 + rejilla$y^2 <= 1
+en_b <- (rejilla$x - 0.6)^2 + rejilla$y^2 <= 1
+operaciones <- list(
+  "A ∪ B  (unión)" = en_a | en_b,
+  "A ∩ B  (intersección)" = en_a & en_b,
+  "Aᶜ  (complemento de A)" = !en_a,
+  "A − B  (diferencia)" = en_a & !en_b,
+  "B − A  (diferencia)" = en_b & !en_a,
+  "(A ∪ B)ᶜ  (ninguno)" = !(en_a | en_b)
+)
+regiones <- do.call(rbind, lapply(names(operaciones), function(nom) {
+  d <- rejilla[operaciones[[nom]], ]
+  d$panel <- nom
+  d
+}))
+regiones$panel <- factor(regiones$panel, levels = names(operaciones))
+angulo <- seq(0, 2 * pi, length.out = 200)
+circulos <- rbind(
+  data.frame(x = -0.6 + cos(angulo), y = sin(angulo), circulo = "A"),
+  data.frame(x = 0.6 + cos(angulo), y = sin(angulo), circulo = "B")
+)
+ggplot() +
+  geom_raster(data = regiones, aes(x, y), fill = "#1C6BA0", alpha = 0.75) +
+  annotate("rect", xmin = -2.3, xmax = 2.3, ymin = -1.45, ymax = 1.45,
+           fill = NA, color = "grey30") +
+  geom_path(data = circulos, aes(x, y, group = circulo), color = "grey15", linewidth = 0.7) +
+  geom_text(data = data.frame(x = c(-1.15, 1.15, 2.05), y = c(0.95, 0.95, -1.2),
+                              rotulo = c("A", "B", "S")),
+            aes(x, y, label = rotulo), size = 5, fontface = "italic") +
+  facet_wrap(~panel, ncol = 3) +
+  coord_equal() +
+  theme_void(base_size = 15) +
+  theme(strip.text = element_text(margin = margin(4, 0, 4, 0)))
+```
+
+::: {.callout-note title="Ejemplo: operaciones con eventos al lanzar un dado"}
+
+**Planteamiento.** Se lanza un dado. Sean $A$ = "sale un número par" y $B$ = "sale un número mayor que 3". Escriba $A \cup B$, $A \cap B$, $A^c$, $A - B$ y $(A \cup B)^c$. Indique si $A$ y $A^c$ son mutuamente excluyentes.
+
+**Solución:**
+
+1. Espacio muestral y eventos: $S = \{1, 2, 3, 4, 5, 6\}$, $A = \{2, 4, 6\}$ y $B = \{4, 5, 6\}$.
+2. Unión, los que están en $A$ o en $B$: $A \cup B = \{2, 4, 5, 6\}$.
+3. Intersección, los que están en ambos: $A \cap B = \{4, 6\}$.
+4. Complemento, los de $S$ que no están en $A$: $A^c = \{1, 3, 5\}$.
+5. Diferencia, los de $A$ que no están en $B$: $A - B = \{2\}$.
+6. Ninguno de los dos: $(A \cup B)^c = \{1, 3\}$.
+7. $A \cap A^c = \emptyset$, porque ningún número es par e impar a la vez. Un evento y su complemento siempre son mutuamente excluyentes.
+
+**Pseudocódigo**
+
+1. Escribir $S$, $A$ y $B$ como vectores.
+2. Aplicar las funciones de conjuntos de R: `union()`, `intersect()` y `setdiff()`.
+3. Obtener el complemento como la diferencia entre $S$ y el evento.
+
+```{r}
+# 1) Espacio muestral y eventos
+S <- 1:6
+A <- S[S %% 2 == 0]   # pares: el resto de dividir entre 2 es 0
+B <- S[S > 3]
+A
+B
+
+# 2) Operaciones con las funciones de conjuntos de R
+union(A, B)           # A ∪ B
+intersect(A, B)       # A ∩ B
+setdiff(S, A)         # complemento de A: lo que está en S y no en A
+setdiff(A, B)         # A − B
+setdiff(S, union(A, B))  # (A ∪ B)ᶜ
+
+# 3) ¿A y su complemento son mutuamente excluyentes?
+length(intersect(A, setdiff(S, A))) == 0
+```
+
+El operador `%%` da el resto de una división: `4 %% 2` es 0 y `5 %% 2` es 1. Por eso `S[S %% 2 == 0]` se queda con los números pares de `S`.
+
+**Interpretación.** Cada operación se puede leer en palabras: $A \cup B$ es "par o mayor que 3", $A \cap B$ es "par y mayor que 3" y $(A \cup B)^c$ es "ni par ni mayor que 3". Traducir el enunciado de un problema a estas operaciones es la mitad del trabajo; la otra mitad es calcular la probabilidad del evento que resulta.
+
+:::
+
+### Leyes de las operaciones
+
+Las operaciones con eventos cumplen las mismas leyes que las operaciones con conjuntos. Las más usadas son estas:
+
+- **Conmutativa.** $A \cup B = B \cup A$ y $A \cap B = B \cap A$.
+- **Asociativa.** $(A \cup B) \cup C = A \cup (B \cup C)$ y $(A \cap B) \cap C = A \cap (B \cap C)$.
+- **Distributiva.** $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$ y $A \cup (B \cap C) = (A \cup B) \cap (A \cup C)$.
+- **Doble complemento.** $(A^c)^c = A$.
+- **Leyes de De Morgan.** El complemento de una unión es la intersección de los complementos, y el complemento de una intersección es la unión de los complementos:
+
+$$
+(A \cup B)^c = A^c \cap B^c, \qquad (A \cap B)^c = A^c \cup B^c.
+$$ {#eq-eventos-demorgan}
+
+Las leyes de De Morgan se usan mucho en ingeniería. Si una viga falla cuando falla por flexión ($A$) o por cortante ($B$), entonces "la viga no falla" es $(A \cup B)^c$, y por la @eq-eventos-demorgan eso es lo mismo que "no falla por flexión y no falla por cortante", $A^c \cap B^c$.
+
+El @tbl-eventos-resumen resume las operaciones con el ejemplo del dado.
+
+```{r}
+#| label: tbl-eventos-resumen
+#| tbl-cap: "Operaciones con eventos, con $A$ = número par y $B$ = número mayor que 3 al lanzar un dado."
+#| echo: false
+
+library(kableExtra)
+resumen <- data.frame(
+  op = c("<i>A</i> ∪ <i>B</i>", "<i>A</i> ∩ <i>B</i>", "<i>A</i><sup>c</sup>",
+         "<i>A</i> − <i>B</i>", "(<i>A</i> ∪ <i>B</i>)<sup>c</sup>", "∅", "<i>S</i>"),
+  palabras = c("Ocurre <i>A</i>, <i>B</i> o ambos", "Ocurren <i>A</i> y <i>B</i>",
+               "No ocurre <i>A</i>", "Ocurre <i>A</i> pero no <i>B</i>",
+               "No ocurre ninguno", "Evento imposible", "Evento seguro"),
+  resultado = c("{2, 4, 5, 6}", "{4, 6}", "{1, 3, 5}", "{2}", "{1, 3}",
+                "{ } (por ejemplo, sale un 7)", "{1, 2, 3, 4, 5, 6}"),
+  r = c("<code>union(A, B)</code>", "<code>intersect(A, B)</code>",
+        "<code>setdiff(S, A)</code>", "<code>setdiff(A, B)</code>",
+        "<code>setdiff(S, union(A, B))</code>", "<code>integer(0)</code>", "<code>S</code>")
+)
+resumen %>%
+  kbl(col.names = c("Operación", "En palabras", "Resultado", "En R"),
+      escape = FALSE, align = "llll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Interactivo: operaciones en el diagrama de Venn
+
+En el interactivo de la @fig-eventos-int-venn se elige una operación y se colorea su región. Los números del 1 al 6 están ubicados en la zona del diagrama que les corresponde con los eventos del ejemplo del dado, así que debajo del gráfico aparece también el conjunto que resulta y su probabilidad si el dado es justo.
+
+::: {#fig-eventos-int-venn}
+
+```{=html}
+<div class="interactivo" id="int-venn">
+  <div class="botones-venn" role="group" aria-label="Operación con eventos">
+    <button type="button" data-op="union">A ∪ B</button>
+    <button type="button" data-op="inter">A ∩ B</button>
+    <button type="button" data-op="compA">Aᶜ</button>
+    <button type="button" data-op="AmB">A − B</button>
+    <button type="button" data-op="BmA">B − A</button>
+    <button type="button" data-op="ninguno">(A ∪ B)ᶜ</button>
+  </div>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Diagrama de Venn con la región de la operación elegida coloreada"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<style>
+#int-venn .botones-venn { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+#int-venn .botones-venn button { opacity: 0.55; }
+#int-venn .botones-venn button[aria-pressed="true"] { opacity: 1; outline: 2px solid #10199e; }
+#int-venn .numero { font-size: 22px; font-family: system-ui, sans-serif; fill: #212529; }
+#int-venn .rotulo { font-size: 22px; font-style: italic; font-family: Georgia, serif; fill: #212529; }
+#int-venn .borde { fill: none; stroke: #343a40; stroke-width: 2; }
+body.quarto-dark #int-venn .numero, body.quarto-dark #int-venn .rotulo { fill: #e9ecef; }
+body.quarto-dark #int-venn .borde { stroke: #ced4da; }
+</style>
+<script>
+(function () {
+  var raiz = document.getElementById("int-venn");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var botones = raiz.querySelectorAll("button");
+  // Círculos A y B y rectángulo S (coordenadas del SVG)
+  var ax = 255, bx = 385, cy = 150, r = 105, sx0 = 30, sy0 = 15, sw = 580, sh = 270;
+  // Ubicación de cada número del dado según las regiones de A = pares y B = mayores que 3
+  var numeros = [
+    { n: 1, x: 80, y: 60 }, { n: 3, x: 560, y: 250 }, { n: 2, x: 200, y: 160 },
+    { n: 4, x: 320, y: 125 }, { n: 6, x: 320, y: 190 }, { n: 5, x: 445, y: 160 }
+  ];
+  var A = [2, 4, 6], B = [4, 5, 6];
+  function en(c, k) { return c.indexOf(k) >= 0; }
+  var reglas = {
+    union:   { nombre: "A ∪ B",  f: function (k) { return en(A, k) || en(B, k); } },
+    inter:   { nombre: "A ∩ B",  f: function (k) { return en(A, k) && en(B, k); } },
+    compA:   { nombre: "Aᶜ",     f: function (k) { return !en(A, k); } },
+    AmB:     { nombre: "A − B",  f: function (k) { return en(A, k) && !en(B, k); } },
+    BmA:     { nombre: "B − A",  f: function (k) { return en(B, k) && !en(A, k); } },
+    ninguno: { nombre: "(A ∪ B)ᶜ", f: function (k) { return !en(A, k) && !en(B, k); } }
+  };
+  function circulo(x, color) {
+    return '<circle cx="' + x + '" cy="' + cy + '" r="' + r + '" fill="' + color + '"/>';
+  }
+  function rect(color) {
+    return '<rect x="' + sx0 + '" y="' + sy0 + '" width="' + sw + '" height="' + sh + '" fill="' + color + '"/>';
+  }
+  // Cada región se pinta con máscaras: blanco deja ver, negro oculta
+  function region(op) {
+    var az = "#1C6BA0", defs = "", capa = "";
+    if (op === "union") {
+      capa = circulo(ax, az) + circulo(bx, az);
+    } else if (op === "inter") {
+      defs = '<clipPath id="venn-clip-a"><circle cx="' + ax + '" cy="' + cy + '" r="' + r + '"/></clipPath>';
+      capa = '<g clip-path="url(#venn-clip-a)">' + circulo(bx, az) + '</g>';
+    } else {
+      var blanco, negro;
+      if (op === "compA")   { blanco = rect("#fff"); negro = circulo(ax, "#000"); }
+      if (op === "AmB")     { blanco = circulo(ax, "#fff"); negro = circulo(bx, "#000"); }
+      if (op === "BmA")     { blanco = circulo(bx, "#fff"); negro = circulo(ax, "#000"); }
+      if (op === "ninguno") { blanco = rect("#fff"); negro = circulo(ax, "#000") + circulo(bx, "#000"); }
+      defs = '<mask id="venn-mascara">' + blanco + negro + '</mask>';
+      capa = '<g mask="url(#venn-mascara)">' + rect(az) + '</g>';
+    }
+    return '<defs>' + defs + '</defs><g opacity="0.55">' + capa + '</g>';
+  }
+  function dibujar(op) {
+    var s = region(op);
+    s += '<rect class="borde" x="' + sx0 + '" y="' + sy0 + '" width="' + sw + '" height="' + sh + '"/>' +
+         '<circle class="borde" cx="' + ax + '" cy="' + cy + '" r="' + r + '"/>' +
+         '<circle class="borde" cx="' + bx + '" cy="' + cy + '" r="' + r + '"/>' +
+         '<text class="rotulo" x="' + (ax - 95) + '" y="' + (cy - 85) + '">A</text>' +
+         '<text class="rotulo" x="' + (bx + 82) + '" y="' + (cy - 85) + '">B</text>' +
+         '<text class="rotulo" x="' + (sx0 + sw - 30) + '" y="' + (sy0 + 30) + '">S</text>';
+    var dentro = [];
+    numeros.forEach(function (p) {
+      var esta = reglas[op].f(p.n);
+      if (esta) dentro.push(p.n);
+      s += '<text class="numero" x="' + p.x + '" y="' + (p.y + 8) + '" text-anchor="middle" font-weight="' +
+           (esta ? "700" : "400") + '">' + p.n + '</text>';
+    });
+    svg.innerHTML = s;
+    dentro.sort();
+    texto.textContent = reglas[op].nombre + " = {" + dentro.join(", ") + "}   ·   P = " +
+      dentro.length + "/6 = " + (dentro.length / 6).toFixed(3);
+    botones.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-op") === op ? "true" : "false"); });
+  }
+  botones.forEach(function (b) { b.addEventListener("click", function () { dibujar(b.getAttribute("data-op")); }); });
+  dibujar("union");
+})();
+</script>
+```
+
+Diagrama de Venn para $A$ = número par y $B$ = número mayor que 3 al lanzar un dado. Elija una operación.
+
+:::
+
+## Los axiomas de la probabilidad {#sec-eventos-axiomas}
+
+Ya con el espacio muestral y los eventos definidos, falta asignar a cada evento $A$ un número $P(A)$, su probabilidad. Esa asignación no puede ser cualquiera: tiene que cumplir tres reglas básicas, llamadas axiomas, que propuso Kolmogorov en 1933 y que hoy usan todos los libros de probabilidad [@kolmogorov1933grundbegriffe; @bertsekas2008introduction, sec. 1.2]. Un axioma es una regla que se acepta sin demostración y de la que se deducen todas las demás.
+
+1. **No negatividad.** La probabilidad de cualquier evento es cero o positiva:
+
+$$
+P(A) \ge 0.
+$$ {#eq-eventos-ax1}
+
+2. **Normalización.** La probabilidad del espacio muestral es 1, porque siempre ocurre alguno de sus resultados:
+
+$$
+P(S) = 1.
+$$ {#eq-eventos-ax2}
+
+3. **Aditividad.** Si $A$ y $B$ son mutuamente excluyentes ($A \cap B = \emptyset$), la probabilidad de que ocurra uno u otro es la suma de sus probabilidades:
+
+$$
+P(A \cup B) = P(A) + P(B).
+$$ {#eq-eventos-ax3}
+
+El tercer axioma vale igual para cualquier cantidad de eventos que no se traslapan entre sí: si $A_1, A_2, A_3, \ldots$ son mutuamente excluyentes de dos en dos, $P(A_1 \cup A_2 \cup \cdots) = P(A_1) + P(A_2) + \cdots$.
+
+Una forma intuitiva de pensar en los axiomas es imaginar que la probabilidad es una masa total de 1 kg repartida sobre el diagrama de Venn. Ninguna región puede tener masa negativa (axioma 1), toda la masa está dentro del rectángulo $S$ (axioma 2) y la masa de dos regiones separadas es la suma de sus masas (axioma 3).
+
+::: {.callout-warning title="Cuidado"}
+Toda probabilidad está entre 0 y 1. Si un cálculo da $P(A) = 1.2$ o $P(A) = -0.05$, hay un error en el planteamiento o en las cuentas. Revisar que el resultado esté en ese rango es la primera comprobación rápida de cualquier ejercicio.
+:::
+
+### Propiedades que se deducen de los axiomas
+
+De los tres axiomas salen todas las reglas que se usan en la práctica [@bertsekas2008introduction, sec. 1.2; @blitzstein2019introduction, sec. 1.6]. Las cinco más usadas son estas.
+
+**Regla del complemento.** La probabilidad de que un evento no ocurra es uno menos la probabilidad de que ocurra:
+
+$$
+P(A^c) = 1 - P(A).
+$$ {#eq-eventos-complemento}
+
+Se deduce porque $A$ y $A^c$ son mutuamente excluyentes y juntos forman $S$: por los axiomas 2 y 3, $1 = P(S) = P(A) + P(A^c)$. Esta regla ahorra mucho trabajo cuando es más fácil calcular lo contrario de lo que se pide, como en los problemas de "al menos uno".
+
+**Evento imposible.** Como $\emptyset$ es el complemento de $S$, la @eq-eventos-complemento da $P(\emptyset) = 1 - 1 = 0$.
+
+**Inclusión.** Si $A \subset B$, entonces $P(A) \le P(B)$. Si cada vez que ocurre $A$ ocurre también $B$, $B$ no puede ser menos probable que $A$.
+
+**Regla de la suma para dos eventos cualesquiera.** Si $A$ y $B$ pueden ocurrir a la vez, al sumar $P(A) + P(B)$ la intersección se cuenta dos veces, y por eso se resta una vez:
+
+$$
+P(A \cup B) = P(A) + P(B) - P(A \cap B).
+$$ {#eq-eventos-union}
+
+Cuando $A$ y $B$ son mutuamente excluyentes, $P(A \cap B) = 0$ y se recupera el axioma 3. Como $P(A \cap B) \ge 0$, de la @eq-eventos-union sale también que $P(A \cup B) \le P(A) + P(B)$.
+
+**Regla de la suma para tres eventos.** Con tres eventos se suman las tres probabilidades, se restan las tres intersecciones de dos en dos y se vuelve a sumar la intersección de los tres, que en la resta quedó fuera:
+
+$$
+P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C).
+$$ {#eq-eventos-union3}
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**Demostración de la regla de la suma.** En el diagrama de Venn, $A \cup B$ se puede partir en dos piezas que no se traslapan: $A$ y la parte de $B$ que queda fuera de $A$, que es $A^c \cap B$. Del mismo modo, $B$ se parte en $A \cap B$ y $A^c \cap B$. Por el axioma 3:
+
+$$
+P(A \cup B) = P(A) + P(A^c \cap B), \qquad P(B) = P(A \cap B) + P(A^c \cap B).
+$$
+
+Al despejar $P(A^c \cap B)$ de la segunda igualdad y sustituirlo en la primera se obtiene la @eq-eventos-union.
+
+**Demostración de la regla de inclusión.** Si $A \subset B$, $B$ se parte en $A$ y $A^c \cap B$, que no se traslapan. Por el axioma 3, $P(B) = P(A) + P(A^c \cap B)$, y como el segundo término es mayor o igual que cero (axioma 1), $P(B) \ge P(A)$.
+
+**Sigma-álgebra.** En un tratamiento formal, la probabilidad no se define sobre cualquier colección de subconjuntos, sino sobre una sigma-álgebra $\mathcal{F}$: una familia de eventos que contiene a $S$, que contiene el complemento de cada uno de sus eventos y que contiene la unión de cualquier sucesión de sus eventos. Con un espacio muestral finito, como el de un dado, se puede tomar la familia de todos los subconjuntos y el tema no da problemas. Con espacios infinitos, como el de una resistencia que puede tomar cualquier valor real, la sigma-álgebra es necesaria para que la teoría sea consistente [@wasserman2004all, sec. 1.9]. En un primer curso basta con saber que existe.
+:::
+
+::: {.callout-note title="Ejemplo: probabilidades a partir de otras conocidas"}
+
+**Planteamiento.** Sean $A$ y $B$ dos eventos con $P(A) = 0.4$, $P(A^c \cap B) = 0.4$ y $P(A \cap B) = 0.1$. Calcule $P(B)$, $P(A \cup B)$ y la probabilidad de que no ocurra ninguno de los dos.
+
+**Solución:**
+
+1. $B$ se parte en dos piezas que no se traslapan: la parte que está dentro de $A$ y la que está fuera. Por el axioma 3:
+   $P(B) = P(A \cap B) + P(A^c \cap B) = 0.1 + 0.4 = 0.5$.
+2. Regla de la suma (@eq-eventos-union):
+   $P(A \cup B) = 0.4 + 0.5 - 0.1 = 0.8$.
+3. "No ocurre ninguno" es $(A \cup B)^c$. Por la regla del complemento (@eq-eventos-complemento):
+   $P\big((A \cup B)^c\big) = 1 - 0.8 = 0.2$.
+
+**Pseudocódigo**
+
+1. Guardar las probabilidades conocidas.
+2. Calcular $P(B)$ sumando sus dos piezas.
+3. Aplicar la regla de la suma y la del complemento.
+4. Comprobar que todas las probabilidades estén entre 0 y 1.
+
+```{r}
+# 1) Datos
+p_a <- 0.4
+p_noa_b <- 0.4     # P(Aᶜ ∩ B)
+p_a_b <- 0.1       # P(A ∩ B)
+
+# 2) P(B) por aditividad
+p_b <- p_a_b + p_noa_b
+
+# 3) Regla de la suma y complemento
+p_union <- p_a + p_b - p_a_b
+p_ninguno <- 1 - p_union
+
+c(P_B = p_b, P_union = p_union, P_ninguno = p_ninguno)
+
+# 4) Comprobación: todas entre 0 y 1
+all(c(p_b, p_union, p_ninguno) >= 0 & c(p_b, p_union, p_ninguno) <= 1)
+```
+
+**Interpretación.** Con solo tres datos se obtienen las probabilidades de todas las regiones del diagrama de Venn: $A$ sin $B$ tiene 0.3, la intersección 0.1, $B$ sin $A$ 0.4 y la región de afuera 0.2. Las cuatro suman 1, como exige el axioma 2. Hacer esa suma es una buena forma de revisar el ejercicio.
+
+:::
+
+## Cómo se asigna una probabilidad {#sec-eventos-interpretaciones}
+
+Los axiomas dicen qué reglas debe cumplir una probabilidad, pero no de dónde sale el número. En la práctica se usan tres formas de asignarlo. Las tres respetan los mismos axiomas, así que las reglas de cálculo de este capítulo y de los siguientes valen para todas; lo que cambia es la interpretación [@illowsky2018introductory, sec. 3.1; @blitzstein2019introduction, sec. 1.2].
+
+### Probabilidad clásica {#sec-eventos-clasica}
+
+Si el espacio muestral es finito y todos sus resultados son igual de probables, la probabilidad de un evento es la proporción de resultados que lo forman. Es la definición que usó Laplace [@laplace1814essai]:
+
+$$
+P(A) = \frac{n(A)}{n(S)} = \frac{\text{número de casos favorables}}{\text{número de casos posibles}},
+$$ {#eq-eventos-clasica}
+
+donde $n(A)$ es el número de resultados del evento $A$ y $n(S)$ es el número de resultados del espacio muestral.
+
+La condición "igual de probables" es indispensable. Un dado justo, una moneda bien balanceada o una extracción al azar de una bolsa la cumplen. El estado de un puente después de un sismo (sin daño, daño leve, daño severo, colapso) no la cumple: son cuatro resultados, pero nadie diría que cada uno tiene probabilidad 1/4. Cuando los resultados no son igual de probables, se usa la probabilidad frecuentista o la subjetiva.
+
+Para usar la @eq-eventos-clasica hay que contar casos. Cuando la lista es corta se cuentan uno por uno; cuando es larga, se usan las técnicas de conteo del capítulo siguiente.
+
+::: {.callout-note title="Ejemplo: extracción de una tarjeta numerada"}
+
+**Planteamiento.** Una bolsa opaca tiene 20 tarjetas numeradas del 1 al 20. Se extrae una al azar. Calcule la probabilidad de que el número sea: (a) par; (b) múltiplo de 3; (c) par o múltiplo de 3; (d) no mayor que 15.
+
+**Solución:**
+
+1. Espacio muestral: $S = \{1, 2, \ldots, 20\}$, con $n(S) = 20$ resultados igual de probables.
+2. (a) Pares: $A = \{2, 4, 6, \ldots, 20\}$, $n(A) = 10$. $P(A) = 10/20 = 0.50$.
+3. (b) Múltiplos de 3: $B = \{3, 6, 9, 12, 15, 18\}$, $n(B) = 6$. $P(B) = 6/20 = 0.30$.
+4. (c) Pares y múltiplos de 3 a la vez son los múltiplos de 6: $A \cap B = \{6, 12, 18\}$, con $P(A \cap B) = 3/20 = 0.15$. Por la regla de la suma, $P(A \cup B) = 0.50 + 0.30 - 0.15 = 0.65$.
+5. (d) "Mayor que 15" es $\{16, 17, 18, 19, 20\}$, con probabilidad $5/20 = 0.25$. Por el complemento, $P(\text{no mayor que } 15) = 1 - 0.25 = 0.75$.
+
+**Pseudocódigo**
+
+1. Crear el espacio muestral como vector.
+2. Escribir cada evento como un subconjunto, con una condición lógica.
+3. Dividir el número de casos favorables entre el número de casos posibles.
+4. Comprobar la regla de la suma contando directamente la unión.
+
+```{r}
+# 1) Espacio muestral
+S <- 1:20
+n_S <- length(S)
+
+# 2) Eventos
+A <- S[S %% 2 == 0]       # pares
+B <- S[S %% 3 == 0]       # múltiplos de 3
+
+# 3) Probabilidad clásica: casos favorables / casos posibles
+p_a <- length(A) / n_S
+p_b <- length(B) / n_S
+p_ab <- length(intersect(A, B)) / n_S
+c(P_A = p_a, P_B = p_b, P_AyB = p_ab)
+
+# 4) Unión: por la regla de la suma y contando directamente
+p_a + p_b - p_ab
+length(union(A, B)) / n_S
+
+# (d) No mayor que 15, por el complemento
+1 - length(S[S > 15]) / n_S
+```
+
+**Interpretación.** El cálculo directo de la unión (13 casos de 20) y la regla de la suma dan lo mismo, 0.65. Si en el inciso (c) se hubieran sumado sin más 0.50 + 0.30 = 0.80, los números 6, 12 y 18 se habrían contado dos veces.
+
+:::
+
+### Probabilidad frecuentista {#sec-eventos-frecuentista}
+
+Cuando los resultados no son igual de probables, la probabilidad se estima repitiendo el experimento muchas veces y contando. Si en $n$ repeticiones el evento $A$ ocurrió $n_A$ veces, su frecuencia relativa es
+
+$$
+f_n(A) = \frac{n_A}{n},
+$$ {#eq-eventos-frecuencia}
+
+donde $n_A$ es el número de veces que ocurrió $A$ y $n$ es el número de repeticiones. La interpretación frecuentista dice que la probabilidad de $A$ es el valor al que se acerca $f_n(A)$ cuando $n$ crece mucho [@illowsky2018introductory, sec. 3.1]. Así se estima en ingeniería la probabilidad de que un día llueva más de 50 mm en una estación, de que un elemento prefabricado salga defectuoso o de que un ensayo no cumpla: con registros históricos o con la proporción observada en muchos casos.
+
+::: {.callout-note title="Ejemplo: atrasos de una obra por lluvia y por falla de equipo"}
+
+**Planteamiento.** En un registro hipotético de 100 días de trabajo de una obra se anotó si hubo atraso por lluvia y si hubo atraso por falla del equipo. Sean $L$ = "atraso por lluvia" y $F$ = "atraso por falla de equipo". Con las frecuencias relativas del registro, estime $P(L)$, $P(F)$, $P(L \cap F)$, la probabilidad de que haya al menos un atraso y la de que no haya ninguno.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/atrasos_obra_hipoteticos.csv",
+          nombres = c("Día", "Atraso por lluvia", "Atraso por falla de equipo"))
+```
+
+**Solución:**
+
+1. Se cuentan los días del registro en cada situación. Hubo lluvia en 32 días, falla de equipo en 18 días y ambas cosas en 7 días.
+2. Frecuencias relativas: $P(L) \approx 32/100 = 0.32$, $P(F) \approx 18/100 = 0.18$ y $P(L \cap F) \approx 7/100 = 0.07$.
+3. Al menos un atraso es $L \cup F$. Por la regla de la suma: $P(L \cup F) = 0.32 + 0.18 - 0.07 = 0.43$.
+4. Ningún atraso es el complemento: $P\big((L \cup F)^c\big) = 1 - 0.43 = 0.57$.
+
+**Pseudocódigo**
+
+1. Leer el archivo de datos.
+2. Calcular la proporción de días con lluvia, con falla y con ambas.
+3. Aplicar la regla de la suma y la del complemento.
+4. Comprobar contando directamente los días con al menos un atraso.
+5. Repetir el cálculo con `dplyr`.
+
+```{r}
+# 1) Datos
+atrasos <- read.csv("datos/atrasos_obra_hipoteticos.csv")
+head(atrasos)
+
+# 2) Frecuencias relativas (base R): mean() de una condición lógica es la proporción de TRUE
+p_l <- mean(atrasos$lluvia == "si")
+p_f <- mean(atrasos$falla_equipo == "si")
+p_lf <- mean(atrasos$lluvia == "si" & atrasos$falla_equipo == "si")
+c(P_L = p_l, P_F = p_f, P_LyF = p_lf)
+
+# 3) Regla de la suma y complemento
+p_al_menos_uno <- p_l + p_f - p_lf
+p_ninguno <- 1 - p_al_menos_uno
+c(al_menos_uno = p_al_menos_uno, ninguno = p_ninguno)
+
+# 4) Comprobación directa: | es "o" en R
+mean(atrasos$lluvia == "si" | atrasos$falla_equipo == "si")
+
+# Cuadro de doble entrada con los conteos
+table(Lluvia = atrasos$lluvia, Falla = atrasos$falla_equipo)
+```
+
+La misma cuenta con `dplyr`, que se presentó en la Parte I, se escribe con `summarise()`. El pipe `%>%` pasa los datos de un paso al siguiente y se lee "y después":
+
+```{r}
+library(dplyr)
+
+atrasos %>%
+  summarise(
+    P_L = mean(lluvia == "si"),
+    P_F = mean(falla_equipo == "si"),
+    P_LyF = mean(lluvia == "si" & falla_equipo == "si"),
+    P_LoF = mean(lluvia == "si" | falla_equipo == "si")
+  )
+```
+
+**Interpretación.** Según el registro, en 43 de cada 100 días hay al menos un atraso, y en 57 la obra avanza sin contratiempos. Sumar 0.32 + 0.18 = 0.50 sobrestimaría el riesgo, porque los 7 días con lluvia y falla a la vez quedarían contados dos veces. Con estos valores se puede, por ejemplo, prever cuántos días de holgura incluir en el cronograma.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Una probabilidad estimada con frecuencias relativas es tan buena como el registro del que sale. Con 100 días el valor 0.32 es una estimación razonable; con 10 días podría salir 0.20 o 0.50 solo por azar. Además, el registro debe representar las condiciones futuras: un registro de época seca no sirve para estimar los atrasos por lluvia de la época lluviosa. Cuánto se equivoca una estimación según el tamaño de la muestra se estudia en la Parte V.
+:::
+
+### Probabilidad subjetiva
+
+A veces no hay resultados igual de probables ni registros para contar. ¿Cuál es la probabilidad de que un proyecto nuevo, con un diseño que nunca se ha construido, termine a tiempo? En esos casos la probabilidad expresa el grado de confianza de una persona experta, basado en su experiencia y en la información disponible. Esta interpretación se llama subjetiva o bayesiana. Aunque nace de un juicio, debe cumplir los mismos axiomas: si alguien asigna 0.7 a "termina a tiempo", debe asignar 0.3 a "no termina a tiempo". En el capítulo 12, con el teorema de Bayes, se verá cómo se actualiza una probabilidad de este tipo cuando llegan datos nuevos.
+
+## La ley de los grandes números {#sec-eventos-lgn}
+
+La interpretación frecuentista se apoya en un resultado matemático: la ley de los grandes números. En palabras, dice que si un experimento se repite muchas veces en las mismas condiciones y de forma independiente, la frecuencia relativa de un evento se acerca cada vez más a su probabilidad [@bertsekas2008introduction, sec. 5.2; @illowsky2018introductory, sec. 3.1]. Con pocos lanzamientos de una moneda, la proporción de escudos puede alejarse bastante de 0.5; con miles de lanzamientos, casi no se aleja.
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+En forma matemática, para cualquier margen $\varepsilon > 0$, por pequeño que sea,
+
+$$
+P\left( \left| f_n(A) - P(A) \right| \ge \varepsilon \right) \to 0 \quad \text{cuando } n \to \infty,
+$$ {#eq-eventos-lgn}
+
+donde $f_n(A)$ es la frecuencia relativa de la @eq-eventos-frecuencia. Se lee así: la probabilidad de que la frecuencia relativa se aleje de $P(A)$ más que $\varepsilon$ se vuelve tan pequeña como se quiera al aumentar el número de repeticiones. Esta es la ley débil de los grandes números. Su demostración usa la desigualdad de Chebyshev y se encuentra en @bertsekas2008introduction [sec. 5.2] y en @wasserman2004all [sec. 5.3].
+:::
+
+La ley no dice que los resultados se "compensen". Si una moneda justa cayó escudo cinco veces seguidas, la probabilidad de escudo en el sexto lanzamiento sigue siendo 0.5. Lo que pasa es que las primeras cinco caras pesan cada vez menos en la proporción a medida que se acumulan más lanzamientos.
+
+::: {.callout-note title="Ejemplo: simulación de la ley de los grandes números con un dado"}
+
+**Planteamiento.** Simule 5000 lanzamientos de un dado justo y grafique cómo cambia la frecuencia relativa del evento "sale un 6" a medida que aumenta el número de lanzamientos. Compárela con la probabilidad clásica, $1/6 = 0.1667$.
+
+**Solución:**
+
+A mano no se pueden hacer 5000 lanzamientos, pero sí se puede ver cómo se calcula la frecuencia relativa acumulada con los primeros lanzamientos. Suponga que los diez primeros fueron 3, 6, 1, 6, 4, 2, 5, 1, 3, 2. El @tbl-eventos-acumulada muestra el cálculo: en cada fila se divide el número de seises acumulados entre el número de lanzamientos hechos hasta ese momento.
+
+```{r}
+#| label: tbl-eventos-acumulada
+#| tbl-cap: "Frecuencia relativa acumulada del evento \"sale un 6\" en los diez primeros lanzamientos."
+#| echo: false
+
+diez <- c(3, 6, 1, 6, 4, 2, 5, 1, 3, 2)
+acum <- data.frame(n = 1:10, x = diez, es6 = as.integer(diez == 6),
+                   seises = cumsum(diez == 6))
+acum$f <- sprintf("%d/%d = %.3f", acum$seises, acum$n, acum$seises / acum$n)
+acum %>%
+  kbl(col.names = c("Lanzamiento <i>n</i>", "Resultado", "¿Es 6?", "Seises acumulados <i>n<sub>A</sub></i>",
+                    "<i>f<sub>n</sub></i>(<i>A</i>) = <i>n<sub>A</sub></i>/<i>n</i>"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Con diez lanzamientos la frecuencia es 0.200, todavía lejos de 0.1667. Después del segundo lanzamiento llegó a 0.500. Con tan pocos datos la frecuencia salta mucho; la simulación muestra qué pasa con miles.
+
+**Pseudocódigo**
+
+1. Fijar la semilla para que la simulación se pueda repetir.
+2. Simular 5000 lanzamientos con `sample()`.
+3. Marcar con `TRUE` los lanzamientos que dieron 6.
+4. Calcular la frecuencia relativa acumulada: seises acumulados entre número de lanzamientos.
+5. Graficar la frecuencia contra el número de lanzamientos, con una línea en 1/6.
+
+```{r}
+#| label: fig-eventos-lgn
+#| fig-cap: "Frecuencia relativa acumulada de sacar un 6 en 5000 lanzamientos simulados de un dado."
+#| fig-alt: "Línea que oscila mucho en los primeros lanzamientos y luego se estabiliza cerca de la línea horizontal punteada en 0.167"
+
+library(ggplot2)
+
+# 1) Semilla
+set.seed(123)
+
+# 2) Lanzamientos simulados: 5000 valores de 1 a 6, con reemplazo
+n <- 5000
+lanzamientos <- sample(1:6, size = n, replace = TRUE)
+
+# 3) y 4) Frecuencia relativa acumulada del evento "sale un 6"
+es_seis <- lanzamientos == 6
+frecuencia <- cumsum(es_seis) / (1:n)
+
+# Valores en algunos puntos
+frecuencia[c(10, 100, 1000, 5000)]
+
+# 5) Gráfico
+simulacion <- data.frame(lanzamiento = 1:n, frecuencia = frecuencia)
+
+ggplot(simulacion, aes(x = lanzamiento, y = frecuencia)) +
+  geom_line(color = "#1C6BA0") +
+  geom_hline(yintercept = 1 / 6, linetype = "dashed") +
+  scale_x_log10(breaks = c(1, 10, 100, 1000, 5000)) +
+  labs(x = "Número de lanzamientos (escala logarítmica)",
+       y = "Frecuencia relativa de sacar un 6") +
+  theme_minimal(base_size = 13)
+```
+
+`sample(1:6, size = n, replace = TRUE)` saca `n` valores al azar del vector `1:6`, devolviendo cada valor a la "bolsa" después de sacarlo (`replace = TRUE`), que es lo que pasa con un dado. `cumsum()` es la suma acumulada: en la posición 100 tiene el número de seises entre los primeros 100 lanzamientos. El eje horizontal está en escala logarítmica para que se vea bien tanto el inicio como el final.
+
+**Interpretación.** Al principio la frecuencia relativa salta mucho (como en el @tbl-eventos-acumulada), pero después de unos 1000 lanzamientos se queda muy cerca de 1/6, como predice la ley de los grandes números (@fig-eventos-lgn). Esta es la razón por la que la simulación sirve para comprobar cálculos de probabilidad: si la fórmula y la simulación con muchos casos no coinciden, hay un error en alguna de las dos.
+
+:::
+
+### Interactivo: la frecuencia relativa se estabiliza
+
+En el interactivo de la @fig-eventos-int-lgn se elige el experimento y el número de repeticiones. Cada vez que se presiona el botón se hace una simulación nueva. Conviene repetirla varias veces con 20 repeticiones y luego con 5000: con pocas, cada curva termina en un lugar distinto; con muchas, todas terminan muy cerca de la línea punteada.
+
+::: {#fig-eventos-int-lgn}
+
+```{=html}
+<div class="interactivo" id="int-lgn">
+  <label><span>Experimento:</span>
+    <select>
+      <option value="moneda">Moneda: sale escudo (P = 0.5)</option>
+      <option value="dado" selected>Dado: sale un 6 (P = 1/6)</option>
+      <option value="suma">Dos dados: la suma es 7 (P = 1/6)</option>
+      <option value="cilindro">Cilindro que no cumple (P = 0.1)</option>
+    </select></label>
+  <label><span>Número de repeticiones:</span> <output>1000</output>
+    <input type="range" min="1" max="3.7" step="0.05" value="3"></label>
+  <button type="button">Simular de nuevo</button>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 290" role="img" aria-label="Frecuencia relativa acumulada contra número de repeticiones, con la probabilidad teórica como línea punteada"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-lgn");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var menu = raiz.querySelector("select"), boton = raiz.querySelector("button");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 290, ml = 52, mr = 18, mt = 14, mb = 44;
+  var experimentos = {
+    moneda:   { p: 0.5, ensayo: function () { return Math.random() < 0.5; } },
+    dado:     { p: 1 / 6, ensayo: function () { return Math.floor(Math.random() * 6) === 5; } },
+    suma:     { p: 1 / 6, ensayo: function () { return 2 + Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) === 7; } },
+    cilindro: { p: 0.1, ensayo: function () { return Math.random() < 0.1; } }
+  };
+  function nrep() { return Math.round(Math.pow(10, parseFloat(control.value))); }
+  function fmt(x) { return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+  function dibujar() {
+    var n = nrep(), ex = experimentos[menu.value], aciertos = 0, d = "", s = "";
+    salida.textContent = fmt(n);
+    var lx = function (k) { return ml + Math.log10(k) / Math.log10(n > 1 ? n : 10) * (w - ml - mr); };
+    var sy = function (y) { return h - mb - y * (h - mt - mb); };
+    for (var k = 1; k <= n; k++) {
+      if (ex.ensayo()) aciertos++;
+      d += (k === 1 ? "M" : "L") + lx(k).toFixed(1) + "," + sy(aciertos / k).toFixed(1);
+    }
+    for (var y = 0; y <= 1.0001; y += 0.25) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" style="stroke-opacity:0.2"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(y) + 4) + '" text-anchor="end">' + y.toFixed(2) + '</text>';
+    }
+    [1, 10, 100, 1000, 5000].forEach(function (m) {
+      if (m <= n) s += '<text class="eje-texto" x="' + lx(m) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + fmt(m) + '</text>';
+    });
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+         '<line x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(ex.p) + '" y2="' + sy(ex.p) + '" style="stroke:#C0392B;stroke-width:1.5;stroke-dasharray:6 4"/>' +
+         '<path class="curva" d="' + d + '"/>' +
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Número de repeticiones (escala logarítmica)</text>' +
+         '<text class="eje-texto" x="13" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 13 ' + ((mt + h - mb) / 2) + ')">Frecuencia relativa</text>';
+    svg.innerHTML = s;
+    texto.textContent = "Ocurrió en " + fmt(aciertos) + " de " + fmt(n) + " repeticiones: frecuencia relativa = " +
+      (aciertos / n).toFixed(4) + "  (probabilidad = " + ex.p.toFixed(4) + ")";
+  }
+  control.addEventListener("input", dibujar);
+  menu.addEventListener("change", dibujar);
+  boton.addEventListener("click", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Frecuencia relativa acumulada de un evento en repeticiones simuladas. La línea punteada es la probabilidad del evento.
+
+:::
+
+## Resumen de fórmulas {#sec-eventos-resumen}
+
+El @tbl-eventos-formulas reúne las reglas del capítulo.
+
+| Regla | Fórmula | Cuándo se usa | Ecuación |
+|:--|:--|:--|:--|
+| Axioma 1 (no negatividad) | $P(A) \ge 0$ | Siempre | @eq-eventos-ax1 |
+| Axioma 2 (normalización) | $P(S) = 1$ | Siempre | @eq-eventos-ax2 |
+| Axioma 3 (aditividad) | $P(A \cup B) = P(A) + P(B)$ | Si $A \cap B = \emptyset$ | @eq-eventos-ax3 |
+| Complemento | $P(A^c) = 1 - P(A)$ | Siempre | @eq-eventos-complemento |
+| Evento imposible | $P(\emptyset) = 0$ | Siempre | — |
+| Regla de la suma | $P(A \cup B) = P(A) + P(B) - P(A \cap B)$ | Siempre | @eq-eventos-union |
+| Probabilidad clásica | $P(A) = n(A)/n(S)$ | Resultados igual de probables | @eq-eventos-clasica |
+| Frecuencia relativa | $f_n(A) = n_A/n$ | Estimación con repeticiones o registros | @eq-eventos-frecuencia |
+
+: Reglas básicas de la probabilidad. {#tbl-eventos-formulas}
+
+## Ejercicios propuestos
+
+1. Para cada experimento, indique si es determinista o aleatorio y justifique en una oración: (a) medir el asentamiento de una mezcla de concreto en el cono de Abrams; (b) calcular el área de una losa de 6 m × 4 m; (c) contar los vehículos que pasan por un peaje entre las 7:00 y las 8:00; (d) registrar si un día llueve más de 20 mm en una estación.
+2. Se inspeccionan dos soldaduras y cada una se clasifica como aceptable ($A$) o rechazada ($R$). (a) Escriba el espacio muestral a mano y con `expand.grid()`. (b) Escriba el evento "al menos una soldadura es rechazada". (c) Escriba su complemento en palabras y como conjunto.
+3. Se lanza un dado. Sean $A = \{1, 2, 3\}$, $B = \{2, 4, 6\}$ y $C = \{5, 6\}$. Obtenga a mano y con las funciones de conjuntos de R: $A \cup B$, $A \cap B$, $B \cap C$, $A^c$, $(A \cup C)^c$ y $A - B$. ¿Cuáles pares de eventos son mutuamente excluyentes?
+4. Compruebe con R las dos leyes de De Morgan (@eq-eventos-demorgan) con los eventos $A$ y $B$ del ejercicio anterior. Sugerencia: la función `setequal()` dice si dos vectores tienen los mismos elementos.
+5. En un tramo de carretera, sea $A$ = "el tramo necesita bacheo" y $B$ = "el tramo necesita limpieza de cunetas". Se sabe que $P(A) = 0.45$, $P(B) = 0.30$ y $P(A \cap B) = 0.12$. Calcule la probabilidad de que el tramo: (a) necesite al menos uno de los dos trabajos; (b) no necesite ninguno; (c) necesite solo bacheo. Dibuje el diagrama de Venn con la probabilidad de cada región.
+6. Sean $A$ y $B$ dos eventos con $P(A) = 0.50$, $P(B) = 0.35$ y $P(A \cup B) = 0.70$. (a) Calcule $P(A \cap B)$. (b) ¿Son $A$ y $B$ mutuamente excluyentes? Justifique.
+7. Alguien afirma que, para dos eventos, $P(A) = 0.6$, $P(B) = 0.7$ y $P(A \cap B) = 0.2$. Demuestre, con la regla de la suma y el axioma 2, que esos valores no pueden ser correctos.
+8. Una bolsa tiene 30 fichas numeradas del 1 al 30. Se extrae una al azar. Calcule a mano y con R la probabilidad de que el número sea: (a) múltiplo de 5; (b) múltiplo de 4 o de 5; (c) ni múltiplo de 4 ni de 5.
+9. Con los datos de atrasos de obra, estime la probabilidad de que un día haya atraso por lluvia pero no por falla de equipo. Hágalo con `mean()` en base R y con `summarise()` de `dplyr`, y compruebe que coincide con $P(L) - P(L \cap F)$.
+10. Modifique el código de la @fig-eventos-lgn para simular 10 000 lanzamientos de una moneda y graficar la frecuencia relativa de escudos. Cambie la semilla tres veces. ¿En qué se parecen y en qué se diferencian las curvas?
+11. Explique con sus palabras por qué la probabilidad clásica no sirve para calcular la probabilidad de que un pilote alcance el estrato resistente a menos de 12 m de profundidad. ¿Qué tipo de probabilidad usaría y de dónde sacaría los datos?
+12. En el interactivo de la @fig-eventos-int-venn, la operación $A - B$ da $\{2\}$. Escriba con sus palabras qué significa ese evento en el lanzamiento del dado y compruebe su probabilidad con la @eq-eventos-clasica.
+
+## Lecturas recomendadas
+
+- @bertsekas2008introduction, capítulo 1: presenta los axiomas y sus consecuencias con muchos ejemplos resueltos y diagramas de Venn.
+- @illowsky2018introductory, capítulo 3: introducción muy accesible a los eventos, las reglas de la suma y la interpretación frecuentista, con ejercicios de práctica (libro abierto y gratuito).
+- @blitzstein2019introduction, capítulo 1: explica la probabilidad clásica y la definición general con una mirada intuitiva y muchas simulaciones.
+- @ayala2026estadistica, capítulo 3: texto en español, con ejemplos en R.
