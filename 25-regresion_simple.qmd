@@ -53,6 +53,44 @@ $$ {#eq-rls-residuo}
 
 Un residuo positivo indica que el punto quedó por encima de la recta, y uno negativo, por debajo. La @fig-rls-residuos muestra los residuos de las diez mezclas como segmentos verticales. El residuo $e_i$ se calcula con los datos; el error $\varepsilon_i$ pertenece al modelo de la población y no se observa nunca.
 
+### La recta como una sucesión de medias
+
+La @eq-rls-modelo tiene dos partes. La parte sistemática, $\beta_0 + \beta_1 x_i$, es lo que se puede anticipar conociendo $x$. La parte aleatoria, $\varepsilon_i$, es lo que no. Una forma útil de imaginar el modelo es pensar que, para cada valor de $x$, existe toda una población de posibles respuestas, con su propia distribución. La recta de regresión une las medias de esas distribuciones, y el modelo supone que todas tienen la misma forma (normal) y la misma dispersión ($\sigma$). La @fig-rls-condicional dibuja esa idea para la deflexión de una viga ensayada con distintas cargas.
+
+```{r}
+#| label: fig-rls-condicional
+#| fig-cap: "El modelo de regresión: para cada carga hay una distribución normal de deflexiones, centrada en la recta y con la misma dispersión (esquema hipotético)."
+#| fig-alt: "Recta que sube; sobre ella, en cuatro cargas, se dibujan curvas normales acostadas del mismo ancho, con algunos puntos alrededor de cada una"
+#| echo: false
+
+set.seed(2501)
+b0_e <- 0.5; b1_e <- 0.08; sig_e <- 0.35
+cargas <- c(15, 30, 45, 60)
+curvas <- do.call(rbind, lapply(cargas, function(x0) {
+  yy <- seq(-3.2, 3.2, length.out = 120) * sig_e + b0_e + b1_e * x0
+  data.frame(x0, y = yy, x = x0 + 9 * dnorm(yy, b0_e + b1_e * x0, sig_e) / dnorm(0, 0, sig_e))
+}))
+puntos_e <- data.frame(x = rep(cargas, each = 6))
+puntos_e$y <- b0_e + b1_e * puntos_e$x + rnorm(24, 0, sig_e)
+ggplot() +
+  geom_abline(intercept = b0_e, slope = b1_e, color = azul, linewidth = 1) +
+  geom_path(data = curvas, aes(x, y, group = x0), color = "#E69F00", linewidth = 0.9) +
+  geom_segment(data = data.frame(x0 = cargas), aes(x = x0, xend = x0, y = b0_e + b1_e * x0 - 3.2 * sig_e,
+                                                   yend = b0_e + b1_e * x0 + 3.2 * sig_e),
+               color = "grey60", linetype = "dotted") +
+  geom_point(data = puntos_e, aes(x, y), size = 1.8) +
+  annotate("text", x = 66, y = b0_e + b1_e * 66 - 0.9, label = "E(Y | x) = β0 + β1 x", hjust = 0, size = 4, color = azul) +
+  coord_cartesian(xlim = c(8, 80)) +
+  labs(x = "Carga aplicada (kN)", y = "Deflexión al centro del claro (mm)") +
+  theme_minimal(base_size = 13)
+```
+
+Con esa imagen se entienden casi todos los conceptos del capítulo. La pendiente dice cuánto se mueve el centro de las campanas al aumentar la carga. El error estándar de la estimación, $s$, estima el ancho de las campanas. El intervalo de confianza para la media se refiere a la posición del centro de una campana, y el intervalo de predicción, a dónde puede caer un punto dentro de ella. Los supuestos del capítulo 27 son condiciones sobre las campanas: que sus centros estén sobre una recta, que todas tengan el mismo ancho y forma normal, y que un punto no dependa de otro.
+
+::: {.callout-tip title="En la práctica"}
+Muchas ecuaciones empíricas de la ingeniería se obtienen con regresiones de este tipo. Una recta de regresión da la media, no el valor de cada elemento, y por eso no se usa tal cual para diseñar. Por eso, al usar una ecuación empírica, conviene saber si da un valor medio o un valor característico (por ejemplo, el que solo un 5 % de los casos no alcanza).
+:::
+
 ```{r}
 #| label: fig-rls-residuos
 #| fig-cap: "Recta ajustada a las diez mezclas y residuos como distancias verticales."
@@ -294,11 +332,79 @@ residuals(modelo)   # residuos
 
 En la función `lm()` (de *linear model*) la fórmula `y ~ x` se lee "$y$ en función de $x$": a la izquierda de `~` va la respuesta y a la derecha el predictor. El intercepto se incluye solo. El objeto que devuelve guarda todo el ajuste, y de él se sacan los coeficientes con `coef()`, los valores ajustados con `fitted()` y los residuos con `residuals()`.
 
+### La dirección de la regresión importa
+
+En la correlación da igual cuál variable va en cada eje. En la regresión no. La recta de mínimos cuadrados de $Y$ sobre $X$ minimiza las distancias verticales, porque supone que el error está en $Y$. Si se intercambian los papeles y se ajusta $X$ sobre $Y$, se minimizan las distancias horizontales y resulta otra recta. Las dos coinciden solo si $|r| = 1$; cuanto más débil es la correlación, más se separan. La @fig-rls-direccion lo muestra con datos hipotéticos de la turbiedad y los sólidos suspendidos de un río.
+
+```{r}
+#| label: fig-rls-direccion
+#| fig-cap: "Recta de Y sobre X (minimiza distancias verticales) y recta de X sobre Y (minimiza distancias horizontales) (datos hipotéticos)."
+#| fig-alt: "Nube de puntos con dos rectas que se cruzan en el centro; la azul es menos inclinada que la naranja punteada"
+#| echo: false
+
+set.seed(2502)
+tx <- runif(40, 5, 60)
+ty <- 5 + 1.6 * tx + rnorm(40, 0, 18)
+m_yx <- lm(ty ~ tx); m_xy <- lm(tx ~ ty)
+ggplot(data.frame(tx, ty), aes(tx, ty)) +
+  geom_point(size = 2, color = "grey30") +
+  geom_abline(intercept = coef(m_yx)[1], slope = coef(m_yx)[2], color = azul, linewidth = 1.1) +
+  geom_abline(intercept = -coef(m_xy)[1] / coef(m_xy)[2], slope = 1 / coef(m_xy)[2],
+              color = "#D55E00", linewidth = 1.1, linetype = "dashed") +
+  annotate("text", x = 62, y = coef(m_yx)[1] + coef(m_yx)[2] * 62 - 14, label = "SST sobre turbiedad",
+           color = azul, hjust = 1, size = 4) +
+  annotate("text", x = 44, y = 112, label = "Turbiedad sobre SST", color = "#D55E00", hjust = 1, size = 4) +
+  labs(x = "Turbiedad (NTU)", y = "Sólidos suspendidos totales (mg/L)") +
+  theme_minimal(base_size = 13)
+```
+
+La regla práctica es poner como $Y$ la variable que se quiere predecir. Si la turbiedad se mide en el campo y con ella se quieren estimar los sólidos, se ajusta SST sobre turbiedad, aunque físicamente sean los sólidos los que causan la turbiedad. Despejar $x$ de la recta de $Y$ sobre $X$ para predecir $x$ a partir de $y$ es un error común: da la recta naranja solo si la correlación es perfecta.
+
+### Otras formas de ajustar una recta
+
+Mínimos cuadrados es el método estándar porque tiene fórmulas cerradas, buenas propiedades cuando los errores son normales y una teoría completa para hacer inferencia. No es el único, y conviene conocer las alternativas para saber cuándo hacen falta:
+
+- **Recta resistente de Theil y Sen.** Se calcula la pendiente entre cada par de puntos, $(y_j - y_i)/(x_j - x_i)$, y se toma la mediana de todas ellas. Como usa la mediana, un dato atípico casi no la mueve. @helsel2020statistical [cap. 10] la recomiendan para datos ambientales con atípicos o distribuciones asimétricas.
+- **Mínimas desviaciones absolutas.** Minimiza $\sum |e_i|$ en vez de $\sum e_i^2$. Un residuo grande pesa en proporción a su tamaño y no a su cuadrado, así que los atípicos influyen menos.
+- **Regresión con error en las dos variables** (de Deming u ortogonal). Mínimos cuadrados supone que $x$ se mide sin error. Cuando las dos variables tienen errores de medición parecidos, como al comparar dos equipos de laboratorio, se usan métodos que reparten el error entre las dos.
+
+La @fig-rls-alternativas compara mínimos cuadrados con la recta de Theil y Sen en diez puntos con un dato atípico.
+
+```{r}
+#| label: fig-rls-alternativas
+#| fig-cap: "Recta de mínimos cuadrados y recta de Theil y Sen con un dato atípico (datos hipotéticos)."
+#| fig-alt: "Nueve puntos alineados y uno muy abajo a la derecha; la recta azul de mínimos cuadrados se inclina hacia el atípico y la naranja de Theil y Sen sigue a los nueve puntos"
+#| echo: false
+
+xa <- 1:10
+ya <- c(2.1, 3.0, 4.2, 4.8, 6.1, 7.0, 7.9, 9.1, 10.0, 3.0)
+pares_ts <- combn(10, 2)
+pend_ts <- (ya[pares_ts[2, ]] - ya[pares_ts[1, ]]) / (xa[pares_ts[2, ]] - xa[pares_ts[1, ]])
+b1_ts <- median(pend_ts); b0_ts <- median(ya - b1_ts * xa)
+m_mc <- lm(ya ~ xa)
+ggplot(data.frame(xa, ya), aes(xa, ya)) +
+  geom_abline(intercept = coef(m_mc)[1], slope = coef(m_mc)[2], color = azul, linewidth = 1.1) +
+  geom_abline(intercept = b0_ts, slope = b1_ts, color = "#E69F00", linewidth = 1.1, linetype = "dashed") +
+  geom_point(size = 2.4) +
+  annotate("text", x = 1, y = 10.5, hjust = 0, size = 4, color = azul,
+           label = sprintf("Mínimos cuadrados: pendiente = %.2f", coef(m_mc)[2])) +
+  annotate("text", x = 1, y = 9.7, hjust = 0, size = 4, color = "#B07000",
+           label = sprintf("Theil y Sen: pendiente = %.2f", b1_ts)) +
+  labs(x = "X", y = "Y") +
+  theme_minimal(base_size = 13)
+```
+
+Que existan métodos resistentes no autoriza a ignorar el atípico. Primero se averigua por qué está ahí (capítulo 27); el método resistente sirve cuando el dato es real y no se puede quitar.
+
 ## Interpretación de los coeficientes {#sec-rls-interpretacion}
 
 La pendiente $b_1$ es el cambio estimado en la media de $Y$ cuando $X$ aumenta una unidad. Tiene las unidades de $Y$ divididas entre las de $X$. Si la unidad de $X$ es grande para el problema (como pasar la relación agua/cemento de 0 a 1), conviene reescalarla, como se hizo en el ejemplo con el cambio de 0.01.
 
 El intercepto $b_0$ es el valor estimado de $Y$ cuando $X = 0$. Solo tiene sentido práctico si $X = 0$ es posible y está dentro del rango de los datos. En el ejemplo, $b_0 = 69.0$ MPa sería la resistencia de un concreto sin agua, que no existe; el intercepto es solo la altura a la que la recta cortaría el eje, y sirve para ubicarla, no para interpretarlo.
+
+Cuando el intercepto no tiene sentido físico, se puede centrar el predictor: en vez de $x$ se usa $x - \bar{x}$ (o $x$ menos un valor de referencia, como 28 días o 0.50 de relación agua/cemento). La pendiente no cambia, pero el intercepto pasa a ser la respuesta media en el centro de los datos, que sí se puede interpretar, y su error estándar es el más pequeño posible. En R basta con `lm(y ~ I(x - 0.50))`; la función `I()` le indica a la fórmula que haga la resta antes de ajustar.
+
+Las unidades de la pendiente también se pueden cambiar sin alterar el modelo. Si $x$ se pasa de metros a kilómetros, la pendiente se multiplica por 1000; si $y$ se pasa de MPa a kPa, también. El $R^2$, los estadísticos $t$ y los valores $p$ no cambian. Al informar una pendiente conviene elegir la unidad de $x$ que tenga sentido práctico, por ejemplo "por cada 1000 vehículos diarios" o "por cada 10 kN".
 
 ::: {.callout-warning title="Cuidado"}
 La pendiente describe una asociación en los datos observados. Decir que "si se baja la relación agua/cemento en 0.01, la resistencia sube 0.63 MPa" supone una relación de causa que la regresión, por sí sola, no demuestra (@sec-cor-causalidad). En el concreto se acepta porque hay un mecanismo físico conocido y porque las mezclas se diseñan en el laboratorio, no porque la recta lo diga.
@@ -480,6 +586,80 @@ confint(modelo, level = 0.95)
 
 :::
 
+### Interactivo: la pendiente cambia de una muestra a otra
+
+Cada vez que se repite un ensayo se obtiene otra muestra y, con ella, otra recta. El interactivo simula ese proceso con un modelo conocido: la deflexión de una viga hipotética con $\beta_0 = 0.5$ mm, $\beta_1 = 0.08$ mm/kN y errores normales. Cada vez que se pulsa el botón se toman 30 muestras nuevas y se dibuja la recta de mínimos cuadrados de cada una. Con los controles se cambian el número de ensayos por muestra, el rango de cargas y la dispersión de los errores.
+
+::: {#fig-rls-interactivo-muestreo}
+
+```{=html}
+<div class="interactivo" id="int-muestreo-recta">
+  <label><span>Ensayos por muestra <i>n</i>:</span> <output>8</output>
+    <input type="range" min="4" max="50" step="1" value="8"></label>
+  <label><span>Rango de cargas ensayado (kN):</span> <output>20 a 60</output>
+    <input type="range" min="5" max="40" step="1" value="20"></label>
+  <label><span>Desviación estándar del error <i>σ</i> (mm):</span> <output>0.40</output>
+    <input type="range" min="0.05" max="1" step="0.05" value="0.4"></label>
+  <button type="button">Tomar 30 muestras nuevas</button>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Treinta rectas ajustadas a muestras simuladas de una misma población"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-muestreo-recta");
+  var ctl = raiz.querySelectorAll("input"), sal = raiz.querySelectorAll("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var w = 640, h = 300, m = 44, B0 = 0.5, B1 = 0.08;
+  var sx = function (x) { return m + x / 80 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y + 1) / 9 * (h - 2 * m); };
+  function normal() {
+    var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  function dibujar() {
+    var n = parseInt(ctl[0].value, 10), xmin = parseFloat(ctl[1].value), xmax = 80 - xmin, sig = parseFloat(ctl[2].value);
+    sal[0].textContent = n; sal[1].textContent = xmin + " a " + xmax; sal[2].textContent = sig.toFixed(2);
+    var g = '<defs><clipPath id="int-muestreo-recorte"><rect x="' + m + '" y="0" width="' + (w - 2 * m) + '" height="' + (h - m) + '"/></clipPath></defs>';
+    g += '<rect x="' + sx(xmin) + '" y="' + (m / 2) + '" width="' + (sx(xmax) - sx(xmin)) + '" height="' + (h - 1.5 * m) + '" fill="#E69F00" fill-opacity="0.12"/>';
+    for (var t = 0; t <= 8; t += 2) g += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    for (var u = 0; u <= 80; u += 20) g += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u + '</text>';
+    g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Carga (kN)</text>';
+    var pend = [], lineas = "", sxxUlt = 0;
+    for (var k = 0; k < 30; k++) {
+      var xs = [], ys = [], mx = 0, my = 0, sxx = 0, sxy = 0;
+      for (var i = 0; i < n; i++) {
+        var x = xmin + (xmax - xmin) * i / (n - 1);
+        xs.push(x); ys.push(B0 + B1 * x + sig * normal());
+      }
+      for (var a = 0; a < n; a++) { mx += xs[a] / n; my += ys[a] / n; }
+      for (var c = 0; c < n; c++) { sxx += Math.pow(xs[c] - mx, 2); sxy += (xs[c] - mx) * (ys[c] - my); }
+      var b1 = sxy / sxx, b0 = my - b1 * mx; pend.push(b1); sxxUlt = sxx;
+      lineas += '<line x1="' + sx(0) + '" x2="' + sx(80) + '" y1="' + sy(b0) + '" y2="' + sy(b0 + b1 * 80) +
+        '" stroke="#1b7f8c" stroke-opacity="0.35" stroke-width="1.5"/>';
+    }
+    lineas += '<line x1="' + sx(0) + '" x2="' + sx(80) + '" y1="' + sy(B0) + '" y2="' + sy(B0 + B1 * 80) + '" stroke="#D55E00" stroke-width="2.5" stroke-dasharray="7 4"/>';
+    svg.innerHTML = g + '<g clip-path="url(#int-muestreo-recorte)">' + lineas + '</g>';
+    var mp = 0, sp = 0;
+    for (var q = 0; q < 30; q++) mp += pend[q] / 30;
+    for (var r = 0; r < 30; r++) sp += Math.pow(pend[r] - mp, 2) / 29;
+    texto.textContent = "Desviación estándar de las 30 pendientes = " + Math.sqrt(sp).toFixed(4) +
+      " mm/kN   |   teórica σ/√Sxx = " + (sig / Math.sqrt(sxxUlt)).toFixed(4) + " mm/kN   |   pendiente real = 0.0800";
+  }
+  for (var j = 0; j < ctl.length; j++) ctl[j].addEventListener("input", dibujar);
+  raiz.querySelector("button").addEventListener("click", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Treinta rectas ajustadas a muestras simuladas (azul) y la recta verdadera (naranja). La franja indica el rango de cargas ensayado.
+
+:::
+
+Con pocos ensayos y un rango estrecho, las rectas forman un abanico ancho y algunas tienen pendientes muy distintas de la real. Al aumentar $n$ o al ensanchar el rango de cargas, el abanico se cierra, tal como predice la @eq-rls-se-b1: las dos cosas aumentan $S_{xx}$. Fíjese también en que las rectas se cruzan cerca del centro de la franja y se separan hacia afuera: es la razón por la que las predicciones son menos precisas en los extremos y más aún fuera del rango ensayado (@sec-rls-extrapolacion).
+
 ## Cuadro de análisis de varianza {#sec-rls-anova}
 
 La descomposición de la @eq-rls-descomposicion se suele presentar en un cuadro de análisis de varianza (ANOVA), con la estructura del @tbl-rls-anova-general. El mismo cuadro aparece en la regresión múltiple (capítulo 26) y en el diseño de experimentos (Parte VII).
@@ -563,6 +743,57 @@ anova(modelo)
 **Interpretación.** La variación explicada por la recta es 336 veces mayor que la variación residual por grado de libertad, así que la relación agua/cemento explica una parte real de la variación de la resistencia. La conclusión es la misma de la prueba $t$, como debe ser en una regresión con un solo predictor.
 
 :::
+
+## Cómo leer la salida de summary() {#sec-rls-summary}
+
+Casi todo lo que se calculó a mano en este capítulo aparece en la salida de `summary()` de un modelo de `lm()`. Conviene aprender a leerla una vez, con calma, porque es la misma para la regresión múltiple del capítulo 26. Como ejemplo se usa la recta para estimar los sólidos suspendidos totales (SST, mg/L) a partir de la turbiedad (NTU) de las ocho muestras del capítulo 24.
+
+```{r}
+agua <- read.csv("datos/turbiedad_sst_hipotetica.csv")
+calibracion <- lm(sst_mg_l ~ turbiedad_ntu, data = agua)
+summary(calibracion)
+```
+
+El @tbl-rls-summary explica cada parte de la salida, de arriba hacia abajo.
+
+```{r}
+#| label: tbl-rls-summary
+#| tbl-cap: "Partes de la salida de summary() de un modelo lineal y su significado."
+#| echo: false
+
+data.frame(
+  parte = c("Call", "Residuals", "Estimate", "Std. Error", "t value", "Pr(>|t|)", "Signif. codes",
+            "Residual standard error", "Multiple R-squared", "Adjusted R-squared", "F-statistic"),
+  que_es = c("La fórmula y los datos del modelo",
+             "Mínimo, cuartiles y máximo de los residuos <i>e<sub>i</sub></i>",
+             "Los coeficientes <i>b</i><sub>0</sub> (fila <code>(Intercept)</code>) y <i>b</i><sub>1</sub>",
+             "Errores estándar <i>SE</i>(<i>b</i><sub>0</sub>) y <i>SE</i>(<i>b</i><sub>1</sub>)",
+             "Estadístico <i>t</i> = <i>b<sub>j</sub></i>/<i>SE</i>(<i>b<sub>j</sub></i>) para <i>H</i><sub>0</sub>: <i>β<sub>j</sub></i> = 0",
+             "Valor <i>p</i> bilateral de esa prueba",
+             "Asteriscos según el valor <i>p</i>",
+             "<i>s</i> = √<i>MSE</i> y sus grados de libertad, <i>n</i> − 2",
+             "<i>R</i><sup>2</sup> = <i>SSR</i>/<i>SST</i>",
+             "<i>R</i><sup>2</sup> ajustado (capítulo 26)",
+             "Prueba <i>F</i> global, con sus grados de libertad y su valor <i>p</i>"),
+  lectura = c("Revisar que es el modelo que se quería ajustar",
+              "La mediana debería estar cerca de 0 y los cuartiles ser parecidos en valor absoluto",
+              "Por cada NTU adicional, los SST suben 1.71 mg/L en promedio",
+              "Cuánto podría cambiar el coeficiente en otra muestra",
+              "Cuántos errores estándar separan al coeficiente de cero",
+              "La pendiente tiene <i>p</i> < 0.001; el intercepto, <i>p</i> = 0.137",
+              "Ayuda visual; no reemplaza leer el valor <i>p</i> ni la magnitud",
+              "Un residuo típico es de 1.7 mg/L",
+              "La recta explica el 99.3 % de la variación de los SST",
+              "Penaliza el número de predictores",
+              "En regresión simple coincide con la prueba <i>t</i> de la pendiente (<i>F</i> = <i>t</i><sup>2</sup>)")
+) %>%
+  kbl(col.names = c("Parte", "Qué es", "Cómo se lee en el ejemplo"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Dos detalles de la salida confunden al principio. El primero es el intercepto "no significativo" ($p = 0.137$): no quiere decir que haya que quitarlo, sino que estos datos no distinguen $\beta_0$ de cero. Si hay razones físicas para que la recta pase por el origen, se considera el modelo de la @sec-rls-origen; si no, se deja. El segundo es la notación científica: `1.08e-07` es $1.08 \times 10^{-7}$, un valor $p$ que se informa como $p < 0.001$.
+
+Las funciones para sacar cada número sin copiarlo de la pantalla son `coef()`, `confint()`, `sigma()` (el error estándar de la estimación), `summary(modelo)$r.squared`, `summary(modelo)$coefficients` (el cuadro de coeficientes como matriz) y `anova()`. Con ellas el informe se actualiza solo si cambian los datos (capítulo 5).
 
 ## Estimación de la media y predicción de un valor nuevo {#sec-rls-prediccion}
 
@@ -773,6 +1004,112 @@ ggplot() +
 Una recta con $R^2 = 0.99$ no autoriza a extrapolar. Antes de usar el modelo hay que comprobar que el $x_0$ está dentro del rango de los datos y que las condiciones son las mismas del ensayo (materiales, edad, tipo de elemento). Si hace falta estimar fuera del rango, lo correcto es ensayar en ese rango o usar un modelo físico que explique el cambio de comportamiento.
 :::
 
+## Regresión por el origen {#sec-rls-origen}
+
+::: {.pregunta}
+Si no llueve, ¿cuánta agua sale de un techo?
+:::
+
+Ninguna. En algunos problemas la física exige que $Y = 0$ cuando $x = 0$: sin lluvia no hay escorrentía, sin carga no hay deflexión, sin vehículos no hay desgaste. En esos casos se puede ajustar un modelo sin intercepto, la regresión por el origen [@montgomery2012introduction, cap. 2]:
+
+$$
+Y_i = \beta_1 x_i + \varepsilon_i
+$$ {#eq-rls-origen}
+
+Al minimizar $SSE = \sum (y_i - b_1 x_i)^2$ con una sola derivada resulta
+
+$$
+b_1 = \frac{\sum x_i y_i}{\sum x_i^2}, \qquad s^2 = \frac{\sum (y_i - b_1 x_i)^2}{n - 1}, \qquad SE(b_1) = \frac{s}{\sqrt{\sum x_i^2}}
+$$ {#eq-rls-origen-b1}
+
+donde las sumas usan los valores originales, sin restar las medias, y el error tiene $n - 1$ grados de libertad porque se estimó un solo parámetro. En R se escribe `lm(y ~ 0 + x)` o `lm(y ~ x - 1)`.
+
+El método racional de drenaje urbano es un modelo de este tipo. El caudal pico de una cuenca pequeña es proporcional a la intensidad de la lluvia, $Q = C\,i\,A/360$, con $Q$ en m³/s, $i$ en mm/h, el área $A$ en hectáreas y un coeficiente de escorrentía $C$ adimensional que depende de la superficie [@chow1988applied]. Para una parcela de área conocida, $C$ se puede estimar con una regresión por el origen del caudal medido contra la intensidad.
+
+::: {.callout-note title="Ejemplo: coeficiente de escorrentía de una parcela urbana"}
+
+**Planteamiento.** En una parcela urbana de 0.5 ha se midieron la intensidad de ocho aguaceros hipotéticos (mm/h) y el caudal pico a la salida (L/s). Ajuste una recta por el origen, estime el coeficiente de escorrentía $C$ del método racional con un intervalo del 95 % y compare con la recta con intercepto.
+
+```{r}
+#| echo: false
+ver_datos("datos/escorrentia_parcela_hipotetica.csv", filas = 8,
+          nombres = c("Evento", "Intensidad (mm/h)", "Caudal pico (L/s)"))
+```
+
+**Solución:**
+
+1. Sumas: $\sum x_i^2 = 11\,766$ y $\sum x_i y_i = 9909.7$.
+2. Pendiente (@eq-rls-origen-b1): $b_1 = 9909.7/11\,766 = 0.8422$ L/s por mm/h.
+3. Residuos: para el primer aguacero, $e_1 = 9.5 - 0.8422(12) = -0.607$ L/s. La suma de los ocho residuos al cuadrado es $SSE = 7.985$ L²/s². Los residuos ya no suman cero: esa propiedad depende del intercepto.
+4. Error estándar: $s = \sqrt{7.985/7} = 1.068$ L/s y $SE(b_1) = 1.068/\sqrt{11\,766} = 0.00985$.
+5. Intervalo del 95 % con $t_{0.025,\,7} = 2.365$: $0.8422 \pm 2.365(0.00985) = 0.8422 \pm 0.0233$, de 0.8189 a 0.8655.
+6. Coeficiente de escorrentía. Con $A = 0.5$ ha y $Q$ en L/s, el método racional da $Q = 1000\,C\,i\,(0.5)/360 = 1.3889\,C\,i$, así que $C = b_1/1.3889 = 0.606$, con intervalo de $0.8189/1.3889 = 0.590$ a $0.8655/1.3889 = 0.623$.
+7. Con intercepto, la recta es $\hat{Q} = -0.09 + 0.8445\,i$, y el intercepto tiene $p = 0.93$: los datos no contradicen que la recta pase por el origen.
+
+**Pseudocódigo**
+
+1. Leer los datos.
+2. Calcular $b_1$, los residuos, $s$ y $SE(b_1)$ con la @eq-rls-origen-b1.
+3. Armar el intervalo y convertirlo en un intervalo para $C$.
+4. Comparar con `lm(caudal ~ 0 + intensidad)` y con el modelo con intercepto.
+
+```{r}
+# 1) Datos
+parcela <- read.csv("datos/escorrentia_parcela_hipotetica.csv")
+x <- parcela$intensidad_mm_h
+y <- parcela$caudal_l_s
+n <- length(x)
+
+# 2) Recta por el origen con las fórmulas
+b1 <- sum(x * y) / sum(x^2)
+e <- y - b1 * x
+s <- sqrt(sum(e^2) / (n - 1))          # n - 1 grados de libertad
+se_b1 <- s / sqrt(sum(x^2))
+
+# 3) Intervalo para b1 y para C (Q en L/s, A = 0.5 ha)
+ic_b1 <- b1 + c(-1, 1) * qt(0.975, df = n - 1) * se_b1
+k <- 1000 * 0.5 / 360
+c(b1 = b1, s = s, se_b1 = se_b1, C = b1 / k, C_inf = ic_b1[1] / k, C_sup = ic_b1[2] / k)
+
+# 4) Con lm(): "0 +" quita el intercepto
+por_origen <- lm(caudal_l_s ~ 0 + intensidad_mm_h, data = parcela)
+con_intercepto <- lm(caudal_l_s ~ intensidad_mm_h, data = parcela)
+confint(por_origen)
+summary(con_intercepto)$coefficients
+```
+
+**Interpretación.** La parcela entrega unos 0.84 L/s de caudal pico por cada mm/h de intensidad, lo que corresponde a un coeficiente de escorrentía de 0.61 (intervalo del 95 %: 0.59 a 0.62), un valor del orden de los que se usan para zonas urbanas con mezcla de techos, pavimento y jardines. El modelo con intercepto da casi la misma pendiente y un intercepto indistinguible de cero, así que la física y los datos coinciden. El coeficiente vale para aguaceros entre 12 y 60 mm/h; con lluvias muy débiles, la retención en el terreno puede hacer que el caudal sea menor que lo que predice la recta.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Quitar el intercepto solo se justifica por la física del problema, y conviene comprobar con el modelo completo que los datos no lo contradicen. Dos detalles de la salida de R engañan. Primero, el $R^2$ de un modelo sin intercepto se calcula con $\sum y_i^2$ en lugar de $\sum (y_i - \bar{y})^2$ y sale casi siempre cercano a 1: no se compara con el $R^2$ del modelo con intercepto [@montgomery2012introduction, cap. 2]. Segundo, si los datos están lejos de $x = 0$ (por ejemplo, cargas de 40 a 60 kN), forzar la recta por el origen puede inclinarla mal en el rango que interesa, aunque físicamente $Y = 0$ en $x = 0$, porque la relación puede no ser lineal en todo el tramo.
+:::
+
+## Errores comunes con la regresión simple {#sec-rls-errores}
+
+```{r}
+#| label: tbl-rls-errores
+#| tbl-cap: "Errores frecuentes al ajustar o usar una recta de regresión."
+#| echo: false
+
+data.frame(
+  error = c("Ajustar sin graficar", "Interpretar el intercepto fuera del rango", "Despejar <i>x</i> de la recta de <i>y</i> sobre <i>x</i>",
+            "Usar el intervalo de confianza para un elemento individual", "Extrapolar", "Juzgar el modelo solo por <i>R</i><sup>2</sup>",
+            "Leer la pendiente como efecto causal", "Comparar <i>R</i><sup>2</sup> de modelos con distinta respuesta o sin intercepto"),
+  consecuencia = c("Una recta sobre datos curvos o con atípicos", "Valores sin sentido físico (resistencia sin agua)",
+                   "Predicciones sesgadas cuando <i>r</i> no es ±1", "Una incertidumbre mucho menor que la real",
+                   "Predicciones sin respaldo en los datos", "Modelos mal especificados que parecen buenos",
+                   "Conclusiones de diseño sin respaldo", "Comparaciones sin sentido"),
+  remedio = c("Diagrama de dispersión y residuos (capítulo 27)", "Interpretar solo dentro del rango de <i>x</i>",
+              "Ajustar la regresión en la dirección de la predicción", "Usar el intervalo de predicción",
+              "Ensayar en el rango de interés", "Revisar residuos, <i>s</i> y el sentido físico",
+              "Experimento controlado o mecanismo conocido", "Comparar con <i>s</i> en las mismas unidades")
+) %>%
+  kbl(col.names = c("Error", "Consecuencia", "Qué hacer"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
 ## Ejercicios propuestos
 
 1. Para seis observaciones se tiene $n = 6$, $\sum x = 21$, $\sum y = 72$, $\sum x^2 = 91$, $\sum xy = 287$ y $\sum y^2 = 938$. Calcule a mano $b_1$, $b_0$, la predicción para $x = 4.5$, $r$ y $R^2$.
@@ -784,9 +1121,17 @@ Una recta con $R^2 = 0.99$ no autoriza a extrapolar. Antes de usar el modelo hay
 7. Repita el ajuste de las mezclas usando como predictor la relación agua/cemento multiplicada por 100 (por ejemplo, 55 en vez de 0.55). ¿Qué pasa con $b_0$, $b_1$, $R^2$ y el valor $p$? Explique.
 8. Use el interactivo de la @fig-rls-interactivo-bandas para encontrar la relación agua/cemento con la que el límite inferior del intervalo de predicción es 30 MPa. Compruebe el resultado con `predict()`.
 
+9. Con las ocho muestras de `turbiedad_sst_hipotetica.csv`, ajuste a mano la recta de los SST contra la turbiedad y compruebe los coeficientes de la @sec-rls-summary. Estime los SST de una muestra con 20 NTU con su intervalo de predicción del 95 %.
+10. Con los mismos datos, ajuste la recta de la turbiedad contra los SST y despeje los SST. Compare esa recta con la del ejercicio 9 y explique por qué no coinciden.
+11. Con la parcela de `escorrentia_parcela_hipotetica.csv`, estime el caudal pico para un aguacero de 40 mm/h con la recta por el origen y con la recta con intercepto. ¿Cuánto difieren? ¿Cuál usaría para diseñar un tragante?
+12. Use el interactivo de la @fig-rls-interactivo-muestreo con $\sigma = 0.4$ mm. ¿Qué reduce más la variación de la pendiente: pasar de 8 a 32 ensayos con el rango de 20 a 60 kN, o mantener 8 ensayos y ampliar el rango de 5 a 75 kN? Compruebe con la @eq-rls-se-b1.
+
 ## Lecturas recomendadas
 
 - @illowsky2018introductory, capítulo 12: presenta la recta de mínimos cuadrados, la predicción y los valores atípicos con ejemplos sencillos.
 - @laneintroduction, capítulo 14: explica la partición de las sumas de cuadrados, el error estándar de la estimación y la inferencia sobre $b$ y $r$, con buenos gráficos.
 - @montgomery2012introduction, capítulo 2: el desarrollo completo de la regresión simple, con las demostraciones que aquí se resumen. Es la referencia para quien quiera ir más a fondo.
 - @ayala2026estadistica, capítulo 8: regresión lineal simple con R, en español.
+
+- @helsel2020statistical, capítulos 9 y 10: regresión simple con datos de agua y métodos alternativos, como la recta de Theil y Sen.
+- @chow1988applied: el método racional y el coeficiente de escorrentía.
