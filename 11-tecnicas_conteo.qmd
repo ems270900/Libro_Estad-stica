@@ -418,13 +418,13 @@ cuadro %>%
 
 Cada combinación aparece $2! = 2$ veces entre las permutaciones, por eso $P(4, 2) = 12$ y $C(4, 2) = 12/2 = 6$.
 
-::: {.callout-note title="Ejemplo: cilindros escogidos para ensayo"}
+::: {.callout-note title="Ejemplo: tramos de alcantarillado escogidos para inspección"}
 
-**Planteamiento.** De un lote de 12 cilindros de concreto se escogen 4 al azar para ensayarlos a compresión. ¿Cuántas muestras distintas de 4 cilindros se pueden escoger?
+**Planteamiento.** Una red de alcantarillado sanitario tiene 12 tramos entre pozos de registro. Este año el presupuesto alcanza para inspeccionar 4 tramos con cámara de circuito cerrado, escogidos al azar. ¿Cuántas muestras distintas de 4 tramos se pueden escoger?
 
 **Solución:**
 
-1. No importa el orden en que se escogen: la muestra {1, 5, 8, 11} es la misma que {11, 8, 5, 1}. No hay repetición: un cilindro no se ensaya dos veces. Es una combinación con $n = 12$ y $k = 4$.
+1. No importa el orden en que se escogen: la muestra {1, 5, 8, 11} es la misma que {11, 8, 5, 1}. No hay repetición: un tramo no se inspecciona dos veces. Es una combinación con $n = 12$ y $k = 4$.
 2. Con la @eq-conteo-combinaciones:
    $C(12, 4) = \dfrac{12!}{4! \, 8!} = \dfrac{12 \times 11 \times 10 \times 9}{4 \times 3 \times 2 \times 1} = \dfrac{11\,880}{24} = 495$.
 
@@ -449,7 +449,7 @@ muestras[, 1:6]       # las primeras seis
 ncol(muestras)
 ```
 
-**Interpretación.** Hay 495 muestras posibles. Si el muestreo es al azar, cada una tiene probabilidad $1/495$ de ser la escogida. Esa igualdad entre todas las muestras es lo que justifica, en la Parte V, usar los resultados de los 4 cilindros para sacar conclusiones sobre el lote completo.
+**Interpretación.** Hay 495 muestras posibles. Si el muestreo es al azar, cada una tiene probabilidad $1/495$ de ser la escogida. Esa igualdad entre todas las muestras es lo que justifica, en la Parte V, usar el estado de los 4 tramos inspeccionados para sacar conclusiones sobre la red completa.
 
 :::
 
