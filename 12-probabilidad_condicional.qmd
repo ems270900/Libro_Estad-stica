@@ -57,7 +57,7 @@ La @fig-condicional-venn muestra la idea en un diagrama de Venn. A la izquierda,
 
 ```{r}
 #| label: fig-condicional-venn
-#| fig-cap: "Al condicionar en B, el círculo B pasa a ser el nuevo espacio muestral."
+#| fig-cap: "Espacio muestral reducido al condicionar en B."
 #| fig-alt: "Dos diagramas de Venn. En el izquierdo se colorea el círculo A dentro del rectángulo S. En el derecho solo queda el círculo B en gris claro y se colorea la intersección de A y B."
 #| echo: false
 #| fig-width: 8
@@ -148,7 +148,7 @@ El @tbl-condicional-varillas resume los 1000 registros.
 
 ```{r}
 #| label: tbl-condicional-varillas
-#| tbl-cap: "Varillas inspeccionadas en una semana, por tipo y condición (datos hipotéticos)."
+#| tbl-cap: "Varillas inspeccionadas por tipo y condición."
 #| echo: false
 
 library(kableExtra)
@@ -258,7 +258,7 @@ La @fig-condicional-arbol-vigas resume el cálculo. La probabilidad de cada cami
 
 ```{r}
 #| label: fig-condicional-arbol-vigas
-#| fig-cap: "Árbol de probabilidad para dos vigas escogidas sin reemplazo de un lote con 3 defectuosas y 7 buenas."
+#| fig-cap: "Árbol de probabilidad para dos vigas."
 #| fig-alt: "Árbol con dos ramas iniciales, D con 0.3 y B con 0.7; de D salen D con 2/9 y B con 7/9; de B salen D con 3/9 y B con 6/9; a la derecha las probabilidades de los cuatro caminos"
 #| echo: false
 #| fig-width: 8
@@ -423,7 +423,7 @@ La @fig-condicional-arbol-plantas muestra el árbol. Los caminos que terminan en
 
 ```{r}
 #| label: fig-condicional-arbol-plantas
-#| fig-cap: "Árbol de probabilidad para el origen de una carga de concreto y su cumplimiento de la especificación."
+#| fig-cap: "Árbol de probabilidad del origen de una carga."
 #| fig-alt: "Árbol con tres ramas iniciales, planta 1 con 0.45, planta 2 con 0.35 y planta 3 con 0.20; de cada una salen las ramas F, fuera de especificación, y C, conforme; a la derecha las probabilidades de los seis caminos"
 #| echo: false
 #| fig-width: 8
@@ -480,7 +480,7 @@ El resultado se resume en el @tbl-condicional-bayes.
 
 ```{r}
 #| label: tbl-condicional-bayes
-#| tbl-cap: "Probabilidades a priori y a posteriori del origen de una carga fuera de especificación."
+#| tbl-cap: "Probabilidades a priori y a posteriori."
 #| echo: false
 
 bayes %>%
@@ -613,7 +613,7 @@ En el interactivo de la @fig-condicional-int-bayes se cambian la prevalencia, la
 </script>
 ```
 
-Teorema de Bayes en una población de 1000 elementos. Mueva los controles y observe cuántos de los positivos tienen de verdad el problema.
+Teorema de Bayes en 1000 elementos.
 
 :::
 

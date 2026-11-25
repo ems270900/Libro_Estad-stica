@@ -28,7 +28,7 @@ La @fig-conteo-arbol muestra el principio con un caso más pequeño: 2 cementos 
 
 ```{r}
 #| label: fig-conteo-arbol
-#| fig-cap: "Diagrama de árbol para escoger un cemento (C1 o C2) y un agregado (A1, A2 o A3)."
+#| fig-cap: "Diagrama de árbol de cemento y agregado."
 #| fig-alt: "Árbol que parte de un punto, se abre en dos ramas C1 y C2, y cada una se abre en tres ramas A1, A2 y A3, para un total de seis hojas"
 #| echo: false
 #| fig-width: 7
@@ -306,7 +306,7 @@ El @tbl-conteo-orden muestra la diferencia entre permutaciones y combinaciones c
 
 ```{r}
 #| label: tbl-conteo-orden
-#| tbl-cap: "Arreglos de 2 elementos tomados de {A, B, C, D}: con orden hay 12, sin orden hay 6."
+#| tbl-cap: "Arreglos con orden y sin orden."
 #| echo: false
 
 library(kableExtra)
@@ -565,7 +565,7 @@ body.quarto-dark #int-conteo .cuadro-conteo th, body.quarto-dark #int-conteo .cu
 </script>
 ```
 
-Calculadora de conteo. Mueva $n$ y $k$; con números pequeños se muestra la lista de arreglos.
+Calculadora de conteo.
 
 :::
 

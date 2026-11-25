@@ -100,7 +100,7 @@ La @fig-eventos-venn muestra en azul la región que corresponde a cada operació
 
 ```{r}
 #| label: fig-eventos-venn
-#| fig-cap: "Operaciones con dos eventos en un diagrama de Venn. La región azul es el resultado de cada operación."
+#| fig-cap: "Operaciones con dos eventos."
 #| fig-alt: "Seis diagramas de Venn con dos círculos A y B dentro de un rectángulo S; en cada uno se colorea la unión, la intersección, el complemento de A, la diferencia A menos B, la diferencia B menos A y el complemento de la unión"
 #| echo: false
 #| fig-width: 9
@@ -210,7 +210,7 @@ El @tbl-eventos-resumen resume las operaciones con el ejemplo del dado.
 
 ```{r}
 #| label: tbl-eventos-resumen
-#| tbl-cap: "Operaciones con eventos, con $A$ = número par y $B$ = número mayor que 3 al lanzar un dado."
+#| tbl-cap: "Operaciones con eventos al lanzar un dado."
 #| echo: false
 
 library(kableExtra)
@@ -335,7 +335,7 @@ body.quarto-dark #int-venn .borde { stroke: #ced4da; }
 </script>
 ```
 
-Diagrama de Venn para $A$ = número par y $B$ = número mayor que 3 al lanzar un dado. Elija una operación.
+Diagrama de Venn al lanzar un dado.
 
 :::
 
@@ -631,7 +631,7 @@ A mano no se pueden hacer 5000 lanzamientos, pero sí se puede ver cómo se calc
 
 ```{r}
 #| label: tbl-eventos-acumulada
-#| tbl-cap: "Frecuencia relativa acumulada del evento \"sale un 6\" en los diez primeros lanzamientos."
+#| tbl-cap: "Frecuencia relativa de un 6 en diez lanzamientos."
 #| echo: false
 
 diez <- c(3, 6, 1, 6, 4, 2, 5, 1, 3, 2)
@@ -658,7 +658,7 @@ Con diez lanzamientos la frecuencia es 0.200, todavía lejos de 0.1667. Después
 ```{r}
 #| label: fig-eventos-lgn
 #| cache: true
-#| fig-cap: "Frecuencia relativa acumulada de sacar un 6 en 5000 lanzamientos simulados de un dado."
+#| fig-cap: "Frecuencia relativa de un 6 en 5000 lanzamientos."
 #| fig-alt: "Línea que oscila mucho en los primeros lanzamientos y luego se estabiliza cerca de la línea horizontal punteada en 0.167"
 
 library(ggplot2)
@@ -764,7 +764,7 @@ En el interactivo de la @fig-eventos-int-lgn se elige el experimento y el númer
 </script>
 ```
 
-Frecuencia relativa acumulada de un evento en repeticiones simuladas. La línea punteada es la probabilidad del evento.
+Ley de los grandes números.
 
 :::
 

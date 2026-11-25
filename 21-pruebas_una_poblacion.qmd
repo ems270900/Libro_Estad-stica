@@ -235,7 +235,7 @@ La @fig-una-calculadora sirve para repetir la prueba $t$ con cualquier resumen d
 </script>
 ```
 
-Calculadora de la prueba $t$ para una media a partir de $\bar{x}$, $s$ y $n$. Viene cargada con el ejemplo de la carpeta asfáltica.
+Calculadora de la prueba $t$ para una media.
 
 :::
 
