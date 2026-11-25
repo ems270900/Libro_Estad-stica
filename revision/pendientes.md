@@ -17,7 +17,6 @@
 
 ## Parte II (estadística descriptiva)
 
-- Cita del Código Sísmico de Costa Rica en el capítulo 7 (CITA PENDIENTE).
 - Revisión del autor de los capítulos 7 a 9.
 ## Parte III (Probabilidad)
 
@@ -46,8 +45,7 @@
 - Todos los datos de la parte son hipotéticos (`herramientas/datos_parte4.R`). Si el autor tiene series reales publicables (llegadas de camiones, fallas de bombas, resistencias de una obra), se pueden sustituir sin cambiar el texto de los métodos.
 - Las diapositivas de la semana 4 traían datos de huracanes atribuidos a la NOAA; no se usaron porque no se pudo verificar la fuente exacta.
 - El capítulo 16 menciona la resistencia característica del concreto sin dar el criterio de un código; si el autor quiere, se agrega el criterio del código que use el curso, con su cita.
-- Capítulo 14: falta la fuente normativa del criterio de 10 % de excedencia en 50 años (sismo de 475 años), marcada con CITA PENDIENTE. El autor puede indicar el código que prefiera.
-- Referencias nuevas de la Parte IV por confirmar con el autor: ang2007probability, benjamin1970probability, bortkiewicz1898gesetz, galton1889natural, gumbel1958statistics y weibull1951statistical (datos tomados de las ediciones originales; no se cotejaron páginas).
+- Referencias nuevas de la Parte IV por confirmar con el autor: ang2007probability, benjamin1970probability, bortkiewicz1898gesetz, galton1889natural, gumbel1958statistics, weibull1951statistical, cfia2016codigo (Código Sísmico 2010, revisión 2014, segunda reimpresión de 2016) y cen2004eurocode (datos tomados de las ediciones originales; no se cotejaron páginas).
 - Capítulo 21: que la elección de la prueba tenga una guía como la de las distribuciones (diagrama, cuadro, casos y cuestionario). Se pidió al hilo de la Parte V, que tiene abierto ese capítulo.
 - Los esquemas de la Parte IV usan `R/diagramas_red.R` (red de cajas con coordenadas). Si `dg_decision()` de `R/diagramas.R` cubre los mismos casos, se pueden unificar.
 
