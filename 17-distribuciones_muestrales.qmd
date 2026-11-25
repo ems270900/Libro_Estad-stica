@@ -1,0 +1,501 @@
+---
+title: "Muestreo, distribuciones muestrales y teorema del límite central"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+naranja <- "#E69F00"
+tema_libro <- theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank())
+```
+
+Nadie ensaya todo el concreto de un edificio ni mide el tiempo de viaje de todos los usuarios de una ruta de bus. Se ensayan algunos cilindros, se encuesta a algunos usuarios, y con esa muestra se sacan conclusiones sobre el total. Pero si se hubiera tomado otra muestra, el promedio habría salido distinto. ¿Cuánto distinto? Esa pregunta es el puente entre la probabilidad de los capítulos 13 a 16 y la inferencia estadística de la Parte V. La respuesta está en las distribuciones muestrales: la distribución de los valores que tomaría un promedio, una proporción o una varianza si se repitiera el muestreo muchas veces. Este capítulo las construye primero con simulación en R, para verlas, y después con fórmulas. El resultado central es el teorema del límite central, que explica por qué la distribución normal aparece en casi todos los métodos de la Parte V.
+
+## Población, muestra, parámetro y estadístico {#sec-muestreo-conceptos}
+
+Cuatro palabras ordenan todo el capítulo:
+
+- **Población.** El conjunto completo de elementos sobre el que se quiere concluir: todos los cilindros que se podrían moldear con el concreto de una obra, todos los viajes de una ruta en un mes.
+- **Muestra.** La parte de la población que efectivamente se observa.
+- **Parámetro.** Un número que describe a la población, como su media $\mu$, su desviación estándar $\sigma$ o la proporción $p$ de elementos defectuosos. Es fijo, pero casi siempre desconocido.
+- **Estadístico.** Un número que se calcula con la muestra, como la media muestral $\bar{x}$, la desviación estándar muestral $s$ o la proporción muestral $\hat{p}$. Se conoce, pero cambia de una muestra a otra.
+
+La convención de notación es usar letras griegas para los parámetros ($\mu$, $\sigma$) y letras latinas para los estadísticos ($\bar{x}$, $s$). Antes de tomar la muestra, el estadístico es una variable aleatoria, porque su valor depende de qué elementos salgan; por eso se escribe con mayúscula, $\bar{X}$, cuando se habla de su distribución.
+
+Para que la muestra represente a la población, sus elementos se eligen al azar. En un muestreo aleatorio simple, cada grupo posible de $n$ elementos tiene la misma probabilidad de ser la muestra elegida. En R se hace con `sample()` (@sec-prog-simulacion). Otras formas de muestreo, como el estratificado o el sistemático, se usan cuando la población tiene grupos o un orden natural, pero las fórmulas de este capítulo suponen muestreo aleatorio simple.
+
+::: {.callout-warning title="Cuidado"}
+Una muestra grande no corrige una muestra mal tomada. Si solo se ensayan los cilindros de las coladas de la mañana, o solo se encuesta a quienes viajan en horas valle, el promedio estará sesgado sin importar cuántos datos se tomen. Las fórmulas de este capítulo miden el error que produce el azar del muestreo, no el que produce una muestra elegida a conveniencia.
+:::
+
+## Distribución muestral de la media {#sec-muestreo-media}
+
+::: {.pregunta}
+Si cien personas toman cada una una muestra de 36 viajes de la misma ruta y calculan el tiempo promedio, ¿obtendrán todas el mismo valor?
+:::
+
+No, pero sus resultados no serán cualesquiera. Para verlo, se trabaja con una población que sí se conoce completa: los tiempos de 2000 viajes en bus de una ruta urbana (datos hipotéticos). En la práctica nunca se tiene la población entera; aquí se tiene para poder comparar lo que dice cada muestra con la verdad.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/tiempos_viaje_poblacion_hipotetica.csv",
+          nombres = c("Viaje", "Tiempo de viaje (min)"))
+```
+
+La población tiene media $\mu = 20.21$ min y desviación estándar $\sigma = 14.41$ min, y es muy asimétrica: la mayoría de los viajes dura entre 5 y 30 minutos, pero unos pocos pasan de una hora (panel izquierdo de la @fig-muestreo-medias). Si se toma una muestra de 36 viajes y se calcula su promedio, y se repite eso 5000 veces, se obtienen 5000 promedios. Su histograma, en el panel derecho, es la distribución muestral de la media para $n = 36$.
+
+```{r}
+#| label: fig-muestreo-medias
+#| fig-cap: "Población de tiempos de viaje y distribución de 5000 medias muestrales con n = 36."
+#| fig-alt: "A la izquierda, histograma muy asimétrico de los tiempos de viaje de 0 a 100 minutos; a la derecha, histograma con forma de campana de las medias, entre 13 y 28 minutos, con una curva normal encima"
+#| echo: false
+#| cache: true
+#| fig-width: 8
+#| fig-height: 3.4
+
+pob <- read.csv("datos/tiempos_viaje_poblacion_hipotetica.csv")$tiempo_min
+mu_pob <- mean(pob)
+sigma_pob <- sqrt(mean((pob - mu_pob)^2))
+set.seed(17)
+medias_36 <- replicate(5000, mean(sample(pob, 36)))
+bind_rows(tibble(valor = pob, panel = "Población (tiempos de viaje)"),
+          tibble(valor = medias_36, panel = "Medias de muestras de 36 viajes")) %>%
+  mutate(panel = fct_inorder(panel)) %>%
+  ggplot(aes(valor)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 40, fill = azul, alpha = 0.6, color = "white") +
+  geom_line(data = tibble(valor = seq(10, 30, length.out = 300),
+                          f = dnorm(valor, mu_pob, sigma_pob / 6),
+                          panel = factor("Medias de muestras de 36 viajes",
+                                         levels = c("Población (tiempos de viaje)", "Medias de muestras de 36 viajes"))),
+            aes(valor, f), color = naranja, linewidth = 1) +
+  facet_wrap(~panel, scales = "free") +
+  labs(x = "Tiempo (min)", y = "Densidad") +
+  tema_libro
+```
+
+La comparación entre los dos paneles muestra tres hechos, que valen en general [@illowsky2018introductory, cap. 7]:
+
+1. Las medias muestrales se centran en la media de la población: el promedio de los 5000 promedios es 20.24 min, contra $\mu = 20.21$ min.
+2. Las medias varían mucho menos que los datos individuales: su desviación estándar es 2.37 min, contra 14.41 min de los viajes.
+3. Aunque la población es muy asimétrica, el histograma de las medias tiene forma de campana y la curva normal lo describe bien.
+
+Los dos primeros hechos se escriben así:
+
+$$
+E(\bar{X}) = \mu, \qquad \sigma_{\bar{X}} = \frac{\sigma}{\sqrt{n}}
+$$ {#eq-muestreo-media}
+
+donde $\mu$ y $\sigma$ son la media y la desviación estándar de la población, $n$ es el tamaño de la muestra y $\sigma_{\bar{X}}$ es la desviación estándar de la media muestral, que se llama error estándar de la media. Las dos fórmulas salen directamente de las propiedades del capítulo 13: $\bar{X} = (X_1 + \cdots + X_n)/n$ es una suma de $n$ variables independientes con media $\mu$ y varianza $\sigma^2$ dividida entre $n$, así que su media es $n\mu/n = \mu$ y su varianza es $n\sigma^2/n^2 = \sigma^2/n$.
+
+Con $n = 36$, el error estándar es $14.41/\sqrt{36} = 2.40$ min, muy cerca del 2.37 min de la simulación. El error estándar baja con la raíz de $n$, no con $n$: para reducirlo a la mitad hay que tomar cuatro veces más datos.
+
+::: {.callout-tip title="En la práctica"}
+El factor $1/\sqrt{n}$ responde a una pregunta que aparece en cada campaña de ensayos: ¿cuántas muestras tomar? Pasar de 4 a 16 cilindros reduce el error estándar de la media a la mitad. Pasar de 16 a 64 lo reduce otra vez a la mitad, pero con 48 ensayos más. Llega un punto en que más ensayos casi no mejoran la precisión y solo cuestan. En el capítulo 19 se calcula el tamaño de muestra necesario para una precisión dada.
+:::
+
+Si la muestra se toma sin reemplazo de una población finita de $N$ elementos y no es una fracción pequeña de ella, el error estándar se multiplica por el mismo factor de corrección por población finita de la hipergeométrica (capítulo 14):
+
+$$
+\sigma_{\bar{X}} = \frac{\sigma}{\sqrt{n}} \sqrt{\frac{N - n}{N - 1}}
+$$ {#eq-muestreo-fpc}
+
+Con $N = 2000$ y $n = 36$ el factor vale 0.991 y casi no cambia nada. Se vuelve importante cuando la muestra pasa de un 5 % de la población, más o menos.
+
+## Teorema del límite central {#sec-muestreo-tlc}
+
+El tercer hecho de la sección anterior, la forma de campana, es el más sorprendente y tiene nombre propio. El teorema del límite central dice que, si se toman muestras aleatorias de tamaño $n$ de una población cualquiera con media $\mu$ y desviación estándar $\sigma$ finita, la distribución de la media muestral se acerca a una normal a medida que $n$ crece [@illowsky2018introductory, cap. 7; @wasserman2004all, cap. 5]:
+
+$$
+\bar{X} \approx N\left(\mu, \frac{\sigma}{\sqrt{n}}\right) \quad \text{para } n \text{ grande}
+$$ {#eq-muestreo-tlc}
+
+o, lo que es lo mismo, la media estandarizada se acerca a la normal estándar:
+
+$$
+Z = \frac{\bar{X} - \mu}{\sigma/\sqrt{n}} \approx N(0, 1)
+$$ {#eq-muestreo-tlc-z}
+
+El teorema no pide nada sobre la forma de la población: puede ser asimétrica, discreta, bimodal. Solo pide que las observaciones sean independientes y que $\sigma$ exista. Si la población ya es normal, la media es normal para cualquier $n$, por la @eq-normal-combinacion del capítulo 16.
+
+¿Qué tan grande debe ser $n$? Depende de cuánto se aleja la población de la normal. Una regla usual es $n \ge 30$ [@illowsky2018introductory, cap. 7], pero para poblaciones casi simétricas bastan 5 o 10 observaciones, y para poblaciones muy asimétricas pueden hacer falta más de 30. La @fig-muestreo-tlc lo muestra con tres poblaciones: uniforme (simétrica), exponencial (asimétrica) y una población discreta muy asimétrica, con un 90 % de ceros y un 10 % de unos, como la proporción de elementos defectuosos.
+
+```{r}
+#| label: fig-muestreo-tlc
+#| fig-cap: "Distribución de la media muestral para tres poblaciones y cuatro tamaños de muestra."
+#| fig-alt: "Cuadrícula de doce histogramas: en las filas, poblaciones uniforme, exponencial y de ceros y unos; en las columnas, n igual a 1, 2, 5 y 30; con n igual a 30 los tres histogramas tienen forma de campana"
+#| echo: false
+#| cache: true
+#| fig-width: 8.5
+#| fig-height: 5.5
+
+set.seed(171)
+generadores <- list(
+  "Uniforme" = function(k) runif(k),
+  "Exponencial" = function(k) rexp(k),
+  "Ceros y unos (p = 0.1)" = function(k) rbinom(k, 1, 0.1)
+)
+sim_tlc <- expand_grid(poblacion = names(generadores), n = c(1, 2, 5, 30)) %>%
+  mutate(medias = map2(poblacion, n, function(pob_nom, nn)
+    replicate(4000, mean(generadores[[pob_nom]](nn))))) %>%
+  unnest(medias) %>%
+  mutate(poblacion = factor(poblacion, levels = names(generadores)),
+         n = factor(paste("n =", n), levels = paste("n =", c(1, 2, 5, 30))))
+ggplot(sim_tlc, aes(medias)) +
+  geom_histogram(bins = 30, fill = azul, alpha = 0.7, color = "white") +
+  facet_grid(poblacion ~ n, scales = "free") +
+  labs(x = "Media muestral", y = "Frecuencia") +
+  tema_libro +
+  theme(axis.text.y = element_blank(), strip.text.y = element_text(size = 9))
+```
+
+La uniforme ya parece una campana con $n = 5$. La exponencial necesita más, pero con $n = 30$ está muy cerca. La de ceros y unos, que es la más asimétrica, todavía muestra una ligera asimetría con $n = 30$; es la misma condición $np > 5$ de la aproximación normal a la binomial del capítulo 16, porque la media de ceros y unos es una proporción.
+
+::: {.callout-note title="Ejemplo: probabilidad de un tiempo promedio alto"}
+
+**Planteamiento.** Con la población de tiempos de viaje ($\mu = 20.21$ min, $\sigma = 14.41$ min), una inspección toma una muestra aleatoria de 36 viajes. Calcule la probabilidad de que el tiempo promedio de la muestra pase de 25 minutos y compárela con la probabilidad de que un solo viaje pase de 25 minutos.
+
+**Solución:**
+
+1. Por el teorema del límite central, con $n = 36 \ge 30$, $\bar{X} \approx N(20.21, 14.41/\sqrt{36}) = N(20.21, 2.40)$.
+2. Se estandariza con la @eq-muestreo-tlc-z: $z = (25 - 20.21)/2.40 = 1.99$.
+3. Con la tabla $Z$: $P(\bar{X} > 25) = 1 - \Phi(1.99) = 1 - 0.9767 = 0.0233$.
+4. Para un solo viaje no se puede usar la normal, porque la población es muy asimétrica; se cuenta en la población: 587 de los 2000 viajes pasan de 25 minutos, es decir, el 29.4 %.
+
+**Pseudocódigo**
+
+1. Leer la población y calcular $\mu$ y $\sigma$ (con divisor $N$, porque es la población completa).
+2. Calcular el error estándar y la probabilidad con `pnorm()`.
+3. Comprobar con una simulación de 5000 muestras de 36 viajes.
+4. Calcular la proporción de viajes individuales que pasan de 25 minutos.
+
+```{r}
+#| cache: true
+
+# 1) Población completa y sus parámetros
+pob <- read.csv("datos/tiempos_viaje_poblacion_hipotetica.csv")$tiempo_min
+mu <- mean(pob)
+sigma <- sqrt(mean((pob - mu)^2))   # desviación estándar poblacional (divisor N)
+c(mu = mu, sigma = sigma)
+
+# 2) Teorema del límite central
+n <- 36
+error_estandar <- sigma / sqrt(n)
+z <- (25 - mu) / error_estandar
+c(error_estandar = error_estandar, z = z, prob = 1 - pnorm(z))
+
+# 3) Simulación: 5000 muestras de 36 viajes
+set.seed(17)
+medias <- replicate(5000, mean(sample(pob, n)))
+c(media_sim = mean(medias), desv_sim = sd(medias), prob_sim = mean(medias > 25))
+
+# 4) Un solo viaje
+mean(pob > 25)
+```
+
+La función `replicate()` repite una instrucción tantas veces como se le pida y guarda los resultados en un vector; equivale a un ciclo `for` (@sec-prog-simulacion) escrito en una línea.
+
+**Interpretación.** Un viaje de más de 25 minutos es común (casi 3 de cada 10), pero un promedio de 36 viajes por encima de 25 minutos es raro (2 %). Si una inspección encuentra un promedio así, es razonable sospechar que la ruta cambió (más tránsito, desvíos) y no que fue mala suerte. Esa forma de razonar es exactamente la de las pruebas de hipótesis del capítulo 20.
+
+:::
+
+### El teorema para sumas
+
+Como la suma de las observaciones es $n$ veces la media, el teorema también vale para totales [@illowsky2018introductory, cap. 7]. Si $S = X_1 + \cdots + X_n$,
+
+$$
+S \approx N\left(n\mu,\ \sqrt{n}\,\sigma\right) \quad \text{para } n \text{ grande}
+$$ {#eq-muestreo-suma}
+
+Por ejemplo, el tiempo total de 36 viajes de la ruta tiene media $36 \times 20.21 = 727.7$ min y desviación estándar $\sqrt{36} \times 14.41 = 86.5$ min. La probabilidad de que un bus que hace 36 viajes en una semana acumule más de 800 minutos es $1 - \Phi\big((800 - 727.7)/86.5\big) = 1 - \Phi(0.84) = 0.20$. La forma de sumas es la que se usa para cargas totales, volúmenes acumulados o costos de muchas partidas.
+
+## Distribución muestral de una proporción {#sec-muestreo-proporcion}
+
+Muchas veces lo que se mide en cada elemento no es un número sino un sí o un no: el cilindro cumple o no cumple, la soldadura pasa o no pasa la inspección. Si en una muestra de $n$ elementos hay $X$ con la característica, la proporción muestral es $\hat{p} = X/n$. Como $X$ es binomial con media $np$ y varianza $np(1 - p)$, dividiendo entre $n$:
+
+$$
+E(\hat{p}) = p, \qquad \sigma_{\hat{p}} = \sqrt{\frac{p(1 - p)}{n}}
+$$ {#eq-muestreo-proporcion}
+
+donde $p$ es la proporción en la población y $\sigma_{\hat{p}}$ es el error estándar de la proporción. Por el teorema del límite central (o la aproximación del capítulo 16), $\hat{p}$ es aproximadamente normal si $np > 5$ y $n(1 - p) > 5$.
+
+Por ejemplo, si el 6 % de las soldaduras de un proveedor son defectuosas y se inspeccionan 200, el error estándar es $\sqrt{0.06 \times 0.94/200} = 0.0168$. La probabilidad de que la proporción defectuosa en la muestra pase de 9 % es aproximadamente $1 - \Phi\big((0.09 - 0.06)/0.0168\big) = 1 - \Phi(1.79) = 0.037$. Con la binomial exacta, $P(X \ge 19)$ = `pbinom(18, 200, 0.06, lower.tail = FALSE)` = 0.033.
+
+## Interactivo: el teorema del límite central {#sec-muestreo-interactivo}
+
+En el interactivo de la @fig-muestreo-interactivo se elige una población y un tamaño de muestra $n$. El programa toma 2000 muestras de tamaño $n$, calcula la media de cada una y dibuja el histograma de esas medias junto con la normal que predice el teorema, $N(\mu, \sigma/\sqrt{n})$. Debajo se comparan la media y la desviación estándar de las 2000 medias con $\mu$ y con $\sigma/\sqrt{n}$. Conviene empezar con $n = 1$ para ver la forma de la población y subir poco a poco.
+
+::: {#fig-muestreo-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-tlc">
+  <div class="controles">
+    <label><span>Población:</span>
+      <select>
+        <option value="gamma">Tiempos de viaje (asimétrica)</option>
+        <option value="exp">Exponencial</option>
+        <option value="unif">Uniforme</option>
+        <option value="dado">Dado cargado (discreta)</option>
+        <option value="bimodal">Bimodal</option>
+      </select></label>
+    <label><span>Tamaño de muestra <i>n</i>:</span> <output class="on"></output>
+      <input class="rn" type="range" min="1" max="100" step="1" value="1"></label>
+  </div>
+  <button type="button">Tomar otras 2000 muestras</button>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Histograma de 2000 medias muestrales con la curva normal del teorema del límite central"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-tlc");
+  var sel = raiz.querySelector("select"), rn = raiz.querySelector(".rn"), on = raiz.querySelector(".on");
+  var boton = raiz.querySelector("button"), svg = raiz.querySelector("svg"), res = raiz.querySelector(".resultado");
+  var w = 640, h = 260, mi = 20, md = 20, ms = 12, mb = 34, M = 2000;
+  function normal() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  var pobl = {
+    gamma: { pos: true, mu: 20, sd: Math.sqrt(200), r: function () { return -10 * (Math.log(1 - Math.random()) + Math.log(1 - Math.random())); } },
+    exp: { pos: true, mu: 1, sd: 1, r: function () { return -Math.log(1 - Math.random()); } },
+    unif: { pos: true, mu: 0.5, sd: Math.sqrt(1 / 12), r: function () { return Math.random(); } },
+    dado: { mu: 2.5, sd: Math.sqrt(3.25), r: function () { var u = Math.random(); return u < 0.5 ? 1 : 2 + Math.floor((u - 0.5) / 0.1); } },
+    bimodal: { mu: 4, sd: Math.sqrt(4.25), r: function () { return (Math.random() < 0.5 ? 2 : 6) + 0.5 * normal(); } }
+  };
+  function dibujar() {
+    var P = pobl[sel.value], n = +rn.value; on.textContent = n;
+    var medias = [], suma = 0, suma2 = 0;
+    for (var i = 0; i < M; i++) {
+      var s = 0; for (var j = 0; j < n; j++) s += P.r();
+      var m = s / n; medias.push(m); suma += m; suma2 += m * m;
+    }
+    var mm = suma / M, sdm = Math.sqrt((suma2 - M * mm * mm) / (M - 1)), se = P.sd / Math.sqrt(n);
+    var orden = medias.slice().sort(function (a, b) { return a - b; });
+    var x0 = Math.min(orden[0], P.mu - 4 * se), x1 = Math.max(orden[M - 1], P.mu + 4 * se);
+    if (P.pos) x0 = Math.max(x0, 0);
+    if (sel.value === "dado" && n < 4) { x0 = 0.5; x1 = 6.5; }
+    var nb = 40, ancho = (x1 - x0) / nb, cuentas = new Array(nb).fill(0);
+    medias.forEach(function (m) { var k = Math.min(nb - 1, Math.max(0, Math.floor((m - x0) / ancho))); cuentas[k]++; });
+    var dens = cuentas.map(function (c) { return c / (M * ancho); });
+    var fmax = 1 / (se * Math.sqrt(2 * Math.PI)), ymax = Math.max(Math.max.apply(null, dens), fmax);
+    var sx = function (x) { return mi + (x - x0) / (x1 - x0) * (w - mi - md); };
+    var sy = function (y) { return h - mb - Math.min(y, ymax) / (ymax * 1.08) * (h - mb - ms); };
+    var s2 = "";
+    for (var k = 0; k < nb; k++) {
+      s2 += '<rect class="barra-p4" x="' + sx(x0 + k * ancho).toFixed(1) + '" y="' + sy(dens[k]).toFixed(1) +
+            '" width="' + (sx(x0 + ancho) - sx(x0)).toFixed(1) + '" height="' + (sy(0) - sy(dens[k])).toFixed(1) + '"/>';
+    }
+    var d = "";
+    for (var t = 0; t <= 300; t++) {
+      var x = x0 + (x1 - x0) * t / 300, fy = Math.exp(-0.5 * Math.pow((x - P.mu) / se, 2)) / (se * Math.sqrt(2 * Math.PI));
+      d += (t ? "L" : "M") + sx(x).toFixed(1) + "," + sy(fy).toFixed(1);
+    }
+    s2 += '<path class="curva-2" d="' + d + '"/><line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>';
+    for (var q = 0; q <= 6; q++) {
+      var xv = x0 + (x1 - x0) * q / 6;
+      s2 += '<text class="eje-texto" x="' + sx(xv) + '" y="' + (sy(0) + 18) + '" text-anchor="middle">' + xv.toPrecision(3) + '</text>';
+    }
+    svg.innerHTML = s2;
+    res.innerHTML = "Población: <i>μ</i> = " + P.mu.toPrecision(3) + ", <i>σ</i> = " + P.sd.toPrecision(3) +
+      " &nbsp;·&nbsp; Medias simuladas: promedio = " + mm.toPrecision(4) + ", desviación = " + sdm.toPrecision(3) +
+      " &nbsp;·&nbsp; <i>σ</i>/√<i>n</i> = " + se.toPrecision(3);
+  }
+  sel.addEventListener("change", dibujar);
+  rn.addEventListener("input", dibujar);
+  boton.addEventListener("click", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Teorema del límite central. Elija la población, mueva $n$ y repita el muestreo con el botón.
+
+:::
+
+## Distribuciones derivadas de la normal: χ², t y F {#sec-muestreo-derivadas}
+
+La media no es el único estadístico que interesa. En la Parte V se necesitan también las distribuciones de la varianza muestral y de la media cuando $\sigma$ no se conoce. Si la población es normal, esas distribuciones son tres familias con nombre propio que se usan en casi todos los métodos de inferencia. Aquí se presentan como distribuciones muestrales; su uso se explica en los capítulos 19 a 23.
+
+### Distribución chi-cuadrado
+
+Si se toma una muestra de tamaño $n$ de una población normal con varianza $\sigma^2$ y se calcula la varianza muestral $S^2$, la cantidad
+
+$$
+\chi^2 = \frac{(n - 1)\, S^2}{\sigma^2}
+$$ {#eq-muestreo-chi2}
+
+sigue una distribución chi-cuadrado ($\chi^2$) con $\nu = n - 1$ grados de libertad [@wasserman2004all, cap. 2]. Los grados de libertad $\nu$ (letra griega nu) son el único parámetro de la familia. La chi-cuadrado solo toma valores positivos, es asimétrica a la derecha y su media y su varianza son
+
+$$
+E(\chi^2) = \nu, \qquad \operatorname{Var}(\chi^2) = 2\nu
+$$ {#eq-muestreo-chi2-momentos}
+
+Al crecer $\nu$ se vuelve más simétrica. Se usa para intervalos y pruebas sobre una varianza (capítulos 19 y 21) y para las pruebas de bondad de ajuste e independencia (capítulo 23). En R: `pchisq()`, `qchisq()`.
+
+Por ejemplo, si la resistencia de un concreto es normal con $\sigma = 5$ MPa y se ensayan 10 cilindros, la probabilidad de que la desviación estándar muestral pase de 7 MPa es $P(S > 7) = P\big(\chi^2_9 > 9 \times 49/25\big) = P(\chi^2_9 > 17.64) = 0.040$, que en R es `pchisq(17.64, df = 9, lower.tail = FALSE)`.
+
+### Distribución t de Student
+
+El teorema del límite central usa $\sigma$, que casi nunca se conoce. Si se reemplaza por la desviación estándar muestral $S$, la media estandarizada ya no es normal. Con una población normal, la cantidad
+
+$$
+T = \frac{\bar{X} - \mu}{S/\sqrt{n}}
+$$ {#eq-muestreo-t}
+
+sigue una distribución $t$ de Student con $\nu = n - 1$ grados de libertad [@wasserman2004all, cap. 2]. La $t$ es simétrica alrededor de 0 y tiene forma de campana, como la normal estándar, pero con colas más pesadas: como $S$ también varía de muestra en muestra, hay más incertidumbre, y los valores extremos son más probables. A medida que crece $n$, $S$ se acerca a $\sigma$ y la $t$ se acerca a la normal estándar, como se ve en la @fig-muestreo-t.
+
+```{r}
+#| label: fig-muestreo-t
+#| fig-cap: "Distribución t de Student con 2 y 10 grados de libertad y normal estándar."
+#| fig-alt: "Tres curvas en forma de campana centradas en cero; la t con 2 grados de libertad es la más baja y con colas más altas, la t con 10 casi coincide con la normal"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+tibble(x = seq(-4.5, 4.5, length.out = 500)) %>%
+  mutate(`t con 2 g. l.` = dt(x, 2), `t con 10 g. l.` = dt(x, 10), `Normal estándar` = dnorm(x)) %>%
+  pivot_longer(-x, names_to = "curva", values_to = "f") %>%
+  mutate(curva = fct_inorder(curva)) %>%
+  ggplot(aes(x, f, color = curva, linetype = curva)) +
+  geom_line(linewidth = 1.1) +
+  scale_color_manual(values = c(naranja, azul, "grey30")) +
+  scale_linetype_manual(values = c("solid", "solid", "dashed")) +
+  labs(x = "Valor", y = "Densidad", color = NULL, linetype = NULL) +
+  tema_libro +
+  theme(legend.position = "top")
+```
+
+La diferencia importa en la práctica a través de los cuantiles. El @tbl-muestreo-t compara el valor $t_{0.025,\,\nu}$, que deja un área de 0.025 a su derecha (la misma notación de las tablas del apéndice A), con el de la normal estándar, $z_{0.025} = 1.960$, que es el que se usa en los intervalos de confianza del 95 % (capítulo 19).
+
+```{r}
+#| label: tbl-muestreo-t
+#| tbl-cap: "Valor t que deja un área de 0.025 a la derecha según los grados de libertad."
+#| echo: false
+
+tibble(gl = c(2, 5, 9, 20, 30, 100, Inf)) %>%
+  mutate(n = ifelse(is.finite(gl), as.character(gl + 1), "∞"),
+         gl_txt = ifelse(is.finite(gl), as.character(gl), "∞ (normal)"),
+         q = qt(0.975, gl)) %>%
+  select(n, gl_txt, q) %>%
+  kbl(col.names = c("Tamaño de muestra <i>n</i>", "Grados de libertad <i>ν</i>", "<i>t</i><sub>0.025, <i>ν</i></sub>"),
+      escape = FALSE, align = "c", digits = 3) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Con 10 cilindros ($\nu = 9$), $t_{0.025,\,9} = 2.262$, que en R es `qt(0.975, df = 9)`: un 15 % mayor que 1.960. Con 31 datos la diferencia ya es de apenas un 4 %. En R: `pt()`, `qt()`.
+
+### Distribución F
+
+Para comparar la variabilidad de dos poblaciones normales, por ejemplo dos plantas de concreto, se usa el cociente de sus varianzas muestrales. Si se toman muestras independientes de tamaños $n_1$ y $n_2$, la cantidad
+
+$$
+F = \frac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2}
+$$ {#eq-muestreo-f}
+
+sigue una distribución $F$ con $\nu_1 = n_1 - 1$ y $\nu_2 = n_2 - 1$ grados de libertad [@wasserman2004all, cap. 2]. Como es un cociente de cantidades positivas, solo toma valores positivos y es asimétrica a la derecha. Si las dos poblaciones tienen la misma varianza, $F = S_1^2/S_2^2$, y su valor suele quedar cerca de 1. Se usa en la comparación de dos varianzas (capítulo 22), en el análisis de varianza (capítulos 25 a 30) y en la regresión. En R: `pf()`, `qf()`. Por ejemplo, con dos muestras de 10 cilindros, el cociente de varianzas supera `qf(0.95, 9, 9)` = 3.18 solo el 5 % de las veces si las dos plantas tienen la misma variabilidad.
+
+::: {.callout-note title="Ejemplo: comprobar por simulación la distribución de la varianza muestral"}
+
+**Planteamiento.** La resistencia de un concreto es normal con $\mu = 35$ MPa y $\sigma = 5$ MPa. Compruebe por simulación que, con muestras de 10 cilindros, la cantidad $(n - 1)S^2/\sigma^2$ sigue una chi-cuadrado con 9 grados de libertad, y calcule la probabilidad de que $S$ pase de 7 MPa con la fórmula y con la simulación.
+
+**Solución:**
+
+1. Según la @eq-muestreo-chi2, $9\,S^2/25 \sim \chi^2_9$, con media 9 y varianza 18 (@eq-muestreo-chi2-momentos).
+2. $S > 7$ equivale a $S^2 > 49$, es decir, a $\chi^2 > 9 \times 49/25 = 17.64$.
+3. Con la tabla de la chi-cuadrado del apéndice A, con 9 grados de libertad, 17.64 queda entre $\chi^2_{0.05,\,9} = 16.92$ y $\chi^2_{0.025,\,9} = 19.02$ (valores que dejan un área de 0.05 y 0.025 a su derecha), así que la probabilidad está entre 0.025 y 0.05. Con R se obtiene 0.040.
+
+**Pseudocódigo**
+
+1. Fijar la semilla y los parámetros.
+2. Simular 10 000 muestras de 10 cilindros y calcular la varianza de cada una.
+3. Calcular $(n - 1)S^2/\sigma^2$ y comparar su media, su varianza y su histograma con la chi-cuadrado.
+4. Calcular $P(S > 7)$ con `pchisq()` y con la proporción simulada.
+
+```{r}
+#| cache: true
+
+# 1) Parámetros
+set.seed(1717)
+mu <- 35; sigma <- 5; n <- 10
+
+# 2) 10 000 muestras y sus varianzas
+varianzas <- replicate(10000, var(rnorm(n, mean = mu, sd = sigma)))
+
+# 3) Estadístico chi-cuadrado
+chi2 <- (n - 1) * varianzas / sigma^2
+c(media = mean(chi2), varianza = var(chi2))   # teoría: 9 y 18
+
+# 4) P(S > 7): teoría y simulación
+pchisq((n - 1) * 7^2 / sigma^2, df = n - 1, lower.tail = FALSE)
+mean(sqrt(varianzas) > 7)
+```
+
+```{r}
+#| label: fig-muestreo-chi2
+#| fig-cap: "Histograma de 10 000 valores simulados de (n − 1)S²/σ² y densidad chi-cuadrado con 9 grados de libertad."
+#| fig-alt: "Histograma asimétrico a la derecha con pico cerca de 7 y la curva chi-cuadrado encima, que lo sigue de cerca"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+ggplot(tibble(chi2), aes(chi2)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = azul, alpha = 0.6, color = "white") +
+  stat_function(fun = dchisq, args = list(df = 9), color = naranja, linewidth = 1.1, n = 400) +
+  labs(x = expression((n - 1) * S^2 / sigma^2), y = "Densidad") +
+  tema_libro
+```
+
+**Interpretación.** La media (cerca de 9), la varianza (cerca de 18) y la forma del histograma de la @fig-muestreo-chi2 coinciden con la chi-cuadrado. Con 10 cilindros, aunque el concreto tenga $\sigma = 5$ MPa, en un 4 % de las muestras la desviación estándar calculada pasa de 7 MPa. Un valor así, por sí solo, no basta para concluir que la variabilidad del proceso aumentó; el capítulo 21 formaliza esa decisión.
+
+:::
+
+## Resumen {#sec-muestreo-resumen}
+
+El @tbl-muestreo-resumen reúne las distribuciones muestrales del capítulo, que son la base de la Parte V.
+
+```{r}
+#| label: tbl-muestreo-resumen
+#| tbl-cap: "Distribuciones muestrales de los estadísticos más usados."
+#| echo: false
+
+tibble(
+  est = c("Media, <i>σ</i> conocida", "Media, <i>σ</i> desconocida", "Proporción",
+          "Varianza", "Cociente de dos varianzas"),
+  cantidad = c("(<i>x̄</i> − <i>μ</i>)/(<i>σ</i>/√<i>n</i>)", "(<i>x̄</i> − <i>μ</i>)/(<i>s</i>/√<i>n</i>)",
+               "(<i>p̂</i> − <i>p</i>)/√(<i>p</i>(1 − <i>p</i>)/<i>n</i>)", "(<i>n</i> − 1)<i>s</i><sup>2</sup>/<i>σ</i><sup>2</sup>",
+               "(<i>s</i><sub>1</sub><sup>2</sup>/<i>σ</i><sub>1</sub><sup>2</sup>)/(<i>s</i><sub>2</sub><sup>2</sup>/<i>σ</i><sub>2</sub><sup>2</sup>)"),
+  dist = c("Normal estándar", "<i>t</i> con <i>n</i> − 1 g. l.", "Normal estándar (aprox.)",
+           "<i>χ</i><sup>2</sup> con <i>n</i> − 1 g. l.", "<i>F</i> con <i>n</i><sub>1</sub> − 1 y <i>n</i><sub>2</sub> − 1 g. l."),
+  cond = c("Población normal o <i>n</i> grande", "Población normal (o <i>n</i> grande)",
+           "<i>np</i> > 5 y <i>n</i>(1 − <i>p</i>) > 5", "Población normal", "Poblaciones normales e independientes"),
+  r = c("<code>pnorm()</code>", "<code>pt()</code>", "<code>pnorm()</code>", "<code>pchisq()</code>", "<code>pf()</code>")
+) %>%
+  kbl(col.names = c("Estadístico", "Cantidad", "Distribución", "Condiciones", "En R"),
+      escape = FALSE, align = "l") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+::: {.callout-warning title="Cuidado"}
+El teorema del límite central habla de la media, no de los datos. Que la media de 36 viajes sea aproximadamente normal no vuelve normales los tiempos de cada viaje. Del mismo modo, la chi-cuadrado y la $F$ dependen mucho de que la población sea normal; con poblaciones asimétricas, sus resultados pueden ser engañosos aun con muestras grandes. La $t$ es más tolerante, porque se apoya en la media.
+:::
+
+## Ejercicios propuestos
+
+1. Con la población de tiempos de viaje, tome con `sample()` una muestra de 10 viajes y calcule su media y su desviación estándar. Repita cinco veces y anote los resultados. ¿Cuáles cambian, los parámetros o los estadísticos?
+2. Simule 5000 medias de muestras de tamaño $n = 4$, 16 y 64 de la población de tiempos de viaje. Calcule la desviación estándar de cada conjunto de medias y compruebe que se reduce a la mitad cada vez que $n$ se multiplica por cuatro.
+3. Los sacos de cemento de una fábrica tienen un peso con media 50.2 kg y desviación estándar 0.4 kg (no necesariamente normal). Se toma una muestra de 40 sacos. Calcule la probabilidad de que el peso promedio quede por debajo de 50.1 kg.
+4. Una losa de piso recibe 64 cajas cuyo peso tiene media 25 kg y desviación estándar 6 kg. Con el teorema para sumas, calcule la probabilidad de que el peso total pase de 1700 kg.
+5. Un proveedor asegura que solo el 4 % de sus tubos tiene defectos. Se inspecciona una muestra de 250 tubos. Calcule el error estándar de la proporción muestral y la probabilidad de encontrar más de un 7 % de tubos defectuosos si lo que asegura el proveedor es cierto. Compare con la binomial exacta.
+6. Use el interactivo con la población "Dado cargado" y encuentre el menor $n$ con el que el histograma de las medias ya no muestra asimetría a simple vista. Repita con la población bimodal. ¿Cuál necesita un $n$ mayor y por qué?
+7. Para $\nu = 4$, 9 y 29 grados de libertad, calcule con `qt()` el valor $t_{0.025,\,\nu}$ y compárelo con 1.960. ¿Qué tamaño de muestra hace falta para que la diferencia sea menor que el 5 %?
+8. La desviación estándar del espesor de una carpeta es $\sigma = 0.6$ cm y el espesor es normal. Con muestras de 15 núcleos, calcule el valor que la desviación estándar muestral supera solo el 5 % de las veces. Use `qchisq()`.
+9. Repita el ejemplo de la simulación de la varianza muestral, pero con una población exponencial de media 5 en lugar de la normal. ¿Sigue $(n - 1)S^2/\sigma^2$ una chi-cuadrado con 9 grados de libertad? Compare la proporción simulada de $S > 7$ con la teórica.
+
+## Lecturas recomendadas
+
+- @illowsky2018introductory, capítulo 7: el teorema del límite central para medias y para sumas, con muchos ejemplos numéricos.
+- @ayala2026estadistica: muestreo y distribuciones muestrales en español, con simulaciones en R.
+- @wasserman2004all, capítulo 5: enunciado formal del teorema del límite central y de la ley de los grandes números.

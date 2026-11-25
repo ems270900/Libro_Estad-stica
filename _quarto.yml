@@ -66,6 +66,14 @@ book:
         - 11-tecnicas_conteo.qmd
         - 12-probabilidad_condicional.qmd
 
+    - part: "Variables aleatorias y distribuciones"
+      chapters:
+        - 13-variables_aleatorias.qmd
+        - 14-distribuciones_discretas.qmd
+        - 15-distribuciones_continuas.qmd
+        - 16-distribucion_normal.qmd
+        - 17-distribuciones_muestrales.qmd
+
     - part: "Inferencia estadística"
       chapters:
         - 18-estimacion_puntual.qmd

@@ -202,6 +202,17 @@ Un gráfico de ggplot2 se arma por capas que se suman con `+` [@wickham2016ggplo
 | `pt()`, `qt()` | Área y valor crítico de la $t$ de Student | `qt(0.975, df = 9)` | 17 |
 | `pchisq()`, `qchisq()` | Área y valor crítico de la chi-cuadrado | `qchisq(0.95, df = 4)` | 17 |
 | `pf()`, `qf()` | Área y valor crítico de la $F$ | `qf(0.95, df1 = 3, df2 = 12)` | 17 |
+| `dpois()`, `ppois()` | Probabilidad exacta y acumulada de la Poisson | `ppois(5, lambda = 2.975)` | 14 |
+| `dgeom()`, `dnbinom()` | Geométrica y binomial negativa (cuentan fracasos, no ensayos) | `dgeom(3 - 1, prob = 0.3)` | 14 |
+| `dhyper()` | Probabilidad hipergeométrica (muestreo sin reemplazo) | `dhyper(0, m = 4, n = 16, k = 5)` | 14 |
+| `pexp()`, `qexp()` | Área y cuantil de la exponencial | `pexp(72, rate = 1/45)` | 15 |
+| `pgamma()`, `pbeta()` | FDA de la gamma y de la beta | `pgamma(72, shape = 3, scale = 45)` | 15 |
+| `plnorm()`, `pweibull()` | FDA de la log-normal y de la Weibull | `pweibull(12, shape = 2, scale = 10)` | 15 |
+| `gamma()` | Función gamma $\Gamma(x)$ | `gamma(1.5)` | 15 |
+| `integrate()` | Área bajo una curva (integral numérica) | `integrate(dnorm, -1, 1)` | 13 |
+| `weighted.mean()` | Promedio ponderado (valor esperado de una discreta) | `weighted.mean(0:3, w = c(1, 3, 3, 1))` | 13 |
+| `qqnorm()`, `qqline()` | Gráfico Q-Q para revisar normalidad | `qqnorm(x); qqline(x)` | 16 |
+| `replicate()` | Repite una instrucción y guarda los resultados | `replicate(1000, mean(sample(x, 30)))` | 17 |
 
 : Funciones de probabilidad y distribuciones. {#tbl-apb-distribuciones}
 

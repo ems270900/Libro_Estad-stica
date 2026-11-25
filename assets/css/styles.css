@@ -1082,3 +1082,17 @@ body.quarto-dark .interactivo .punto { fill: #8fb8ff; }
 body.quarto-dark .interactivo .linea-a { stroke: #8fb8ff; }
 body.quarto-dark .interactivo .media-grupo { stroke: #f0a06a; }
 body.quarto-dark .interactivo table.int-cuadro th, body.quarto-dark .interactivo table.int-cuadro td { border-color: #3a4050; }
+
+/* --- Interactivos de la Parte IV: barras, áreas, selectores --- */
+.interactivo .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.3rem 1.2rem; margin-bottom: 0.4rem; }
+.interactivo select { font-size: 0.95rem; padding: 0.15rem 0.5rem; border: 1px solid #b8c2cc; border-radius: 5px; background: #fff; color: #212529; }
+.interactivo .barra-p4 { fill: #b9d3e6; stroke: #1C6BA0; stroke-width: 0.8; }
+.interactivo .barra-sel { fill: #1C6BA0; }
+.interactivo .area { fill: #1C6BA0; fill-opacity: 0.3; stroke: none; }
+.interactivo .curva-2 { fill: none; stroke: #E69F00; stroke-width: 2.5; }
+.interactivo .guia { stroke: #6c757d; stroke-width: 1; stroke-dasharray: 4 3; }
+body.quarto-dark .interactivo select { background: #2b3140; color: #e6e6e6; border-color: #4a5263; }
+body.quarto-dark .interactivo .barra-p4 { fill: #33506b; stroke: #8fb8ff; }
+body.quarto-dark .interactivo .barra-sel { fill: #8fb8ff; }
+body.quarto-dark .interactivo .area { fill: #8fb8ff; fill-opacity: 0.35; }
+body.quarto-dark .interactivo .curva-2 { stroke: #f0b84a; }

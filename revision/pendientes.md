@@ -39,6 +39,13 @@
 
 - Revisión del autor de los capítulos 28 a 30 y de las traducciones de los epígrafes (Fisher 1938, Tukey 1962, Fisher 1926).
 - Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 usa el rango estudentizado con `qtukey()`; si se quiere resolver a mano sin R, falta una tabla de $q$ en el Apéndice A.
+## Parte IV (variables aleatorias y distribuciones)
+
+- Revisión del autor de los capítulos 13 a 17.
+- Todos los datos de la parte son hipotéticos (`herramientas/datos_parte4.R`). Si el autor tiene series reales publicables (llegadas de camiones, fallas de bombas, resistencias de una obra), se pueden sustituir sin cambiar el texto de los métodos.
+- Epígrafes: capítulo 13, Laplace (*Essai philosophique sur les probabilités*, 1814), el mismo autor que el del capítulo 10; el autor puede preferir otro. Capítulo 15, Box y Draper (*Empirical Model-Building and Response Surfaces*, 1987; la frase está en la p. 424 según las citas habituales, confirmar con el libro). Los capítulos 14, 16 y 17 no llevan epígrafe.
+- Las diapositivas de la semana 4 traían datos de huracanes atribuidos a la NOAA; no se usaron porque no se pudo verificar la fuente exacta.
+- El capítulo 16 menciona la resistencia característica del concreto sin dar el criterio de un código; si el autor quiere, se agrega el criterio del código que use el curso, con su cita.
 
 ## Apéndices
 
