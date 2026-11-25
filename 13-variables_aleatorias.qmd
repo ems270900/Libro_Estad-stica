@@ -856,9 +856,9 @@ Los errores que siguen aparecen una y otra vez en exámenes e informes. Todos se
 - **Escribir $E(X^2) = [E(X)]^2$.** Solo es cierto si la variable no varía.
 - **Aplicar $\operatorname{Var}(X + Y) = \operatorname{Var}(X) + \operatorname{Var}(Y)$ a variables dependientes**, como la presión del viento y la del oleaje sobre un muelle durante una misma tormenta, o los asentamientos de dos zapatas vecinas.
 
-## Interactivo: construir una distribución discreta {#sec-va-interactivo}
+## Construir una distribución discreta {#sec-va-interactivo}
 
-En el interactivo de la @fig-va-interactivo se arma la función de probabilidad de una variable que toma los valores 0 a 5, moviendo el peso de cada valor. El programa divide cada peso entre la suma de todos, de modo que las probabilidades siempre suman 1. Arriba dibuja la función de probabilidad con el punto de equilibrio (la media) y la banda $\mu \pm \sigma$; abajo, la FDA en escalera. Al abrirlo muestra las frecuencias de las 200 vigas del ejemplo de la @sec-va-ejemplo. Conviene probar tres cosas. Primero, subir solo el peso del valor 5 y ver cómo una cola larga arrastra la media lejos de la mediana. Después, igualar todos los pesos para obtener una uniforme discreta. Por último, concentrar todo el peso en los valores 0 y 5 para ver la mayor varianza posible.
+En la @fig-va-interactivo se arma la función de probabilidad de una variable que toma los valores 0 a 5, moviendo el peso de cada valor. El programa divide cada peso entre la suma de todos, de modo que las probabilidades siempre suman 1. Arriba dibuja la función de probabilidad con el punto de equilibrio (la media) y la banda $\mu \pm \sigma$; abajo, la FDA en escalera. Al abrirlo muestra las frecuencias de las 200 vigas del ejemplo de la @sec-va-ejemplo. Conviene probar tres cosas. Primero, subir solo el peso del valor 5 y ver cómo una cola larga arrastra la media lejos de la mediana. Después, igualar todos los pesos para obtener una uniforme discreta. Por último, concentrar todo el peso en los valores 0 y 5 para ver la mayor varianza posible.
 
 ::: {#fig-va-interactivo}
 
@@ -993,7 +993,7 @@ tibble(
 9. La concentración $Y$ (mg/L) de sólidos suspendidos en el efluente de una planta de tratamiento tiene FDA $F(y) = 1 - e^{-y/20}$ para $y \ge 0$ (modelo hipotético). Calcule la mediana y el percentil 95, a mano despejando de la FDA y con `uniroot()`. Si el límite de vertido es 50 mg/L, ¿qué fracción de los días se incumple?
 10. El tiempo de viaje en una ruta tiene media 42 min y desviación estándar 6 min, pero no se conoce su distribución. Use la desigualdad de Chebyshev para acotar la probabilidad de que un viaje dure menos de 30 min o más de 54 min. ¿Qué cota da para "más de 60 min o menos de 24 min"?
 11. Una empresa debe decidir si asegura el equipo de una obra contra robo. El seguro cuesta ₡2.5 millones al año. Sin seguro, la probabilidad anual de robo es 0.04 y la pérdida sería de ₡50 millones (valores hipotéticos). Calcule el costo esperado y la desviación estándar del costo con y sin seguro, y explique por qué una empresa puede preferir el seguro aunque su costo esperado sea mayor.
-12. Use el interactivo de la @fig-va-interactivo para construir una distribución con media 2.5 y la menor desviación estándar posible, y otra con media 2.5 y la mayor posible. Describa la forma de cada una.
+12. Use la @fig-va-interactivo para construir una distribución con media 2.5 y la menor desviación estándar posible, y otra con media 2.5 y la mayor posible. Describa la forma de cada una.
 
 ## Lecturas recomendadas
 

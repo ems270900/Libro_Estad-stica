@@ -343,9 +343,9 @@ c(media = mean(p_sombrero), desv = sd(p_sombrero), prob_sim = mean(p_sombrero > 
 
 :::
 
-## Interactivo: el teorema del límite central {#sec-muestreo-interactivo}
+## El teorema del límite central {#sec-muestreo-interactivo}
 
-En el interactivo de la @fig-muestreo-interactivo se elige una población y un tamaño de muestra $n$. El programa toma 2000 muestras de tamaño $n$, calcula la media de cada una y dibuja el histograma de esas medias junto con la normal que predice el teorema, $N(\mu, \sigma/\sqrt{n})$. Debajo se comparan la media y la desviación estándar de las 2000 medias con $\mu$ y con $\sigma/\sqrt{n}$. Conviene empezar con $n = 1$ para ver la forma de la población y subir poco a poco.
+En la @fig-muestreo-interactivo se elige una población y un tamaño de muestra $n$. El programa toma 2000 muestras de tamaño $n$, calcula la media de cada una y dibuja el histograma de esas medias junto con la normal que predice el teorema, $N(\mu, \sigma/\sqrt{n})$. Debajo se comparan la media y la desviación estándar de las 2000 medias con $\mu$ y con $\sigma/\sqrt{n}$. Conviene empezar con $n = 1$ para ver la forma de la población y subir poco a poco.
 
 ::: {#fig-muestreo-interactivo}
 
@@ -581,9 +581,9 @@ ggplot(tibble(chi2), aes(chi2)) +
 
 :::
 
-## Interactivo: la t de Student y la normal {#sec-muestreo-int-t}
+## La t de Student y la normal {#sec-muestreo-int-t}
 
-En el interactivo de la @fig-muestreo-int-t se mueven los grados de libertad $\nu$ y un valor $c$. Se dibujan la $t$ con $\nu$ grados de libertad y la normal estándar, y se sombrea el área de la $t$ más allá de $\pm c$. Debajo se comparan esa área con la de la normal y el valor $t_{0.025,\,\nu}$ con 1.960. Conviene poner $c = 2$ y subir $\nu$ desde 1: con pocos grados de libertad, la $t$ deja mucha más probabilidad en las colas que la normal.
+En la @fig-muestreo-int-t se mueven los grados de libertad $\nu$ y un valor $c$. Se dibujan la $t$ con $\nu$ grados de libertad y la normal estándar, y se sombrea el área de la $t$ más allá de $\pm c$. Debajo se comparan esa área con la de la normal y el valor $t_{0.025,\,\nu}$ con 1.960. Conviene poner $c = 2$ y subir $\nu$ desde 1: con pocos grados de libertad, la $t$ deja mucha más probabilidad en las colas que la normal.
 
 ::: {#fig-muestreo-int-t}
 
@@ -696,14 +696,14 @@ El teorema del límite central habla de la media, no de los datos. Que la media 
 3. Los sacos de cemento de una fábrica tienen un peso con media 50.2 kg y desviación estándar 0.4 kg (no necesariamente normal). Se toma una muestra de 40 sacos. Calcule la probabilidad de que el peso promedio quede por debajo de 50.1 kg.
 4. Una losa de piso recibe 64 cajas cuyo peso tiene media 25 kg y desviación estándar 6 kg. Con el teorema para sumas, calcule la probabilidad de que el peso total pase de 1700 kg.
 5. Un proveedor asegura que solo el 4 % de sus tubos tiene defectos. Se inspecciona una muestra de 250 tubos. Calcule el error estándar de la proporción muestral y la probabilidad de encontrar más de un 7 % de tubos defectuosos si lo que asegura el proveedor es cierto. Compare con la binomial exacta.
-6. Use el interactivo con la población "Dado cargado" y encuentre el menor $n$ con el que el histograma de las medias ya no muestra asimetría a simple vista. Repita con la población bimodal. ¿Cuál necesita un $n$ mayor y por qué?
+6. Use la @fig-muestreo-interactivo con la población "Dado cargado" y encuentre el menor $n$ con el que el histograma de las medias ya no muestra asimetría a simple vista. Repita con la población bimodal. ¿Cuál necesita un $n$ mayor y por qué?
 7. Para $\nu = 4$, 9 y 29 grados de libertad, calcule con `qt()` el valor $t_{0.025,\,\nu}$ y compárelo con 1.960. ¿Qué tamaño de muestra hace falta para que la diferencia sea menor que el 5 %?
 8. La desviación estándar del espesor de una carpeta es $\sigma = 0.6$ cm y el espesor es normal. Con muestras de 15 núcleos, calcule el valor que la desviación estándar muestral supera solo el 5 % de las veces. Use `qchisq()`.
 9. Repita el ejemplo de la simulación de la varianza muestral, pero con una población exponencial de media 5 en lugar de la normal. ¿Sigue $(n - 1)S^2/\sigma^2$ una chi-cuadrado con 9 grados de libertad? Compare la proporción simulada de $S > 7$ con la teórica.
 10. La DBO del efluente de una planta tiene media 28 mg/L y desviación estándar 9 mg/L. El permiso exige que el promedio de 12 muestras mensuales no pase de 32 mg/L. Si la planta opera como siempre, ¿qué probabilidad hay de incumplir el permiso en un mes? ¿Qué supuesto hace falta para usar la normal con $n = 12$?
 11. Con la población de tiempos de viaje, repita la @fig-muestreo-lgn con 2000 viajes y diez secuencias. ¿Cuántos viajes hacen falta para que todas las secuencias queden a menos de 1 minuto de $\mu$?
 12. En un conteo de 80 vehículos, 14 giran a la izquierda. Si la proporción histórica es 0.12, calcule el error estándar de $\hat{p}$ y la probabilidad de observar 14 o más giros por azar, con la normal y con la binomial.
-13. Use el interactivo de la $t$ para encontrar con cuántos grados de libertad $t_{0.025,\,\nu}$ queda a menos de 0.05 de 1.960.
+13. Use la @fig-muestreo-int-t para encontrar con cuántos grados de libertad $t_{0.025,\,\nu}$ queda a menos de 0.05 de 1.960.
 
 ## Lecturas recomendadas
 

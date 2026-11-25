@@ -53,7 +53,7 @@ La linealidad es el supuesto más grave: si la forma del modelo es incorrecta, t
 
 ## Residuos {#sec-diag-residuos}
 
-Los errores $\varepsilon_i$ no se observan, pero los residuos $e_i = y_i - \hat{y}_i$ son su mejor aproximación. Si el modelo es correcto, los residuos deberían verse como ruido sin estructura: centrados en cero, con la misma dispersión en todas partes y sin patrones.
+Los residuos $e_i = y_i - \hat{y}_i$ se definieron en el capítulo 25 (@eq-rls-residuo) y allí se vieron como las líneas punteadas de la recta movible (@sec-rls-residuos-intuicion). Son la mejor aproximación de los errores $\varepsilon_i$, que no se observan, y si el modelo es correcto deberían verse como ruido sin estructura. El diagnóstico consiste en buscar lo contrario: estructura.
 
 Los residuos crudos tienen las unidades de $Y$, y eso complica decidir si uno es "grande". Además, no todos tienen la misma varianza: los de puntos con valores extremos de $x$ tienden a ser más pequeños, porque esos puntos jalan la recta hacia ellos. Por eso se usan residuos estandarizados [@montgomery2012introduction, cap. 4]:
 
@@ -102,9 +102,9 @@ Cada patrón apunta a un problema distinto:
 - **Varianza creciente.** La nube se abre como un embudo: la variabilidad crece con el nivel de la respuesta. Es común en caudales, costos y tiempos.
 - **Valor atípico.** Un punto muy lejos del resto, que puede ser un error o un caso distinto.
 
-### Interactivo: cómo se ven los problemas en los residuos
+### Cómo se ven los problemas en los residuos
 
-Un mismo problema se ve de dos formas: en el diagrama de dispersión original y en el gráfico de residuos. El interactivo genera 60 datos con el problema elegido, les ajusta una recta y dibuja los dos gráficos lado a lado. Con el segundo control se cambia la intensidad del problema. Fíjese en que el gráfico de residuos muestra el problema mucho antes que el diagrama original, porque quita la tendencia y amplía lo que queda.
+Un mismo problema se ve de dos formas: en el diagrama de dispersión original y en el gráfico de residuos. La @fig-diag-interactivo-patrones genera 60 datos con el problema elegido, les ajusta una recta y dibuja los dos gráficos lado a lado. Con el segundo control se cambia la intensidad del problema. Fíjese en que el gráfico de residuos muestra el problema mucho antes que el diagrama original, porque quita la tendencia y amplía lo que queda.
 
 ::: {#fig-diag-interactivo-patrones}
 
@@ -549,7 +549,7 @@ which(D > 1)
 
 :::
 
-### Interactivo: un punto que se mueve
+### Un punto que se mueve
 
 Con los dos controles se mueve un periodo adicional (en naranja) que se agrega a los diez del ejemplo. La recta azul se ajusta con los once puntos y la gris punteada con los diez originales. Debajo aparecen el apalancamiento, el residuo estandarizado y la distancia de Cook del punto naranja.
 
@@ -645,7 +645,7 @@ data.frame(
             "Errores dependientes", "Error en el dato o caso diferente", "Predictores redundantes",
             "Respuesta asimétrica o atípicos"),
   medida = c("Transformar <i>x</i> (logaritmo, raíz), agregar <i>x</i><sup>2</sup> o una variable omitida",
-             "Transformar <i>y</i> (logaritmo, raíz) o usar mínimos cuadrados ponderados",
+             "Transformar <i>y</i> (logaritmo, raíz o Box-Cox) o usar mínimos cuadrados ponderados",
              "Agregar el tiempo o la estación como predictor; usar modelos de series de tiempo",
              "Verificar, comparar con y sin el punto, documentar", "Dejar una de las variables o combinarlas",
              "Transformar <i>y</i>; revisar atípicos")
@@ -684,7 +684,126 @@ data.frame(
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-Cuando no está claro qué transformación de $Y$ usar, el método de @box1964analysis busca la potencia $\lambda$ que hace que los residuos se parezcan más a una normal con varianza constante. La familia de Box-Cox es $y^{(\lambda)} = (y^{\lambda} - 1)/\lambda$, con $\lambda = 0$ igual a $\ln y$. Un $\lambda$ cercano a 1 indica que no hace falta transformar, cerca de 0.5 sugiere la raíz cuadrada y cerca de 0 el logaritmo. En R se calcula con `MASS::boxcox()`; el paquete MASS viene instalado con R.
+### Transformación de Box-Cox {#sec-diag-boxcox}
+
+El @tbl-diag-transformaciones sirve cuando la variable sugiere la escala: un caudal que crece como potencia del área pide logaritmos y un conteo pide la raíz. Muchas veces, sin embargo, el embudo de los residuos no dice qué transformación usar, y probar varias hasta que una "funcione" es una forma de engañarse. @box1964analysis propusieron tratar la potencia como un parámetro más del modelo y estimarla con los datos, igual que se estiman los coeficientes. Se prueban muchas potencias y se elige la que deja los residuos más parecidos a lo que piden los supuestos: normales, con varianza constante y sin curvatura.
+
+Una forma de imaginar el método es una perilla con un número, $\lambda$. Con $\lambda = 1$ los datos quedan como están. Al bajar $\lambda$ hacia 0 y hacia valores negativos, los valores grandes se comprimen cada vez más que los pequeños, y eso cierra un embudo que se abre hacia la derecha. Al subir $\lambda$ por encima de 1 pasa lo contrario: se estiran los valores grandes. La @fig-diag-boxcox-familia muestra esa perilla en acción.
+
+#### La familia de transformaciones
+
+La familia de Box-Cox es [@box1964analysis; @montgomery2012introduction, cap. 5]
+
+$$
+y^{(\lambda)} =
+\begin{cases}
+\dfrac{y^{\lambda} - 1}{\lambda}, & \lambda \neq 0 \\[2ex]
+\ln y, & \lambda = 0
+\end{cases}
+$$ {#eq-diag-boxcox}
+
+donde $y$ es la respuesta, que debe ser positiva, y $\lambda$ es la potencia (adimensional). Restar 1 y dividir entre $\lambda$ no cambia la forma de la transformación, que sigue siendo una potencia, pero tiene dos ventajas. La primera es que todas las curvas crecen con $y$, incluso con $\lambda$ negativo, de modo que el orden de los datos se conserva. La segunda es que la familia es continua: cuando $\lambda$ se acerca a 0, $(y^{\lambda} - 1)/\lambda$ se acerca a $\ln y$. Así el logaritmo no es un caso aparte, sino el punto medio de la perilla.
+
+```{r}
+#| label: fig-diag-boxcox-familia
+#| fig-cap: "Familia de transformaciones de Box-Cox."
+#| fig-alt: "Cinco curvas que pasan por el punto y igual a 1 con valor cero; la de lambda igual a 2 se curva hacia arriba, la de 1 es una recta y las de 0.5, 0 y menos 1 se aplanan cada vez más para valores grandes de y"
+#| fig-width: 6.5
+#| fig-height: 4
+#| echo: false
+
+yy <- seq(0.15, 4, length.out = 300)
+fam <- do.call(rbind, lapply(c(-1, 0, 0.5, 1, 2), function(la) {
+  data.frame(y = yy, z = if (la == 0) log(yy) else (yy^la - 1) / la,
+             lambda = paste0("λ = ", la))
+}))
+fam$lambda <- factor(fam$lambda, levels = paste0("λ = ", c(2, 1, 0.5, 0, -1)))
+ggplot(fam, aes(y, z, color = lambda)) +
+  geom_hline(yintercept = 0, color = "grey80") +
+  geom_line(linewidth = 1) +
+  scale_color_manual(values = c("#7570B3", "grey45", "#E69F00", azul, "#D55E00"), name = NULL) +
+  coord_cartesian(ylim = c(-3, 4)) +
+  labs(x = "y", y = expression(y^(lambda))) +
+  theme_minimal(base_size = 13)
+```
+
+Algunos valores de $\lambda$ corresponden a transformaciones conocidas. El @tbl-diag-boxcox-lambdas las reúne junto con el tipo de dispersión que cada una suele corregir. La regla detrás del cuadro es que, si la desviación estándar de $Y$ crece como una potencia $\alpha$ de su media ($\sigma \propto \mu^{\alpha}$), la potencia $\lambda = 1 - \alpha$ estabiliza la varianza [@montgomery2012introduction, cap. 5].
+
+```{r}
+#| label: tbl-diag-boxcox-lambdas
+#| tbl-cap: "Valores de λ más usados."
+#| echo: false
+
+data.frame(
+  lambda = c("2", "1", "0.5", "0", "−0.5", "−1"),
+  transf = c("<i>y</i><sup>2</sup>", "<i>y</i> (sin transformar)", "√<i>y</i>", "ln <i>y</i>",
+             "1/√<i>y</i>", "1/<i>y</i>"),
+  disp = c("Asimetría hacia la izquierda; la dispersión baja al subir la media (poco común)",
+           "Dispersión constante",
+           "Varianza proporcional a la media, como en los conteos de Poisson (vehículos, fallas, grietas)",
+           "Desviación estándar proporcional a la media: caudales, concentraciones, costos, tiempos",
+           "Varianza proporcional al cubo de la media",
+           "Desviación estándar proporcional al cuadrado de la media; tasas como tiempo por unidad")
+) %>%
+  kbl(col.names = c("<i>λ</i>", "Transformación", "Dispersión que suele corregir"), escape = FALSE, align = "cll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+#### Cómo se elige λ
+
+No basta con ajustar la regresión para cada $\lambda$ y quedarse con la de menor $SSE$, porque cada transformación cambia las unidades de la respuesta: la $SSE$ de $\ln y$ y la de $y^2$ no se pueden comparar. Box y Cox resolvieron el problema dividiendo entre una potencia de la media geométrica, $\dot{y}$, para que todas las versiones queden en las unidades de $y$ [@montgomery2012introduction, cap. 5]:
+
+$$
+y_i^{(\lambda)} =
+\begin{cases}
+\dfrac{y_i^{\lambda} - 1}{\lambda\, \dot{y}^{\,\lambda - 1}}, & \lambda \neq 0 \\[2ex]
+\dot{y} \ln y_i, & \lambda = 0
+\end{cases}
+\qquad
+\dot{y} = \exp\!\left(\frac{1}{n} \sum_{i=1}^{n} \ln y_i\right)
+$$ {#eq-diag-boxcox-norm}
+
+Con esa versión normalizada, cada $\lambda$ da una $SSE(\lambda)$ comparable y la log-verosimilitud del modelo, salvo una constante que no depende de $\lambda$, es
+
+$$
+\ell(\lambda) = -\frac{n}{2} \ln\!\left(\frac{SSE(\lambda)}{n}\right)
+$$ {#eq-diag-boxcox-perfil}
+
+donde $n$ es el número de observaciones y $SSE(\lambda)$ es la suma de cuadrados de los residuos de la regresión de $y^{(\lambda)}$ normalizada contra los predictores. La curva de $\ell(\lambda)$ se llama perfil de verosimilitud. Su máximo, $\hat{\lambda}$, es el $\lambda$ que deja la menor $SSE$, y los valores de $\lambda$ que cumplen
+
+$$
+\ell(\lambda) \ge \ell(\hat{\lambda}) - \tfrac{1}{2}\,\chi^2_{0.95,\,1} = \ell(\hat{\lambda}) - 1.92
+$$
+
+forman un intervalo de confianza del 95 % para $\lambda$. El intervalo se basa en la prueba de razón de verosimilitudes [@box1964analysis]: los $\lambda$ que quedan dentro son los que los datos no permiten descartar frente a $\hat{\lambda}$. La normalización solo sirve para elegir $\lambda$. Una vez elegido, el modelo se ajusta con la transformación sencilla: $\ln y$, $\sqrt{y}$ o $1/y$.
+
+El valor exacto de $\hat{\lambda}$ casi nunca se usa. Como es una estimación con error, se redondea a un valor del @tbl-diag-boxcox-lambdas que quede dentro del intervalo y tenga sentido para la variable [@box1964analysis]. Un modelo en $\ln y$ se explica con porcentajes; uno en $y^{0.24}$ no se le puede explicar a nadie. Si el intervalo contiene al 1, no hace falta transformar.
+
+#### Cómo se interpreta el modelo transformado
+
+Los coeficientes se leen en la escala transformada. Con el logaritmo hay lecturas directas en porcentaje (@tbl-diag-transformaciones). Con otras potencias no las hay, y el modelo se explica con predicciones: se calcula $\hat{y}^{(\lambda)}$ y se devuelve a la escala original con la inversa de la @eq-diag-boxcox,
+
+$$
+\hat{y} = \left(1 + \lambda\, \hat{y}^{(\lambda)}\right)^{1/\lambda}, \qquad \hat{y} = e^{\hat{y}^{(\lambda)}} \ \text{si}\ \lambda = 0
+$$
+
+Los límites de los intervalos de confianza y de predicción se devuelven igual, uno por uno. Por eso, en la escala original, los intervalos quedan asimétricos: más largos hacia los valores altos. Además, la predicción devuelta estima la mediana de $Y$ y no su media, como se explica en el recuadro "Para profundizar" que sigue al ejemplo.
+
+#### Cuándo no usarla y variantes
+
+- **Respuestas con ceros o negativos.** La familia solo está definida para $y > 0$. Sumar una constante antes de transformar es común, pero el $\hat{\lambda}$ cambia según la constante que se elija, y esa elección es arbitraria. @box1964analysis propusieron también una versión con dos parámetros, $(y + \lambda_2)^{\lambda_1}$, que estima esa constante. Para variables que pueden ser negativas, como un asentamiento diferencial, un cambio de nivel freático o el error de una predicción, la familia de @yeo2000new extiende la idea a todos los números reales y coincide con Box-Cox aplicada a $y + 1$ cuando $y \ge 0$. En R se estima con `car::powerTransform(modelo, family = "yjPower")`.
+- **Un problema que no es de escala.** Si los residuos muestran curvatura porque falta un predictor o un término cuadrático, ninguna potencia de $Y$ lo arregla del todo. Box-Cox busca un compromiso entre normalidad, varianza constante y linealidad, y puede mejorar una a costa de otra. Por eso el diagnóstico se repite después de transformar.
+- **Un atípico.** Un solo dato extremo puede arrastrar $\hat{\lambda}$. Primero se revisa el dato (@sec-diag-influencia) y después se busca la transformación.
+- **Pocos datos.** Con 10 o 15 observaciones el intervalo de $\lambda$ suele ser tan ancho que contiene casi todos los valores del @tbl-diag-boxcox-lambdas, y no ayuda a decidir. En ese caso pesa más lo que se sabe de la variable.
+- **Cuando la ecuación se necesita en la escala original.** Si el modelo tiene que dar $Y$ en sus unidades y con varianza que cambia, los mínimos cuadrados ponderados (@sec-diag-ponderados) son una alternativa que no transforma la respuesta.
+
+::: {.callout-tip title="En la práctica"}
+En ingeniería, el logaritmo suele ganar: caudales, concentraciones de contaminantes, permeabilidades, costos y tiempos de viaje tienen dispersión proporcional a su nivel, y en esas variables $\hat{\lambda}$ cae cerca de 0. Box-Cox sirve entonces para confirmar con los datos una transformación que ya se sospechaba, y para detectar los casos en que la sospecha era equivocada. En R se usa `MASS::boxcox()`, que dibuja el perfil con su intervalo; `car::powerTransform()` da el $\hat{\lambda}$ exacto y prueba si $\lambda = 0$ o $\lambda = 1$ son aceptables.
+:::
+
+#### Un ejemplo con caudales
+
+El ejemplo siguiente usa Box-Cox para decidir la escala del caudal de 20 cuencas, con el cálculo del perfil paso a paso.
 
 ::: {.callout-note title="Ejemplo: caudal medio anual y área de la cuenca"}
 
@@ -700,16 +819,67 @@ ver_datos("datos/cuencas_caudal_hipoteticas.csv",
 
 1. La recta $\hat{Q} = 1.39 + 0.0428\,A$ tiene $R^2 = 0.771$, pero los residuos forman un embudo (@fig-diag-cuencas, izquierda): las cuencas pequeñas casi no se separan de la recta y las grandes se separan hasta 19 m³/s.
 2. Prueba de Breusch-Pagan (@eq-diag-bp): la regresión de $e_i^2$ contra el área tiene $R^2_{\text{aux}} = 0.376$, así que $BP = 20 \times 0.376 = 7.52$. Con 1 grado de libertad, $\chi^2_{0.95,\,1} = 3.84$; se rechaza la varianza constante ($p = 0.006$). Shapiro-Wilk también rechaza la normalidad ($p = 0.009$).
-3. Box-Cox sugiere $\lambda = 0.24$, con un intervalo de confianza del 95 % que va de $-0.03$ a $0.49$ y contiene al 0. Además, en hidrología es común que el caudal crezca como una potencia del área [@helsel2020statistical, cap. 9]. Se toman logaritmos en las dos variables.
+3. Box-Cox (@eq-diag-boxcox-norm y @eq-diag-boxcox-perfil). La media geométrica de los 20 caudales es $\dot{y} = 3.753$ m³/s. Para la primera cuenca y $\lambda = 0.5$, $y_1^{(0.5)} = (0.59^{0.5} - 1)/(0.5 \times 3.753^{-0.5}) = (0.7681 - 1)/0.2581 = -0.898$. Con los 20 valores transformados se ajusta la recta contra el área, se calcula $SSE(0.5) = 228.02$ y $\ell(0.5) = -10 \ln(228.02/20) = -24.34$. Repetir esto para muchos $\lambda$ da el @tbl-diag-boxcox-perfil y la @fig-diag-boxcox-perfil. El máximo está en $\hat{\lambda} = 0.24$, con $\ell = -22.26$. El intervalo del 95 % reúne los $\lambda$ con $\ell \ge -22.26 - 1.92 = -24.18$ y va de $-0.03$ a $0.49$. El 1 queda muy lejos, así que hace falta transformar. El 0 queda dentro y la raíz cuadrada (0.5) apenas afuera: de hecho, con $\sqrt{Q}$ la prueba de Breusch-Pagan todavía rechaza la varianza constante ($p = 0.016$). Box-Cox decide la escala de $Y$; la de $X$ se decide aparte. Como en hidrología es común que el caudal crezca como una potencia del área [@helsel2020statistical, cap. 9], se toman logaritmos en las dos variables.
 4. Para la primera cuenca, $A = 6.7$ km² y $Q = 0.59$ m³/s pasan a $\ln A = 1.902$ y $\ln Q = -0.528$. Las demás siguen igual.
 5. El modelo transformado es $\widehat{\ln Q} = -2.958 + 0.988 \ln A$, con $R^2 = 0.965$. Sus residuos no muestran embudo (@fig-diag-cuencas, derecha), $BP = 0.64$ ($p = 0.42$) y Shapiro-Wilk da $p = 0.95$.
 6. Para $A = 300$ km²: $\widehat{\ln Q} = -2.958 + 0.988 \ln 300 = -2.958 + 0.988(5.704) = 2.676$, y $\hat{Q} = e^{2.676} = 14.5$ m³/s.
+
+```{r}
+#| label: tbl-diag-boxcox-perfil
+#| tbl-cap: "Perfil de verosimilitud de Box-Cox para el caudal."
+#| echo: false
+
+cq <- read.csv("datos/cuencas_caudal_hipoteticas.csv")
+yq <- cq$caudal_m3s; nq <- length(yq); gq <- exp(mean(log(yq)))
+sse_bc <- function(la) {
+  z <- if (abs(la) < 1e-8) gq * log(yq) else (yq^la - 1) / (la * gq^(la - 1))
+  sum(residuals(lm(z ~ cq$area_km2))^2)
+}
+la_tab <- c(-1, -0.5, 0, 0.24, 0.5, 1)
+sse_tab <- sapply(la_tab, sse_bc)
+data.frame(
+  la = sprintf("%.2f", la_tab),
+  tr = c("1/<i>Q</i>", "1/√<i>Q</i>", "ln <i>Q</i>", "<i>Q</i><sup>0.24</sup> (máximo)", "√<i>Q</i>", "<i>Q</i>"),
+  sse = sprintf("%.2f", sse_tab),
+  l = sprintf("%.2f", -nq / 2 * log(sse_tab / nq))
+) %>%
+  kbl(col.names = c("<i>λ</i>", "Transformación", "<i>SSE</i>(<i>λ</i>)", "<i>ℓ</i>(<i>λ</i>)"),
+      escape = FALSE, align = "clcc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(4, bold = TRUE)
+```
+
+```{r}
+#| label: fig-diag-boxcox-perfil
+#| fig-cap: "Perfil de verosimilitud de λ para el caudal."
+#| fig-alt: "Curva en forma de colina con máximo en lambda igual a 0.24; una línea horizontal punteada corta la curva en menos 0.03 y 0.49, y se marcan los puntos en 0, 0.5 y 1"
+#| fig-width: 6.5
+#| fig-height: 3.8
+#| echo: false
+
+la_g <- seq(-1, 1.5, by = 0.01)
+l_g <- sapply(la_g, function(la) -nq / 2 * log(sse_bc(la) / nq))
+corte <- max(l_g) - qchisq(0.95, 1) / 2
+ic_g <- range(la_g[l_g >= corte])
+marcas <- data.frame(la = c(0, 0.5, 1), l = sapply(c(0, 0.5, 1), function(la) -nq / 2 * log(sse_bc(la) / nq)),
+                     et = c("ln Q", "√Q", "Q"))
+ggplot(data.frame(la_g, l_g), aes(la_g, l_g)) +
+  annotate("rect", xmin = ic_g[1], xmax = ic_g[2], ymin = -Inf, ymax = Inf, fill = "#E69F00", alpha = 0.15) +
+  geom_hline(yintercept = corte, linetype = "dashed", color = "grey40") +
+  geom_line(color = azul, linewidth = 1) +
+  geom_vline(xintercept = la_g[which.max(l_g)], color = azul, linetype = "dotted") +
+  geom_point(data = marcas, aes(la, l), color = "#D55E00", size = 2.5) +
+  geom_text(data = marcas, aes(la, l, label = et), nudge_y = 1.6, size = 3.8) +
+  annotate("text", x = -0.95, y = corte + 1, label = "máximo − 1.92", hjust = 0, size = 3.6, color = "grey30") +
+  labs(x = expression(lambda), y = expression(l(lambda))) +
+  theme_minimal(base_size = 13)
+```
 
 **Pseudocódigo**
 
 1. Ajustar la recta original y graficar los residuos.
 2. Calcular Breusch-Pagan con la regresión auxiliar y comparar con `lmtest::bptest()`.
-3. Buscar $\lambda$ con `MASS::boxcox()`.
+3. Buscar $\lambda$: para cada valor de una rejilla, transformar con la media geométrica, ajustar la recta y calcular $\ell(\lambda)$; quedarse con el máximo y con los $\lambda$ a menos de 1.92 de él. Comparar con `MASS::boxcox()`.
 4. Ajustar el modelo log-log y repetir el diagnóstico.
 5. Predecir en la escala logarítmica y volver a m³/s con `exp()`.
 
@@ -726,10 +896,27 @@ c(BP = BP, p = pchisq(BP, df = 1, lower.tail = FALSE))
 lmtest::bptest(original)
 shapiro.test(residuals(original))
 
-# 3) Box-Cox: lambda que maximiza la verosimilitud
+# 3) Box-Cox a mano: perfil de verosimilitud con la versión normalizada
+y <- cuencas$caudal_m3s
+n <- length(y)
+y_geo <- exp(mean(log(y)))                  # media geométrica
+perfil <- function(lambda) {
+  z <- if (abs(lambda) < 1e-8) y_geo * log(y) else (y^lambda - 1) / (lambda * y_geo^(lambda - 1))
+  sse <- sum(residuals(lm(z ~ cuencas$area_km2))^2)
+  -n / 2 * log(sse / n)
+}
+lambdas <- seq(-1, 1.5, by = 0.01)
+l_perfil <- sapply(lambdas, perfil)
+lambda_hat <- lambdas[which.max(l_perfil)]
+ic_lambda <- range(lambdas[l_perfil >= max(l_perfil) - qchisq(0.95, df = 1) / 2])
+c(lambda = lambda_hat, inferior = ic_lambda[1], superior = ic_lambda[2])
+
+# 3b) Lo mismo con MASS::boxcox(): su curva está desplazada una constante,
+#     pero el máximo y el intervalo son los mismos
 bc <- MASS::boxcox(caudal_m3s ~ area_km2, data = cuencas,
-                   lambda = seq(-1, 1.5, 0.01), plotit = FALSE)
+                   lambda = lambdas, plotit = FALSE)
 bc$x[which.max(bc$y)]
+range(bc$x[bc$y >= max(bc$y) - qchisq(0.95, df = 1) / 2])
 
 # 4) Modelo log-log y su diagnóstico
 loglog <- lm(log(caudal_m3s) ~ log(area_km2), data = cuencas)
@@ -841,7 +1028,7 @@ c(R2_recta = summary(recta)$r.squared, R2_parabola = summary(parabola)$r.squared
 
 :::
 
-### Mínimos cuadrados ponderados
+### Mínimos cuadrados ponderados {#sec-diag-ponderados}
 
 Cuando la varianza crece con la respuesta y no se quiere transformar $Y$ (por ejemplo, porque la ecuación se necesita en m³/s y no en logaritmos), se puede dar menos peso a las observaciones más variables. Los mínimos cuadrados ponderados minimizan $\sum w_i e_i^2$, con pesos $w_i$ inversamente proporcionales a la varianza de cada observación [@montgomery2012introduction, cap. 5]. Si la desviación estándar crece en proporción a $x$, se usa $w_i = 1/x_i^2$. En R: `lm(y ~ x, weights = 1 / x^2)`. Los coeficientes cambian poco, pero los errores estándar y los intervalos de predicción quedan correctos: angostos donde los datos son precisos y anchos donde no.
 
@@ -898,7 +1085,7 @@ data.frame(
 8. Un compañero eliminó tres datos de un análisis "porque tenían residuos mayores que 2". Escriba un párrafo que explique por qué ese criterio no es suficiente y qué debió hacer.
 9. Con `piezometro_talud_hipotetico.csv`, cree la lluvia del mes anterior con `c(NA, head(pz$lluvia_mm, -1))`, ajuste el nivel contra la lluvia del mes y la del mes anterior y repita la prueba de Durbin-Watson. ¿Mejoró la independencia de los residuos?
 10. En el ejemplo del ensayo Proctor, calcule la humedad óptima directamente con los coeficientes de `lm(densidad ~ humedad + I(humedad^2))` y compruebe que coincide con la obtenida con $x$ centrada.
-11. Use el interactivo de la @fig-diag-interactivo-patrones con "Errores dependientes". ¿Con qué intensidad baja el estadístico de Durbin-Watson de 1.5? Describa cómo se ven los residuos en ese punto.
+11. Use la @fig-diag-interactivo-patrones con "Errores dependientes". ¿Con qué intensidad baja el estadístico de Durbin-Watson de 1.5? Describa cómo se ven los residuos en ese punto.
 12. Simule 50 residuos de una distribución $t$ con 3 grados de libertad, dibuje su gráfico Q-Q y aplique la prueba de Shapiro-Wilk. Repita con 10 residuos. ¿En cuál caso detecta la prueba las colas pesadas?
 
 ## Lecturas recomendadas

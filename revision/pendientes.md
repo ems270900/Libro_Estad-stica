@@ -34,6 +34,7 @@
 - Los capítulos 24 a 27 mencionan por su número otros capítulos (2, 9, 17, 19 a 21 y la Parte VII). Se escribieron en paralelo; conviene cambiar esas menciones por referencias cruzadas `@sec-` a medida que se unan las partes.
 - Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.
 - `references.bib` tiene dos claves para Lane (`laneintroduction`, de la Parte III y usada en la VI, y `lanesfintroduction`, de la Parte II) y dos para Watkins (`watkinsintroduction` y `watkinssfintroduction`). No se renombran claves ya citadas; conviene que el autor elija una de cada par y se unifiquen en un PR aparte.
+- Revisar el traslado de la intuición de los residuos del capítulo 27 al 25, junto a la recta movible (2026-11-25). Los residuos estandarizados y estudentizados se quedaron en el 27 porque dependen del apalancamiento.
 - Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Ya están en las instrucciones de instalación de la introducción.
 
 ## Parte VII (diseño de experimentos)
@@ -105,3 +106,7 @@
 
 - Capítulo 23: el ejemplo de velocidades en una ruta rural usa datos hipotéticos generados con semilla; si el autor tiene mediciones reales anonimizadas, se pueden sustituir.
 - Capítulo 20: la escala de lectura del valor p sigue a Wasserman (2004); el autor puede preferir otra redacción.
+
+## Todo el libro
+
+- Las figuras interactivas ya no se anuncian como interactivas (2026-11-25): se quitaron los títulos "Interactivo: …" y el texto las llama figuras. Revisar que ningún título nuevo vuelva a anunciarlas (regla agregada en `GUIA_ESTILO.md`, sección 9).

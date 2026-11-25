@@ -21,3 +21,8 @@ Fecha: 2026-11-25. Estado: borrador.
 - Secciones nuevas: interactivo de problemas vistos en los residuos, con Durbin-Watson en vivo (`#fig-diag-interactivo-patrones`); cómo leer el gráfico Q-Q con figura de cuatro patrones (@wilk1968probability); más explicación de Shapiro-Wilk; relación $DW \approx 2(1 - r_1)$; término cuadrático con cálculo a mano centrado; mínimos cuadrados ponderados; cuadro de errores comunes; cita de @duan1983smearing.
 - Ejemplos nuevos: autocorrelación en un piezómetro de un talud (geotecnia, `datos/piezometro_talud_hipotetico.csv`, semilla 2771) y humedad óptima de un ensayo Proctor con una parábola (datos en el bloque).
 - Ejercicios 9 a 12 nuevos.
+
+## Cambios (2026-11-25): residuos
+
+- La intuición de los residuos (qué son, residuo contra error, ruido sin estructura) se trasladó al capítulo 25, junto a la recta movible. La sección de residuos (`#sec-diag-residuos`) abre con un resumen y una referencia cruzada a `@sec-rls-residuos-intuicion`, y conserva los residuos estandarizados y estudentizados, que dependen del apalancamiento.
+- Las figuras no se anuncian como interactivas.

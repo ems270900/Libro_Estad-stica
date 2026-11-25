@@ -27,9 +27,9 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 16. La distribución normal y sus aproximaciones | Borrador | [16-distribucion_normal.md](16-distribucion_normal.md) | Parte IV; diversificación de ramas |
 | 17. Muestreo, distribuciones muestrales y teorema del límite central | Borrador | [17-distribuciones_muestrales.md](17-distribuciones_muestrales.md) | Parte IV |
 | 24. Asociación y correlación | Borrador | [24-correlacion.md](24-correlacion.md) | Parte VI; diversificación de ramas |
-| 25. Regresión lineal simple | Borrador | [25-regresion_simple.md](25-regresion_simple.md) | Parte VI; diversificación de ramas |
+| 25. Regresión lineal simple | Borrador | [25-regresion_simple.md](25-regresion_simple.md) | Parte VI; diversificación de ramas; residuos junto a la recta movible (2026-11-25) |
 | 26. Regresión lineal múltiple | Borrador | [26-regresion_multiple.md](26-regresion_multiple.md) | Parte VI |
-| 27. Supuestos, diagnóstico y medidas remediales | Borrador | [27-diagnostico_regresion.md](27-diagnostico_regresion.md) | Parte VI; diversificación de ramas |
+| 27. Supuestos, diagnóstico y medidas remediales | Borrador | [27-diagnostico_regresion.md](27-diagnostico_regresion.md) | Parte VI; diversificación de ramas; residuos al capítulo 25 (2026-11-25) |
 | 28. Principios del diseño experimental y ANOVA de un factor | Borrador | [28-anova_un_factor.md](28-anova_un_factor.md) | Parte VII; diversificación de ramas; ampliación |
 | 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII; diversificación de ramas; ampliación |
 | 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII; diversificación de ramas; ampliación |

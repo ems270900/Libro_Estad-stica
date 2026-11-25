@@ -286,7 +286,7 @@ ggplot(lluvia, aes(x = precipitacion_mm)) +
 
 ### Cuántas clases y de qué ancho
 
-No hay un número correcto de clases. Con muy pocas, los datos se aplastan en dos o tres barras y se pierde la forma; con demasiadas, aparecen huecos y barras sueltas que son solo ruido (el interactivo de la @sec-graf-interactivo muestra este efecto). Una guía muy usada es la regla de @sturges1926choice:
+No hay un número correcto de clases. Con muy pocas, los datos se aplastan en dos o tres barras y se pierde la forma; con demasiadas, aparecen huecos y barras sueltas que son solo ruido (la @fig-graf-interactivo, en el capítulo 4, muestra este efecto). Una guía muy usada es la regla de @sturges1926choice:
 
 $$
 k = 1 + \log_2 n = 1 + 3.322 \log_{10} n
@@ -309,7 +309,7 @@ $$
 c_{\text{Scott}} = 3.49 \, s \, n^{-1/3}, \qquad c_{\text{FD}} = 2 \, \text{RIC} \, n^{-1/3}
 $$
 
-La desviación estándar y el RIC se explican en el capítulo 9. Las dos reglas hacen que el ancho baje a medida que crece $n$, de modo que con miles de datos dan muchas más clases que Sturges. En R, `nclass.Sturges(x)`, `nclass.scott(x)` y `nclass.FD(x)` devuelven el número de clases de cada regla. Para las 65 lluvias dan 8, 6 y 9 clases: tres opciones razonables que muestran la misma forma general. Ninguna regla reemplaza mirar el histograma y probar dos o tres anchos, como en el interactivo de la @sec-graf-interactivo.
+La desviación estándar y el RIC se explican en el capítulo 9. Las dos reglas hacen que el ancho baje a medida que crece $n$, de modo que con miles de datos dan muchas más clases que Sturges. En R, `nclass.Sturges(x)`, `nclass.scott(x)` y `nclass.FD(x)` devuelven el número de clases de cada regla. Para las 65 lluvias dan 8, 6 y 9 clases: tres opciones razonables que muestran la misma forma general. Ninguna regla reemplaza mirar el histograma y probar dos o tres anchos, como en la @fig-graf-interactivo.
 :::
 
 ### Partes de un cuadro de frecuencias agrupadas
@@ -560,9 +560,9 @@ Con menos de unos 30 datos, un histograma puede mostrar picos o huecos que son s
 
 ### Cuándo usar el histograma y cuándo no {#sec-pres-hist-uso}
 
-El histograma conviene para ver la forma de una variable cuantitativa con unos 30 datos o más, para detectar grupos mezclados y para decidir qué distribución de probabilidad describe los datos (Parte IV). No conviene con pocos datos, porque con 10 datos la forma depende casi por completo de dónde caen los límites de las clases, como muestra el interactivo de la @fig-pres-int-origen; ahí es mejor el gráfico de puntos de la @fig-pres-puntos o una caja. Tampoco sirve para comparar muchos grupos: tres histogramas uno encima del otro se leen peor que tres cajas lado a lado (capítulo 9). La @sec-graf-hist muestra cómo se dibuja con `hist()` y cómo se cambian las clases con el argumento `breaks`.
+El histograma conviene para ver la forma de una variable cuantitativa con unos 30 datos o más, para detectar grupos mezclados y para decidir qué distribución de probabilidad describe los datos (Parte IV). No conviene con pocos datos, porque con 10 datos la forma depende casi por completo de dónde caen los límites de las clases, como muestra la @fig-pres-int-origen; ahí es mejor el gráfico de puntos de la @fig-pres-puntos o una caja. Tampoco sirve para comparar muchos grupos: tres histogramas uno encima del otro se leen peor que tres cajas lado a lado (capítulo 9). La @sec-graf-hist muestra cómo se dibuja con `hist()` y cómo se cambian las clases con el argumento `breaks`.
 
-### Interactivo: el mismo ancho, otro punto de partida
+### El mismo ancho, otro punto de partida
 
 El ancho de clase no es lo único que cambia la forma de un histograma: el límite donde empieza la primera clase también lo hace. En la @fig-pres-int-origen, el ancho está fijo en el valor que elija y el control mueve el punto de partida de las clases para la serie de 65 lluvias. Con el ancho de 16 mm del ejemplo, compare el histograma que empieza en 44 mm con el que empieza en 52 mm.
 
@@ -622,7 +622,7 @@ Histograma con ancho y punto de partida ajustables.
 
 Con el mismo ancho, el histograma puede parecer más o menos asimétrico, o incluso mostrar un segundo pico, solo por dónde se colocaron los límites. Por eso no se debe sacar una conclusión de un detalle del histograma (un pico pequeño, una clase vacía) sin probar con otros límites. Las medidas del capítulo 9, como la mediana, los cuartiles o el coeficiente de asimetría, no dependen de cómo se agrupen los datos, y complementan al histograma.
 
-### Interactivo: leer una ojiva
+### Leer una ojiva
 
 La ojiva responde preguntas del tipo "¿en qué fracción de los años la lluvia fue menor que tal valor?". En la @fig-pres-interactivo, mueva el control para elegir un valor de lluvia. La línea muestra la ojiva del @tbl-pres-lluvia, y el texto da la respuesta exacta contando los 65 datos.
 
@@ -965,7 +965,7 @@ p1 + p2
 
 @tufte2001visual propone medir esa distorsión con el factor de mentira: el cociente entre el tamaño del efecto que se ve en el gráfico y el tamaño del efecto en los datos. En la @fig-pres-eje, la planta C supera a la A en un 9 % ($30.0/27.5 = 1.09$), pero en el gráfico de la izquierda su barra mide el doble ($5.0/2.5 = 2.0$). Eso pasa porque se dibujan solo los tramos por encima de 25 MPa. El efecto visual es once veces mayor que el real: $(2.0 - 1)/(1.09 - 1) \approx 11$. Un gráfico honesto tiene un factor de mentira cercano a 1.
 
-### Interactivo: dónde empieza el eje
+### Dónde empieza el eje
 
 En la @fig-pres-int-eje, mueva el control para elegir dónde empieza el eje vertical de las barras de la @fig-pres-eje. El texto compara la diferencia real entre las plantas A y C con la que se ve en el gráfico.
 
@@ -1037,8 +1037,8 @@ Los ejercicios 1 a 4 usan el inventario de puentes (hipotético) y los ejercicio
 8. Busque en un periódico, un informe técnico o una página web un gráfico que tenga alguno de los errores de la @sec-pres-elegir. Descríbalo, explique qué distorsiona y rehágalo en R con datos aproximados.
 9. Un acueducto municipal clasificó 200 quejas de usuarios en un mes (datos hipotéticos): falta de agua 74, baja presión 41, agua turbia 32, fugas en la vía pública 23, facturación 18 y otras 12. Construya el diagrama de Pareto a mano y con R. ¿Cuántas causas concentran cerca del 80 % de las quejas?
 10. Haga el diagrama de tallo y hojas de los 53 caudales máximos anuales con `stem()`. Pruebe `scale = 1` y `scale = 2`. ¿Cuál muestra mejor la forma? Use el diagrama para encontrar la mediana a mano.
-11. En el interactivo de la @fig-pres-int-origen, fije el ancho en 10 mm y busque un punto de partida con el que la clase más frecuente cambie. ¿Qué concluye sobre la confianza que merece un pico de un histograma?
-12. En el interactivo de la @fig-pres-int-eje, ¿desde qué valor del eje el factor de mentira pasa de 5? Compruebe el resultado con la fórmula del factor de mentira.
+11. En la @fig-pres-int-origen, fije el ancho en 10 mm y busque un punto de partida con el que la clase más frecuente cambie. ¿Qué concluye sobre la confianza que merece un pico de un histograma?
+12. En la @fig-pres-int-eje, ¿desde qué valor del eje el factor de mentira pasa de 5? Compruebe el resultado con la fórmula del factor de mentira.
 13. Para cada forma de la @fig-pres-formas, proponga otro ejemplo de ingeniería civil, distinto del que trae la figura, en el que espere encontrar esa forma. Justifique su respuesta con el mecanismo que genera los datos.
 
 ## Lecturas recomendadas

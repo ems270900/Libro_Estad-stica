@@ -238,9 +238,9 @@ ggplot(galeria, aes(x, y)) +
 
 Dos detalles de la figura sorprenden a quien empieza. El primero es que $r = 0.5$ parece poco: la nube es casi redonda. El segundo es que el valor de $r$ no es la pendiente de la nube. Una banda angosta casi horizontal puede tener $r = 0.95$ y una banda ancha muy inclinada, $r = 0.5$. La pendiente depende de las unidades y la responde la regresión del capítulo 25; $r$ solo dice qué tan cerca de una recta están los puntos.
 
-### Interactivo: adivine la correlación
+### Adivine la correlación
 
-Antes de calcular un coeficiente conviene adivinarlo mirando el gráfico, porque así se aprende a leer los diagramas de dispersión. El interactivo genera una nube al azar. Mueva el control hasta el valor de $r$ que crea que tiene, pulse "Revisar" y compare con el valor calculado. El promedio del error de sus intentos aparece debajo.
+Antes de calcular un coeficiente conviene adivinarlo mirando el gráfico, porque así se aprende a leer los diagramas de dispersión. La @fig-cor-adivine genera una nube al azar. Mueva el control hasta el valor de $r$ que crea que tiene, pulse "Revisar" y compare con el valor calculado. El promedio del error de sus intentos aparece debajo.
 
 ::: {#fig-cor-adivine}
 
@@ -600,7 +600,7 @@ c(Z = Z, p = pnorm(Z, lower.tail = FALSE))
 El intervalo de Fisher no es simétrico alrededor de $r$: en el ejemplo, $r = 0.9965$ está mucho más cerca del límite superior que del inferior. Eso es correcto y no un error de cálculo. Tampoco conviene usarlo con menos de unos 10 pares, porque la aproximación normal de $z_r$ empeora; con ocho muestras, como aquí, el resultado es orientativo.
 :::
 
-## Interactivo: cómo se ve una correlación {#sec-cor-interactivo}
+## Cómo se ve una correlación {#sec-cor-interactivo}
 
 Con el control se cambia la correlación de la población que genera 60 puntos. Debajo del gráfico aparecen el coeficiente de Pearson y el de Spearman (@sec-cor-spearman) calculados con esos puntos. La casilla agrega un solo dato atípico, para ver cuánto mueve cada coeficiente.
 

@@ -355,7 +355,7 @@ ensayos %>%
   summarise(media = mean(resistencia_mpa))
 ```
 
-En el interactivo de la @fig-datos-pipe-int se arma una cadena paso a paso. Cada casilla agrega un paso, y debajo se ven el código completo y la tabla que resulta. Así se puede comprobar qué hace cada verbo antes de conocerlos en detalle en la sección siguiente.
+En la @fig-datos-pipe-int se arma una cadena paso a paso. Cada casilla agrega un paso, y debajo se ven el código completo y la tabla que resulta. Así se puede comprobar qué hace cada verbo antes de conocerlos en detalle en la sección siguiente.
 
 ::: {#fig-datos-pipe-int}
 
@@ -926,7 +926,7 @@ ver_datos("datos/transito_horario_hipotetico.csv",
 9. Con los datos de humedad, cree una columna que diga "Superficial" si la profundidad es de 1 m o menos y "Profunda" en otro caso. Cuente las muestras de cada grupo.
 10. Cree una tabla con la provincia de cada proyecto, como la de la @sec-datos-unir, únala a los ensayos y calcule la resistencia media a 28 días por provincia.
 11. Con los datos de tránsito, use `pivot_wider()` para obtener una tabla con una fila por hora y una columna por tipo de día. Agregue una columna con la diferencia entre el día laboral y el fin de semana. ¿A qué hora es mayor la diferencia?
-12. En el interactivo de la @fig-datos-pipe-int, arme la cadena que da la media por mezcla del pavimento a 28 días. Escriba esa misma cadena en R y compruebe que obtiene los mismos números.
+12. En la @fig-datos-pipe-int, arme la cadena que da la media por mezcla del pavimento a 28 días. Escriba esa misma cadena en R y compruebe que obtiene los mismos números.
 
 ## Lecturas recomendadas
 

@@ -52,7 +52,7 @@ Esa variación tiene varias causas, y conviene separarlas porque cada una se tra
 
 - **Variación natural del material o del fenómeno.** Dos paladas del mismo suelo no tienen exactamente la misma humedad, y dos años nunca tienen la misma lluvia. Esta variación existe aunque se mida con instrumentos perfectos.
 - **Variación del ensayo o del instrumento.** Una balanza, un nivel o un medidor de flujo tienen una precisión limitada, y la persona que mide también introduce diferencias: cómo cura un cilindro, cómo lee una regla, cuánto tarda en tapar una muestra de agua.
-- **Variación por muestreo.** Solo se observa una parte de la población, y otra parte habría dado otros números. El interactivo de la @fig-est-interactivo muestra este efecto.
+- **Variación por muestreo.** Solo se observa una parte de la población, y otra parte habría dado otros números. La @fig-est-interactivo muestra este efecto.
 - **Falta de conocimiento.** A veces la variación es aparente: el asentamiento cambia porque el espesor de la arcilla cambia bajo cada zapata, pero no se conoce el espesor exacto en cada punto.
 
 @ang2007probability llaman aleatoria a la incertidumbre que viene de la variación natural y epistémica a la que viene de la falta de conocimiento. La primera no se puede eliminar, solo describir y tener en cuenta en el diseño. La segunda se reduce con más ensayos, mejores instrumentos o mejores modelos. La estadística trata las dos con los mismos métodos: describir cuánto varían los datos y decir cuánta incertidumbre queda en una conclusión.
@@ -180,9 +180,9 @@ dg_matriz(encabezado = c("material", "estado", "carriles", "longitud (m)"),
 
 Muchos problemas de análisis empiezan con datos desordenados: una hoja con un año por columna, celdas combinadas, totales mezclados con los datos o dos valores en una celda ("12.5 / 13.1"). Antes de calcular nada conviene llevar los datos a la forma de la @fig-est-matriz. El capítulo 3 muestra cómo hacerlo en R.
 
-### Interactivo: una muestra no es la población
+### Una muestra no es la población
 
-El interactivo de la @fig-est-interactivo tiene una población hipotética de 500 cilindros de concreto, cuya resistencia media $\mu$ se conoce porque el interactivo la calculó. Cada vez que se pulsa el botón se toma una muestra al azar de $n$ cilindros y se calcula su media $\bar{x}$. Las marcas de abajo guardan las medias de las muestras anteriores.
+La @fig-est-interactivo tiene una población hipotética de 500 cilindros de concreto, cuya resistencia media $\mu$ se conoce porque se calculó con los 500 valores. Cada vez que se pulsa el botón se toma una muestra al azar de $n$ cilindros y se calcula su media $\bar{x}$. Las marcas de abajo guardan las medias de las muestras anteriores.
 
 ::: {#fig-est-interactivo}
 
@@ -336,7 +336,7 @@ data.frame(
   kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
 ```
 
-### Interactivo: cuatro formas de elegir una muestra
+### Cuatro formas de elegir una muestra
 
 En la @fig-est-int-metodos hay 48 alcantarillas hipotéticas de una red vial, repartidas en seis distritos (las filas). Hay alcantarillas de tubo (gris), de cajón (petróleo) y de bóveda (ámbar). Elija un método y pulse el botón: las alcantarillas elegidas se marcan con un anillo, y el texto cuenta cuántas de cada tipo quedaron en la muestra. Compare cuántas veces la muestra aleatoria simple deja fuera las de bóveda, que son pocas, con lo que pasa en la estratificada.
 
@@ -641,9 +641,9 @@ data.frame(
 
 La mediana tiene sentido para una variable ordinal porque basta con ordenar los datos. Si de 40 puentes 6 están en estado malo y 18 en regular, el puente número 20 de la lista ordenada está en estado regular, y esa es la mediana. La media no tiene sentido, porque exige sumar distancias entre categorías que no están definidas.
 
-### Interactivo: clasifique la variable
+### Clasifique la variable
 
-El interactivo de la @fig-est-int-clasificar presenta variables de las distintas ramas de la ingeniería civil. Para cada una, elija el tipo que le corresponde; el interactivo dice si acertó y por qué. Las preguntas aparecen en orden al azar.
+La @fig-est-int-clasificar presenta variables de las distintas ramas de la ingeniería civil. Para cada una, elija el tipo que le corresponde; la figura dice si acertó y por qué. Las preguntas aparecen en orden al azar.
 
 ::: {#fig-est-int-clasificar}
 
@@ -881,9 +881,9 @@ ggplot(lluvia, aes(x = anio, y = precipitacion_mm)) +
 5. Explique por qué tiene sentido decir que un caudal de 600 m³/s es el doble que uno de 300 m³/s, pero no tiene sentido decir que un puente construido en 2000 es "el doble de nuevo" que uno construido en 1000.
 6. Con los datos de inspección de puentes y una semilla de su elección, tome en R una muestra aleatoria simple de 8 puentes con `sample()` y otra con `slice_sample()`. ¿Cuántos puentes de cada material quedaron en cada muestra? ¿Quedó algún material sin representar?
 7. Con los mismos datos, convierta la variable `carriles` en factor y compare lo que devuelven `summary(puentes$carriles)` antes y después de la conversión. ¿Cuál de los dos resultados tiene más sentido para describir el inventario?
-8. En el interactivo de la @fig-est-interactivo, tome 10 muestras con $n = 5$ y anote la media de cada una. Repita con $n = 50$. Compare la menor y la mayor media que obtuvo en cada caso. ¿Qué concluye sobre el efecto del tamaño de la muestra?
+8. En la @fig-est-interactivo, tome 10 muestras con $n = 5$ y anote la media de cada una. Repita con $n = 50$. Compare la menor y la mayor media que obtuvo en cada caso. ¿Qué concluye sobre el efecto del tamaño de la muestra?
 9. Una planta potabilizadora mide el cloro residual en la red de distribución. Proponga un muestreo estratificado por zona de presión y uno sistemático en el tiempo (una muestra cada cierto número de horas). ¿Qué sesgo podría aparecer si todas las muestras se toman a las 8 de la mañana?
-10. En el interactivo de la @fig-est-int-metodos, sortee 20 muestras con el método aleatorio simple y cuente en cuántas no quedó ninguna alcantarilla de bóveda. Compare su resultado con la probabilidad de 0.204 que da el texto.
+10. En la @fig-est-int-metodos, sortee 20 muestras con el método aleatorio simple y cuente en cuántas no quedó ninguna alcantarilla de bóveda. Compare su resultado con la probabilidad de 0.204 que da el texto.
 11. Para cada caso de la @fig-est-diana, describa una situación de laboratorio de suelos que produzca ese patrón (por ejemplo, un horno de secado con el termostato descalibrado).
 12. Repita en R el ejemplo de muestreo sistemático para un tramo de 8.5 km con 25 núcleos. ¿Cuál es el intervalo $k$? ¿En qué cadenamiento queda el último núcleo con la semilla 2026?
 13. Un estudio encuentra que las zonas de una ciudad con más hidrantes tienen más incendios. Identifique la variable de confusión y explique cómo cambiaría la comparación para tenerla en cuenta.

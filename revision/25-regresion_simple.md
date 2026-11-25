@@ -20,3 +20,9 @@ Fecha: 2026-11-25. Estado: borrador.
 - Secciones nuevas: la recta como sucesión de medias condicionales (figura de las campanas); dirección de la regresión (Y sobre X contra X sobre Y); otras formas de ajustar una recta (Theil y Sen, mínimas desviaciones absolutas, Deming; @helsel2020statistical cap. 10); centrado y cambio de unidades del predictor; interactivo de la variación de la pendiente entre muestras (`#fig-rls-interactivo-muestreo`); cómo leer `summary()` con cuadro explicativo; valores $p$ de los coeficientes, lo que no dicen (@wasserstein2016asa), tamaño del efecto y $f^2$ de Cohen; regresión por el origen; cuadro de errores comunes.
 - Ejemplo nuevo (hidráulica): coeficiente de escorrentía del método racional (@chow1988applied) con regresión por el origen. Datos: `datos/escorrentia_parcela_hipotetica.csv`.
 - Ejercicios 11 a 14 nuevos.
+
+## Cambios (2026-11-25): residuos junto a la recta movible
+
+- A pedido del autor, la intuición de los residuos que estaba al inicio de la sección de residuos del capítulo 27 pasa al capítulo 25, junto a la figura de la recta movible (`#fig-rls-interactivo-mco`), donde los residuos se ven como las líneas punteadas. Subsecciones: "Ajustar una recta a ojo" (`#sec-rls-recta-movible`) y "Qué se ve en los residuos" (`#sec-rls-residuos-intuicion`): signo y distancia vertical, por qué en vertical, cómo los residuos delatan una recta mal puesta (cifras verificadas con los datos: con b0 = 100 y b1 = −0.85 todos negativos, de −5.3 a −13.3 km/h; con la posición inicial, b0 = 80 y b1 = −0.60, positivos a la izquierda y negativos a la derecha, hasta −7.3 km/h; con mínimos cuadrados, el mayor en valor absoluto es 3.61 km/h), residuo contra error, ruido sin estructura y residuos crudos con unidades de Y.
+- La definición formal (`@eq-rls-residuo`) se mantiene donde estaba.
+- Las figuras no se anuncian como interactivas: títulos sin "Interactivo:" y texto que se refiere a ellas como figuras.
