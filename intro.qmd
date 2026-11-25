@@ -12,7 +12,9 @@ Este libro reúne ese lenguaje en el orden en que se aprende. Empieza por R, el 
 
 ## Para quién es este libro {.unnumbered}
 
-El libro se escribió para estudiantes de ingeniería civil que aprenden estadística y R por primera vez. No se supone experiencia previa en ninguno de los dos. Basta con el álgebra del colegio y con nociones de cálculo diferencial e integral, que aparecen en los capítulos de variables aleatorias continuas; cuando se usa una integral, el resultado también se obtiene con R, de modo que nadie se queda atascado por una antiderivada.
+El libro se escribió para estudiantes de ingeniería civil que aprenden estadística y R por primera vez. No se supone experiencia previa en ninguno de los dos, y cada tema empieza desde lo más básico. Las fórmulas se presentan después de explicar qué problema resuelven, cada símbolo se define al aparecer y los cálculos se hacen paso a paso, con todos los números a la vista. Eso no le quita rigor: los métodos son los mismos que se usan en la práctica profesional, con sus supuestos y sus límites.
+
+En los capítulos de variables aleatorias continuas aparecen algunas integrales. Cada una se explica paso a paso y su resultado también se obtiene con R, así que se puede avanzar aunque el cálculo integral se sienta lejano.
 
 También sirve como referencia para quien ya trabaja. Un profesional que necesita repasar cómo se compara la resistencia de dos mezclas, qué supuestos tiene una regresión o cómo se lee una tabla de ANOVA puede ir directo al capítulo. No hace falta leer los anteriores: basta con seguir las referencias cruzadas cuando le falte un concepto.
 
@@ -54,21 +56,9 @@ Cuando un ejemplo usa un archivo de datos, el libro muestra una vista paginada d
 
 Los datos tienen dos orígenes, y el planteamiento de cada ejemplo dice cuál. La mayoría son hipotéticos: se construyeron para ilustrar un método, con valores realistas para la ingeniería civil, y llevan "hipotético" en el nombre del archivo. No deben usarse para diseñar. Unos pocos son registros reales de lluvia y de caudal tomados del material del curso; se publican anonimizados, sin el nombre de la estación ni de la institución que los midió.
 
-## Interactivos {.unnumbered}
-
-Casi todos los capítulos traen al menos un interactivo: un gráfico con deslizadores o casillas donde se cambian los parámetros y el resultado se actualiza al instante. Con ellos se ve cómo se ensancha un intervalo de confianza cuando baja el tamaño de la muestra, cómo se mueve la curva normal al cambiar la media o qué le pasa a la recta de regresión cuando aparece un dato atípico. Están escritos para funcionar dentro del libro, sin internet y sin instalar nada. El texto que los acompaña propone qué valores probar; vale la pena hacerlo antes de seguir leyendo, porque muchas propiedades que en el papel cuestan se entienden en dos movimientos del deslizador.
-
 ## Ejercicios {.unnumbered}
 
 Cada capítulo cierra con ejercicios propuestos. No traen solución publicada: se resuelven con los métodos y los ejemplos del capítulo, primero a mano y después con R, y la comparación entre los dos resultados es la mejor forma de saber si quedaron bien.
-
-## Convenciones {.unnumbered}
-
-- El separador decimal es el punto (0.75), igual que en R. Los miles se separan con un espacio a partir de 10 000.
-- Los cuadros se llaman cuadros, no tablas, salvo las tablas estadísticas del apéndice A.
-- Los valores críticos $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha, en el texto y en las tablas.
-- Las ecuaciones, las figuras y los cuadros se numeran por capítulo, y las referencias cruzadas son enlaces: un clic sobre "Ecuación 16.2" lleva a la ecuación.
-- El código usa el operador `%>%` para encadenar pasos, que se explica desde cero en el capítulo 3.
 
 ## Programas y paquetes {.unnumbered}
 

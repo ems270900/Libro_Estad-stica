@@ -6,14 +6,17 @@
 # Uso, desde la carpeta del libro:  Rscript herramientas/datos_parte6.R
 # =============================================================================
 
-# 1) Diez mezclas de concreto: relación agua/cemento y resistencia a 28 días.
-#    Valores escritos a mano para que el cálculo con calculadora sea manejable.
-mezclas <- data.frame(
-  mezcla = sprintf("M%02d", 1:10),
-  relacion_ac = c(0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70),
-  resistencia_mpa = c(44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1)
+# 1) Velocidad y densidad del tránsito en diez periodos de 15 minutos de un
+#    tramo de autopista (modelo de Greenshields): v = 88 - 0.8 k + ruido normal
+#    con desviación 2.2 km/h, redondeado a un decimal. Semilla 1935.
+set.seed(1935)
+densidad <- c(12, 18, 24, 30, 36, 44, 52, 60, 68, 76)
+tramo <- data.frame(
+  punto = sprintf("P%02d", 1:10),
+  densidad_veh_km = densidad,
+  velocidad_km_h = round(88 - 0.8 * densidad + rnorm(10, 0, 2.2), 1)
 )
-write.csv(mezclas, "datos/mezclas_ac_hipoteticas.csv", row.names = FALSE)
+write.csv(tramo, "datos/greenshields_tramo_hipotetico.csv", row.names = FALSE)
 
 # 2) Dos inspectores ordenan siete tramos de carretera según su deterioro
 #    (1 = el más deteriorado). Escrito a mano.

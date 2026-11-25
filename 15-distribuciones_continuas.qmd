@@ -183,7 +183,7 @@ La @fig-cont-bombas compara el histograma de los datos con la densidad ajustada.
 
 ```{r}
 #| label: fig-cont-bombas
-#| fig-cap: "Histograma de los días entre fallas y densidad exponencial ajustada."
+#| fig-cap: "Días entre fallas y densidad exponencial."
 #| fig-alt: "Histograma muy asimétrico a la derecha, con la mayoría de los valores por debajo de 60 días y una curva exponencial decreciente encima"
 #| echo: false
 #| fig-width: 6.5
@@ -219,7 +219,7 @@ Con $\alpha = 1$ la gamma es una exponencial con media $\theta$. Cuando $\alpha$
 
 ```{r}
 #| label: fig-cont-gamma-formas
-#| fig-cap: "Densidad gamma con escala θ = 1 y tres valores del parámetro de forma α."
+#| fig-cap: "Densidad gamma para tres valores de α."
 #| fig-alt: "Tres curvas: con alfa igual a 1 es decreciente, con 2 tiene un pico cerca de 1 y con 5 tiene un pico cerca de 4 y es casi simétrica"
 #| echo: false
 #| fig-width: 6.5
@@ -479,7 +479,7 @@ En el interactivo de la @fig-cont-interactivo se elige una distribución, se mue
 </script>
 ```
 
-Distribuciones continuas. Elija la distribución, mueva los parámetros y el valor $x_0$.
+Distribuciones continuas.
 
 :::
 
