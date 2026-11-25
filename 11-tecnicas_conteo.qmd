@@ -128,7 +128,7 @@ La @fig-conteo-crecimiento compara el factorial con otras dos cantidades que tam
 
 ```{r}
 #| label: fig-conteo-crecimiento
-#| fig-cap: "Crecimiento de n², 2ⁿ y n! para n de 1 a 20, en escala logarítmica."
+#| fig-cap: "Crecimiento de n², 2ⁿ y n!."
 #| fig-alt: "Tres curvas en escala logarítmica. La de n al cuadrado crece despacio hasta 400, la de 2 a la n llega a cerca de un millón y la de n factorial supera 10 a la 18"
 #| echo: false
 
@@ -507,7 +507,7 @@ donde $1 \le k \le n - 1$. La razón se entiende sin álgebra [@blitzstein2019in
 
 ```{r}
 #| label: fig-conteo-pascal
-#| fig-cap: "Triángulo de Pascal hasta n = 8. El 15 resaltado es la suma de los dos números que tiene encima."
+#| fig-cap: "Triángulo de Pascal hasta n = 8."
 #| fig-alt: "Triángulo de números con unos en los bordes; en la fila 6 se resalta el 15 y en la fila 5 se resaltan el 5 y el 10 que están encima de él"
 #| echo: false
 #| fig-width: 7
@@ -851,7 +851,7 @@ En el interactivo de la @fig-conteo-int-inspeccion se mueven $N$, $D$ y $n$. Las
 </script>
 ```
 
-Probabilidad del número de defectuosos en una muestra sin reemplazo. Mueva el tamaño del lote, los defectuosos y la muestra.
+Probabilidad del número de defectuosos en una muestra.
 
 :::
 

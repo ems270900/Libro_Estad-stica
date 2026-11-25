@@ -18,7 +18,8 @@
 - Revisión del autor de los capítulos 7 a 9.
 ## Parte III (Probabilidad)
 
-- Revisión del autor de los capítulos 10 a 12.
+- Revisión del autor de los capítulos 10 a 12, ampliados el 2026-11-25 (secciones nuevas, cinco interactivos nuevos, cuatro ejemplos nuevos y errores frecuentes por capítulo).
+- Referencias nuevas de la ampliación (Ang y Tang, 2007; Benjamin y Cornell, 1970; Chow et al., 1988; Feller, 1968; Friendly, 1994; Gigerenzer y Hoffrage, 1995): se citan por capítulo o sin página. Si el autor tiene los libros a mano, conviene precisar capítulo o página.
 - Los datos de atrasos de obra, de varillas, de plantas de concreto y de ensayos en pilotes son hipotéticos. Si el autor tiene datos reales publicables (por ejemplo, de un informe de laboratorio con permiso), se pueden sustituir.
 - `laneintroduction` y `watkinsintroduction` no tienen año de publicación en el PDF; salen como "s. f.". Confirmar si el autor prefiere otra edición fechada.
 

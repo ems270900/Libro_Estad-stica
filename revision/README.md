@@ -18,9 +18,9 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 7. La estadística en la ingeniería civil | Borrador | [07-estadistica_ingenieria.md](07-estadistica_ingenieria.md) | Parte II |
 | 8. Presentación de datos: cuadros y gráficos | Borrador | [08-presentacion_datos.md](08-presentacion_datos.md) | Parte II |
 | 9. Medidas de tendencia central, posición y variabilidad | Borrador | [09-medidas_descriptivas.md](09-medidas_descriptivas.md) | Parte II |
-| 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
-| 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
-| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| 10. Experimentos, eventos y axiomas de la probabilidad | Borrador (ampliado 2026-11-25) | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
+| 11. Técnicas de conteo | Borrador (ampliado 2026-11-25) | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
+| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador (ampliado 2026-11-25) | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
 | 13. Variables aleatorias | Borrador | [13-variables_aleatorias.md](13-variables_aleatorias.md) | Parte IV |
 | 14. Distribuciones discretas | Borrador | [14-distribuciones_discretas.md](14-distribuciones_discretas.md) | Parte IV |
 | 15. Distribuciones continuas | Borrador | [15-distribuciones_continuas.md](15-distribuciones_continuas.md) | Parte IV |

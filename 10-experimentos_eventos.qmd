@@ -108,7 +108,7 @@ El espacio muestral no siempre es una lista corta. Según el experimento, puede 
 
 ```{r}
 #| label: fig-eventos-tipos-espacio
-#| fig-cap: "Tres clases de espacio muestral: finito, infinito numerable y continuo."
+#| fig-cap: "Tres clases de espacio muestral."
 #| fig-alt: "Tres filas. Arriba, seis puntos numerados del 1 al 6. En medio, puntos numerados 0, 1, 2 hasta 8 seguidos de puntos suspensivos. Abajo, una recta que empieza en 0 mm con una flecha hacia la derecha y un tramo sombreado desde 50 mm"
 #| echo: false
 #| fig-width: 8
@@ -583,7 +583,7 @@ En el interactivo de la @fig-eventos-int-suma se fijan $P(A)$, $P(B)$ y $P(A \ca
 </script>
 ```
 
-Regla de la suma dibujada como longitudes sobre una barra de largo 1. Mueva los controles.
+Regla de la suma como longitudes sobre una barra.
 
 :::
 
@@ -606,7 +606,7 @@ Con tres eventos, la @eq-eventos-union3 parece complicada, pero sigue la misma l
 
 ```{r}
 #| label: fig-eventos-venn3
-#| fig-cap: "Probabilidad de cada región para los tres motivos de incumplimiento (datos hipotéticos)."
+#| fig-cap: "Probabilidad de cada región para tres motivos de incumplimiento."
 #| fig-alt: "Diagrama de Venn de tres círculos, A coliformes, B nitratos y C turbiedad, con la probabilidad de cada una de las siete regiones interiores y 0.80 fuera de los círculos"
 #| echo: false
 #| fig-width: 6
@@ -1000,7 +1000,7 @@ La @fig-eventos-lgn-embudo repite la idea con 25 simulaciones independientes de 
 
 ```{r}
 #| label: fig-eventos-lgn-embudo
-#| fig-cap: "Frecuencia relativa de un evento con probabilidad 0.1 en 25 simulaciones de 2000 repeticiones."
+#| fig-cap: "Frecuencia relativa en 25 simulaciones de un evento con probabilidad 0.1."
 #| fig-alt: "Veinticinco líneas grises que empiezan muy separadas y se van juntando alrededor de 0.1, dentro de dos curvas punteadas que forman un embudo"
 #| echo: false
 #| cache: true
