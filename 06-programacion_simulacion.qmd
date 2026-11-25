@@ -163,8 +163,8 @@ round(cumsum(x) / seq_along(x), 2)
 
 :::
 
-::: {.callout-warning title="Cuidado"}
-Un error frecuente es escribir `for (i in 1:length(x))` cuando `x` puede estar vacío. En ese caso `1:length(x)` vale `1:0`, que es el vector `c(1, 0)`, y el ciclo da dos vueltas con posiciones que no existen. `seq_along(x)` devuelve un vector vacío y el ciclo, correctamente, no se ejecuta.
+::: {.callout-tip title="En la práctica"}
+Para entender qué hace un ciclo, conviene seguirlo con lápiz y papel, como en el cuadro del ejemplo: anotar en cada vuelta el valor de `i` y de cada objeto. Si el resultado de R no coincide con el de la tabla, el error está en la vuelta donde los dos empiezan a diferir.
 :::
 
 ## Simulación con números aleatorios {#sec-prog-simulacion}
@@ -195,10 +195,10 @@ set.seed(2026)
 sample(1:6, size = 5, replace = TRUE)
 ```
 
-Con la misma semilla, R produce la misma secuencia de números. La semilla puede ser cualquier número entero; lo importante es escribirla en el código para que otra persona obtenga los mismos resultados. Los números que genera la computadora no son realmente aleatorios, sino que salen de una fórmula a partir de la semilla; por eso se llaman pseudoaleatorios, pero para los fines de este libro se comportan como si fueran al azar.
+Con la misma semilla, R produce la misma secuencia de números. La semilla puede ser cualquier número entero; lo importante es escribirla en el código para que otra persona obtenga los mismos resultados. Una forma de imaginarlo: la semilla es como el número de página de un libro enorme lleno de números al azar; con la misma página, siempre se leen los mismos números.
 
 ::: {.callout-warning title="Cuidado"}
-En la versión 3.6.0 de R cambió la forma en que `sample()` usa la semilla. Con una versión anterior, la misma semilla da resultados distintos de los de este libro. Conviene tener instalada una versión reciente de R (@sec-r-instalacion).
+Si los números que obtiene no son iguales a los del libro aunque use la misma semilla, revise la versión de R: las versiones anteriores a la 3.6.0 generan otros números con la misma semilla. Con una versión reciente (@sec-r-instalacion) los resultados coinciden.
 :::
 
 ::: {.callout-note title="Ejemplo: probabilidad de que dos dados sumen 7"}

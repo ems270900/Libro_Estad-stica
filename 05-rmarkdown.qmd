@@ -44,7 +44,7 @@ Archivo mínimo de R Markdown: encabezado, texto y un bloque de código.
 
 :::
 
-El proceso que convierte ese archivo en un documento terminado se llama compilación, y en RStudio se hace con el botón Knit ("tejer"), porque el resultado entreteje el texto con el código y sus resultados. Por dentro trabajan dos programas: el paquete knitr ejecuta el código y escribe un archivo de Markdown con los resultados, y el programa Pandoc convierte ese Markdown en HTML, Word o PDF. No hace falta instalar nada aparte: RStudio trae Pandoc, y el paquete rmarkdown instala knitr.
+El proceso que convierte ese archivo en un documento terminado se llama compilación, y en RStudio se hace con el botón Knit ("tejer"), porque el resultado entreteje el texto con el código y sus resultados. Al presionarlo, RStudio hace dos cosas seguidas: primero ejecuta el código de cada bloque y luego arma el documento final con el texto y los resultados. Todo lo necesario viene con RStudio y con el paquete rmarkdown; no hay que instalar nada más.
 
 ## Crear y compilar un documento {#sec-rmd-crear}
 
