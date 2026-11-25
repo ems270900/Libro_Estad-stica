@@ -6,7 +6,7 @@ suppress-bibliography: true
 
 Un puente se diseña para una crecida que puede o no llegar durante su vida útil. Un lote de cilindros de concreto puede cumplir o no la resistencia especificada. Una obra puede atrasarse un día cualquiera por lluvia, por una falla del equipo o por ambas cosas. En los tres casos no se sabe de antemano qué va a pasar, pero sí se puede medir qué tan posible es cada resultado. Esa medida es la probabilidad, y este capítulo construye su lenguaje desde cero: qué es un experimento aleatorio, qué es un evento, cómo se combinan los eventos y qué reglas cumple cualquier probabilidad. Al final se comprueba con R, con las simulaciones que se aprendieron en el capítulo 6, que la frecuencia con que ocurre un evento se acerca a su probabilidad.
 
-Las ideas de este capítulo siguen a @bertsekas2008introduction [cap. 1] y a @illowsky2018introductory [cap. 3], donde el lector encuentra más ejemplos.
+Las ideas de este capítulo siguen a @bertsekas2008introduction [cap. 1] y a @illowsky2018introductory [cap. 3], donde hay muchos más ejemplos resueltos. Para las aplicaciones en ingeniería civil, las referencias clásicas son @benjamin1970probability y @ang2007probability [caps. 1 y 2], que muestran cómo se usan estas mismas reglas en el diseño de obras.
 
 ## Experimentos deterministas y aleatorios {#sec-eventos-experimentos}
 
@@ -16,6 +16,19 @@ Un experimento es cualquier proceso que produce un resultado que se puede observ
 - **Experimento aleatorio.** Aunque se repita en las mismas condiciones, el resultado cambia de una vez a otra y no se puede predecir con certeza. Sí se conoce, en cambio, la lista de resultados posibles. Lanzar un dado, extraer una carta de una baraja o medir la resistencia de un cilindro de concreto son experimentos aleatorios.
 
 En ingeniería casi todo lo que se mide se comporta como un experimento aleatorio. Dos cilindros hechos con la misma mezcla, el mismo día y por la misma persona no fallan exactamente con la misma carga, porque hay pequeñas diferencias en la compactación, el curado y el ensayo. La probabilidad es el idioma que se usa para describir esa variación.
+
+### Variabilidad natural y falta de conocimiento
+
+La incertidumbre de un proyecto de ingeniería tiene dos orígenes, y conviene distinguirlos desde el principio porque cada uno se trata con medios distintos [@ang2007probability, cap. 1].
+
+- **Incertidumbre aleatoria.** Es la variabilidad propia del fenómeno. La lluvia máxima del próximo año, el número de camiones pesados que cruzarán un puente mañana o la resistencia de la próxima varilla que salga de la línea cambian de una vez a otra, y lo hacen aunque el proceso se conozca muy bien. Medir más no la elimina: solo la describe mejor.
+- **Incertidumbre epistémica.** Viene de lo que todavía no se sabe: un modelo simplificado, pocos ensayos o un parámetro estimado con un registro corto. Esta sí se reduce con más información. Si la resistencia al corte de un suelo se estima con tres ensayos, el promedio es poco confiable; con treinta, lo es mucho más.
+
+Un depósito de arcilla sirve para separar las dos. Su resistencia cambia de un punto a otro aunque se hagan mil sondeos: eso es variabilidad natural. Pero si solo se hicieron dos sondeos, además no se sabe bien cuál es la resistencia media del depósito: eso es falta de conocimiento. La probabilidad describe las dos con el mismo lenguaje, y por eso se usa desde hace décadas para tomar decisiones de diseño en ingeniería civil [@benjamin1970probability; @ang2007probability].
+
+::: {.callout-tip title="En la práctica"}
+Los factores de seguridad y los coeficientes de reducción de los códigos de diseño son, en buena parte, una forma de cubrir estas dos incertidumbres sin hacer cálculos de probabilidad en cada proyecto. Detrás de muchos de esos coeficientes hay estudios probabilísticos que los calibraron [@ang2007probability, cap. 1]. Entender la probabilidad ayuda a saber qué cubre cada coeficiente y qué no cubre.
+:::
 
 ::: {.pregunta}
 ¿Cómo se puede asignar un número a algo que todavía no ha pasado?
@@ -83,6 +96,50 @@ En el código, `S == "C"` compara cada celda con la letra `"C"` y da `TRUE` o `F
 
 **Interpretación.** El espacio muestral tiene 8 resultados y el evento $A$ tiene 4. Que $A$ tenga la mitad de los resultados no quiere decir todavía que su probabilidad sea 0.5: eso solo es cierto si los 8 resultados son igual de probables, lo que se discute en la @sec-eventos-clasica.
 
+:::
+
+### Espacios muestrales finitos, numerables y continuos
+
+El espacio muestral no siempre es una lista corta. Según el experimento, puede ser de tres clases, que la @fig-eventos-tipos-espacio dibuja una debajo de la otra [@bertsekas2008introduction, sec. 1.1; @ang2007probability, cap. 2]:
+
+- **Finito.** Tiene un número limitado de resultados, que se pueden escribir todos: las seis caras del dado o los ocho resultados del ensayo de tres cilindros.
+- **Infinito numerable.** Los resultados se pueden contar uno por uno (0, 1, 2, …), pero la lista no tiene un final fijo. El número de vehículos que llegan a una intersección en un minuto o el número de sismos sentidos en un año son de este tipo. En la realidad nunca son infinitos, pero no hay un máximo claro que se pueda fijar de antemano.
+- **Continuo.** Los resultados son todos los valores de un intervalo de números reales. La lluvia de un día (cualquier valor desde 0 mm), el tiempo que tarda una bomba en fallar o el asentamiento de una zapata son de este tipo. Entre 20.1 mm y 20.2 mm caben infinitos valores.
+
+```{r}
+#| label: fig-eventos-tipos-espacio
+#| fig-cap: "Tres clases de espacio muestral."
+#| fig-alt: "Tres filas. Arriba, seis puntos numerados del 1 al 6. En medio, puntos numerados 0, 1, 2 hasta 8 seguidos de puntos suspensivos. Abajo, una recta que empieza en 0 mm con una flecha hacia la derecha y un tramo sombreado desde 50 mm"
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.6
+
+library(ggplot2)
+finito <- data.frame(x = seq(3.5, 8.5, by = 1), y = 3, et = 1:6)
+numerable <- data.frame(x = seq(3.5, 9.9, by = 0.8), y = 2, et = 0:8)
+ggplot() +
+  geom_point(data = finito, aes(x, y), size = 4, color = "#1C6BA0") +
+  geom_text(data = finito, aes(x, y + 0.28, label = et), size = 4.2) +
+  geom_point(data = numerable, aes(x, y), size = 4, color = "#1C6BA0") +
+  geom_text(data = numerable, aes(x, y + 0.28, label = et), size = 4.2) +
+  annotate("text", x = 10.6, y = 2, label = "…", size = 7) +
+  annotate("rect", xmin = 6.5, xmax = 11.1, ymin = 0.88, ymax = 1.12, fill = "#E69F00", alpha = 0.5) +
+  annotate("segment", x = 3.5, xend = 11.3, y = 1, yend = 1, linewidth = 1.1, color = "#1C6BA0",
+           arrow = arrow(length = unit(0.25, "cm"))) +
+  annotate("point", x = 3.5, y = 1, size = 3, color = "#1C6BA0") +
+  annotate("text", x = c(3.5, 6.5), y = 0.65, label = c("0 mm", "50 mm"), size = 4) +
+  annotate("text", x = 8.8, y = 1.35, label = "Evento: llueve más de 50 mm", size = 4) +
+  annotate("text", x = 0, y = c(3, 2, 1), hjust = 0, size = 4.2, fontface = "bold",
+           label = c("Finito\n(cara de un dado)", "Infinito numerable\n(vehículos por minuto)",
+                     "Continuo\n(lluvia de un día)")) +
+  xlim(0, 11.5) + ylim(0.4, 3.5) +
+  theme_void()
+```
+
+La diferencia importa porque cambia la forma de asignar probabilidades. En un espacio finito se le da una probabilidad a cada resultado y, para un evento, se suman las de sus resultados. En uno continuo, la probabilidad de un valor exacto, como "llueven exactamente 50 mm, ni una milésima más ni una menos", es cero; lo que tiene probabilidad son los intervalos, como "llueven más de 50 mm". Los eventos de este capítulo se dibujan casi siempre con espacios finitos porque se ven mejor, pero las reglas valen igual para los continuos, que se tratan con detalle en los capítulos 13 y 15.
+
+::: {.callout-warning title="Cuidado"}
+Un espacio muestral debe cumplir dos condiciones: que sus resultados no se traslapen (que nunca ocurran dos a la vez) y que no falte ninguno. Si en una inspección de pavimentos se usan las categorías "sin daño", "fisuras" y "baches", un tramo con fisuras y baches no cabe en una sola categoría. La lista correcta tendría que agregar "fisuras y baches" o definir de otra manera cada categoría.
 :::
 
 ## Operaciones con eventos {#sec-eventos-operaciones}
@@ -456,6 +513,171 @@ all(c(p_b, p_union, p_ninguno) >= 0 & c(p_b, p_union, p_ninguno) <= 1)
 
 :::
 
+
+### Interactivo: regla de la suma
+
+En el interactivo de la @fig-eventos-int-suma se fijan $P(A)$, $P(B)$ y $P(A \cap B)$, y la probabilidad se dibuja como longitud sobre una barra que mide 1, el espacio muestral completo. La barra se parte en las cuatro regiones del diagrama de Venn: solo $A$, los dos, solo $B$ y ninguno. Así se ve por qué la intersección se resta una vez: si se sumaran sin más las llaves de $A$ y de $B$, el tramo del centro quedaría contado dos veces. Si los valores escogidos son imposibles, el interactivo dice qué regla violan.
+
+::: {#fig-eventos-int-suma}
+
+```{=html}
+<div class="interactivo" id="int-suma">
+  <label><span><i>P</i>(<i>A</i>):</span> <output class="s-a">0.40</output>
+    <input class="c-a" type="range" min="0" max="1" step="0.01" value="0.4"></label>
+  <label><span><i>P</i>(<i>B</i>):</span> <output class="s-b">0.50</output>
+    <input class="c-b" type="range" min="0" max="1" step="0.01" value="0.5"></label>
+  <label><span><i>P</i>(<i>A</i> ∩ <i>B</i>):</span> <output class="s-ab">0.10</output>
+    <input class="c-ab" type="range" min="0" max="1" step="0.01" value="0.1"></label>
+  <svg viewBox="0 0 640 190" role="img" aria-label="Barra de longitud 1 partida en las regiones solo A, A y B, solo B y ninguno"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-suma");
+  var ca = raiz.querySelector(".c-a"), cb = raiz.querySelector(".c-b"), cab = raiz.querySelector(".c-ab");
+  var sa = raiz.querySelector(".s-a"), sb = raiz.querySelector(".s-b"), sab = raiz.querySelector(".s-ab");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var x0 = 20, ancho = 600, yb = 80, alto = 44;
+  function tramo(desde, largo, estilo, rotulo) {
+    var x = x0 + desde * ancho, w = largo * ancho, s = "";
+    s += '<rect x="' + x.toFixed(1) + '" y="' + yb + '" width="' + Math.max(w, 0).toFixed(1) + '" height="' + alto + '" style="' + estilo + '"/>';
+    if (w > rotulo.length * 6.6 + 8) s += '<text class="eje-texto" x="' + (x + w / 2).toFixed(1) + '" y="' + (yb + alto / 2 + 4) + '" text-anchor="middle">' + rotulo + '</text>';
+    return s;
+  }
+  function llave(desde, hasta, y, rotulo, arriba) {
+    var xa = x0 + desde * ancho, xb = x0 + hasta * ancho, d = arriba ? 8 : -8;
+    return '<path d="M' + xa + ',' + (y + d) + ' L' + xa + ',' + y + ' L' + xb + ',' + y + ' L' + xb + ',' + (y + d) + '" fill="none" style="stroke:currentColor;stroke-width:1.5"/>' +
+      '<text class="eje-texto" x="' + ((xa + xb) / 2) + '" y="' + (arriba ? y - 6 : y + 16) + '" text-anchor="middle">' + rotulo + '</text>';
+  }
+  function dibujar() {
+    var a = parseFloat(ca.value), b = parseFloat(cb.value), ab = parseFloat(cab.value);
+    sa.textContent = a.toFixed(2); sb.textContent = b.toFixed(2); sab.textContent = ab.toFixed(2);
+    var union = a + b - ab;
+    if (ab > Math.min(a, b) + 1e-9) {
+      svg.innerHTML = '<text class="eje-texto" x="320" y="100" text-anchor="middle">Valores imposibles</text>';
+      texto.textContent = "P(A ∩ B) no puede ser mayor que P(A) ni que P(B): la intersección está dentro de cada evento (regla de inclusión).";
+      return;
+    }
+    if (union > 1 + 1e-9) {
+      svg.innerHTML = '<text class="eje-texto" x="320" y="100" text-anchor="middle">Valores imposibles</text>';
+      texto.textContent = "Con estos valores P(A ∪ B) = " + union.toFixed(2) + ", mayor que 1: se viola el axioma 2. Suba P(A ∩ B) o baje P(A) o P(B).";
+      return;
+    }
+    var soloA = a - ab, soloB = b - ab, ninguno = 1 - union, s = "";
+    s += tramo(0, soloA, "fill:var(--serie-1);opacity:0.55", "solo A: " + soloA.toFixed(2));
+    s += tramo(soloA, ab, "fill:var(--serie-1);opacity:0.95", "A y B: " + ab.toFixed(2));
+    s += tramo(a, soloB, "fill:#E69F00;opacity:0.7", "solo B: " + soloB.toFixed(2));
+    s += tramo(union, ninguno, "fill:#adb5bd;opacity:0.45", "ninguno: " + ninguno.toFixed(2));
+    s += '<rect x="' + x0 + '" y="' + yb + '" width="' + ancho + '" height="' + alto + '" fill="none" style="stroke:currentColor;stroke-width:1"/>';
+    if (a > 0) s += llave(0, a, yb - 14, "A: " + a.toFixed(2), true);
+    if (b > 0) s += llave(soloA, a + soloB, yb + alto + 14, "B: " + b.toFixed(2), false);
+    s += '<text class="eje-texto" x="' + x0 + '" y="182">0</text><text class="eje-texto" x="' + (x0 + ancho) + '" y="182" text-anchor="end">1 (todo S)</text>';
+    svg.innerHTML = s;
+    texto.textContent = "P(A ∪ B) = " + a.toFixed(2) + " + " + b.toFixed(2) + " − " + ab.toFixed(2) + " = " + union.toFixed(2) +
+      ".   Ninguno: 1 − " + union.toFixed(2) + " = " + ninguno.toFixed(2) +
+      (ab === 0 ? ".   A y B son mutuamente excluyentes." : ".   Sumar sin restar daría " + (a + b).toFixed(2) + ".");
+  }
+  [ca, cb, cab].forEach(function (c) { c.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Regla de la suma como longitudes sobre una barra.
+
+:::
+
+### Tres eventos: muestras de agua fuera de norma
+
+Con tres eventos, la @eq-eventos-union3 parece complicada, pero sigue la misma lógica de "sumar y quitar lo que se contó de más". En un diagrama de Venn con tres círculos hay siete regiones dentro de los círculos. Al sumar $P(A) + P(B) + P(C)$, las regiones donde se traslapan dos eventos se cuentan dos veces, y la región central, donde se traslapan los tres, se cuenta tres veces. Al restar las tres intersecciones de dos en dos, la región central se resta tres veces y queda contada cero veces; por eso se vuelve a sumar una vez. A este procedimiento se le llama principio de inclusión y exclusión [@bertsekas2008introduction, sec. 1.2].
+
+::: {.callout-note title="Ejemplo: muestras de agua de pozo que incumplen la norma"}
+
+**Planteamiento.** Un acueducto comunal analiza cada mes muestras de agua de sus pozos. Una muestra puede incumplir la norma de calidad por coliformes fecales ($A$), por nitratos ($B$) o por turbiedad ($C$). Con un registro hipotético de varios años se estimó: $P(A) = 0.12$, $P(B) = 0.08$, $P(C) = 0.10$, $P(A \cap B) = 0.04$, $P(A \cap C) = 0.05$, $P(B \cap C) = 0.02$ y $P(A \cap B \cap C) = 0.01$. Calcule la probabilidad de que una muestra incumpla al menos un parámetro, la de que cumpla los tres y la de que incumpla solo por coliformes.
+
+**Solución:**
+
+1. Al menos un parámetro es $A \cup B \cup C$. Con la @eq-eventos-union3:
+   $P(A \cup B \cup C) = 0.12 + 0.08 + 0.10 - 0.04 - 0.05 - 0.02 + 0.01 = 0.30 - 0.11 + 0.01 = 0.20$.
+2. Cumple los tres es el complemento: $1 - 0.20 = 0.80$.
+3. Solo coliformes es la parte de $A$ que no toca a $B$ ni a $C$. A $P(A)$ se le quitan las dos intersecciones con $A$, y como la región central se quitó dos veces, se suma una:
+   $P(\text{solo } A) = 0.12 - 0.04 - 0.05 + 0.01 = 0.04$.
+4. Revisión con las siete regiones (@fig-eventos-venn3): solo $A$ 0.04, solo $B$ 0.03, solo $C$ 0.04, solo $A$ y $B$ 0.03, solo $A$ y $C$ 0.04, solo $B$ y $C$ 0.01, los tres 0.01. Suman 0.20, igual que en el paso 1.
+
+```{r}
+#| label: fig-eventos-venn3
+#| fig-cap: "Probabilidad de cada región para tres motivos de incumplimiento."
+#| fig-alt: "Diagrama de Venn de tres círculos, A coliformes, B nitratos y C turbiedad, con la probabilidad de cada una de las siete regiones interiores y 0.80 fuera de los círculos"
+#| echo: false
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "60%"
+
+ang <- seq(0, 2 * pi, length.out = 200)
+centros <- data.frame(c = c("A", "B", "C"), x = c(-0.55, 0.55, 0), y = c(0.35, 0.35, -0.55))
+circ3 <- do.call(rbind, lapply(1:3, function(i)
+  data.frame(c = centros$c[i], x = centros$x[i] + cos(ang), y = centros$y[i] + sin(ang))))
+etiquetas <- data.frame(
+  x = c(-1.05, 1.05, 0, 0, -0.62, 0.62, 0, 1.75),
+  y = c(0.65, 0.65, -1.15, 0.85, -0.3, -0.3, 0.05, -1.65),
+  et = c("0.04", "0.03", "0.04", "0.03", "0.04", "0.01", "0.01", "0.80"))
+ggplot() +
+  geom_polygon(data = circ3, aes(x, y, group = c, fill = c), alpha = 0.25) +
+  geom_path(data = circ3, aes(x, y, group = c), color = "grey20", linewidth = 0.7) +
+  scale_fill_manual(values = c(A = "#1C6BA0", B = "#E69F00", C = "#009E73"), guide = "none") +
+  annotate("rect", xmin = -2.2, xmax = 2.2, ymin = -1.9, ymax = 1.75, fill = NA, color = "grey30") +
+  geom_text(data = etiquetas, aes(x, y, label = et), size = 4.5) +
+  annotate("text", x = c(-1.55, 1.55, 0), y = c(1.35, 1.35, -1.75), size = 4.2,
+           label = c("A: coliformes", "B: nitratos", "C: turbiedad")) +
+  coord_equal() +
+  theme_void()
+```
+
+**Pseudocódigo**
+
+1. Guardar las siete probabilidades conocidas.
+2. Aplicar la @eq-eventos-union3 y la regla del complemento.
+3. Calcular la probabilidad de cada región y comprobar que las de adentro suman lo mismo que la unión.
+4. Comprobar con una simulación: sortear la región de muchas muestras con `sample()` y contar.
+
+```{r}
+#| cache: true
+# 1) Datos
+p_a <- 0.12; p_b <- 0.08; p_c <- 0.10
+p_ab <- 0.04; p_ac <- 0.05; p_bc <- 0.02; p_abc <- 0.01
+
+# 2) Inclusión y exclusión
+p_union <- p_a + p_b + p_c - p_ab - p_ac - p_bc + p_abc
+c(al_menos_uno = p_union, cumple_todo = 1 - p_union)
+
+# 3) Probabilidad de cada región
+regiones <- c(
+  solo_a = p_a - p_ab - p_ac + p_abc,
+  solo_b = p_b - p_ab - p_bc + p_abc,
+  solo_c = p_c - p_ac - p_bc + p_abc,
+  solo_ab = p_ab - p_abc,
+  solo_ac = p_ac - p_abc,
+  solo_bc = p_bc - p_abc,
+  abc = p_abc
+)
+regiones
+sum(regiones)
+
+# 4) Simulación de 100 000 muestras: se sortea la región de cada una
+set.seed(2026)
+nombres <- c(names(regiones), "ninguno")
+probs <- c(regiones, 1 - p_union)
+muestra <- sample(nombres, size = 100000, replace = TRUE, prob = probs)
+mean(muestra != "ninguno")          # al menos un parámetro fuera de norma
+mean(grepl("a", muestra))   # incumple por coliformes: debe dar cerca de 0.12
+```
+
+En la simulación, `sample(..., prob = probs)` escoge cada región con su probabilidad. `grepl("a", muestra)` es `TRUE` cuando el nombre de la región contiene la letra "a" (`solo_a`, `solo_ab`, `solo_ac` y `abc`, que son las regiones donde ocurre $A$). La palabra "ninguno" no tiene esa letra, así que no se cuela en el conteo.
+
+**Interpretación.** Una de cada cinco muestras incumple al menos un parámetro, y cuatro de cada cinco cumplen los tres. Si se sumaran sin más las tres probabilidades, el resultado sería 0.30, un 50 % más alto que el real, y se sobrestimaría el problema. Las regiones también dicen dónde actuar: los coliformes aparecen en 0.12 de las muestras, pero solo en 0.04 aparecen solos; casi siempre llegan junto con otro problema, lo que sugiere revisar la protección sanitaria de los pozos.
+
+:::
+
 ## Cómo se asigna una probabilidad {#sec-eventos-interpretaciones}
 
 Los axiomas dicen qué reglas debe cumplir una probabilidad, pero no de dónde sale el número. En la práctica se usan tres formas de asignarlo. Las tres respetan los mismos axiomas, así que las reglas de cálculo de este capítulo y de los siguientes valen para todas; lo que cambia es la interpretación [@illowsky2018introductory, sec. 3.1; @blitzstein2019introduction, sec. 1.2].
@@ -517,6 +739,50 @@ length(union(A, B)) / n_S
 ```
 
 **Interpretación.** El cálculo directo de la unión (13 casos de 20) y la regla de la suma dan lo mismo, 0.65. Si en el inciso (c) se hubieran sumado sin más 0.50 + 0.30 = 0.80, los números 6, 12 y 18 se habrían contado dos veces.
+
+:::
+
+::: {.callout-note title="Ejemplo: número de escudos al lanzar dos monedas"}
+
+**Planteamiento.** Se lanzan dos monedas justas y se cuenta el número de escudos. Alguien razona así: "hay tres resultados posibles, 0, 1 o 2 escudos, así que cada uno tiene probabilidad 1/3". Revise el razonamiento, calcule las probabilidades correctas y compruébelas con una simulación.
+
+**Solución:**
+
+1. La lista {0, 1, 2} sí es un espacio muestral (no falta ningún resultado y no se traslapan), pero sus resultados no son igual de probables. Por eso la @eq-eventos-clasica no se puede aplicar sobre esa lista.
+2. Se arma un espacio muestral cuyos resultados sí son igual de probables, anotando qué salió en cada moneda. Con E = escudo y N = número: $S = \{EE, EN, NE, NN\}$, cuatro resultados de probabilidad 1/4 cada uno.
+3. Cero escudos es $\{NN\}$: probabilidad 1/4 = 0.25. Un escudo es $\{EN, NE\}$: 2/4 = 0.50. Dos escudos es $\{EE\}$: 1/4 = 0.25.
+4. Revisión: 0.25 + 0.50 + 0.25 = 1.
+
+Una forma de ver el paso 2 es imaginar que una moneda es roja y la otra azul. Entonces "escudo en la roja y número en la azul" se distingue de "número en la roja y escudo en la azul". Pintar las monedas no cambia cómo caen, así que esos dos resultados existen aunque las monedas sean idénticas.
+
+**Pseudocódigo**
+
+1. Formar el espacio muestral de las dos monedas con `expand.grid()`.
+2. Contar los escudos de cada resultado.
+3. Calcular la proporción de resultados con 0, 1 y 2 escudos.
+4. Simular muchos lanzamientos y comparar.
+
+```{r}
+# 1) Espacio muestral con resultados igual de probables
+S <- expand.grid(moneda1 = c("E", "N"), moneda2 = c("E", "N"))
+
+# 2) Número de escudos de cada resultado
+escudos <- rowSums(S == "E")
+cbind(S, escudos)
+
+# 3) Probabilidad clásica de 0, 1 y 2 escudos
+table(escudos) / nrow(S)
+
+# 4) Simulación de 10 000 lanzamientos de las dos monedas
+set.seed(10)
+m1 <- sample(c("E", "N"), size = 10000, replace = TRUE)
+m2 <- sample(c("E", "N"), size = 10000, replace = TRUE)
+table((m1 == "E") + (m2 == "E")) / 10000
+```
+
+En el paso 4, `(m1 == "E") + (m2 == "E")` suma dos vectores lógicos; R cuenta cada `TRUE` como 1, así que el resultado es el número de escudos de cada lanzamiento.
+
+**Interpretación.** Un escudo es el doble de probable que cero o dos, porque se puede obtener de dos maneras. El razonamiento de 1/3 para cada caso falla porque cuenta resultados que no pesan lo mismo. Antes de dividir casos favorables entre casos posibles hay que preguntarse si de verdad cada caso es igual de probable; si hay duda, conviene distinguir los objetos (numerarlos o "pintarlos") y volver a armar la lista.
 
 :::
 
@@ -601,9 +867,43 @@ atrasos %>%
 Una probabilidad estimada con frecuencias relativas es tan buena como el registro del que sale. Con 100 días el valor 0.32 es una estimación razonable; con 10 días podría salir 0.20 o 0.50 solo por azar. Además, el registro debe representar las condiciones futuras: un registro de época seca no sirve para estimar los atrasos por lluvia de la época lluviosa. Cuánto se equivoca una estimación según el tamaño de la muestra se estudia en la Parte V.
 :::
 
+#### El periodo de retorno
+
+En hidrología, la interpretación frecuentista aparece en el periodo de retorno. Si en un registro muy largo un caudal de crecida se supera, en promedio, una vez cada $T$ años, la probabilidad de que se supere en un año cualquiera es [@chow1988applied]
+
+$$
+p = \frac{1}{T},
+$$ {#eq-eventos-retorno}
+
+donde $T$ es el periodo de retorno (años) y $p$ es la probabilidad de excedencia en un año (adimensional). El @tbl-eventos-retorno da los valores más usados en diseño. La crecida de 100 años tiene probabilidad 0.01 de superarse cada año, y la de 2 años, 0.5: se supera, en promedio, uno de cada dos años.
+
+| Periodo de retorno $T$ (años) | 2 | 5 | 10 | 25 | 50 | 100 | 500 |
+|:--|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Probabilidad anual de excedencia $p$ | 0.500 | 0.200 | 0.100 | 0.040 | 0.020 | 0.010 | 0.002 |
+| Probabilidad anual de no excedencia $1 - p$ | 0.500 | 0.800 | 0.900 | 0.960 | 0.980 | 0.990 | 0.998 |
+
+: Probabilidad anual de excedencia según el periodo de retorno. {#tbl-eventos-retorno}
+
+::: {.callout-warning title="Cuidado"}
+La crecida de 100 años no llega una vez cada 100 años, como si siguiera un calendario. Puede presentarse dos años seguidos o no presentarse en 300 años. El periodo de retorno es un promedio de largo plazo, y cada año la probabilidad es la misma, 0.01, haya habido o no una crecida grande el año anterior. La probabilidad de que se presente al menos una vez durante la vida útil de una obra es bastante mayor de lo que se suele pensar; se calcula en la @sec-condicional-riesgo.
+:::
+
 ### Probabilidad subjetiva
 
 A veces no hay resultados igual de probables ni registros para contar. ¿Cuál es la probabilidad de que un proyecto nuevo, con un diseño que nunca se ha construido, termine a tiempo? En esos casos la probabilidad expresa el grado de confianza de una persona experta, basado en su experiencia y en la información disponible. Esta interpretación se llama subjetiva o bayesiana. Aunque nace de un juicio, debe cumplir los mismos axiomas: si alguien asigna 0.7 a "termina a tiempo", debe asignar 0.3 a "no termina a tiempo". En el capítulo 12, con el teorema de Bayes, se verá cómo se actualiza una probabilidad de este tipo cuando llegan datos nuevos.
+
+
+El uso de probabilidades subjetivas en decisiones de ingeniería civil, combinadas con datos de ensayos y registros, se desarrolla con detalle en @benjamin1970probability y en @ang2007probability [cap. 8]. Un caso típico es el de la geotecnia: antes de perforar, quien diseña ya tiene una idea, por la geología de la zona y por obras vecinas, de qué tan probable es encontrar roca a menos de 10 m. Esa idea inicial es una probabilidad subjetiva, y cada sondeo la corrige.
+
+El @tbl-eventos-interpretaciones compara las tres formas de asignar una probabilidad.
+
+| Interpretación | De dónde sale el número | Ejemplo en ingeniería civil | Limitación |
+|:--|:--|:--|:--|
+| Clásica | Contar casos igual de probables | Escoger al azar 3 de 15 pernos para inspección | Solo sirve si los casos son igual de probables |
+| Frecuentista | Proporción en muchas repeticiones o en un registro largo | Probabilidad anual de una crecida, proporción de días con atraso | Necesita muchos datos y que el futuro se parezca al pasado |
+| Subjetiva | Juicio experto con la información disponible | Probabilidad de encontrar roca a poca profundidad antes de perforar | Depende de quien la asigna; debe actualizarse con datos |
+
+: Las tres formas de asignar una probabilidad. {#tbl-eventos-interpretaciones}
 
 ## La ley de los grandes números {#sec-eventos-lgn}
 
@@ -695,6 +995,40 @@ Como en la @sec-prog-simulacion, `sample(1:6, size = n, replace = TRUE)` saca `n
 
 :::
 
+
+La @fig-eventos-lgn-embudo repite la idea con 25 simulaciones independientes de un evento con probabilidad 0.1, como "un día cualquiera llueve más de 50 mm" en una estación hipotética. Cada línea es una historia posible. Al principio las historias se separan mucho; a medida que crece el número de repeticiones, todas se acercan a 0.1 y forman un embudo. Las líneas punteadas marcan $0.1 \pm 2\sqrt{0.1 \times 0.9 / n}$, una banda que contiene cerca del 95 % de las historias; de dónde sale esa fórmula se explica en los capítulos 14 y 17. Lo que interesa ahora es su forma: el ancho del embudo se reduce con la raíz cuadrada de $n$, así que para reducir el error a la mitad hay que cuadruplicar el número de repeticiones.
+
+```{r}
+#| label: fig-eventos-lgn-embudo
+#| fig-cap: "Frecuencia relativa en 25 simulaciones de un evento con probabilidad 0.1."
+#| fig-alt: "Veinticinco líneas grises que empiezan muy separadas y se van juntando alrededor de 0.1, dentro de dos curvas punteadas que forman un embudo"
+#| echo: false
+#| cache: true
+
+set.seed(77)
+n_rep <- 2000
+historias <- do.call(rbind, lapply(1:25, function(h) {
+  x <- runif(n_rep) < 0.1
+  data.frame(historia = h, n = 1:n_rep, f = cumsum(x) / (1:n_rep))
+}))
+banda <- data.frame(n = 1:n_rep)
+banda$inf <- pmax(0, 0.1 - 2 * sqrt(0.1 * 0.9 / banda$n))
+banda$sup <- pmin(1, 0.1 + 2 * sqrt(0.1 * 0.9 / banda$n))
+ggplot(historias, aes(n, f, group = historia)) +
+  geom_line(color = "grey45", alpha = 0.6, linewidth = 0.4) +
+  geom_line(data = banda, aes(n, inf), inherit.aes = FALSE, linetype = "dashed", color = "#E69F00", linewidth = 0.9) +
+  geom_line(data = banda, aes(n, sup), inherit.aes = FALSE, linetype = "dashed", color = "#E69F00", linewidth = 0.9) +
+  geom_hline(yintercept = 0.1, color = "#1C6BA0", linewidth = 0.9) +
+  scale_x_log10(breaks = c(1, 10, 100, 1000, 2000)) +
+  coord_cartesian(ylim = c(0, 0.5)) +
+  labs(x = "Número de repeticiones (escala logarítmica)", y = "Frecuencia relativa") +
+  theme_minimal(base_size = 13)
+```
+
+::: {.callout-tip title="En la práctica"}
+La forma del embudo explica por qué un registro corto engaña. Con 20 años de datos de lluvia, la frecuencia de un evento de probabilidad anual 0.1 puede salir cualquier valor entre 0 y 0.25 sin que haya nada raro en la estación. Por eso las estimaciones de eventos poco frecuentes, como las crecidas de diseño, se acompañan de una medida de su incertidumbre, que se estudia en la Parte V.
+:::
+
 ### Interactivo: la frecuencia relativa se estabiliza
 
 En el interactivo de la @fig-eventos-int-lgn se elige el experimento y el número de repeticiones. Cada vez que se presiona el botón se hace una simulación nueva. Conviene repetirla varias veces con 20 repeticiones y luego con 5000: con pocas, cada curva termina en un lugar distinto; con muchas, todas terminan muy cerca de la línea punteada.
@@ -768,6 +1102,17 @@ Ley de los grandes números.
 
 :::
 
+## Errores frecuentes {#sec-eventos-errores}
+
+Los errores de este capítulo casi nunca son de aritmética. Son errores de planteamiento, y los seis siguientes aparecen una y otra vez [@blitzstein2019introduction, cap. 1; @illowsky2018introductory, cap. 3]:
+
+1. **Sumar probabilidades de eventos que se traslapan.** $P(A \cup B) = P(A) + P(B)$ solo vale si $A$ y $B$ son mutuamente excluyentes. En el ejemplo de los atrasos, sumar sin restar daba 0.50 en vez de 0.43. Antes de sumar, conviene preguntarse si los dos eventos pueden ocurrir el mismo día, en la misma muestra o en el mismo elemento.
+2. **Suponer que todos los resultados son igual de probables.** Las tres categorías "0, 1 o 2 escudos" o los cuatro estados de daño de un puente no tienen la misma probabilidad. La probabilidad clásica exige comprobar esa condición.
+3. **Confundir mutuamente excluyentes con complementarios.** "Sale un 1" y "sale un 2" son mutuamente excluyentes, pero no son complementarios, porque juntos no forman todo $S$. Un evento y su complemento son excluyentes y, además, cubren todo el espacio muestral.
+4. **Leer mal la "o".** En el lenguaje común, "llueve o falla el equipo" a veces se entiende como "una de las dos, pero no ambas". En probabilidad, $A \cup B$ incluye siempre el caso en que ocurren las dos.
+5. **Creer que el azar se compensa.** Después de cinco escudos seguidos, el sexto lanzamiento sigue teniendo probabilidad 0.5 de escudo; después de un año muy lluvioso, la crecida de 100 años sigue teniendo probabilidad 0.01 al año siguiente. La ley de los grandes números habla de proporciones en muchas repeticiones, no de rachas.
+6. **No revisar que todo sume 1.** Las probabilidades de todas las regiones de un diagrama de Venn, o de todos los resultados de un espacio muestral, deben sumar 1. Hacer esa suma al final toma unos segundos y detecta la mayoría de los errores.
+
 ## Resumen de fórmulas {#sec-eventos-resumen}
 
 El @tbl-eventos-formulas reúne las reglas del capítulo.
@@ -780,8 +1125,10 @@ El @tbl-eventos-formulas reúne las reglas del capítulo.
 | Complemento | $P(A^c) = 1 - P(A)$ | Siempre | @eq-eventos-complemento |
 | Evento imposible | $P(\emptyset) = 0$ | Siempre | — |
 | Regla de la suma | $P(A \cup B) = P(A) + P(B) - P(A \cap B)$ | Siempre | @eq-eventos-union |
+| Inclusión y exclusión | $P(A \cup B \cup C) = \sum P(\cdot) - \sum P(\cdot \cap \cdot) + P(A \cap B \cap C)$ | Tres eventos cualesquiera | @eq-eventos-union3 |
 | Probabilidad clásica | $P(A) = n(A)/n(S)$ | Resultados igual de probables | @eq-eventos-clasica |
 | Frecuencia relativa | $f_n(A) = n_A/n$ | Estimación con repeticiones o registros | @eq-eventos-frecuencia |
+| Periodo de retorno | $p = 1/T$ | Probabilidad anual de excedencia de un evento hidrológico | @eq-eventos-retorno |
 
 : Reglas básicas de la probabilidad. {#tbl-eventos-formulas}
 
@@ -800,9 +1147,17 @@ El @tbl-eventos-formulas reúne las reglas del capítulo.
 11. Explique con sus palabras por qué la probabilidad clásica no sirve para calcular la probabilidad de que un pilote alcance el estrato resistente a menos de 12 m de profundidad. ¿Qué tipo de probabilidad usaría y de dónde sacaría los datos?
 12. En el interactivo de la @fig-eventos-int-venn, la operación $A - B$ da $\{2\}$. Escriba con sus palabras qué significa ese evento en el lanzamiento del dado y compruebe su probabilidad con la @eq-eventos-clasica.
 
+13. En una planta de tratamiento de aguas residuales se clasifica cada día según si el efluente incumple el límite de demanda bioquímica de oxígeno (DBO) ($A$) o el de sólidos suspendidos ($B$). Con un registro hipotético, $P(A) = 0.10$, $P(B) = 0.15$ y $P(A \cup B) = 0.20$. (a) Calcule $P(A \cap B)$. (b) Calcule la probabilidad de que un día incumpla exactamente uno de los dos límites. (c) Reproduzca los valores en el interactivo de la @fig-eventos-int-suma y describa la barra que se obtiene.
+14. En un aforo hipotético de 500 vehículos en una carretera se contaron 60 vehículos pesados, 35 vehículos que excedían el límite de velocidad y 12 que eran pesados y excedían el límite. Estime con frecuencias relativas la probabilidad de que un vehículo: (a) sea pesado o exceda el límite; (b) no sea pesado ni exceda el límite; (c) exceda el límite sin ser pesado. Arme en R un data frame con los conteos y haga los cálculos con base R y con `dplyr`.
+15. Con la @eq-eventos-retorno, calcule la probabilidad anual de excedencia y de no excedencia de las crecidas de 20 y de 200 años. Escriba en una oración qué significa cada número para un puente.
+16. Con los datos del ejemplo de las muestras de agua, calcule la probabilidad de que una muestra incumpla exactamente dos parámetros. Compruebe el resultado con la simulación del ejemplo.
+
 ## Lecturas recomendadas
 
 - @bertsekas2008introduction, capítulo 1: presenta los axiomas y sus consecuencias con muchos ejemplos resueltos y diagramas de Venn.
 - @illowsky2018introductory, capítulo 3: introducción muy accesible a los eventos, las reglas de la suma y la interpretación frecuentista, con ejercicios de práctica (libro abierto y gratuito).
 - @blitzstein2019introduction, capítulo 1: explica la probabilidad clásica y la definición general con una mirada intuitiva y muchas simulaciones.
 - @ayala2026estadistica, capítulo 3: texto en español, con ejemplos en R.
+- @ang2007probability, capítulos 1 y 2: el texto de referencia de probabilidad para ingeniería civil y ambiental; explica los tipos de incertidumbre y los eventos con muchos casos de obras.
+- @benjamin1970probability: obra clásica que unió la probabilidad, la estadística y la teoría de decisiones para ingenieros civiles.
+- @chow1988applied: presenta el periodo de retorno y su relación con la probabilidad anual de excedencia.

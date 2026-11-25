@@ -6,7 +6,7 @@ suppress-bibliography: true
 
 En ingeniería casi nunca se calcula una probabilidad a ciegas: casi siempre se sabe algo. Se sabe que la varilla que se compró es lisa, que el ensayo no destructivo dio positivo o que la carga de concreto vino de cierta planta. Esa información cambia las probabilidades. La probabilidad condicional es la manera de incorporar al cálculo lo que ya se sabe. De ella salen tres resultados que se usan todo el tiempo: la regla de la multiplicación, para calcular la probabilidad de que pasen varias cosas seguidas; la idea de independencia, que dice cuándo un evento no da información sobre otro; y el teorema de Bayes, que dice cómo cambiar una probabilidad cuando llega un dato nuevo.
 
-El capítulo sigue a @bertsekas2008introduction [secs. 1.3 a 1.5], @illowsky2018introductory [secs. 3.2 a 3.5] y @blitzstein2019introduction [cap. 2].
+El capítulo sigue a @bertsekas2008introduction [secs. 1.3 a 1.5], @illowsky2018introductory [secs. 3.2 a 3.5] y @blitzstein2019introduction [cap. 2]. Las aplicaciones a la confiabilidad de sistemas y al riesgo en obras civiles siguen a @ang2007probability [caps. 2 y 3] y a @chow1988applied.
 
 ```{r}
 #| echo: false
@@ -94,6 +94,20 @@ ggplot() +
   theme_void(base_size = 14) +
   theme(strip.text = element_text(margin = margin(4, 0, 6, 0)))
 ```
+
+### Tres maneras de leer una probabilidad condicional
+
+La @eq-condicional-def se entiende mejor si se mira de tres maneras, que dicen lo mismo con distintas palabras.
+
+- **Como un espacio muestral más pequeño.** Saber que ocurrió $B$ borra todos los resultados que no están en $B$. Lo que queda se vuelve a repartir para que sume 1, y por eso se divide entre $P(B)$.
+- **Como una proporción dentro de un grupo.** En el registro de 100 días de obra del capítulo 10 hubo lluvia en 32 días, y en 7 de ellos también falló el equipo. Entre los días de lluvia, la proporción con falla es $7/32 = 0.219$. Esa es $P(F \mid L)$. Sin saber nada del clima, la proporción de días con falla era $18/100 = 0.18$. Saber que llovió subió un poco la probabilidad de falla.
+- **Como un acercamiento con una lupa.** La probabilidad sin condición mira todo el diagrama de Venn. La condicional acerca la lupa a la región $B$ y pregunta qué fracción de lo que se ve ahí es también $A$.
+
+Las probabilidades condicionales son probabilidades en todo el sentido de la palabra: cumplen los tres axiomas del capítulo 10 dentro del nuevo espacio muestral $B$ [@bertsekas2008introduction, sec. 1.3]. Por eso todas las reglas anteriores siguen valiendo si se agrega "dado $B$" a cada término. Por ejemplo, la regla del complemento queda $P(A^c \mid B) = 1 - P(A \mid B)$: si la probabilidad de falla dado que llovió es 0.219, la de no falla dado que llovió es 0.781.
+
+::: {.callout-warning title="Cuidado"}
+Lo que suma 1 es $P(A \mid B) + P(A^c \mid B)$, con la misma condición. En cambio, $P(A \mid B) + P(A \mid B^c)$ no tiene por qué sumar 1. En el registro de la obra, $P(F \mid L) = 0.219$ y $P(F \mid L^c) = 11/68 = 0.162$: son las probabilidades de falla en dos grupos distintos de días, y su suma, 0.381, no significa nada.
+:::
 
 ::: {.callout-warning title="Cuidado"}
 $P(A \mid B)$ y $P(B \mid A)$ casi nunca son iguales. La probabilidad de que una persona tenga fiebre dado que tiene dengue es alta; la probabilidad de que tenga dengue dado que tiene fiebre es mucho más baja, porque la fiebre tiene muchas otras causas. Confundir las dos es uno de los errores más comunes al razonar con probabilidades, y el teorema de Bayes (@sec-condicional-bayes) es la forma correcta de pasar de una a la otra.
@@ -222,6 +236,47 @@ varillas %>%
 
 :::
 
+### Gráfico de mosaico
+
+Un cuadro de contingencia se puede dibujar como un gráfico de mosaico, en el que las áreas son proporcionales a las probabilidades [@friendly1994mosaic]. La @fig-condicional-mosaico dibuja el cuadro de las varillas. El ancho de cada columna es la proporción de cada tipo: 0.6 para las corrugadas y 0.4 para las lisas. Dentro de cada columna, la altura de la parte oscura es la probabilidad condicional de estar defectuosa dado el tipo. Así, el área de cada rectángulo es una probabilidad conjunta: la parte oscura de las lisas mide $0.4 \times 0.2125 = 0.085$, que es $P(L \cap D)$.
+
+```{r}
+#| label: fig-condicional-mosaico
+#| fig-cap: "Mosaico de las varillas por tipo y condición."
+#| fig-alt: "Dos columnas, corrugadas más ancha y lisas más angosta; en cada una la parte inferior oscura representa las defectuosas, más alta en las lisas que en las corrugadas"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 4.2
+#| out-width: "65%"
+
+varillas <- read.csv("datos/inspeccion_varillas_hipotetica.csv")
+p_tipo <- prop.table(table(varillas$tipo))                       # anchos
+p_def <- tapply(varillas$condicion == "defectuosa", varillas$tipo, mean)  # alturas
+mosaico <- data.frame(
+  tipo = rep(names(p_tipo), each = 2),
+  condicion = rep(c("Defectuosa", "Buena"), 2),
+  xmin = rep(c(0, p_tipo[1] + 0.01), each = 2),
+  xmax = rep(c(p_tipo[1], 1.01), each = 2),
+  ymin = c(0, p_def[1], 0, p_def[2]),
+  ymax = c(p_def[1], 1, p_def[2], 1))
+mosaico$rotulo <- sprintf("%.3f", (mosaico$xmax - mosaico$xmin) * (mosaico$ymax - mosaico$ymin))
+ggplot(mosaico) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = condicion), color = "white") +
+  geom_text(aes((xmin + xmax) / 2, (ymin + ymax) / 2, label = rotulo),
+            color = ifelse(mosaico$condicion == "Defectuosa", "white", "grey20"), size = 4.2) +
+  annotate("text", x = c(p_tipo[1] / 2, p_tipo[1] + 0.01 + p_tipo[2] / 2), y = -0.06,
+           label = c("Corrugada (0.6)", "Lisa (0.4)"), size = 4.2) +
+  geom_segment(aes(x = 0.61, xend = 1.01, y = p_def[2], yend = p_def[2]), linetype = "dashed", inherit.aes = FALSE) +
+  geom_segment(aes(x = 0, xend = 0.6, y = p_def[1], yend = p_def[1]), linetype = "dashed", inherit.aes = FALSE) +
+  scale_fill_manual(values = c(Defectuosa = "#1C6BA0", Buena = "#d9e4ee"), name = NULL) +
+  scale_y_continuous(breaks = NULL, name = "Probabilidad condicional dentro de cada tipo") +
+  labs(x = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_blank(), panel.grid = element_blank(), legend.position = "top")
+```
+
+El mosaico deja ver de un vistazo si dos características están relacionadas. Si el tipo de varilla no influyera en la condición, la frontera entre la parte oscura y la clara estaría a la misma altura en las dos columnas. Aquí está más alta en las lisas (0.2125 contra 0.1533): el tipo y la condición están relacionados. Esa misma idea, comparar las condicionales entre grupos, es la base de la independencia (@sec-condicional-independencia) y de la prueba chi-cuadrado del capítulo 23.
+
 ## Regla de la multiplicación {#sec-condicional-multiplicacion}
 
 Si se despeja $P(A \cap B)$ de la @eq-condicional-def se obtiene la regla de la multiplicación: la probabilidad de que ocurran $A$ y $B$ es la probabilidad de $A$ por la probabilidad de $B$ dado que ya ocurrió $A$ [@bertsekas2008introduction, sec. 1.3]:
@@ -314,6 +369,76 @@ La independencia aparece sola cuando los experimentos no se afectan entre sí: d
 Mutuamente excluyentes no es lo mismo que independientes. Si $A$ y $B$ son mutuamente excluyentes y los dos tienen probabilidad positiva, saber que ocurrió $A$ dice que $B$ no ocurrió: $P(B \mid A) = 0$, que es distinto de $P(B)$. Por lo tanto, dos eventos mutuamente excluyentes con probabilidad positiva nunca son independientes. Tampoco es cierto que dos eventos sean dependientes solo porque $P(A \cap B) > 0$: la prueba es siempre la comparación de la @eq-condicional-indep.
 :::
 
+### Interactivo: cuándo dos eventos son independientes
+
+En el interactivo de la @fig-condicional-int-indep se fijan $P(A)$ y las dos probabilidades condicionales de $B$: dado que ocurrió $A$ y dado que no ocurrió. Se puede pensar en $A$ = "el día llueve" y $B$ = "la obra se atrasa". El mosaico dibuja las cuatro probabilidades conjuntas como áreas. Los eventos son independientes solo cuando las dos alturas coinciden, es decir, cuando saber si llovió no cambia la probabilidad de atraso; en ese caso $P(A \cap B)$ es igual a $P(A)\,P(B)$.
+
+::: {#fig-condicional-int-indep}
+
+```{=html}
+<div class="interactivo" id="int-indep">
+  <label><span><i>P</i>(<i>A</i>):</span> <output class="s-a">0.30</output>
+    <input class="c-a" type="range" min="0.05" max="0.95" step="0.01" value="0.3"></label>
+  <label><span><i>P</i>(<i>B</i> | <i>A</i>):</span> <output class="s-ba">0.60</output>
+    <input class="c-ba" type="range" min="0" max="1" step="0.01" value="0.6"></label>
+  <label><span><i>P</i>(<i>B</i> | <i>A</i><sup>c</sup>):</span> <output class="s-bna">0.20</output>
+    <input class="c-bna" type="range" min="0" max="1" step="0.01" value="0.2"></label>
+  <svg viewBox="0 0 640 270" role="img" aria-label="Mosaico con dos columnas, A y no A, cada una partida en B y no B"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-indep");
+  var ca = raiz.querySelector(".c-a"), cba = raiz.querySelector(".c-ba"), cbna = raiz.querySelector(".c-bna");
+  var sa = raiz.querySelector(".s-a"), sba = raiz.querySelector(".s-ba"), sbna = raiz.querySelector(".s-bna");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var x0 = 30, ancho = 580, y0 = 14, alto = 200, sep = 4;
+  function caja(x, y, w, hh, estilo, rot) {
+    var s = '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(w, 0).toFixed(1) + '" height="' + Math.max(hh, 0).toFixed(1) + '" style="' + estilo + '"/>';
+    if (w > 70 && hh > 18) s += '<text class="eje-texto" x="' + (x + w / 2).toFixed(1) + '" y="' + (y + hh / 2 + 4).toFixed(1) + '" text-anchor="middle">' + rot + '</text>';
+    return s;
+  }
+  function dibujar() {
+    var a = parseFloat(ca.value), ba = parseFloat(cba.value), bna = parseFloat(cbna.value);
+    sa.textContent = a.toFixed(2); sba.textContent = ba.toFixed(2); sbna.textContent = bna.toFixed(2);
+    var wa = a * (ancho - sep), wna = (1 - a) * (ancho - sep), xna = x0 + wa + sep;
+    var pab = a * ba, panb = (1 - a) * bna, pb = pab + panb;
+    var s = "";
+    // Columna A: B abajo (oscuro), no B arriba
+    s += caja(x0, y0, wa, alto * (1 - ba), "fill:var(--serie-1);opacity:0.25", "A y no B: " + (a * (1 - ba)).toFixed(3));
+    s += caja(x0, y0 + alto * (1 - ba), wa, alto * ba, "fill:var(--serie-1);opacity:0.9", "A y B: " + pab.toFixed(3));
+    s += caja(xna, y0, wna, alto * (1 - bna), "fill:#E69F00;opacity:0.25", "no A y no B: " + ((1 - a) * (1 - bna)).toFixed(3));
+    s += caja(xna, y0 + alto * (1 - bna), wna, alto * bna, "fill:#E69F00;opacity:0.85", "no A y B: " + panb.toFixed(3));
+    // Línea de P(B) para comparar alturas
+    var yb = y0 + alto * (1 - pb);
+    s += '<line x1="' + x0 + '" x2="' + (x0 + ancho) + '" y1="' + yb.toFixed(1) + '" y2="' + yb.toFixed(1) + '" style="stroke:currentColor;stroke-width:1;stroke-dasharray:5 4;opacity:0.5"/>';
+    s += '<text class="eje-texto" x="' + (x0 + ancho) + '" y="' + (yb - 5).toFixed(1) + '" text-anchor="end">P(B) = ' + pb.toFixed(3) + '</text>';
+    s += '<text class="eje-texto" x="' + (x0 + wa / 2).toFixed(1) + '" y="' + (y0 + alto + 20) + '" text-anchor="middle">A (ancho ' + a.toFixed(2) + ')</text>';
+    s += '<text class="eje-texto" x="' + (xna + wna / 2).toFixed(1) + '" y="' + (y0 + alto + 20) + '" text-anchor="middle">no A (ancho ' + (1 - a).toFixed(2) + ')</text>';
+    svg.innerHTML = s;
+    var indep = Math.abs(ba - bna) < 0.005;
+    var pa_b = pb > 0 ? pab / pb : NaN;
+    texto.textContent = "P(B) = " + pb.toFixed(3) + ".   P(A ∩ B) = " + pab.toFixed(3) + " y P(A) P(B) = " + (a * pb).toFixed(3) +
+      ".   P(A | B) = " + (isFinite(pa_b) ? pa_b.toFixed(3) : "—") + " contra P(A) = " + a.toFixed(3) + ".   " +
+      (indep ? "Las dos alturas son iguales: A y B son independientes." :
+       "Las alturas son distintas: A y B no son independientes. Saber si ocurrió A cambia la probabilidad de B.");
+  }
+  [ca, cba, cbna].forEach(function (c) { c.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Mosaico de dos eventos.
+
+:::
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**Independencia de tres o más eventos.** Para tres eventos no basta con que sean independientes de dos en dos. Se dice que $A$, $B$ y $C$ son mutuamente independientes si se cumplen las tres igualdades de dos en dos, $P(A \cap B) = P(A)\,P(B)$, $P(A \cap C) = P(A)\,P(C)$ y $P(B \cap C) = P(B)\,P(C)$, y además $P(A \cap B \cap C) = P(A)\,P(B)\,P(C)$ [@bertsekas2008introduction, sec. 1.5].
+
+Un ejemplo con dos monedas justas muestra que la última condición no sale de las otras. Sean $A$ = "la primera moneda da escudo", $B$ = "la segunda da escudo" y $C$ = "las dos monedas dan lo mismo". Cada evento tiene probabilidad 1/2, y cada par tiene intersección de probabilidad 1/4, así que son independientes de dos en dos. Pero si ocurren $A$ y $B$, ocurre seguro $C$: $P(A \cap B \cap C) = 1/4$, distinto de $(1/2)^3 = 1/8$. Los tres juntos no son independientes. En los sistemas en serie y en paralelo que siguen se supone siempre la independencia mutua de todos los componentes.
+:::
+
 ### Sistemas en serie y en paralelo
 
 Una aplicación de la independencia en ingeniería es el cálculo de la confiabilidad de un sistema, es decir, la probabilidad de que funcione, a partir de la confiabilidad de sus componentes [@bertsekas2008introduction, sec. 1.5].
@@ -331,6 +456,58 @@ R_{\text{paralelo}} = 1 - (1 - p_1)(1 - p_2) \cdots (1 - p_n).
 $$ {#eq-condicional-paralelo}
 
 En las dos ecuaciones, $p_i$ es la probabilidad de que el componente $i$ funcione durante el periodo de análisis.
+
+La @fig-condicional-sistemas dibuja los dos arreglos como diagramas de bloques. En serie, la señal (el agua, la carga, el tránsito) tiene que pasar por todos los bloques, uno detrás de otro. En paralelo, basta con que pase por uno de los caminos.
+
+```{r}
+#| label: fig-condicional-sistemas
+#| fig-cap: "Sistemas en serie y en paralelo."
+#| fig-alt: "Arriba, tres cajas en fila unidas por una línea de entrada a salida. Abajo, tres cajas apiladas que comparten una línea de entrada a la izquierda y una de salida a la derecha"
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.2
+#| out-width: "80%"
+
+serie <- data.frame(x = c(3, 5, 7), y = 4, et = c("1", "2", "3"))
+paralelo <- data.frame(x = 5, y = c(2, 1.2, 0.4), et = c("1", "2", "3"))
+ggplot() +
+  annotate("segment", x = 1.3, xend = 8.7, y = 4, yend = 4, linewidth = 0.8, color = "grey30") +
+  geom_label(data = serie, aes(x, y, label = et), size = 5, label.padding = unit(0.6, "lines"), fill = "#e3eef6") +
+  annotate("segment", x = 3.2, xend = 3.2, y = 0.4, yend = 2, linewidth = 0.8, color = "grey30") +
+  annotate("segment", x = 6.8, xend = 6.8, y = 0.4, yend = 2, linewidth = 0.8, color = "grey30") +
+  annotate("segment", x = 3.2, xend = 6.8, y = c(2, 1.2, 0.4), yend = c(2, 1.2, 0.4), linewidth = 0.8, color = "grey30") +
+  annotate("segment", x = c(1.3, 6.8), xend = c(3.2, 8.7), y = 1.2, yend = 1.2, linewidth = 0.8, color = "grey30") +
+  geom_label(data = paralelo, aes(x, y, label = et), size = 5, label.padding = unit(0.45, "lines"), fill = "#fbe7c2") +
+  annotate("text", x = c(1.1, 8.9, 1.1, 8.9), y = c(4, 4, 1.2, 1.2), label = c("Entrada", "Salida", "Entrada", "Salida"),
+           hjust = c(1, 0, 1, 0), size = 4) +
+  annotate("text", x = 5, y = c(4.75, 2.6), size = 4.5, fontface = "bold",
+           label = c("En serie: funciona si funcionan 1, 2 y 3", "En paralelo: funciona si funciona 1, 2 o 3")) +
+  xlim(0, 10) + ylim(0.1, 5) +
+  theme_void()
+```
+
+Las dos fórmulas tienen consecuencias opuestas cuando crece el número de componentes, como muestra la @fig-condicional-confiabilidad-n para componentes con confiabilidad 0.90. En serie, cada componente que se agrega es una nueva forma de fallar: con 10 componentes la confiabilidad baja a $0.90^{10} = 0.349$. En paralelo, cada componente es un respaldo más: con solo 2 la confiabilidad sube a 0.99, y con 3 a 0.999. Esta es la idea de la redundancia, que se usa en el diseño de acueductos, de sistemas eléctricos de emergencia y de estructuras con varios caminos de carga [@ang2007probability, cap. 3].
+
+```{r}
+#| label: fig-condicional-confiabilidad-n
+#| fig-cap: "Confiabilidad según el número de componentes."
+#| fig-alt: "Dos curvas. La de serie empieza en 0.9 y baja hasta 0.35 con 10 componentes. La de paralelo empieza en 0.9 y sube casi hasta 1 con 3 componentes"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 4
+
+conf <- data.frame(n = rep(1:10, 2), arreglo = rep(c("En serie", "En paralelo"), each = 10))
+conf$R <- ifelse(conf$arreglo == "En serie", 0.9^conf$n, 1 - 0.1^conf$n)
+ggplot(conf, aes(n, R, color = arreglo)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = 1:10) +
+  scale_color_manual(values = c("En serie" = "#1C6BA0", "En paralelo" = "#E69F00"), name = NULL) +
+  labs(x = "Número de componentes", y = "Confiabilidad del sistema") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
 
 ::: {.callout-note title="Ejemplo: confiabilidad de un sistema de bombeo"}
 
@@ -375,6 +552,139 @@ mean(funciona)
 
 :::
 
+### Riesgo de excedencia durante la vida útil {#sec-condicional-riesgo}
+
+En el capítulo 10 se vio que la crecida de $T$ años tiene probabilidad $p = 1/T$ de superarse en un año cualquiera. Para el diseño interesa otra pregunta: ¿cuál es la probabilidad de que se supere al menos una vez durante los $n$ años de vida útil de la obra? A esa probabilidad se le llama riesgo hidrológico.
+
+La respuesta usa la independencia. Si los caudales máximos de años distintos son independientes, que es la hipótesis usual en el análisis de frecuencia de máximos anuales, la probabilidad de que la crecida no se supere en ninguno de los $n$ años es el producto de $n$ factores iguales a $1 - p$. El riesgo es el complemento [@chow1988applied]:
+
+$$
+R = 1 - \left( 1 - \frac{1}{T} \right)^n,
+$$ {#eq-condicional-riesgo}
+
+donde $R$ es el riesgo (adimensional), $T$ es el periodo de retorno (años) y $n$ es la vida útil (años). Es la misma lógica del sistema en serie: la obra pasa sin crecida su vida útil solo si la pasa sin crecida cada uno de los años, y basta un año malo para que la crecida se presente.
+
+::: {.callout-note title="Ejemplo: riesgo de que se supere la crecida de diseño de un puente"}
+
+**Planteamiento.** Un puente sobre un río se diseña para la crecida de 50 años y tiene una vida útil de 25 años. (a) Calcule la probabilidad de que la crecida de diseño se supere al menos una vez durante la vida útil. (b) ¿Para qué periodo de retorno habría que diseñar si se quiere que ese riesgo sea de solo 10 %? (c) Calcule el riesgo cuando el periodo de retorno es igual a la vida útil, $T = n = 100$ años.
+
+**Solución:**
+
+1. (a) Probabilidad anual: $p = 1/50 = 0.02$. Probabilidad de que no se supere en un año: 0.98. Con la @eq-condicional-riesgo:
+   $R = 1 - 0.98^{25} = 1 - 0.6035 = 0.3965$.
+2. (b) Se despeja $T$ de la @eq-condicional-riesgo con $R = 0.10$ y $n = 25$:
+   $1 - 1/T = (1 - R)^{1/n} = 0.90^{1/25} = 0.99579$, así que $1/T = 0.00421$ y $T = 237.8$ años. En la práctica se redondearía a 250 años.
+3. (c) $R = 1 - 0.99^{100} = 1 - 0.3660 = 0.634$.
+
+**Pseudocódigo**
+
+1. Calcular el riesgo con la fórmula.
+2. Despejar el periodo de retorno con la fórmula inversa y comprobarlo resolviendo la ecuación numéricamente con `uniroot()`.
+3. Comprobar el inciso (a) con una simulación: muchas vidas útiles de 25 años, cada año con probabilidad 0.02 de crecida.
+
+```{r}
+#| cache: true
+# 1) Riesgo durante la vida útil
+riesgo <- function(T_r, n) 1 - (1 - 1 / T_r)^n
+riesgo(50, 25)        # (a)
+riesgo(100, 100)      # (c)
+
+# 2) Periodo de retorno para un riesgo dado: fórmula inversa
+T_necesario <- 1 / (1 - (1 - 0.10)^(1 / 25))
+T_necesario
+
+# El mismo valor resolviendo riesgo(T) - 0.10 = 0 con uniroot()
+uniroot(function(T_r) riesgo(T_r, 25) - 0.10, interval = c(2, 10000))$root
+
+# 3) Simulación de 100 000 vidas útiles de 25 años
+set.seed(2026)
+crecidas <- matrix(runif(100000 * 25) < 1 / 50, ncol = 25)   # una fila por vida útil
+mean(rowSums(crecidas) >= 1)     # proporción de vidas útiles con al menos una crecida
+```
+
+`uniroot()` busca dentro del intervalo dado el valor que hace cero una función; aquí, el periodo de retorno con el que el riesgo es exactamente 0.10. En la simulación, cada fila de la matriz es una vida útil de 25 años y cada celda dice si ese año se superó la crecida de diseño. El nombre `T_r` evita usar `T`, que en R significa `TRUE`.
+
+La @fig-condicional-riesgo muestra cómo crece el riesgo con la vida útil para varios periodos de retorno.
+
+```{r}
+#| label: fig-condicional-riesgo
+#| fig-cap: "Riesgo de excedencia según la vida útil."
+#| fig-alt: "Cinco curvas crecientes de riesgo contra vida útil de 1 a 100 años; la de 10 años llega casi a 1 y la de 500 años no pasa de 0.2"
+#| echo: false
+
+curvas <- expand.grid(n = 1:100, T_r = c(10, 25, 50, 100, 500))
+curvas$R <- 1 - (1 - 1 / curvas$T_r)^curvas$n
+curvas$T_r <- factor(curvas$T_r, labels = paste(c(10, 25, 50, 100, 500), "años"))
+ggplot(curvas, aes(n, R, color = T_r)) +
+  geom_line(linewidth = 1) +
+  annotate("point", x = 25, y = 1 - 0.98^25, size = 3) +
+  annotate("text", x = 27, y = 1 - 0.98^25 - 0.04, label = "Ejemplo: T = 50, n = 25", hjust = 0, size = 3.8) +
+  scale_color_viridis_d(end = 0.85, name = "Periodo de retorno") +
+  labs(x = "Vida útil n (años)", y = "Riesgo R") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** Un puente diseñado para la crecida de 50 años tiene casi 40 % de probabilidad de verla superada durante sus 25 años de vida útil. Para bajar ese riesgo a 10 % hay que diseñar para unos 240 años. Y cuando el periodo de retorno es igual a la vida útil, el riesgo es de 63 %: la obra probablemente verá la crecida de diseño. El resultado depende del supuesto de independencia entre años; si hay ciclos de años húmedos, el riesgo real puede ser distinto.
+
+:::
+
+### Interactivo: riesgo durante la vida útil
+
+En el interactivo de la @fig-condicional-int-riesgo se escogen el periodo de retorno y la vida útil. La curva muestra el riesgo para vidas útiles de 1 a 100 años y el punto marca la vida útil escogida.
+
+::: {#fig-condicional-int-riesgo}
+
+```{=html}
+<div class="interactivo" id="int-riesgo">
+  <label><span>Periodo de retorno <i>T</i> (años):</span> <output class="s-T">50</output>
+    <input class="c-T" type="range" min="0.31" max="3" step="0.01" value="1.699"></label>
+  <label><span>Vida útil <i>n</i> (años):</span> <output class="s-n">25</output>
+    <input class="c-n" type="range" min="1" max="100" step="1" value="25"></label>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Curva de riesgo contra vida útil con un punto en la vida útil escogida"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-riesgo");
+  var cT = raiz.querySelector(".c-T"), cn = raiz.querySelector(".c-n");
+  var sT = raiz.querySelector(".s-T"), sn = raiz.querySelector(".s-n");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var w = 640, h = 260, ml = 50, mr = 16, mt = 14, mb = 42;
+  var sx = function (n) { return ml + (n - 1) / 99 * (w - ml - mr); };
+  var sy = function (r) { return h - mb - r * (h - mt - mb); };
+  function dibujar() {
+    var T = Math.max(2, Math.round(Math.pow(10, parseFloat(cT.value)))), n = parseInt(cn.value, 10);
+    sT.textContent = T; sn.textContent = n;
+    var r = function (k) { return 1 - Math.pow(1 - 1 / T, k); };
+    var s = "", d = "";
+    for (var y = 0; y <= 1.0001; y += 0.2) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" style="stroke-opacity:0.2"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(y) + 4) + '" text-anchor="end">' + y.toFixed(1) + '</text>';
+    }
+    [1, 20, 40, 60, 80, 100].forEach(function (k) {
+      s += '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + k + '</text>';
+    });
+    for (var k = 1; k <= 100; k++) d += (k === 1 ? "M" : "L") + sx(k).toFixed(1) + "," + sy(r(k)).toFixed(1);
+    s += '<path class="curva" d="' + d + '"/>' +
+         '<line x1="' + sx(n) + '" x2="' + sx(n) + '" y1="' + sy(0) + '" y2="' + sy(r(n)) + '" style="stroke:#E69F00;stroke-dasharray:4 3"/>' +
+         '<circle cx="' + sx(n) + '" cy="' + sy(r(n)) + '" r="6" style="fill:#E69F00"/>' +
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Vida útil n (años)</text>' +
+         '<text class="eje-texto" x="13" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 13 ' + ((mt + h - mb) / 2) + ')">Riesgo R</text>';
+    svg.innerHTML = s;
+    var t10 = 1 / (1 - Math.pow(0.9, 1 / n));
+    texto.textContent = "Riesgo de que la crecida de " + T + " años se supere al menos una vez en " + n + " años: R = " + r(n).toFixed(3) +
+      ".   Para un riesgo de 10 % en " + n + " años habría que diseñar para T ≈ " + Math.round(t10) + " años.";
+  }
+  [cT, cn].forEach(function (c) { c.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Riesgo de excedencia durante la vida útil.
+
+:::
+
 ## Probabilidad total {#sec-condicional-total}
 
 Muchas veces un evento puede ocurrir por varios caminos, y se conoce su probabilidad en cada camino, pero no la total. Por ejemplo, el concreto de una obra llega de tres plantas, y para cada planta se sabe qué proporción de sus cargas sale fuera de especificación. ¿Cuál es la proporción total?
@@ -386,6 +696,76 @@ P(B) = \sum_{i=1}^{k} P(A_i) \, P(B \mid A_i) = P(A_1) \, P(B \mid A_1) + \cdots
 $$ {#eq-condicional-total}
 
 donde $P(A_i)$ es la probabilidad de cada camino y $P(B \mid A_i)$ es la probabilidad de $B$ por ese camino. En un árbol, es la suma de todos los caminos que terminan en $B$.
+
+La @fig-condicional-particion muestra la idea. El rectángulo es el espacio muestral, partido en tres franjas que no se traslapan. El evento $B$ atraviesa las tres franjas, y queda partido en tres pedazos. La probabilidad de $B$ es la suma de las probabilidades de los pedazos, y cada pedazo se calcula con la regla de la multiplicación.
+
+```{r}
+#| label: fig-condicional-particion
+#| fig-cap: "Partición del espacio muestral y el evento B."
+#| fig-alt: "Rectángulo dividido en tres franjas verticales A1, A2 y A3; una elipse B las atraviesa y cada pedazo de la elipse está sombreado con un tono distinto"
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3.6
+#| out-width: "70%"
+
+rej <- expand.grid(x = seq(0, 1, length.out = 300), y = seq(0, 0.5, length.out = 150))
+rej <- rej[((rej$x - 0.5) / 0.4)^2 + ((rej$y - 0.25) / 0.14)^2 <= 1, ]
+rej$franja <- cut(rej$x, c(0, 0.45, 0.8, 1), labels = c("A1", "A2", "A3"), include.lowest = TRUE)
+ggplot() +
+  geom_raster(data = rej, aes(x, y, fill = franja), alpha = 0.5) +
+  scale_fill_manual(values = c(A1 = "#1C6BA0", A2 = "#E69F00", A3 = "#009E73"), guide = "none") +
+  annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 0.5, fill = NA, color = "grey30") +
+  annotate("segment", x = c(0.45, 0.8), xend = c(0.45, 0.8), y = 0, yend = 0.5, color = "grey30") +
+  annotate("text", x = c(0.225, 0.625, 0.9), y = 0.46, label = c("A[1]", "A[2]", "A[3]"), parse = TRUE, size = 5) +
+  annotate("text", x = c(0.3, 0.62, 0.875), y = 0.25, size = 4, color = "grey10", parse = TRUE,
+           label = c("B*' ∩ '*A[1]", "B*' ∩ '*A[2]", "B*' ∩ '*A[3]")) +
+  annotate("text", x = 0.5, y = 0.07, label = "B", fontface = "italic", size = 5) +
+  coord_equal() +
+  theme_void()
+```
+
+::: {.callout-note title="Ejemplo: probabilidad de deslizamiento de un talud según la lluvia"}
+
+**Planteamiento.** En un corte de carretera en zona montañosa se clasifica cada temporada lluviosa según su lluvia acumulada: baja, media o alta. Con registros hipotéticos, la probabilidad de cada tipo de temporada es 0.60, 0.30 y 0.10, y la probabilidad de que el talud se deslice en una temporada es 0.01 si la lluvia es baja, 0.05 si es media y 0.20 si es alta. Calcule la probabilidad de que el talud se deslice en la próxima temporada, sin saber todavía cómo será la lluvia.
+
+**Solución:**
+
+1. Los tres tipos de temporada forman una partición: cada temporada es de un solo tipo y no hay otro. Sean $A_1$, $A_2$ y $A_3$ las temporadas baja, media y alta, y $D$ = "el talud se desliza".
+2. Caminos que terminan en deslizamiento (regla de la multiplicación):
+   $P(A_1 \cap D) = 0.60 \times 0.01 = 0.006$; $P(A_2 \cap D) = 0.30 \times 0.05 = 0.015$; $P(A_3 \cap D) = 0.10 \times 0.20 = 0.020$.
+3. Probabilidad total (@eq-condicional-total): $P(D) = 0.006 + 0.015 + 0.020 = 0.041$.
+
+**Pseudocódigo**
+
+1. Guardar las probabilidades de cada tipo de temporada y las de deslizamiento en cada una.
+2. Multiplicar posición por posición y sumar.
+3. Comprobar con una simulación: sortear el tipo de muchas temporadas y, en cada una, si hay deslizamiento.
+
+```{r}
+#| cache: true
+# 1) Datos
+p_temporada <- c(baja = 0.60, media = 0.30, alta = 0.10)
+p_desliz <- c(0.01, 0.05, 0.20)            # P(D | tipo de temporada)
+
+# 2) Probabilidad total
+caminos <- p_temporada * p_desliz
+caminos
+sum(caminos)
+
+# 3) Simulación de 200 000 temporadas
+set.seed(2026)
+n <- 200000
+tipo <- sample(1:3, size = n, replace = TRUE, prob = p_temporada)
+desliza <- runif(n) < p_desliz[tipo]       # cada temporada usa la probabilidad de su tipo
+mean(desliza)
+```
+
+`p_desliz[tipo]` escoge, para cada temporada simulada, la probabilidad de deslizamiento que le corresponde según su tipo; así, una temporada de lluvia alta se compara con 0.20 y una de lluvia baja con 0.01.
+
+**Interpretación.** La probabilidad de deslizamiento en una temporada cualquiera es 0.041, unas 4 temporadas de cada 100. Las temporadas de lluvia alta son solo el 10 %, pero aportan casi la mitad de esa probabilidad (0.020 de 0.041). Por eso un sistema de alerta temprana que vigile la lluvia acumulada concentra la vigilancia en las temporadas que más pesan.
+
+:::
+
 
 ## Teorema de Bayes {#sec-condicional-bayes}
 
@@ -402,6 +782,13 @@ donde los términos tienen nombres propios:
 - $P(A_i \mid B)$ es la probabilidad a posteriori: lo que se sabe de la causa después de ver el dato.
 
 En palabras, el teorema dice que la probabilidad a posteriori de una causa es proporcional a su probabilidad a priori por la verosimilitud del dato, y el denominador solo sirve para que las probabilidades a posteriori sumen 1.
+
+Una manera intuitiva de leer el teorema es como una regla para actualizar lo que se cree. Antes del dato hay una opinión inicial, la probabilidad a priori. El dato llega y se pregunta qué tan bien lo explica cada causa: esa es la verosimilitud. La opinión final, la probabilidad a posteriori, favorece a las causas que explican mejor el dato, pero sin olvidar cuán probables eran desde el principio. Un dato muy fuerte puede vencer a una probabilidad a priori baja; un dato débil apenas la mueve.
+
+::: {.callout-tip title="En la práctica"}
+Los cálculos con el teorema de Bayes son más fáciles de entender, y se cometen menos errores, si se escriben con frecuencias en vez de probabilidades: "de 1000 elementos, 50 tienen el defecto y la prueba detecta 45" se sigue mejor que "$P(D) = 0.05$ y $P(+ \mid D) = 0.90$". Así lo encontraron @gigerenzer1995improve en experimentos con personas sin formación en estadística. Por eso los ejemplos de esta sección dan las dos versiones, y el interactivo de la @fig-condicional-int-bayes usa una población de 1000 elementos.
+:::
+
 
 ::: {.callout-note title="Ejemplo: cargas de concreto fuera de especificación"}
 
@@ -617,6 +1004,17 @@ Teorema de Bayes en 1000 elementos.
 
 :::
 
+## Errores frecuentes {#sec-condicional-errores}
+
+La probabilidad condicional es el tema en que más se equivoca la intuición, incluso la de personas con experiencia [@blitzstein2019introduction, cap. 2; @gigerenzer1995improve]. Estos son los errores más comunes:
+
+1. **Confundir $P(A \mid B)$ con $P(B \mid A)$.** La probabilidad de que un ensayo dé positivo si el pilote tiene defecto (0.90) no es la probabilidad de que el pilote tenga defecto si el ensayo dio positivo (0.372). A este error se le llama a veces falacia del fiscal, porque aparece en juicios cuando se confunde la probabilidad de la evidencia dada la inocencia con la probabilidad de la inocencia dada la evidencia.
+2. **Ignorar la probabilidad a priori.** Una prueba muy sensible aplicada a un problema raro produce muchas falsas alarmas. Sin la prevalencia no se puede interpretar un resultado positivo.
+3. **Suponer independencia sin justificarla.** Las dos bombas que dependen de la misma alimentación eléctrica, dos puentes cercanos frente al mismo sismo o dos cilindros de la misma carga de concreto no fallan independientemente. Si se multiplican sus probabilidades como si lo fueran, la confiabilidad calculada sale más alta que la real.
+4. **Confundir mutuamente excluyentes con independientes.** Dos eventos excluyentes con probabilidad positiva son siempre dependientes: si ocurre uno, el otro ya no puede ocurrir.
+5. **Tratar una extracción sin reemplazo como si fuera con reemplazo.** Al sacar vigas de un lote sin devolverlas, la segunda probabilidad depende de la primera. Con lotes muy grandes la diferencia es pequeña, pero con lotes de 10 o 20 elementos no lo es.
+6. **Pensar que $P(A \mid B) + P(A \mid B^c) = 1$.** Lo que suma 1 es $P(A \mid B) + P(A^c \mid B)$, con la misma condición.
+
 ## Resumen de fórmulas {#sec-condicional-resumen}
 
 El @tbl-condicional-formulas reúne las reglas del capítulo.
@@ -628,6 +1026,7 @@ El @tbl-condicional-formulas reúne las reglas del capítulo.
 | Independencia | $P(A \cap B) = P(A)\,P(B)$ | Un evento no informa sobre el otro | @eq-condicional-indep |
 | Sistema en serie | $R = p_1 \, p_2 \cdots p_n$ | Componentes independientes; fallan todos si falla uno | @eq-condicional-serie |
 | Sistema en paralelo | $R = 1 - (1-p_1) \cdots (1-p_n)$ | Componentes independientes; basta uno | @eq-condicional-paralelo |
+| Riesgo durante la vida útil | $R = 1 - (1 - 1/T)^n$ | Años independientes; al menos una excedencia en $n$ años | @eq-condicional-riesgo |
 | Probabilidad total | $P(B) = \sum_i P(A_i)\,P(B \mid A_i)$ | $B$ ocurre por varios caminos | @eq-condicional-total |
 | Teorema de Bayes | $P(A_i \mid B) = P(A_i)\,P(B \mid A_i)/P(B)$ | Se observó $B$ y se busca la causa | @eq-condicional-bayes |
 
@@ -648,9 +1047,17 @@ El @tbl-condicional-formulas reúne las reglas del capítulo.
 11. Explique con un ejemplo de ingeniería civil por qué dos eventos mutuamente excluyentes con probabilidad positiva no pueden ser independientes.
 12. En el ejemplo de los pilotes, ¿cuántos ensayos positivos seguidos e independientes hacen falta para que la probabilidad de defecto pase de 0.99? Use la función `prob_si_positivo()` dentro de un ciclo.
 
+13. Una planta potabilizadora tiene dos filtros en paralelo, cada uno con confiabilidad mensual 0.92, seguidos de un sistema de cloración con confiabilidad 0.97. (a) Dibuje el diagrama de bloques y calcule la confiabilidad del sistema, suponiendo independencia. (b) ¿Cuánto mejora si se instala un segundo clorador en paralelo con el primero? (c) Compruebe los dos resultados con una simulación.
+14. Una alcantarilla se diseña para la crecida de 25 años y tiene una vida útil de 30 años. (a) Calcule el riesgo de que la crecida de diseño se supere al menos una vez. (b) ¿Qué periodo de retorno haría falta para un riesgo de 20 %? (c) Compruebe los resultados con el interactivo de la @fig-condicional-int-riesgo.
+15. Con los datos del ejemplo del talud, suponga que en la próxima temporada el talud se deslizó. ¿Cuál es la probabilidad de que la temporada haya sido de lluvia alta? Arme el cuadro con `dplyr` como en el ejemplo del teorema de Bayes y explique por qué el resultado es mucho mayor que 0.10.
+16. En una avenida hay dos semáforos seguidos. Cada uno está en verde el 60 % del tiempo. (a) Si funcionan independientemente, ¿cuál es la probabilidad de encontrar los dos en verde? (b) Si están coordinados y $P(\text{verde en el segundo} \mid \text{verde en el primero}) = 0.90$, ¿cuál es esa probabilidad? (c) Si en el caso (b) el segundo semáforo sigue en verde el 60 % del tiempo, calcule la probabilidad de verde en el segundo dado que el primero está en rojo. (d) Represente los casos (a) y (b) en el interactivo de la @fig-condicional-int-indep, con $A$ = "verde en el primero", y explique qué cambia en el mosaico.
+
 ## Lecturas recomendadas
 
 - @bertsekas2008introduction, secciones 1.3 a 1.5: desarrolla la probabilidad condicional, la probabilidad total, Bayes y la independencia, con ejemplos de confiabilidad de redes.
 - @illowsky2018introductory, secciones 3.2 a 3.5: explica la independencia, los cuadros de contingencia y los diagramas de árbol y de Venn con muchos ejercicios de práctica.
 - @blitzstein2019introduction, capítulo 2: trata el teorema de Bayes con ejemplos de pruebas diagnósticas y discute los errores de razonamiento más comunes.
 - @laneintroduction, capítulo 5: presenta el teorema de Bayes y la falacia del jugador con ejemplos cortos.
+- @ang2007probability, capítulos 2 y 3: probabilidad condicional, Bayes y confiabilidad de sistemas con ejemplos de obras civiles y ambientales.
+- @chow1988applied: deduce el riesgo hidrológico durante la vida útil a partir del periodo de retorno.
+- @gigerenzer1995improve: artículo breve que muestra por qué el teorema de Bayes se entiende mejor con frecuencias.
