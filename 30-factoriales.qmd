@@ -489,6 +489,26 @@ En base R, el mismo gráfico sale con `interaction.plot(pintura$pintura, pintura
 
 :::
 
+### Cómo se leen los tres valores p {#sec-fac-valores-p}
+
+Un factorial de dos factores da tres valores $p$, uno por hipótesis, y no tienen la misma jerarquía. En el ensayo de pinturas los tres son menores que 0.05, pero se leen en orden.
+
+- **Interacción ($p = 0.012$).** Si los dos factores no interactuaran, una falta de paralelismo tan grande como la de la @fig-fac-pintura saldría por azar en cerca del 1 % de los experimentos. Es evidencia de que la ventaja del rociado depende de la pintura. No dice en qué pinturas: para eso están los efectos simples.
+- **Pintura ($p < 0.001$).** Dice que la adherencia media, promediada sobre los dos métodos, cambia con la pintura. Con interacción presente, ese promedio mezcla situaciones distintas, aunque aquí P3 es la mejor con los dos métodos y la conclusión práctica es clara.
+- **Método ($p < 0.001$).** Dice que, promediado sobre las tres pinturas, el rociado supera a la inmersión. Con P2 la ventaja es de solo 2 puntos, así que "el rociado es mejor" es cierto en promedio, pero no igual para todas las pinturas.
+
+Dos lecturas son erróneas y frecuentes. La primera: "la interacción no es significativa, así que los factores no interactúan". Un $p$ grande en la interacción puede deberse a pocas repeticiones; con $r = 2$ o 3, solo se detectan interacciones grandes. La segunda: "el factor A no es significativo, así que A no importa". En el patrón 4 de la @fig-fac-patrones, A tiene efecto principal cero y cambia mucho la respuesta.
+
+### Tamaño de cada efecto: eta cuadrado parcial {#sec-fac-eta}
+
+Los valores $p$ dicen qué efectos son creíbles; el tamaño se mide con las diferencias de medias en puntos de adherencia y, como resumen, con el eta cuadrado parcial de cada efecto (@sec-mc-eta-parcial), que compara la suma de cuadrados del efecto con la del error:
+
+$$
+\eta^2_{p,\text{efecto}} = \frac{SC_{\text{efecto}}}{SC_{\text{efecto}} + SC_E}
+$$ {#eq-fac-eta-parcial}
+
+En el ensayo de pinturas, con $SC_E = 48$: pintura $516/(516 + 48) = 0.915$; método $128/(128 + 48) = 0.727$; interacción $52/(52 + 48) = 0.520$. El eta cuadrado simple de cada efecto, $SC_{\text{efecto}}/SC_T$, da $516/744 = 0.69$, $128/744 = 0.17$ y $52/744 = 0.07$. Los simples suman, con el error, el 100 % de la variación y sirven para ver qué parte de la variación total se lleva cada fuente. Los parciales no suman nada en particular, pero no dependen de los otros factores del diseño y se usan para comparar con otros estudios. En los dos casos el orden es el mismo: la pintura pesa más que el método, y el método más que la interacción. Para la especificación de la obra, sin embargo, el número que importa es otro: con P3, rociar en vez de sumergir sube la adherencia 10 puntos.
+
 ### Efectos simples
 
 Cuando hay interacción, se compara un factor dentro de cada nivel del otro. En el ejemplo interesa saber con qué pinturas el rociado supera a la inmersión. La diferencia entre dos medias de celda, cada una con $r$ repeticiones, tiene error estándar $\sqrt{2\,CM_E/r}$, que con $CM_E = 4$ y $r = 3$ es $\sqrt{8/3} = 1.633$ puntos. Como son tres comparaciones de una misma familia, se usa la corrección de Bonferroni de la @sec-mc-bonferroni, con $t_{0.05/6;\,12} = 2.78$.
@@ -1226,6 +1246,36 @@ Los errores más frecuentes en los experimentos factoriales de laboratorio son:
 ## Qué puede concluirse de un experimento {#sec-fac-conclusiones}
 
 Un informe de un experimento debe dejar claros cinco puntos: qué unidades se usaron y qué población representan; qué factores y niveles se compararon; qué respuesta se midió, cómo y cuándo; el resultado de las pruebas junto con la magnitud de los efectos en sus unidades; y las limitaciones del diseño, como los supuestos sobre interacciones o el rango de los niveles. Las conclusiones valen para los niveles ensayados. Un $2^k$ con contenido de asfalto entre 5.0 % y 6.0 % no dice nada sobre una mezcla con 7 %, ni sobre otros agregados u otros climas.
+
+## Resumen: cuándo usar qué {#sec-fac-resumen}
+
+```{r}
+#| label: tbl-fac-resumen
+#| tbl-cap: "Resumen del capítulo 30."
+#| echo: false
+
+resumen_30 <- data.frame(
+  pregunta = c("¿Varios factores a la vez?", "¿El efecto de A depende de B?",
+               "¿Con qué niveles de B conviene A?", "¿Qué tan grande es cada efecto?",
+               "¿Muchos factores y pocos ensayos?", "¿Sin repeticiones?",
+               "¿La respuesta es lineal entre los niveles?", "¿Más factores de los que caben?"),
+  respuesta = c("Factorial completo, nunca un factor a la vez.",
+                "Prueba de la interacción y gráfico de interacción.",
+                "Efectos simples con Bonferroni o Holm.",
+                "Diferencias en sus unidades y η² parcial.",
+                "Diseño 2^k.",
+                "Gráfico normal o seminormal de los efectos.",
+                "Puntos centrales y prueba de curvatura.",
+                "Factorial fraccionado, cuidando los alias."),
+  r = c("aov(y ~ A * B)", "interaction.plot()", "pairwise.t.test()", "Cálculo con las SC",
+        "lm() con variables codificadas", "qqnorm() de los efectos", "lm() con indicadora del centro",
+        "expand.grid() y D <- A * B * C")
+)
+resumen_30$r <- paste0("<code>", resumen_30$r, "</code>")
+resumen_30 %>%
+  kbl(col.names = c("Pregunta", "Qué hacer", "En R"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
 
 ## Ejercicios propuestos
 
