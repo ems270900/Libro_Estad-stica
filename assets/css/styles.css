@@ -1239,8 +1239,9 @@ body.quarto-dark #quarto-sidebar ul.sidebar-section .chapter-number { color: #8a
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .menu-text,
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-title,
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-number { color: var(--acento) !important; }
-/* Portada del libro web: sin índice a la derecha (solo tendría el título) */
-body:has(.portada) #quarto-margin-sidebar { display: none !important; }
+/* Portada del libro web (solo ahí): sin índice a la derecha, que solo tendría el título.
+   En el HTML de un archivo la portada convive con los capítulos, así que no aplica. */
+body:has(#quarto-sidebar .sidebar-menu-container):has(.portada) #quarto-margin-sidebar { display: none !important; }
 
 /* Capítulo 5: resultados de Markdown dentro de cuadros y vistas de un documento compilado */
 .md-h1 { font-size: 1.35em; font-weight: 600; }
