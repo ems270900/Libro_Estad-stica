@@ -491,7 +491,7 @@ La función `mean()` aplicada a un vector lógico da la proporción de `TRUE`, p
 
 ```{r}
 #| label: fig-prog-dados
-#| fig-cap: "Frecuencia relativa simulada y probabilidad teórica de la suma de dos dados."
+#| fig-cap: "Suma de dos dados: simulación y teoría."
 #| fig-alt: "Barras de frecuencia relativa de las sumas de 2 a 12 con forma de triángulo y máximo en 7; los puntos de la probabilidad teórica caen casi sobre la punta de cada barra"
 #| fig-width: 7
 #| fig-height: 4
@@ -563,7 +563,7 @@ El interactivo de la @fig-prog-interactivo repite la simulación del ejemplo con
 </script>
 ```
 
-Simulación de la suma de dos dados con el número de lanzamientos elegido.
+Simulación de dos dados.
 
 :::
 
@@ -576,7 +576,7 @@ Simulación de la suma de dos dados con el número de lanzamientos elegido.
 
 ```{r}
 #| label: fig-prog-rnorm
-#| fig-cap: "Histograma de 5000 resistencias simuladas con rnorm(), media 32 MPa y desviación estándar 3 MPa."
+#| fig-cap: "Resistencias simuladas con `rnorm()`."
 #| fig-alt: "Histograma con forma de campana centrado en 32 MPa, que va de unos 21 a unos 43 MPa"
 set.seed(2026)
 simuladas <- rnorm(5000, mean = 32, sd = 3)
@@ -686,7 +686,7 @@ En el interactivo de la @fig-prog-convergencia se simulan cilindros de la mezcla
 </script>
 ```
 
-Proporción de cilindros simulados con resistencia menor que 28 MPa a medida que aumenta el número de cilindros.
+Convergencia de la simulación.
 
 :::
 

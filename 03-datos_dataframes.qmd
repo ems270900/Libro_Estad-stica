@@ -39,7 +39,7 @@ Cuando los datos de un análisis están organizados con una variable por columna
 | A | 22.7 | 37.7 |
 | B | 24.1 | 39.6 |
 
-: Los mismos resultados en formato ancho, con una columna por edad. {#tbl-datos-ancho}
+: Resultados en formato ancho. {#tbl-datos-ancho}
 
 Ese cuadro es cómodo para mirar, pero la edad, que es una variable, quedó repartida en los encabezados de dos columnas. Para preguntarle a R "¿cuál es la resistencia media a 28 días?" o para dibujar la resistencia contra la edad, conviene la forma ordenada del data frame `cilindros`, donde la edad es una columna. En la @sec-datos-formas se explica cómo pasar de una forma a la otra con R. Si se puede elegir, los datos se registran desde el inicio en forma ordenada: una fila por cilindro ensayado.
 
@@ -119,7 +119,7 @@ Las dos dan el mismo contenido. `read_csv()` devuelve un *tibble*, que es un dat
 
 RStudio también tiene un asistente para importar datos sin escribir código: File > Import Dataset > From Text (readr) (@fig-datos-importar). El asistente muestra una vista previa y, abajo a la derecha, el código que va a ejecutar. Conviene copiar ese código al script para que la lectura quede registrada.
 
-![Asistente de RStudio para importar un archivo CSV. El código equivalente aparece en el recuadro inferior derecho. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_importar.png){#fig-datos-importar fig-alt="Diálogo Import Text Data de RStudio con la vista previa de los datos y el código de importación" width="85%"}
+![Asistente para importar un archivo CSV. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_importar.png){#fig-datos-importar fig-alt="Diálogo Import Text Data de RStudio con la vista previa de los datos y el código de importación" width="85%"}
 
 ### Archivos con punto y coma y coma decimal
 
@@ -233,7 +233,7 @@ table(ensayos$proyecto, ensayos$edad_dias)
 
 La columna de asentamiento tiene dos datos faltantes. Para ver el data frame completo como una hoja de cálculo se usa `View(ensayos)`, con V mayúscula, que lo abre en una pestaña del editor (@fig-datos-view). En esa vista se puede ordenar por una columna haciendo clic en su encabezado y filtrar con el botón Filter, sin cambiar los datos.
 
-![Vista de un data frame con `View()`. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_view.png){#fig-datos-view fig-alt="Pestaña del editor de RStudio que muestra el data frame de ensayos como una hoja de cálculo con encabezados ordenables" width="85%"}
+![Data frame abierto con `View()`. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_view.png){#fig-datos-view fig-alt="Pestaña del editor de RStudio que muestra el data frame de ensayos como una hoja de cálculo con encabezados ordenables" width="85%"}
 
 ## Seleccionar y transformar con R base {#sec-datos-base}
 
@@ -413,7 +413,7 @@ En el interactivo de la @fig-datos-pipe-int se arma una cadena paso a paso. Cada
 </script>
 ```
 
-Constructor de una cadena con el pipe: cada paso marcado se agrega al código y cambia la tabla resultante.
+Constructor de una cadena con el pipe.
 
 :::
 
@@ -610,7 +610,7 @@ Dentro de `filter()`, las condiciones separadas por comas se deben cumplir todas
 | `between(x, a, b)` | entre a y b, incluidos | `between(resistencia_mpa, 30, 35)` |
 | `!is.na(x)` | no falta | `!is.na(asentamiento_mm)` |
 
-: Operadores para escribir condiciones en `filter()`. {#tbl-datos-condiciones}
+: Operadores para escribir condiciones. {#tbl-datos-condiciones}
 
 ```{r}
 # Cilindros a 28 días de puente o pavimento con resistencia entre 30 y 35 MPa

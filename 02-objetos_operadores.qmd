@@ -464,7 +464,7 @@ En el interactivo de la @fig-obj-seleccion se escribe lo que va dentro de los co
 </script>
 ```
 
-Selección de elementos de un vector por posición o por condición.
+Selección de elementos de un vector.
 
 :::
 
@@ -512,7 +512,7 @@ El interactivo de la @fig-obj-calculadora muestra el resultado de cada operador 
 </script>
 ```
 
-Resultado de los operadores de R para dos números. Los valores se actualizan al escribir.
+Calculadora de operadores de R.
 
 :::
 
