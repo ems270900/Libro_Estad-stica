@@ -22,11 +22,30 @@ cilindros <- data.frame(
 cilindros
 ```
 
-Cuando los datos de un análisis están organizados así, con una variable por columna, una observación por fila y un valor por celda, se dice que están ordenados [@wickham2017r4ds]. Es la forma que esperan casi todas las funciones de R, y conviene usarla desde que se registran los datos en el laboratorio o en el campo.
+Las funciones `nrow()` y `ncol()` dan el número de filas y de columnas, y una columna se toma con `$` seguido de su nombre:
+
+```{r}
+nrow(cilindros)
+ncol(cilindros)
+cilindros$resistencia_mpa
+```
+
+### Datos ordenados
+
+Cuando los datos de un análisis están organizados con una variable por columna, una observación por fila y un valor por celda, se dice que están ordenados [@wickham2017r4ds]. Es la forma que esperan casi todas las funciones de R. Muchas hojas de cálculo de laboratorio, en cambio, se llenan de otra manera, pensada para leer a simple vista. El @tbl-datos-ancho muestra los mismos cuatro resultados de arriba en la forma habitual de una hoja de laboratorio, con una columna por edad.
+
+| Mezcla | 7 días (MPa) | 28 días (MPa) |
+|:-:|:-:|:-:|
+| A | 22.7 | 37.7 |
+| B | 24.1 | 39.6 |
+
+: Los mismos resultados en formato ancho, con una columna por edad. {#tbl-datos-ancho}
+
+Ese cuadro es cómodo para mirar, pero la edad, que es una variable, quedó repartida en los encabezados de dos columnas. Para preguntarle a R "¿cuál es la resistencia media a 28 días?" o para dibujar la resistencia contra la edad, conviene la forma ordenada del data frame `cilindros`, donde la edad es una columna. En la @sec-datos-formas se explica cómo pasar de una forma a la otra con R. Si se puede elegir, los datos se registran desde el inicio en forma ordenada: una fila por cilindro ensayado.
 
 ## Leer datos desde un archivo {#sec-datos-leer}
 
-En la práctica los datos vienen en un archivo. Los dos formatos más comunes son CSV (*comma-separated values*, valores separados por comas), que es un archivo de texto que cualquier programa abre, y Excel. En este capítulo se usa un conjunto de 60 ensayos de compresión de cilindros de concreto de tres proyectos. Los datos son hipotéticos y se pueden descargar con el botón siguiente.
+En la práctica los datos vienen en un archivo. Los dos formatos más comunes son CSV (*comma-separated values*, valores separados por comas), que es un archivo de texto que cualquier programa abre, y Excel. Los ejemplos usan un conjunto de 60 ensayos de compresión de cilindros de concreto de tres proyectos. Los datos son hipotéticos y se pueden descargar con el botón siguiente.
 
 ```{r}
 #| echo: false
@@ -59,9 +78,50 @@ RStudio también tiene un asistente para importar datos sin escribir código: Fi
 
 ![Asistente de RStudio para importar un archivo CSV. El código equivalente aparece en el recuadro inferior derecho. Fuente: captura de RStudio (Posit).](assets/img/cap03/rstudio_importar.png){#fig-datos-importar fig-alt="Diálogo Import Text Data de RStudio con la vista previa de los datos y el código de importación" width="85%"}
 
-::: {.callout-warning title="Cuidado"}
-En los computadores configurados en español, Excel a veces guarda los CSV con punto y coma (`;`) como separador y coma como separador decimal. Si al leer el archivo aparece una sola columna con todo el texto junto, se usa `read.csv2()` o `read_csv2()`, que esperan ese formato.
-:::
+### Archivos con punto y coma y coma decimal
+
+En las computadoras configuradas en español, Excel guarda los CSV con punto y coma (`;`) como separador de columnas y coma como separador decimal, porque la coma ya se usa para los decimales. El archivo `humedad_suelo_hipotetica.csv`, con la humedad de ocho muestras de suelo de dos sondeos (datos hipotéticos), está guardado así. Abierto con el Bloc de notas, sus primeras líneas se ven de esta forma:
+
+```{r}
+#| echo: false
+ver_datos("datos/humedad_suelo_hipotetica.csv", tabla = FALSE)
+```
+
+```
+"muestra";"sondeo";"profundidad_m";"tipo_suelo";"humedad_pct"
+"S01";"P1";0,5;"Limo";18,4
+"S02";"P1";1;"Limo";21,7
+```
+
+Si se lee con `read.csv()`, que espera comas como separador, R se confunde con las comas de los decimales y se detiene con un error:
+
+```{r}
+#| error: true
+read.csv("datos/humedad_suelo_hipotetica.csv")
+```
+
+La función correcta para ese formato es `read.csv2()`, que espera punto y coma entre columnas y coma decimal. Con ella las columnas numéricas quedan como números:
+
+```{r}
+humedad <- read.csv2("datos/humedad_suelo_hipotetica.csv")
+str(humedad)
+```
+
+En readr, la función equivalente es `read_csv2()`. Una buena costumbre es abrir el archivo con el Bloc de notas antes de leerlo, para ver qué separador tiene.
+
+### Otros problemas al leer
+
+El @tbl-datos-problemas reúne los problemas más comunes al leer un archivo y cómo se corrigen. En casi todos los casos el síntoma aparece al revisar los datos con `str()`, como se explica en la @sec-datos-revisar.
+
+| Síntoma | Causa | Solución |
+|:--|:--|:--|
+| Todo queda en una sola columna | El separador es punto y coma | `read.csv2()` |
+| Una columna de números aparece como texto (`chr`) | Coma decimal, o una celda con texto como "s.d." o "--" | `read.csv2()`, o `na.strings = c("s.d.", "--")` |
+| Las tildes se ven como `Ã©` o `�` | El archivo no está en UTF-8 | `fileEncoding = "latin1"` |
+| `cannot open file` | La ruta está mal o el archivo no está en la carpeta | Revisar la ruta y el directorio de trabajo (@sec-r-proyectos) |
+| Los nombres de las columnas tienen puntos (`Resistencia..MPa.`) | El encabezado tenía espacios o símbolos | Cambiar los nombres con `names()` o con `rename()` (@sec-datos-dplyr) |
+
+: Problemas frecuentes al leer un archivo de datos. {#tbl-datos-problemas}
 
 ### Archivos de Excel
 
@@ -97,6 +157,13 @@ str(ensayos)
 
 ```{r}
 summary(ensayos[, c("asentamiento_mm", "resistencia_mpa")])
+```
+
+Para las columnas de texto, `unique()` muestra los valores distintos y `table()` cuenta cuántas veces aparece cada uno. Así se detectan errores de digitación, como "puente" escrito con minúscula en una fila, que R trataría como un proyecto distinto:
+
+```{r}
+unique(ensayos$proyecto)
+table(ensayos$proyecto, ensayos$edad_dias)
 ```
 
 La columna de asentamiento tiene dos datos faltantes. Para ver el data frame completo como una hoja de cálculo se usa `View(ensayos)`, con V mayúscula, que lo abre en una pestaña del editor (@fig-datos-view). En esa vista se puede ordenar por una columna haciendo clic en su encabezado y filtrar con el botón Filter, sin cambiar los datos.
@@ -154,6 +221,41 @@ La función `aggregate()` calcula un resumen para cada grupo. La fórmula `resis
 aggregate(resistencia_mpa ~ proyecto + edad_dias, data = ensayos, FUN = mean)
 ```
 
+### Elegir varios valores con %in%
+
+Para elegir las filas de dos proyectos se podría escribir `proyecto == "Puente" | proyecto == "Pavimento"`, donde `|` significa "o". El operador `%in%` lo dice en menos espacio: devuelve `TRUE` cuando el valor de la izquierda está en la lista de la derecha.
+
+```{r}
+dos_proyectos <- ensayos[ensayos$proyecto %in% c("Puente", "Pavimento"), ]
+table(dos_proyectos$proyecto)
+```
+
+## Datos faltantes {#sec-datos-na}
+
+En los datos reales casi siempre falta algo: una muestra que se rompió antes del ensayo, un día sin conteo, una celda que no se llenó. R marca esos valores con `NA` (@sec-obj-na). Antes de calcular conviene saber cuántos faltan y dónde están. La función `is.na()` devuelve `TRUE` en cada valor faltante, y como R cuenta cada `TRUE` como 1, `sum()` da el número de faltantes:
+
+```{r}
+sum(is.na(ensayos$asentamiento_mm))   # faltantes en una columna
+colSums(is.na(ensayos))               # faltantes en cada columna
+ensayos[is.na(ensayos$asentamiento_mm), c("muestra", "proyecto", "asentamiento_mm")]
+```
+
+Hay tres formas de trabajar con ellos, según lo que se necesite:
+
+1. Ignorarlos en un cálculo, con `na.rm = TRUE`: `mean(ensayos$asentamiento_mm, na.rm = TRUE)`. Es lo más común.
+2. Quitar las filas que tienen faltantes en una columna: `ensayos[!is.na(ensayos$asentamiento_mm), ]`, donde `!` significa "no".
+3. Quitar las filas que tienen algún faltante en cualquier columna, con `na.omit(ensayos)` o `ensayos[complete.cases(ensayos), ]`.
+
+```{r}
+mean(ensayos$asentamiento_mm)                 # sin na.rm: el resultado es NA
+mean(ensayos$asentamiento_mm, na.rm = TRUE)   # con na.rm: media de los 58 datos
+nrow(na.omit(ensayos))                        # filas sin ningún faltante
+```
+
+::: {.callout-warning title="Cuidado"}
+Un dato faltante no es un cero. Si en el archivo se llenó con 0 la celda de un cilindro que no se ensayó, R lo tomará como una resistencia de 0 MPa y la media bajará. Cuando un archivo usa un código para los faltantes, como 0, -99 o "s.d.", se le dice a R al leerlo: `read.csv("archivo.csv", na.strings = c("-99", "s.d."))`.
+:::
+
 ## El operador pipe {#sec-datos-pipe}
 
 Antes de presentar dplyr hace falta un operador nuevo, el pipe, que se escribe `%>%`. Su trabajo es pasar el resultado de una instrucción a la siguiente. Se lee "y luego".
@@ -180,27 +282,94 @@ La regla es una sola: lo que está a la izquierda de `%>%` entra como primer arg
 Una receta de cocina se escribe en orden: picar la cebolla, luego sofreírla, luego agregar el arroz. Nadie la escribe como "agregar el arroz a sofreír picar la cebolla". El pipe deja escribir el código como una receta, un paso por línea.
 :::
 
+Una cadena con el pipe se puede leer en voz alta reemplazando cada `%>%` por "y luego". La cadena siguiente se lee: "tome los ensayos, y luego filtre los del puente, y luego calcule la media de la resistencia".
+
+```{r}
+ensayos %>%
+  filter(proyecto == "Puente") %>%
+  summarise(media = mean(resistencia_mpa))
+```
+
+En el interactivo de la @fig-datos-pipe-int se arma una cadena paso a paso. Cada casilla agrega un paso, y debajo se ven el código completo y la tabla que resulta. Así se puede comprobar qué hace cada verbo antes de conocerlos en detalle en la sección siguiente.
+
+::: {#fig-datos-pipe-int}
+
+```{=html}
+<div class="interactivo" id="int-pipe">
+  <div style="display:grid; gap:0.3rem;">
+    <label><input type="checkbox" data-paso="proy" checked> Filtrar el proyecto
+      <select aria-label="Proyecto"><option>Puente</option><option selected>Edificio</option><option>Pavimento</option></select></label>
+    <label><input type="checkbox" data-paso="edad" checked> Filtrar la edad de 28 días</label>
+    <label><input type="checkbox" data-paso="razon"> Crear la columna razon = resistencia / f'c</label>
+    <label><input type="checkbox" data-paso="orden"> Ordenar de mayor a menor resistencia</label>
+    <label><input type="checkbox" data-paso="selec" checked> Quedarse con algunas columnas</label>
+    <label><input type="checkbox" data-paso="resumen"> Resumir por mezcla (número de cilindros y media)</label>
+  </div>
+  <pre class="codigo-pipe" style="text-align:left; margin:0.6rem 0; padding:0.5rem 0.7rem; font-size:0.85rem; border-radius:4px; white-space:pre-wrap;"></pre>
+  <p class="resultado"></p>
+  <div class="tabla-pipe" style="overflow-x:auto; text-align:left;"></div>
+</div>
+<script>
+(function () {
+  var datos = [["M01","Puente","A",7,22.7,35],["M02","Puente","A",28,37.7,35],["M03","Puente","A",7,28,35],["M04","Puente","A",28,36.3,35],["M05","Puente","A",7,18.7,35],["M06","Puente","A",28,37.8,35],["M07","Puente","A",7,23.4,35],["M08","Puente","A",28,39.4,35],["M09","Puente","A",7,23.7,35],["M10","Puente","A",28,37.2,35],["M11","Puente","B",7,22.6,35],["M12","Puente","B",28,37.1,35],["M13","Puente","B",7,23.8,35],["M14","Puente","B",28,40.2,35],["M15","Puente","B",7,26.9,35],["M16","Puente","B",28,37.1,35],["M17","Puente","B",7,25.6,35],["M18","Puente","B",28,39.6,35],["M19","Puente","B",7,27.6,35],["M20","Puente","B",28,39,35],["M21","Edificio","A",7,19.8,28],["M22","Edificio","A",28,27.6,28],["M23","Edificio","A",7,19.3,28],["M24","Edificio","A",28,30.9,28],["M25","Edificio","A",7,18.1,28],["M26","Edificio","A",28,30.1,28],["M27","Edificio","A",7,17.4,28],["M28","Edificio","A",28,28.3,28],["M29","Edificio","A",7,16.9,28],["M30","Edificio","A",28,31.3,28],["M31","Edificio","B",7,23.1,28],["M32","Edificio","B",28,32.3,28],["M33","Edificio","B",7,24.3,28],["M34","Edificio","B",28,31.1,28],["M35","Edificio","B",7,17.2,28],["M36","Edificio","B",28,33.4,28],["M37","Edificio","B",7,19.4,28],["M38","Edificio","B",28,33.2,28],["M39","Edificio","B",7,19,28],["M40","Edificio","B",28,32.8,28],["M41","Pavimento","A",7,25.4,30],["M42","Pavimento","A",28,32.7,30],["M43","Pavimento","A",7,21.3,30],["M44","Pavimento","A",28,36,30],["M45","Pavimento","A",7,19.2,30],["M46","Pavimento","A",28,31.2,30],["M47","Pavimento","A",7,18,30],["M48","Pavimento","A",28,31.7,30],["M49","Pavimento","A",7,22.3,30],["M50","Pavimento","A",28,35.8,30],["M51","Pavimento","B",7,22.3,30],["M52","Pavimento","B",28,33.2,30],["M53","Pavimento","B",7,19.7,30],["M54","Pavimento","B",28,33.7,30],["M55","Pavimento","B",7,20.3,30],["M56","Pavimento","B",28,37.2,30],["M57","Pavimento","B",7,22.5,30],["M58","Pavimento","B",28,34.3,30],["M59","Pavimento","B",7,24.3,30],["M60","Pavimento","B",28,39.7,30]];
+  var raiz = document.getElementById("int-pipe");
+  var codigo = raiz.querySelector(".codigo-pipe"), texto = raiz.querySelector(".resultado"), caja = raiz.querySelector(".tabla-pipe");
+  var lista = raiz.querySelector("select");
+  function marcado(p) { return raiz.querySelector('input[data-paso="' + p + '"]').checked; }
+  function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
+  function actualizar() {
+    var filas = datos.map(function (d) { return { muestra: d[0], proyecto: d[1], mezcla: d[2], edad_dias: d[3], resistencia_mpa: d[4], fc_diseno_mpa: d[5] }; });
+    var lineas = ["ensayos"], cols = ["muestra", "proyecto", "mezcla", "edad_dias", "resistencia_mpa", "fc_diseno_mpa"];
+    if (marcado("proy")) { var p = lista.value; filas = filas.filter(function (f) { return f.proyecto === p; }); lineas.push('filter(proyecto == "' + p + '")'); }
+    if (marcado("edad")) { filas = filas.filter(function (f) { return f.edad_dias === 28; }); lineas.push("filter(edad_dias == 28)"); }
+    if (marcado("razon")) { filas.forEach(function (f) { f.razon = f2(f.resistencia_mpa / f.fc_diseno_mpa); }); cols.push("razon"); lineas.push("mutate(razon = resistencia_mpa / fc_diseno_mpa)"); }
+    if (marcado("orden")) { filas.sort(function (a, b) { return b.resistencia_mpa - a.resistencia_mpa; }); lineas.push("arrange(desc(resistencia_mpa))"); }
+    if (marcado("selec")) { cols = ["muestra", "mezcla", "resistencia_mpa"].concat(marcado("razon") ? ["razon"] : []); lineas.push("select(" + cols.join(", ") + ")"); }
+    if (marcado("resumen")) {
+      var grupos = {};
+      filas.forEach(function (f) { (grupos[f.mezcla] = grupos[f.mezcla] || []).push(f.resistencia_mpa); });
+      filas = Object.keys(grupos).sort().map(function (g) {
+        var v = grupos[g], s = v.reduce(function (a, b) { return a + b; }, 0);
+        return { mezcla: g, n: v.length, media_mpa: f2(s / v.length) };
+      });
+      cols = ["mezcla", "n", "media_mpa"];
+      lineas.push("group_by(mezcla)");
+      lineas.push("summarise(n = n(), media_mpa = mean(resistencia_mpa))");
+    }
+    codigo.textContent = lineas.join(" %>%\n  ");
+    texto.textContent = "Resultado: " + filas.length + (filas.length === 1 ? " fila" : " filas") + (filas.length > 10 ? " (se muestran las primeras 10)." : ".");
+    var h = '<' + 'table class="table table-sm" style="width:auto; font-size:0.85rem;"><thead><tr>' + cols.map(function (c) { return "<th>" + c + "</th>"; }).join("") + "</tr></thead><tbody>";
+    filas.slice(0, 10).forEach(function (f) { h += "<tr>" + cols.map(function (c) { return "<td>" + f[c] + "</td>"; }).join("") + "</tr>"; });
+    caja.innerHTML = h + "</tbody></" + "table>";
+  }
+  raiz.addEventListener("change", actualizar);
+  actualizar();
+})();
+</script>
+```
+
+Constructor de una cadena con el pipe: cada paso marcado se agrega al código y cambia la tabla resultante.
+
+:::
+
 ## Transformar con dplyr {#sec-datos-dplyr}
 
 El paquete dplyr tiene un puñado de funciones, llamadas verbos, que hacen las operaciones más comunes con un data frame [@wickham2017r4ds]. Todas reciben el data frame como primer argumento, así que se encadenan con el pipe. El @tbl-datos-verbos los resume junto con su equivalente en R base.
 
-```{r}
-#| label: tbl-datos-verbos
-#| tbl-cap: "Verbos de dplyr y su equivalente en R base."
-#| echo: false
+| Verbo | Qué hace | Equivalente en R base |
+|:--|:--|:--|
+| `filter()` | Elige filas que cumplen una condición | `datos[condicion, ]` |
+| `select()` | Elige columnas | `datos[, c("a", "b")]` |
+| `rename()` | Cambia el nombre de una columna | `names(datos)[k] <- "nuevo"` |
+| `mutate()` | Crea o cambia columnas | `datos$nueva <- ...` |
+| `arrange()` | Ordena filas | `datos[order(...), ]` |
+| `summarise()` | Resume varias filas en un valor | `mean(datos$x)` |
+| `group_by()` | Agrupa para resumir por grupo | `aggregate()` |
+| `count()` | Cuenta filas por grupo | `table()` |
+| `slice_max()`, `slice_min()` | Filas con los valores más altos o más bajos | `head(datos[order(...), ], n)` |
+| `distinct()` | Quita filas repetidas | `unique()` |
 
-library(kableExtra)
-data.frame(
-  verbo = c("filter()", "select()", "mutate()", "arrange()", "summarise()", "group_by()", "count()"),
-  hace = c("Elige filas que cumplen una condición", "Elige columnas",
-           "Crea o cambia columnas", "Ordena filas", "Resume en un valor",
-           "Agrupa para resumir por grupo", "Cuenta filas por grupo"),
-  base = c("datos[condición, ]", "datos[, c(\"a\", \"b\")]", "datos$nueva <- ...",
-           "datos[order(...), ]", "mean(datos$x)", "aggregate()", "table()")
-) %>%
-  kbl(col.names = c("Verbo", "Qué hace", "Equivalente en R base"), align = "lll") %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
-```
+: Verbos de dplyr y su equivalente en R base. {#tbl-datos-verbos}
 
 Dentro de los verbos, las columnas se escriben sin el nombre del data frame y sin `$`:
 
@@ -235,6 +404,86 @@ La función `n()` cuenta las filas de cada grupo. Para contar sin calcular nada 
 
 ```{r}
 ensayos %>% count(proyecto, mezcla)
+```
+
+### Filtrar con varias condiciones
+
+Dentro de `filter()`, las condiciones separadas por comas se deben cumplir todas a la vez. Para que baste con que se cumpla una de ellas se usa `|` ("o"). El @tbl-datos-condiciones reúne los operadores que se usan en las condiciones.
+
+| Escritura | Se lee | Ejemplo |
+|:--|:--|:--|
+| `==`, `!=` | igual, distinto | `mezcla == "A"` |
+| `>`, `>=`, `<`, `<=` | mayor, mayor o igual, menor, menor o igual | `resistencia_mpa >= 28` |
+| `,` o `&` | y | `proyecto == "Puente", edad_dias == 28` |
+| <code>&#124;</code> | o | <code>proyecto == "Puente" &#124; proyecto == "Edificio"</code> |
+| `%in%` | está en la lista | `proyecto %in% c("Puente", "Edificio")` |
+| `between(x, a, b)` | entre a y b, incluidos | `between(resistencia_mpa, 30, 35)` |
+| `!is.na(x)` | no falta | `!is.na(asentamiento_mm)` |
+
+: Operadores para escribir condiciones en `filter()`. {#tbl-datos-condiciones}
+
+```{r}
+# Cilindros a 28 días de puente o pavimento con resistencia entre 30 y 35 MPa
+ensayos %>%
+  filter(edad_dias == 28,
+         proyecto %in% c("Puente", "Pavimento"),
+         between(resistencia_mpa, 30, 35)) %>%
+  select(muestra, proyecto, resistencia_mpa)
+```
+
+### Elegir y renombrar columnas
+
+En `select()` se escriben las columnas que se quieren, en el orden en que se quieren. Con un signo menos se quitan columnas, y con `starts_with()` se eligen las que empiezan con un texto. `rename()` cambia un nombre con la forma `nuevo = viejo`:
+
+```{r}
+ensayos %>%
+  select(-asentamiento_mm, -fc_diseno_mpa) %>%   # todas menos dos
+  rename(edad = edad_dias, fc = resistencia_mpa) %>%
+  head(3)
+```
+
+### Columnas que dependen de una condición
+
+`mutate()` también crea columnas de texto que dependen de una condición. Con dos casos se usa `ifelse(condicion, valor_si, valor_no)`. Con más de dos casos, `case_when()` revisa las condiciones en orden y asigna el valor de la primera que se cumple; la última, `TRUE ~ ...`, recoge todos los casos restantes:
+
+```{r}
+ensayos %>%
+  filter(edad_dias == 28) %>%
+  mutate(razon = resistencia_mpa / fc_diseno_mpa,
+         estado = ifelse(razon >= 1, "Cumple", "No cumple"),
+         clase = case_when(razon < 1    ~ "No alcanza",
+                           razon < 1.15 ~ "Alcanza",
+                           TRUE         ~ "Supera por más de 15 %")) %>%
+  count(proyecto, clase)
+```
+
+Las clases de este ejemplo sirven solo para practicar; los criterios de aceptación del concreto que piden las normas de construcción son otros y se tratan en la Parte V.
+
+### Varios resúmenes a la vez
+
+`summarise()` acepta varios resúmenes separados por comas. Cada uno lleva un nombre, que será el nombre de la columna en el resultado:
+
+```{r}
+ensayos %>%
+  filter(edad_dias == 28) %>%
+  group_by(proyecto) %>%
+  summarise(n = n(),
+            media = mean(resistencia_mpa),
+            desv_est = sd(resistencia_mpa),
+            minimo = min(resistencia_mpa),
+            maximo = max(resistencia_mpa),
+            cumplen = sum(resistencia_mpa >= fc_diseno_mpa))
+```
+
+La función `sd()` calcula la desviación estándar, una medida de cuánto se alejan los datos de su media, que se estudia en el capítulo 9. Para ver las filas extremas de cada grupo, en vez de un resumen, está `slice_max()`:
+
+```{r}
+# El cilindro de mayor resistencia de cada proyecto a 28 días
+ensayos %>%
+  filter(edad_dias == 28) %>%
+  group_by(proyecto) %>%
+  slice_max(resistencia_mpa, n = 1) %>%
+  select(proyecto, muestra, resistencia_mpa)
 ```
 
 ::: {.callout-note title="Ejemplo: resistencia a 28 días del edificio"}
@@ -278,6 +527,115 @@ ensayos %>%
 
 :::
 
+## Unir dos tablas {#sec-datos-unir}
+
+A veces la información está repartida en dos archivos. Los ensayos tienen el nombre del proyecto, pero la ubicación y el tipo de elemento de cada proyecto están en otra tabla. Para juntarlas se usa una columna que esté en las dos, llamada clave; aquí, `proyecto`. La tabla de proyectos es pequeña y se escribe en el código (datos hipotéticos):
+
+```{r}
+proyectos <- data.frame(
+  proyecto = c("Puente", "Edificio", "Pavimento"),
+  provincia = c("Puntarenas", "San José", "Alajuela"),
+  elemento = c("Vigas", "Columnas", "Losa")
+)
+proyectos
+```
+
+La función `left_join()` de dplyr agrega a cada fila de la primera tabla las columnas de la segunda que tengan la misma clave. Cada cilindro recibe la provincia y el elemento de su proyecto:
+
+```{r}
+ensayos_completo <- ensayos %>%
+  left_join(proyectos, by = "proyecto")
+
+ensayos_completo %>%
+  select(muestra, proyecto, provincia, elemento, resistencia_mpa) %>%
+  head(4)
+```
+
+La "left" del nombre indica que se conservan todas las filas de la tabla de la izquierda, la primera. Si un proyecto de los ensayos no estuviera en la tabla de proyectos, sus filas se conservarían con `NA` en la provincia y el elemento. En R base, la función equivalente es `merge(ensayos, proyectos, by = "proyecto", all.x = TRUE)`.
+
+::: {.callout-warning title="Cuidado"}
+La clave debe escribirse exactamente igual en las dos tablas. "Puente" y "puente" son valores distintos para R, y también "Puente" y "Puente " (con un espacio al final). Si después de unir aparecen `NA` inesperados, lo primero es revisar la clave con `unique()` en las dos tablas.
+:::
+
+## Formato ancho y formato largo {#sec-datos-formas}
+
+El @tbl-datos-ancho, al inicio del capítulo, tenía una columna por edad: es un formato ancho. El data frame `cilindros`, con una columna `edad_dias`, es un formato largo. El paquete tidyr, que viene con el tidyverse, pasa de uno al otro con dos funciones:
+
+- `pivot_wider()` pasa de largo a ancho: toma los valores de una columna (`names_from`) y los convierte en nombres de columnas nuevas, que se llenan con los valores de otra (`values_from`).
+- `pivot_longer()` hace lo contrario: junta varias columnas (`cols`) en dos, una con el nombre de la columna original (`names_to`) y otra con su valor (`values_to`).
+
+Un uso típico de `pivot_wider()` es presentar un resumen en un informe, con los proyectos en filas y las edades en columnas:
+
+```{r}
+library(tidyr)
+
+medias <- ensayos %>%
+  group_by(proyecto, edad_dias) %>%
+  summarise(media = round(mean(resistencia_mpa), 1), .groups = "drop")
+medias      # formato largo: una fila por proyecto y edad
+
+medias_ancho <- medias %>%
+  pivot_wider(names_from = edad_dias, values_from = media, names_prefix = "dias_")
+medias_ancho  # formato ancho: una columna por edad
+```
+
+En formato ancho es fácil comparar las dos edades de cada proyecto. Por ejemplo, la fracción de la resistencia a 28 días que se alcanza a los 7 días:
+
+```{r}
+medias_ancho %>%
+  mutate(fraccion_7_28 = round(dias_7 / dias_28, 2))
+```
+
+Y `pivot_longer()` devuelve la tabla a su forma larga, que es la que necesitan ggplot2 y la mayoría de las funciones de análisis:
+
+```{r}
+medias_ancho %>%
+  pivot_longer(cols = c(dias_7, dias_28), names_to = "edad", values_to = "media")
+```
+
+::: {.callout-note title="Ejemplo: la hora pico del tránsito"}
+
+**Planteamiento.** Con el conteo vehicular por hora de una intersección (datos hipotéticos, al final del capítulo), encuentre para cada tipo de día la hora de mayor tránsito y qué porcentaje del tránsito diario pasa en esa hora.
+
+**Solución:**
+
+1. Día laboral: sumando los 24 conteos se obtiene un total de 12 471 vehículos. El mayor conteo es de 1145 vehículos, a las 17 horas.
+2. Porcentaje en la hora pico del día laboral: $1145 / 12\,471 	imes 100 = 9.18$ %.
+3. Fin de semana: el total es de 8537 vehículos y el mayor conteo es de 719, también a las 17 horas.
+4. Porcentaje en la hora pico del fin de semana: $719 / 8537 	imes 100 = 8.42$ %.
+
+**Pseudocódigo**
+
+1. Leer el archivo de tránsito.
+2. Agrupar por tipo de día.
+3. En cada grupo, calcular el total, el conteo máximo y la hora en que ocurre.
+4. Calcular el porcentaje del máximo sobre el total.
+
+```{r}
+# 1) Datos
+transito <- read.csv("datos/transito_horario_hipotetico.csv")
+
+# 2) a 4) Con R base: un tipo de día a la vez
+lab <- transito[transito$dia == "Laboral", ]
+c(total = sum(lab$vehiculos), pico = max(lab$vehiculos),
+  hora = lab$hora[which.max(lab$vehiculos)],
+  porcentaje = round(100 * max(lab$vehiculos) / sum(lab$vehiculos), 2))
+
+# 2) a 4) Con dplyr: los dos tipos de día a la vez
+transito %>%
+  group_by(dia) %>%
+  summarise(total = sum(vehiculos),
+            pico = max(vehiculos),
+            hora_pico = hora[which.max(vehiculos)],
+            porcentaje = round(100 * pico / total, 2))
+```
+
+La función `which.max()` da la posición del valor más alto; con ella se toma la hora en esa misma posición.
+
+**Interpretación.** En los dos tipos de día la hora pico es a las 17 horas, pero el día laboral concentra más tránsito en esa hora: 9.18 % del total diario contra 8.42 % el fin de semana. En el diseño de una intersección se trabaja con el volumen de la hora de mayor demanda, no con el promedio del día, porque es en esa hora cuando se forman las colas.
+
+:::
+
 ## Guardar resultados {#sec-datos-guardar}
 
 Un resultado se guarda en un archivo CSV con `write.csv()`. El argumento `row.names = FALSE` evita que R agregue una columna con el número de fila:
@@ -291,11 +649,11 @@ resumen <- ensayos %>%
 write.csv(resumen, "resumen_resistencias.csv", row.names = FALSE)
 ```
 
-El archivo queda en la carpeta del proyecto y se puede abrir con Excel.
+El archivo queda en la carpeta del proyecto y se puede abrir con Excel. Si se va a abrir en un Excel configurado en español, conviene guardarlo con `write.csv2()`, que usa punto y coma y coma decimal, para que Excel lo separe bien en columnas. Para guardar directamente un archivo `.xlsx` se usa el paquete writexl: `writexl::write_xlsx(resumen, "resumen_resistencias.xlsx")`.
 
 ## Ejercicios propuestos
 
-Use los datos de conteo vehicular por hora de una intersección (hipotéticos) para los ejercicios 1 a 4.
+Use los datos de conteo vehicular por hora de una intersección (hipotéticos) para los ejercicios 1 a 4 y 11.
 
 ```{r}
 #| echo: false
@@ -310,6 +668,11 @@ ver_datos("datos/transito_horario_hipotetico.csv",
 5. Con los datos de ensayos, calcule el asentamiento promedio de cada proyecto. ¿Qué pasa si no usa `na.rm = TRUE`?
 6. Con los datos de ensayos, calcule la razón entre la resistencia a 7 días y la de diseño para cada proyecto. ¿Qué fracción de la resistencia de diseño se alcanza, en promedio, a los 7 días?
 7. Escriba en R base y con dplyr la instrucción que da los cinco cilindros de menor resistencia a 28 días, con su proyecto y su mezcla.
+8. Lea el archivo `humedad_suelo_hipotetica.csv` con `read.csv2()`. Calcule la humedad media de cada tipo de suelo y de cada sondeo.
+9. Con los datos de humedad, cree una columna que diga "Superficial" si la profundidad es de 1 m o menos y "Profunda" en otro caso. Cuente las muestras de cada grupo.
+10. Cree una tabla con la provincia de cada proyecto, como la de la @sec-datos-unir, únala a los ensayos y calcule la resistencia media a 28 días por provincia.
+11. Con los datos de tránsito, use `pivot_wider()` para obtener una tabla con una fila por hora y una columna por tipo de día. Agregue una columna con la diferencia entre el día laboral y el fin de semana. ¿A qué hora es mayor la diferencia?
+12. En el interactivo de la @fig-datos-pipe-int, arme la cadena que da la media por mezcla del pavimento a 28 días. Escriba esa misma cadena en R y compruebe que obtiene los mismos números.
 
 ## Lecturas recomendadas
 

@@ -38,3 +38,15 @@ transito <- data.frame(
                       exp(rnorm(48, 0, 0.05)))
 )
 write.csv(transito, "datos/transito_horario_hipotetico.csv", row.names = FALSE)
+
+# 3) Humedad de muestras de suelo (hipotético), guardado como lo hace Excel en
+#    español: punto y coma como separador y coma decimal. Sirve para enseñar
+#    read.csv2() en el capítulo 3. No usa números aleatorios.
+humedad <- data.frame(
+  muestra = sprintf("S%02d", 1:8),
+  sondeo = rep(c("P1", "P2"), each = 4),
+  profundidad_m = rep(c(0.5, 1.0, 1.5, 2.0), 2),
+  tipo_suelo = c("Limo", "Limo", "Arcilla", "Arcilla", "Limo", "Arcilla", "Arcilla", "Arcilla"),
+  humedad_pct = c(18.4, 21.7, 27.9, 31.2, 16.8, 25.3, 29.6, 33.5)
+)
+write.csv2(humedad, "datos/humedad_suelo_hipotetica.csv", row.names = FALSE, fileEncoding = "UTF-8")
