@@ -1,0 +1,318 @@
+<!--
+  Navegación por capítulos para el HTML de un solo archivo.
+  Muestra un capítulo a la vez, con enlaces de anterior y siguiente al final,
+  como el libro en varias páginas. Lo inserta herramientas/publicar.R.
+-->
+<style>
+  .pagina-oculta { display: none !important; }
+  .nav-capitulos {
+    display: flex; justify-content: space-between; gap: 1rem;
+    margin: 3rem 0 1rem; padding-top: 1rem; border-top: 1px solid #dee2e6;
+    font-size: 0.95rem;
+  }
+  .nav-capitulos a { text-decoration: none; max-width: 48%; }
+  .nav-capitulos .nav-sig { margin-left: auto; text-align: right; }
+  .nav-capitulos small { display: block; color: #6c757d; }
+  /* Índice del capítulo actual, en la columna derecha */
+  /* Quarto deja la columna derecha detrás del contenido (z-index -1) y los
+     enlaces no recibían el clic */
+  #quarto-margin-sidebar { z-index: 2 !important; }
+  #quarto-document-content section { scroll-margin-top: 0.8rem; }
+  #toc-capitulo { font-size: 0.82rem; line-height: 1.3; padding-top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+  #toc-capitulo .toc-cap-titulo { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6c757d; margin-bottom: 0.5rem; }
+  #toc-capitulo ul { list-style: none; padding-left: 0; margin: 0; }
+  #toc-capitulo ul ul { padding-left: 0.8rem; }
+  #toc-capitulo a { display: block; padding: 0.15rem 0.4rem; border-left: 2px solid #e5e7eb; color: #555; text-decoration: none; }
+  #toc-capitulo a:hover { color: #10199e; }
+  #toc-capitulo a.activo { color: #10199e; font-weight: 700; border-left-color: #10199e; background: rgba(16, 25, 158, 0.06); }
+  #toc-capitulo .header-section-number { color: #8a8f98; margin-right: 0.25rem; }
+  /* Quarto pliega la columna derecha en un menú flotante cuando algo la tapa
+     (por ejemplo, los botones de lectura). Ese menú guarda una copia del índice
+     del primer capítulo y, al pasar a otro capítulo, quedaba encima del índice
+     nuevo. Aquí se desactiva el menú y el índice queda siempre abierto. La
+     altura del índice se ajusta en ajustarIndice(). */
+  #quarto-toc-toggle { display: none !important; }
+  #quarto-margin-sidebar > * { opacity: 1 !important; pointer-events: auto !important; }
+  #quarto-margin-sidebar #toc-capitulo { max-height: 100vh; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var main = document.getElementById("quarto-document-content");
+  if (!main) return;
+  // Bloques de primer nivel que son (o envuelven, como la portada en <center>)
+  // una sección de capítulo
+  var secciones = Array.prototype.filter.call(main.children, function (el) {
+    return (el.tagName === "SECTION" && el.classList.contains("level1")) ||
+           (el.tagName !== "SECTION" && el.querySelector("section.level1"));
+  });
+  if (secciones.length < 2) return;
+
+  // Tabla de contenidos: distinguir partes, capítulos y páginas preliminares
+  var toc = document.getElementById("TOC");
+  if (toc) {
+    Array.prototype.forEach.call(toc.querySelectorAll(":scope > ul > li"), function (li) {
+      var a = li.querySelector(":scope > a");
+      if (!a) return;
+      var destino = document.getElementById(decodeURIComponent(a.getAttribute("href").slice(1)));
+      if (destino && destino.classList.contains("parte")) li.classList.add("toc-parte");
+      else if (a.querySelector(".header-section-number")) li.classList.add("toc-capitulo");
+      else li.classList.add("toc-preliminar");
+      if (destino && destino.closest(".portada-titulo-oculto, .portada, .custom-cover, center")) li.style.display = "none";
+    });
+  }
+
+  // Una página por capítulo; el título de una parte va con el capítulo que le sigue
+  var paginas = [], pendiente = [];
+  secciones.forEach(function (s) {
+    pendiente.push(s);
+    var esParte = s.classList.contains("parte");
+    if (!esParte) { paginas.push(pendiente); pendiente = []; }
+  });
+  if (pendiente.length) paginas.push(pendiente);
+
+  // La portada (bloque de título) va en la primera página
+  var portada = document.getElementById("title-block-header");
+  if (portada) paginas[0].unshift(portada);
+  // Las notas al pie van al final de cada capítulo (reference-location:
+  // section). Si quedara un bloque de notas suelto al final del documento,
+  // se deja en la última página.
+  var notas = main.querySelector(":scope > section.footnotes, :scope > aside.footnotes");
+  if (notas) paginas[paginas.length - 1].push(notas);
+
+  // Quarto deja las notas al final de la sección más interna (12.2.2, por
+  // ejemplo). Se juntan en un solo bloque al final del capítulo.
+  Array.prototype.forEach.call(main.querySelectorAll("section.level1"), function (cap) {
+    var bloques = cap.querySelectorAll("aside.footnotes, section.footnotes");
+    if (!bloques.length) return;
+    var primero = bloques[0], lista = primero.querySelector("ol");
+    for (var k = 1; k < bloques.length; k++) {
+      var ol = bloques[k].querySelector("ol");
+      if (ol && lista) while (ol.firstElementChild) lista.appendChild(ol.firstElementChild);
+      bloques[k].parentNode.removeChild(bloques[k]);
+    }
+    cap.appendChild(primero);
+  });
+
+  // Pandoc numera las notas de corrido en todo el documento; aquí cada
+  // capítulo vuelve a empezar en 1, como en el libro de varias páginas.
+  paginas.forEach(function (p) {
+    var listas = [];
+    p.forEach(function (el) {
+      if (el.querySelectorAll) Array.prototype.forEach.call(el.querySelectorAll(".footnotes ol"), function (ol) { listas.push(ol); });
+    });
+    if (!listas.length) return;
+    var desfase = (parseInt(listas[0].getAttribute("start"), 10) || 1) - 1;
+    if (desfase <= 0) return;
+    listas.forEach(function (ol) {
+      var inicio = (parseInt(ol.getAttribute("start"), 10) || 1) - desfase;
+      if (inicio > 1) ol.setAttribute("start", inicio); else ol.removeAttribute("start");
+    });
+    p.forEach(function (el) {
+      if (!el.querySelectorAll) return;
+      Array.prototype.forEach.call(el.querySelectorAll("a.footnote-ref sup, a.footnote-ref"), function (n) {
+        if (n.children.length) return;
+        var v = parseInt(n.textContent, 10);
+        if (!isNaN(v)) n.textContent = String(v - desfase);
+      });
+    });
+  });
+
+  function idDe(p) {
+    var cap = p.filter(function (el) { return el.tagName === "SECTION" || el.querySelector("section.level1"); })[0];
+    if (cap && cap.tagName !== "SECTION") cap = cap.querySelector("section.level1");
+    return cap ? cap.id : "";
+  }
+  function titulo(p) {
+    var cap = p[p.length - 1];
+    if (cap.id === "title-block-header" || cap.classList.contains("footnotes")) cap = p[p.length - 2] || cap;
+    var h = cap.querySelector("h1");
+    return h ? h.textContent.trim() : "";
+  }
+
+  // Enlaces de anterior y siguiente al final de cada página
+  paginas.forEach(function (p, i) {
+    var nav = document.createElement("nav");
+    nav.className = "nav-capitulos";
+    if (i > 0) {
+      var a = document.createElement("a");
+      a.href = "#" + idDe(paginas[i - 1]);
+      a.innerHTML = "<small>&larr; Anterior</small>" + titulo(paginas[i - 1]);
+      nav.appendChild(a);
+    }
+    if (i < paginas.length - 1) {
+      var b = document.createElement("a");
+      b.href = "#" + idDe(paginas[i + 1]); b.className = "nav-sig";
+      b.innerHTML = "<small>Siguiente &rarr;</small>" + titulo(paginas[i + 1]);
+      nav.appendChild(b);
+    }
+    var ultimo = p[p.length - 1];
+    ultimo.parentNode.insertBefore(nav, ultimo.nextSibling);
+    p.push(nav);
+  });
+
+  // Resalta en la tabla de contenidos el capítulo que se está viendo
+  // (la página puede tener el título de una parte y su primer capítulo)
+  function marcarEnIndice(p) {
+    if (!toc) return;
+    var ids = [];
+    p.forEach(function (el) {
+      if (el.tagName === "SECTION" && el.classList.contains("level1")) ids.push(el.id);
+      else if (el.querySelectorAll) Array.prototype.forEach.call(el.querySelectorAll("section.level1"), function (s) { ids.push(s.id); });
+    });
+    Array.prototype.forEach.call(toc.querySelectorAll(":scope > ul > li"), function (li) {
+      var a = li.querySelector(":scope > a");
+      var es = !!a && ids.indexOf(decodeURIComponent(a.getAttribute("href").slice(1))) >= 0 &&
+               !li.classList.contains("toc-parte");
+      li.classList.toggle("toc-actual", es);
+    });
+  }
+
+  // Índice del capítulo visible, en la columna derecha, con la sección actual resaltada
+  var margen = document.getElementById("quarto-margin-sidebar");
+  var enlacesCap = [];
+  function indiceCapitulo(p) {
+    if (!margen) return;
+    margen.innerHTML = "";
+    enlacesCap = [];
+    var secciones2 = [];
+    p.forEach(function (el) {
+      if (el.querySelectorAll) Array.prototype.forEach.call(el.querySelectorAll("section.level2"), function (s) { secciones2.push(s); });
+    });
+    if (!secciones2.length) return;
+    var nav = document.createElement("nav");
+    nav.id = "toc-capitulo";
+    nav.innerHTML = '<div class="toc-cap-titulo">En este capítulo</div>';
+    var ul = document.createElement("ul");
+    function item(sec, nivel) {
+      var h = sec.querySelector(":scope > h" + nivel);
+      if (!h || !sec.id) return null;
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "#" + sec.id;
+      a.innerHTML = h.innerHTML.replace(/<a[^>]*class="anchorjs-link[^>]*>.*?<\/a>/g, "");
+      // Al tocar un título se baja suavemente hasta esa parte del capítulo
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (history.pushState) history.pushState(null, "", "#" + sec.id);
+      });
+      li.appendChild(a);
+      enlacesCap.push({ a: a, sec: sec });
+      return li;
+    }
+    secciones2.forEach(function (s2) {
+      var li = item(s2, 2);
+      if (!li) return;
+      var sub = s2.querySelectorAll(":scope > section.level3");
+      if (sub.length) {
+        var ul3 = document.createElement("ul");
+        Array.prototype.forEach.call(sub, function (s3) { var l3 = item(s3, 3); if (l3) ul3.appendChild(l3); });
+        li.appendChild(ul3);
+      }
+      ul.appendChild(li);
+    });
+    nav.appendChild(ul);
+    margen.appendChild(nav);
+    ajustarIndice();
+    marcarSeccion();
+  }
+  // El título del índice del capítulo empieza a la misma altura que el índice
+  // general de la izquierda. Si los botones de lectura caen sobre la columna,
+  // el título se parte en dos líneas para no quedar debajo de ellos y la lista
+  // empieza más abajo que los botones.
+  function ajustarIndice() {
+    // Quarto puede dejar una copia oculta del índice; se toma la de la columna
+    var nav = margen && margen.querySelector("#toc-capitulo");
+    if (!nav) return;
+    var titulo = nav.querySelector(".toc-cap-titulo");
+    var lista = nav.querySelector("ul");
+    nav.style.paddingTop = "";
+    titulo.style.maxWidth = "";
+    titulo.style.marginBottom = "";
+    var ref = document.getElementById("toc-title");
+    if (ref && ref.offsetParent) {
+      var dif = ref.getBoundingClientRect().top - titulo.getBoundingClientRect().top;
+      nav.style.paddingTop = Math.max(0, parseFloat(getComputedStyle(nav).paddingTop) + dif) + "px";
+    }
+    var barra = document.getElementById("barra-lectura");
+    if (!barra) return;
+    var b = barra.getBoundingClientRect();
+    var n = titulo.getBoundingClientRect();
+    if (b.left >= n.right || b.right <= n.left) return;
+    var rango = document.createRange();
+    rango.selectNodeContents(titulo);
+    if (rango.getBoundingClientRect().right > b.left - 8) {
+      titulo.style.maxWidth = Math.max(60, b.left - 8 - n.left) + "px";
+    }
+    var l = lista.getBoundingClientRect();
+    if (l.top < b.bottom + 8) {
+      titulo.style.marginBottom = (parseFloat(getComputedStyle(titulo).marginBottom) + b.bottom + 8 - l.top) + "px";
+    }
+  }
+  window.addEventListener("resize", ajustarIndice);
+  // Los botones de lectura se crean después de este código
+  window.addEventListener("load", ajustarIndice);
+  setTimeout(ajustarIndice, 0);
+  function marcarSeccion() {
+    var actualSec = null;
+    enlacesCap.forEach(function (e) {
+      if (e.sec.getBoundingClientRect().top < 60) actualSec = e;
+    });
+    if (!actualSec && enlacesCap.length) actualSec = enlacesCap[0];
+    enlacesCap.forEach(function (e) { e.a.classList.toggle("activo", e === actualSec); });
+  }
+  window.addEventListener("scroll", marcarSeccion, { passive: true });
+
+  var actual = -1;
+  function mostrar(i, destino) {
+    if (i !== actual) {
+      paginas.forEach(function (p, k) {
+        p.forEach(function (el) { el.classList.toggle("pagina-oculta", k !== i); });
+      });
+      actual = i;
+      marcarEnIndice(paginas[i]);
+      indiceCapitulo(paginas[i]);
+      window.dispatchEvent(new Event("resize"));   // recalcula el índice lateral
+    }
+    if (destino) destino.scrollIntoView();
+    else window.scrollTo(0, 0);
+  }
+  function paginaDe(el) {
+    for (var i = 0; i < paginas.length; i++) {
+      for (var k = 0; k < paginas[i].length; k++) {
+        if (paginas[i][k] === el || paginas[i][k].contains(el)) return i;
+      }
+    }
+    return -1;
+  }
+  function irAHash(hash) {
+    if (!hash || hash.length < 2) return false;
+    var el = document.getElementById(decodeURIComponent(hash.slice(1)));
+    if (!el) return false;
+    var i = paginaDe(el);
+    if (i < 0) return false;
+    mostrar(i, el);
+    return true;
+  }
+
+  // Cualquier enlace interno (índice, referencias cruzadas, citas) abre su
+  // capítulo antes de que el navegador salte al destino; así el botón Atrás
+  // del navegador también funciona.
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest("a");
+    if (!a) return;
+    var href = a.getAttribute("href");
+    if (href && href.charAt(0) === "#" && href.length > 1) {
+      var el = document.getElementById(decodeURIComponent(href.slice(1)));
+      var k2 = el ? paginaDe(el) : -1;
+      if (k2 >= 0 && k2 !== actual) mostrar(k2, el);
+    }
+  }, true);
+  window.addEventListener("hashchange", function () {
+    if (!irAHash(location.hash)) mostrar(0);
+  });
+
+  if (!irAHash(location.hash)) mostrar(0);
+});
+</script>

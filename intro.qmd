@@ -1,0 +1,20 @@
+---
+page-layout: article
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+# Introducción {.unnumbered}
+
+<!-- POR ESCRIBIR. Secciones previstas, como en el libro de hidrología:
+     qué es la estadística aplicada a la ingeniería, para quién es este libro
+     (conocimientos previos), cómo está organizado, cómo leer los ejemplos
+     (Solución: a mano, pseudocódigo y R), cómo instalar R y los paquetes. -->
+
+## Para quién es este libro {.unnumbered}
+
+## Cómo está organizado {.unnumbered}
+
+## Cómo usar los ejemplos {.unnumbered}
+
+## Instalación de R y de los paquetes {.unnumbered}

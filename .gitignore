@@ -1,0 +1,34 @@
+# Quarto / renderizado
+/_book/
+/_site/
+/.quarto/
+/_cache/
+/_freeze/
+*_files/
+*.quarto_ipynb
+index.tex
+
+# PDFs generados o pesados
+*.pdf
+
+# R / RStudio / Positron
+.Rhistory
+.RData
+.RDataTmp
+.Rproj.user/
+.Renviron
+.positai
+renv/library/
+renv/staging/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Imágenes originales sin recortar (respaldo fuera del repo)
+assets/img/Originals/
+
+# Salidas de herramientas/publicar.R
+/_publicar/
+/salidas/

@@ -1,0 +1,45 @@
+---
+numbered: false
+format:
+  html:
+    number-sections: false
+---
+
+# Estadística Aplicada a la Ingeniería {.unnumbered .portada-titulo-oculto}
+
+::: {.portada}
+
+<style>#title-block-header { display: none; }</style>
+
+<div class="portada-banda">
+<div class="portada-banda-texto">
+<p class="portada-sobre">Escuela de Ingeniería Civil · Universidad de Costa Rica</p>
+<p class="portada-titulo">Estadística Aplicada<br>a la Ingeniería</p>
+<p class="portada-subtitulo">Fundamentos, métodos y aplicaciones con R</p>
+</div>
+<div class="portada-banda-autor">
+<p class="portada-autor">Ing. Edwin Matarrita Segura, M.Sc.</p>
+</div>
+</div>
+
+<!-- Imagen provisional de producción propia (herramientas/figura_portada.R).
+     Se cambia cuando el autor elija la imagen definitiva. -->
+<figure class="portada-imagen">
+<img src="assets/img/portada.png" alt="Curvas de densidad de una distribución normal con distintas desviaciones estándar e intervalos de confianza de varias muestras">
+</figure>
+
+<div class="portada-pie">
+<div class="portada-logos">
+<img src="assets/img/logoucr.png" alt="Logotipo de la Universidad de Costa Rica">
+<img src="assets/img/logoeic.png" alt="Logotipo de la Escuela de Ingeniería Civil">
+</div>
+<div>
+<p class="portada-ficha-titulo">Cómo citar</p>
+<p>Matarrita Segura, E. (2026). <i>Estadística aplicada a la ingeniería: fundamentos, métodos y aplicaciones con R</i>. Escuela de Ingeniería Civil, Universidad de Costa Rica.</p>
+</div>
+<div>
+<p class="portada-ficha-titulo">Licencia</p>
+<p><img src="assets/img/by-nc-sa.png" alt="Licencia CC BY-NC-SA 4.0" class="portada-cc"> Texto bajo <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es">CC BY-NC-SA 4.0</a>. Código R bajo licencia <a href="https://github.com/ems270900/Libro_Estad-stica/blob/main/LICENSE-CODE">MIT</a>, de uso libre.</p>
+</div>
+</div>
+:::
