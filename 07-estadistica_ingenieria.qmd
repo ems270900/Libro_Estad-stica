@@ -446,9 +446,7 @@ En hidrología, una obra de drenaje o un puente se diseñan para un caudal con u
 
 ::: {.callout-note title="Ejemplo: registro de lluvia máxima diaria para diseñar un puente"}
 
-**Planteamiento.** Para el diseño hidrológico de un puente se cuenta con la precipitación máxima diaria de cada año, de 1956 a 2020, en una estación meteorológica de Costa Rica (datos reales, sin identificar la estación). Describa la unidad estadística, la variable y su tipo, y responda con un gráfico: ¿la lluvia máxima es parecida todos los años?
-
-<!-- CITA PENDIENTE: fuente del registro de precipitación máxima diaria (estación, institución) y permiso para identificarla. Mientras tanto se presenta sin nombre. -->
+**Planteamiento.** Para el diseño hidrológico de un puente se cuenta con la precipitación máxima diaria de cada año, de 1956 a 2020, en una estación meteorológica (datos reales anonimizados). Describa la unidad estadística, la variable y su tipo, y responda con un gráfico: ¿la lluvia máxima es parecida todos los años?
 
 ```{r}
 #| echo: false

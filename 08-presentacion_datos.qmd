@@ -179,7 +179,7 @@ Con el cuadro se dibujan tres gráficos. El histograma pone una barra por clase,
 
 ::: {.callout-note title="Ejemplo: cuadro de frecuencias de la lluvia máxima diaria"}
 
-**Planteamiento.** Con la serie de 65 precipitaciones máximas diarias anuales (1956–2020) de una estación de Costa Rica, presentada en el capítulo 7, construya el cuadro de frecuencias agrupadas con la regla de Sturges y dibuje el histograma, el polígono de frecuencias y la ojiva. Responda: ¿en qué porcentaje de los años la lluvia máxima fue menor que 92 mm?
+**Planteamiento.** Con la serie de 65 precipitaciones máximas diarias anuales (1956–2020) presentada en el capítulo 7, construya el cuadro de frecuencias agrupadas con la regla de Sturges y dibuje el histograma, el polígono de frecuencias y la ojiva. Responda: ¿en qué porcentaje de los años la lluvia máxima fue menor que 92 mm?
 
 ```{r}
 #| echo: false
@@ -486,9 +486,7 @@ Los puntos bajan de izquierda a derecha: a más agua por unidad de cemento, meno
 
 ### Series de tiempo
 
-Cuando la variable horizontal es el tiempo, los puntos se unen con líneas para que se vea la secuencia. La @fig-pres-serie muestra el caudal máximo anual de un río de Costa Rica entre 1966 y 2018 (datos reales, sin identificar la estación).
-
-<!-- CITA PENDIENTE: fuente de la serie de caudales máximos anuales (estación, institución) y permiso para identificarla. -->
+Cuando la variable horizontal es el tiempo, los puntos se unen con líneas para que se vea la secuencia. La @fig-pres-serie muestra el caudal máximo anual de un río entre 1966 y 2018, medido en una estación fluviométrica (datos reales anonimizados).
 
 ```{r}
 #| echo: false

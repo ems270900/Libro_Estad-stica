@@ -14,7 +14,6 @@
 
 ## Parte II (estadística descriptiva)
 
-- Fuente y permiso de las series reales de lluvia máxima diaria (1956–2020) y de caudal máximo anual (1966–2018), tomadas del material del curso. Mientras tanto se presentan sin identificar la estación.
 - Cita del Código Sísmico de Costa Rica en el capítulo 7 (CITA PENDIENTE).
 - Revisión del autor de los capítulos 7 a 9.
 ## Parte III (Probabilidad)
