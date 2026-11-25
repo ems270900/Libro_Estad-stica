@@ -653,6 +653,51 @@ $$ {#eq-dos-n}
 
 datos por grupo [@montgomery2014applied]. Es el doble que para una sola media (@eq-ph-n-potencia), porque ahora hay dos medias estimadas con error. Por ejemplo, para detectar una diferencia de 2 MPa en concretos con $\sigma = 2$ MPa, con $\alpha = 0.05$ y potencia de 0.80, $n = 2((1.960 + 0.842)(2)/2)^2 = 15.7$, es decir, 16 cilindros por mezcla. `power.t.test(delta = 2, sd = 2, power = 0.80)`, que usa la distribución $t$, pide 17.
 
+## Tamaño del efecto en las comparaciones {#sec-dos-efecto}
+
+En dos muestras, el tamaño del efecto más útil sigue siendo la diferencia en unidades del problema con su intervalo de confianza, que `t.test()` y `prop.test()` entregan directamente. Como medida estandarizada se usa la $d$ de Cohen con la desviación combinada, $d = (\bar{x}_1 - \bar{x}_2)/s_p$, para muestras independientes, y $d_z = \bar{d}/s_d$ para muestras pareadas [@cohen1988statistical]. Para dos proporciones se usa $h$ (@tbl-ph-efectos).
+
+```{r}
+# Tamaño del efecto de los ejemplos del capítulo
+h_cohen <- function(p1, p2) 2 * asin(sqrt(p1)) - 2 * asin(sqrt(p2))
+concreto <- read.csv("datos/concreto_aditivo_hipotetico.csv")
+con <- concreto$resistencia_mpa[concreto$mezcla == "Con aditivo"]
+sin <- concreto$resistencia_mpa[concreto$mezcla == "Sin aditivo"]
+sp <- sqrt(((length(con) - 1) * var(con) + (length(sin) - 1) * var(sin)) / (length(con) + length(sin) - 2))
+iri <- read.csv("datos/iri_mantenimiento_hipotetico.csv")
+d_iri <- iri$iri_antes - iri$iri_despues
+d_aforo <- c(12.9, 8.9, 15.9, 6.2, 22.6, 10.6, 18.1, 9.9) - c(12.4, 8.7, 15.2, 6.3, 21.8, 10.1, 17.6, 9.4)
+
+efectos <- data.frame(
+  ejemplo = c("DBO de dos plantas", "Aditivo en el concreto", "IRI antes y después",
+              "Aforos con ADCP y molinete", "Trabajadores sin equipo de protección"),
+  medida = c("d", "d", "d_z", "d_z", "h"),
+  efecto = c(2.2 / sqrt((4^2 + 5^2) / 2), (mean(con) - mean(sin)) / sp,
+             mean(d_iri) / sd(d_iri), mean(d_aforo) / sd(d_aforo), h_cohen(21 / 150, 9 / 160))
+)
+efectos$efecto <- round(efectos$efecto, 2)
+efectos
+```
+
+```{r}
+#| label: tbl-dos-efectos
+#| tbl-cap: "Tamaño del efecto de los ejemplos del capítulo."
+#| echo: false
+
+efectos %>%
+  mutate(diferencia = c("2.2 mg/L", "2.76 MPa", "0.43 m/km", "0.45 m³/s", "8.4 puntos porcentuales"),
+         p = c("0.024", "0.001", "< 0.001", "0.003", "0.013"),
+         efecto = sprintf("%s = %.2f", recode(medida, d = "<i>d</i>", d_z = "<i>d</i><sub><i>z</i></sub>", h = "<i>h</i>", "s/σ₀" = "<i>s</i>/<i>σ</i><sub>0</sub>"), efecto)) %>%
+  select(ejemplo, diferencia, efecto, p) %>%
+  kbl(col.names = c("Ejemplo", "Diferencia", "Tamaño del efecto", "Valor <i>p</i>"),
+      escape = FALSE, align = c("l", "c", "c", "c")) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+::: {.callout-warning title="Cuidado"}
+La $d_z$ de las muestras pareadas no se compara con la $d$ de las independientes. Como divide entre la desviación de las diferencias, que es pequeña cuando las parejas se parecen mucho, $d_z$ puede salir enorme aunque la diferencia sea pequeña en términos absolutos. En los aforos, $d_z = 1.59$ corresponde a solo 0.45 m³/s, un 3 % del caudal. Para juzgar si un efecto importa se vuelve siempre a las unidades del problema.
+:::
+
 ## Errores comunes {#sec-dos-errores}
 
 1. **Analizar datos pareados como independientes.** Es el error más costoso del capítulo: el ejemplo de los aforos pasa de $p = 0.003$ a $p = 0.87$.

@@ -720,6 +720,43 @@ R base no trae una función para esta prueba; el cálculo con `pchisq()` es dire
 La prueba para la varianza es muy sensible a la falta de normalidad, mucho más que la prueba $t$ para la media. Con datos asimétricos o con valores atípicos puede rechazar $H_0$ con frecuencia aunque la varianza sea la de referencia. Si el gráfico Q-Q muestra desviaciones claras, sus resultados se toman con reserva.
 :::
 
+## Tamaño del efecto en las pruebas para una población {#sec-una-efecto}
+
+Cada ejemplo del capítulo terminó con un valor $p$. El @tbl-una-efectos los pone junto a su tamaño del efecto, calculado como en la @sec-ph-tamano-efecto: $d = (\bar{x} - \mu_0)/\sigma$ o $(\bar{x} - \mu_0)/s$ para las medias, $h = 2\arcsin\sqrt{\hat{p}} - 2\arcsin\sqrt{p_0}$ para las proporciones y el cociente $s/\sigma_0$ para la desviación estándar.
+
+```{r}
+# Tamaño del efecto de los ejemplos del capítulo
+h_cohen <- function(p1, p2) 2 * asin(sqrt(p1)) - 2 * asin(sqrt(p2))
+efectos <- data.frame(
+  ejemplo = c("Peso de los sacos", "Espesor de la carpeta", "Coeficiente del vertedero",
+              "Ensayos de compactación bajos", "Muestras sobre el límite de coliformes",
+              "Uniformidad del espesor"),
+  n = c(40, 12, 10, 200, 10, 12),
+  diferencia = c("−0.25 kg", "−1.61 mm", "−0.0083", "+0.05", "+0.20", "s = 2.75 mm frente a 2 mm"),
+  efecto = c((49.75 - 50) / 0.8, (48.39 - 50) / 2.746, (0.6117 - 0.62) / 0.01112,
+             h_cohen(0.15, 0.10), h_cohen(0.40, 0.20), 2.746 / 2),
+  medida = c("d", "d", "d", "h", "h", "s/σ₀"),
+  p = c(0.024, 0.034, 0.043, 0.009, 0.121, 0.036)
+)
+efectos$efecto <- round(efectos$efecto, 2)
+efectos
+```
+
+```{r}
+#| label: tbl-una-efectos
+#| tbl-cap: "Valor p y tamaño del efecto de los ejemplos del capítulo."
+#| echo: false
+
+efectos %>%
+  mutate(efecto = sprintf("%s = %.2f", recode(medida, d = "<i>d</i>", d_z = "<i>d</i><sub><i>z</i></sub>", h = "<i>h</i>", "s/σ₀" = "<i>s</i>/<i>σ</i><sub>0</sub>"), efecto), p = sprintf("%.3f", p)) %>%
+  select(ejemplo, n, diferencia, efecto, p) %>%
+  kbl(col.names = c("Ejemplo", "<i>n</i>", "Diferencia observada", "Tamaño del efecto", "Valor <i>p</i>"),
+      escape = FALSE, align = c("l", "c", "c", "c", "c")) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+El cuadro muestra por qué el valor $p$ solo no basta. El efecto de los sacos es pequeño ($d = -0.31$, un tercio de desviación estándar), pero con 40 sacos sale significativo. El de las muestras de coliformes es mediano ($h = 0.44$), pero con 10 muestras no alcanza: no es que no haya efecto, es que la muestra no tiene potencia para detectarlo. Las conclusiones de ingeniería se escriben con las dos columnas: la diferencia en unidades del problema y su incertidumbre, además del valor $p$.
+
 ## Si los datos no son normales {#sec-una-no-normal}
 
 La prueba $t$ tolera bien las desviaciones moderadas de la normalidad cuando la muestra es mediana o grande, pero con pocos datos muy asimétricos o con valores atípicos sus valores $p$ dejan de ser confiables. Hay tres salidas, en este orden de preferencia:
