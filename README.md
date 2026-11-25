@@ -1,4 +1,4 @@
-# Estadística Aplicada a la Ingeniería
+# Probabilidad e Inferencia Estadística Aplicada a la Ingeniería Civil
 
 *Fundamentos, métodos y aplicaciones con R*
 
@@ -24,7 +24,7 @@ Por definir. El orden oficial de los capítulos está en `_quarto.yml`.
 | `assets/` | Imágenes (`img/`), estilos (`css/`), estilo de citas (`csl/`) y scripts de la página (`js/`). |
 | `datos/` | Archivos de datos de los ejemplos, descritos en [`datos/LEEME.md`](datos/LEEME.md). |
 | `R/` | Funciones de R que usan los capítulos (vista paginada y descarga de los datos). |
-| `herramientas/` | Scripts de apoyo: `publicar.R` (libro en un solo archivo HTML), `revisar_estilo.sh` (revisión de estilo), `partir_html.py` y `figura_portada.R`. |
+| `herramientas/` | Scripts de apoyo: `publicar.R` (libro en un solo archivo HTML), `revisar_estilo.sh` (revisión de estilo) y `partir_html.py`. |
 | `_plantillas/` | Plantilla para capítulos nuevos. |
 | `revision/` | Bitácora por capítulo, trabajo pendiente e inventario de figuras de terceros. |
 | `GUIA_ESTILO.md` | Guía de estilo del libro. |
@@ -67,4 +67,4 @@ Los detalles están en [LICENSE](LICENSE) y [LICENSE-CODE](LICENSE-CODE). Las im
 
 ## Cómo citar
 
-Matarrita Segura, E. (2026). *Estadística aplicada a la ingeniería: fundamentos, métodos y aplicaciones con R*. Escuela de Ingeniería Civil, Universidad de Costa Rica.
+Matarrita Segura, E. (2026). *Probabilidad e inferencia estadística aplicada a la ingeniería civil: fundamentos, métodos y aplicaciones con R*. Escuela de Ingeniería Civil, Universidad de Costa Rica.
