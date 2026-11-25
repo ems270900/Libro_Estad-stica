@@ -12,6 +12,9 @@
 - Revisión del autor de los capítulos 1 a 6, ampliados el 2026-11-25 (más contenido, cinco interactivos nuevos y ejemplos resueltos).
 - Los interactivos usan HTML y JavaScript propios; conviene probarlos en el navegador del autor y en modo oscuro.
 
+- Referencias agregadas en la segunda ampliación de la Parte I que no estaban en la lista base del autor: `mcgill1978variations`, `hintze1998violin`, `cleveland1984graphical`, `wickham2014tidy`, `wickham2011split`, `broman2018data`, `xie2016bookdown` y `zhu2024kableextra`. Confirmar si se mantienen.
+- La Parte I usa conjuntos de datos que vienen con R (`airquality`, `faithful`, `mtcars` y otros), citados con `rcoreteam2025r`.
+
 ## Parte II (estadística descriptiva)
 
 - Cita del Código Sísmico de Costa Rica en el capítulo 7 (CITA PENDIENTE).
@@ -84,7 +87,7 @@
 
 ## Diversificación de ejemplos entre ramas (2026-11-25)
 
-- Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Parte V lista (DBO, tránsito, compactación y medidores en el 19; coliformes en el 21; plantas de tratamiento y obras en el 22; deslizamientos en el 23). Partes III y IV listas (alcantarillado en el 11, tormentas en el 12, pozos de monitoreo en el 14, presión en una red en el 16). El capítulo 9 conserva los doce cilindros como conjunto guía, porque todo el capítulo y su interactivo dependen de ellos; la Parte II ya agregó ejemplos de otras ramas. Faltan los capítulos 2 y 6 (Parte I).
+- Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Parte V lista (DBO, tránsito, compactación y medidores en el 19; coliformes en el 21; plantas de tratamiento y obras en el 22; deslizamientos en el 23). Partes III y IV listas (alcantarillado en el 11, tormentas en el 12, pozos de monitoreo en el 14, presión en una red en el 16). El capítulo 9 conserva los doce cilindros como conjunto guía, porque todo el capítulo y su interactivo dependen de ellos; la Parte II ya agregó ejemplos de otras ramas. Parte I lista: humedad de una arcilla y ángulo de fricción de un relleno en el capítulo 6. El capítulo 2 conserva el vector `resistencia` como objeto guía de todo el capítulo y de su interactivo. Diversificación terminada.
 - La prueba de jarras usa dosis "recomendadas por el proveedor" sin dar valores en mg/L; si el autor quiere dosis típicas, hay que citarlas de un manual de potabilización.
 - Ampliación de los capítulos 28 a 30 (2026-11-25): revisión del autor; probar los ocho interactivos nuevos en su navegador y en modo oscuro.
 - Las secciones de Montgomery (2017) que se citan no se pudieron cotejar con el libro (no está en las carpetas del autor). Si lo tiene, conviene confirmarlas.
