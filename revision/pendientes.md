@@ -25,7 +25,8 @@
 
 ## Parte VI (Correlación y regresión)
 
-- Revisión del autor de los capítulos 24 a 27.
+- Revisión del autor de los capítulos 24 a 27. Se ampliaron el 2026-11-25 (secciones de intuición, errores comunes, valores $p$ y tamaño del efecto, cuatro ejemplos nuevos de otras ramas, cinco interactivos y unas veinte figuras nuevas).
+- Referencias nuevas de la Parte VI por confirmar con el autor: akaike1974new, bland1986statistical, chow1988applied, duan1983smearing, fisher1915frequency, matejka2017same, pearson1897mathematical, robinson1950ecological, rodgers1988thirteen, simpson1951interpretation y wilk1968probability (todas con DOI verificado salvo el libro de Chow).
 - Todos los datos son hipotéticos (`herramientas/datos_parte6.R`). Los datos de la tarea de regresión de la Semana 7 no se usaron, para que la tarea siga sirviendo en el curso. Si el autor tiene datos reales publicables de ensayos de concreto o de caudales, se pueden sustituir.
 - Los capítulos 24 a 27 mencionan por su número otros capítulos (2, 9, 17, 19 a 21 y la Parte VII). Se escribieron en paralelo; conviene cambiar esas menciones por referencias cruzadas `@sec-` a medida que se unan las partes.
 - Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.

@@ -4,8 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-<!-- EPÍGRAFE PENDIENTE: no se encontró una frase con fuente verificada para este capítulo. -->
-
 La resistencia del concreto no depende solo de la relación agua/cemento. También cambia con la edad del ensayo, con el tipo de cemento y con los aditivos. El asentamiento de un relleno depende de su altura y del espesor de la arcilla que tiene debajo. Cuando una respuesta depende de varias variables a la vez, una recta con un solo predictor se queda corta: deja en los residuos todo el efecto de las demás, y puede atribuirle a una variable lo que en realidad hace otra. La regresión lineal múltiple incluye varios predictores en la misma ecuación y estima el efecto de cada uno con los otros fijos. Este capítulo extiende lo visto en el capítulo 25 y presenta, paso a paso, la forma matricial que usa R por dentro.
 
 ```{r}
@@ -49,6 +47,139 @@ Si se sube un metro la altura de un relleno sin cambiar nada más, ¿cuánto má
 Esa es justo la pregunta que responde un coeficiente de la regresión múltiple. El coeficiente $b_j$ es el cambio estimado en la media de $Y$ cuando $x_j$ aumenta una unidad y los demás predictores del modelo se mantienen constantes. Por eso se le llama coeficiente parcial.
 
 La frase "manteniendo constantes los demás" es lo que distingue a la regresión múltiple. En una regresión simple de la resistencia contra la relación agua/cemento, si las mezclas con más agua se hubieran ensayado más jóvenes, la pendiente mezclaría el efecto del agua con el de la edad. En la múltiple, con la edad dentro del modelo, el coeficiente de la relación agua/cemento compara mezclas de la misma edad.
+
+### Por qué no bastan varias regresiones simples
+
+::: {.pregunta}
+En una red vial, los tramos con carpeta asfáltica más gruesa tienen más ahuellamiento. ¿Conviene construir carpetas más delgadas?
+:::
+
+Desde luego que no, y la regresión múltiple muestra por qué. Los tramos con carpeta gruesa son los que se diseñaron para más tránsito, y el tránsito es lo que produce las huellas. En una regresión simple del ahuellamiento contra el espesor, la pendiente recoge las dos cosas a la vez: el efecto (benéfico) del espesor y el efecto (dañino) del tránsito que viene con él. Como el segundo pesa más, la pendiente sale positiva. Con el tránsito dentro del modelo, el coeficiente del espesor compara tramos con el mismo tránsito, y entonces aparece el efecto esperado: a más espesor, menos ahuellamiento.
+
+Con dos predictores, los coeficientes se pueden calcular a mano con las sumas centradas de la @eq-cor-sumas, sin resolver el sistema completo de la @sec-rlm-mco [@montgomery2012introduction, cap. 3]:
+
+$$
+b_1 = \frac{S_{1y}\,S_{22} - S_{2y}\,S_{12}}{S_{11}\,S_{22} - S_{12}^2}, \qquad
+b_2 = \frac{S_{2y}\,S_{11} - S_{1y}\,S_{12}}{S_{11}\,S_{22} - S_{12}^2}, \qquad
+b_0 = \bar{y} - b_1 \bar{x}_1 - b_2 \bar{x}_2
+$$ {#eq-rlm-dos}
+
+donde $S_{11} = \sum (x_{i1} - \bar{x}_1)^2$, $S_{22} = \sum (x_{i2} - \bar{x}_2)^2$, $S_{12} = \sum (x_{i1} - \bar{x}_1)(x_{i2} - \bar{x}_2)$, $S_{1y} = \sum (x_{i1} - \bar{x}_1)(y_i - \bar{y})$ y $S_{2y} = \sum (x_{i2} - \bar{x}_2)(y_i - \bar{y})$. Si los predictores no están correlacionados ($S_{12} = 0$), las fórmulas se reducen a $b_1 = S_{1y}/S_{11}$ y $b_2 = S_{2y}/S_{22}$: las mismas pendientes de las regresiones simples. Cuanto mayor es $S_{12}$, más se separan.
+
+::: {.callout-note title="Ejemplo: ahuellamiento según el tránsito y el espesor de la carpeta"}
+
+**Planteamiento.** Para doce tramos hipotéticos de pavimento flexible se tienen el tránsito acumulado ($x_1$, millones de ejes equivalentes), el espesor de la carpeta asfáltica ($x_2$, cm) y la profundidad del ahuellamiento ($y$, mm). Ajuste la regresión simple del ahuellamiento contra el espesor y la regresión múltiple con los dos predictores, y compare el coeficiente del espesor.
+
+```{r}
+#| echo: false
+ver_datos("datos/ahuellamiento_tramos_hipotetico.csv", filas = 12,
+          nombres = c("Tramo", "Tránsito (millones de ejes)", "Espesor (cm)", "Ahuellamiento (mm)"))
+```
+
+**Solución:**
+
+1. Medias: $\bar{x}_1 = 4.2917$, $\bar{x}_2 = 8.5$ cm y $\bar{y} = 6.3167$ mm.
+2. Sumas centradas: $S_{11} = 97.729$, $S_{22} = 77.000$, $S_{12} = 85.750$, $S_{1y} = 73.592$ y $S_{2y} = 63.700$.
+3. Regresión simple contra el espesor (@eq-rls-b1): $b = 63.700/77.000 = 0.827$ mm/cm. Cada centímetro de carpeta "va con" 0.83 mm más de huella.
+4. Denominador de la @eq-rlm-dos: $S_{11}S_{22} - S_{12}^2 = (97.729)(77.000) - 85.750^2 = 7525.15 - 7353.06 = 172.08$.
+5. Coeficiente del tránsito: $b_1 = \left[(73.592)(77.000) - (63.700)(85.750)\right]/172.08 = (5666.56 - 5462.28)/172.08 = 1.187$ mm por millón de ejes.
+6. Coeficiente del espesor: $b_2 = \left[(63.700)(97.729) - (73.592)(85.750)\right]/172.08 = (6225.35 - 6310.49)/172.08 = -0.495$ mm/cm.
+7. Intercepto: $b_0 = 6.3167 - 1.187(4.2917) - (-0.495)(8.5) = 5.427$ mm.
+8. Ecuación: $\hat{y} = 5.427 + 1.187\,x_1 - 0.495\,x_2$. En `summary()`, el coeficiente del espesor tiene $p = 0.039$.
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular las medias y las sumas centradas.
+2. Calcular la pendiente simple $S_{2y}/S_{22}$.
+3. Calcular $b_1$, $b_2$ y $b_0$ con la @eq-rlm-dos.
+4. Comparar con `lm()` con uno y con dos predictores.
+
+```{r}
+# 1) Datos y sumas centradas
+pav <- read.csv("datos/ahuellamiento_tramos_hipotetico.csv")
+x1 <- pav$transito_mesal
+x2 <- pav$espesor_cm
+y <- pav$ahuellamiento_mm
+S11 <- sum((x1 - mean(x1))^2)
+S22 <- sum((x2 - mean(x2))^2)
+S12 <- sum((x1 - mean(x1)) * (x2 - mean(x2)))
+S1y <- sum((x1 - mean(x1)) * (y - mean(y)))
+S2y <- sum((x2 - mean(x2)) * (y - mean(y)))
+
+# 2) Pendiente de la regresión simple contra el espesor
+S2y / S22
+
+# 3) Coeficientes de la regresión múltiple
+den <- S11 * S22 - S12^2
+b1 <- (S1y * S22 - S2y * S12) / den
+b2 <- (S2y * S11 - S1y * S12) / den
+b0 <- mean(y) - b1 * mean(x1) - b2 * mean(x2)
+c(b0 = b0, b1 = b1, b2 = b2)
+
+# 4) Con lm()
+coef(lm(ahuellamiento_mm ~ espesor_cm, data = pav))
+summary(lm(ahuellamiento_mm ~ transito_mesal + espesor_cm, data = pav))$coefficients
+```
+
+**Interpretación.** La regresión simple dice que los tramos con carpeta más gruesa tienen más huella, lo cual es cierto en estos datos, pero no dice por qué. La múltiple separa los efectos: con el mismo tránsito, cada centímetro adicional de carpeta reduce el ahuellamiento medio en unos 0.5 mm (intervalo del 95 %: de 0.03 a 0.96 mm), y cada millón de ejes adicional lo aumenta en 1.2 mm con el mismo espesor. El intervalo del espesor es ancho porque los dos predictores están muy correlacionados ($r = 0.99$), tema de la @sec-rlm-multicolinealidad.
+
+:::
+
+La @fig-rlm-ahuellamiento muestra lo mismo en un gráfico. La recta gris es la regresión simple, que sube. Las rectas de colores son las predicciones del modelo múltiple para tres niveles de tránsito, dibujadas solo en los espesores que tienen los tramos con ese tránsito, y todas bajan.
+
+```{r}
+#| label: fig-rlm-ahuellamiento
+#| fig-cap: "Pendiente simple y coeficiente parcial."
+#| fig-alt: "Doce puntos que suben de izquierda a derecha con una recta gris punteada que sube; tres rectas cortas de colores que bajan, una por nivel de tránsito"
+#| echo: false
+
+pav <- read.csv("datos/ahuellamiento_tramos_hipotetico.csv")
+m_pav <- lm(ahuellamiento_mm ~ transito_mesal + espesor_cm, data = pav)
+rej_pav <- rbind(data.frame(espesor_cm = seq(4.5, 6.5, 0.1), transito_mesal = 1),
+                 data.frame(espesor_cm = seq(7, 10, 0.1), transito_mesal = 4),
+                 data.frame(espesor_cm = seq(10.5, 13.5, 0.1), transito_mesal = 8))
+rej_pav$pred <- predict(m_pav, rej_pav)
+ggplot(pav, aes(espesor_cm, ahuellamiento_mm)) +
+  geom_smooth(method = "lm", se = FALSE, color = "grey50", linetype = "dashed") +
+  geom_line(data = rej_pav, aes(espesor_cm, pred, color = factor(transito_mesal)), linewidth = 1) +
+  geom_point(size = 2.6) +
+  scale_color_viridis_d(end = 0.85, name = "Tránsito\n(millones de ejes)") +
+  labs(x = "Espesor de la carpeta (cm)", y = "Ahuellamiento (mm)") +
+  theme_minimal(base_size = 13)
+```
+
+### Gráfico de regresión parcial
+
+El coeficiente parcial tiene una interpretación gráfica que ayuda a entenderlo. Para ver el efecto del espesor "limpio" del tránsito se hacen dos regresiones auxiliares: la del ahuellamiento contra el tránsito y la del espesor contra el tránsito. Sus residuos son la parte del ahuellamiento y la parte del espesor que el tránsito no explica. El diagrama de dispersión de esos dos residuos se llama gráfico de regresión parcial (o de variable agregada), y la pendiente de su recta es exactamente el coeficiente $b_2$ de la regresión múltiple [@fox2019companion, cap. 8].
+
+```{r}
+#| label: fig-rlm-parcial
+#| fig-cap: "Regresión parcial del espesor."
+#| fig-alt: "Doce puntos con una recta que baja; los ejes son residuos centrados en cero"
+#| echo: false
+
+res_y <- residuals(lm(ahuellamiento_mm ~ transito_mesal, data = pav))
+res_x <- residuals(lm(espesor_cm ~ transito_mesal, data = pav))
+ggplot(data.frame(res_x, res_y), aes(res_x, res_y)) +
+  geom_hline(yintercept = 0, color = "grey80") + geom_vline(xintercept = 0, color = "grey80") +
+  geom_smooth(method = "lm", se = FALSE, color = azul) +
+  geom_point(size = 2.6) +
+  annotate("text", x = max(res_x), y = max(res_y), hjust = 1, size = 4,
+           label = sprintf("pendiente = %.3f = b2", coef(lm(res_y ~ res_x))[2])) +
+  labs(x = "Espesor no explicado por el tránsito (cm)", y = "Ahuellamiento no explicado por el tránsito (mm)") +
+  theme_minimal(base_size = 12)
+```
+
+```{r}
+# Gráfico de regresión parcial a mano: la pendiente es el coeficiente parcial
+pav <- read.csv("datos/ahuellamiento_tramos_hipotetico.csv")
+res_y <- residuals(lm(ahuellamiento_mm ~ transito_mesal, data = pav))
+res_x <- residuals(lm(espesor_cm ~ transito_mesal, data = pav))
+coef(lm(res_y ~ res_x))
+# El paquete car los dibuja para todos los predictores: car::avPlots(modelo)
+```
+
+El gráfico también sirve de diagnóstico: un punto que domina la pendiente del gráfico parcial es un punto influyente para ese coeficiente, aunque no resalte en los diagramas de dispersión simples.
 
 ### La ecuación como un plano
 
@@ -386,11 +517,70 @@ predict(modelo, nuevo, interval = "prediction")
 
 :::
 
+### Tamaño del efecto de cada predictor
+
+Los valores $p$ de los coeficientes dicen qué predictores aportan, pero no cuál aporta más. Para compararlos se usan dos medidas.
+
+**Coeficientes estandarizados.** Los coeficientes de la relación agua/cemento (MPa por unidad de relación) y de la edad (MPa por día) no se pueden comparar porque tienen unidades distintas. Si antes de ajustar se estandarizan la respuesta y los predictores numéricos (se les resta la media y se dividen entre la desviación estándar, con `scale()`), cada coeficiente pasa a ser el cambio en desviaciones estándar de $Y$ por cada desviación estándar del predictor. Con los cilindros resulta $-0.66$ para la relación agua/cemento y $0.69$ para la edad: en el rango ensayado, los dos tienen un efecto de tamaño parecido y signo contrario.
+
+**$f^2$ parcial de Cohen.** Mide cuánto aporta un predictor por encima de los demás [@cohen1988statistical]:
+
+$$
+f^2_j = \frac{R^2_{\text{comp}} - R^2_{\text{sin } j}}{1 - R^2_{\text{comp}}}
+$$ {#eq-rlm-f2}
+
+donde $R^2_{\text{comp}}$ es el del modelo completo y $R^2_{\text{sin } j}$ el del modelo sin el predictor $j$. En los cilindros, el aditivo tiene $f^2 = (0.9357 - 0.9164)/(1 - 0.9357) = 0.30$, un efecto mediano a grande según las referencias de Cohen, mientras que la relación agua/cemento y la edad tienen $f^2$ cercanos a 7.
+
+```{r}
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+
+# Coeficientes estandarizados: se estandarizan Y y los predictores numéricos
+estand <- data.frame(z_res = as.numeric(scale(cilindros$resistencia_mpa)),
+                     z_ac = as.numeric(scale(cilindros$relacion_ac)),
+                     z_edad = as.numeric(scale(cilindros$edad_dias)),
+                     aditivo = cilindros$aditivo)
+coef(lm(z_res ~ z_ac + z_edad + aditivo, data = estand))
+
+# f2 parcial de cada predictor
+completo <- lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros)
+r2 <- function(m) summary(m)$r.squared
+f2_parcial <- function(reducido) (r2(completo) - r2(reducido)) / (1 - r2(completo))
+c(relacion_ac = f2_parcial(lm(resistencia_mpa ~ edad_dias + aditivo, data = cilindros)),
+  edad = f2_parcial(lm(resistencia_mpa ~ relacion_ac + aditivo, data = cilindros)),
+  aditivo = f2_parcial(lm(resistencia_mpa ~ relacion_ac + edad_dias, data = cilindros)))
+```
+
+::: {.callout-warning title="Cuidado"}
+Los coeficientes estandarizados dependen del rango de los datos: si se hubieran ensayado edades de 3 a 90 días, la desviación estándar de la edad sería mayor y su coeficiente estandarizado también, sin que el concreto haya cambiado. Sirven para comparar dentro de un mismo estudio, no entre estudios. Y ningún índice de tamaño reemplaza al coeficiente en unidades físicas, que es el que se usa para diseñar.
+:::
+
+En la regresión múltiple, los valores $p$ tienen dos niveles. El de la prueba $F$ global (@sec-rlm-anova) responde si el conjunto de predictores explica algo; los de las pruebas $t$ responden si cada predictor aporta algo además de los otros. Puede pasar que la $F$ global tenga $p < 0.001$ y ninguna $t$ individual sea menor que 0.05: es la marca típica de la multicolinealidad (@sec-rlm-multicolinealidad), porque el grupo explica mucho pero los datos no saben a cuál de sus miembros atribuirlo.
+
 ## Predictores categóricos {#sec-rlm-categoricos}
 
 Muchas variables que influyen en una respuesta no son números: si la mezcla tiene aditivo o no, el tipo de cemento, el proveedor del agregado. Para meterlas en una regresión se usan variables indicadoras (también llamadas ficticias o *dummy*), que valen 1 si la observación pertenece a una categoría y 0 si no.
 
 Con una variable de dos categorías, como el aditivo, basta una indicadora: $x_{\text{con}} = 1$ si la mezcla lleva aditivo y 0 si no. La categoría que queda en 0 se llama categoría de referencia. El coeficiente de la indicadora es la diferencia de la media de $Y$ entre las dos categorías, con los demás predictores fijos. Con $k$ categorías hacen falta $k - 1$ indicadoras.
+
+El @tbl-rlm-indicadoras muestra la codificación para una variable con tres categorías, el tipo de suelo de la fundación, con la arcilla como referencia. Se crean dos indicadoras, una para el limo y otra para la arena. Un suelo arcilloso tiene las dos en 0, y por eso su media queda en el intercepto; el coeficiente de cada indicadora es la diferencia entre esa categoría y la arcilla.
+
+```{r}
+#| label: tbl-rlm-indicadoras
+#| tbl-cap: "Indicadoras para tres tipos de suelo, con la arcilla como referencia."
+#| echo: false
+
+data.frame(
+  suelo = c("Arcilla (referencia)", "Limo", "Arena"),
+  limo = c(0, 1, 0), arena = c(0, 0, 1),
+  media = c("<i>β</i><sub>0</sub>", "<i>β</i><sub>0</sub> + <i>β</i><sub>limo</sub>", "<i>β</i><sub>0</sub> + <i>β</i><sub>arena</sub>")
+) %>%
+  kbl(col.names = c("Tipo de suelo", "<i>x</i><sub>limo</sub>", "<i>x</i><sub>arena</sub>", "Media de <i>Y</i> (con los demás predictores fijos)"),
+      escape = FALSE, align = "lccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+¿Por qué no tres indicadoras, una por suelo? Porque las tres sumarían 1 en todas las filas, igual que la columna de unos del intercepto, y la matriz $\mathbf{X}^{\mathsf T}\mathbf{X}$ no tendría inversa. Es un caso extremo de la multicolinealidad de la @sec-rlm-multicolinealidad, que R evita quitando una categoría. Tampoco se codifica el suelo como 1, 2 y 3 en una sola columna numérica: eso obligaría a que la diferencia entre arena y limo fuera igual a la diferencia entre limo y arcilla, una suposición que nada justifica.
 
 En R no hay que crear las indicadoras a mano: si la columna es de texto o un factor, `lm()` las arma sola. La categoría de referencia es la primera de los niveles del factor, que por defecto es la primera en orden alfabético. Con `factor(x, levels = c(...))` se elige cuál va primero, como se vio en el capítulo 2.
 
@@ -580,6 +770,93 @@ El paquete car [@fox2019companion] es el único paquete nuevo de este capítulo.
 La multicolinealidad es un problema entre predictores; no tiene que ver con la independencia de los errores, que es un supuesto sobre las observaciones (capítulo 27). Tampoco afecta a las predicciones dentro del rango de los datos: un modelo con predictores redundantes puede predecir bien. Lo que se pierde es la posibilidad de interpretar cada coeficiente por separado.
 :::
 
+### Interactivo: qué hace la multicolinealidad con los coeficientes
+
+El interactivo simula 200 muestras de 30 observaciones de un modelo conocido, $Y = 2 + 1\,x_1 + 1\,x_2 + \varepsilon$, y ajusta en cada una la regresión múltiple. A la izquierda se ven los predictores de una de las muestras; a la derecha, los 200 pares de coeficientes estimados $(b_1, b_2)$. Con el control se cambia la correlación entre $x_1$ y $x_2$.
+
+::: {#fig-rlm-interactivo-vif}
+
+```{=html}
+<div class="interactivo" id="int-multicolinealidad">
+  <label><span>Correlación entre los predictores <i>r</i><sub>12</sub>:</span> <output>0.00</output>
+    <input type="range" min="0" max="0.99" step="0.01" value="0"></label>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Predictores de una muestra y nube de 200 pares de coeficientes estimados"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-multicolinealidad");
+  var ctl = raiz.querySelector("input"), sal = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var n = 30, M = 200, semilla = 26;
+  function azar() { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; }
+  function normal() { var u = azar(), v = azar(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  // Números aleatorios fijos para que la nube cambie solo con el control
+  var Z1 = [], Z2 = [], E = [];
+  for (var k = 0; k < M; k++) {
+    var a = [], b = [], c = [];
+    for (var i = 0; i < n; i++) { a.push(normal()); b.push(normal()); c.push(normal()); }
+    Z1.push(a); Z2.push(b); E.push(c);
+  }
+  function eje(x0, y0, an, al, tx, ty) {
+    return '<line class="eje" x1="' + x0 + '" x2="' + (x0 + an) + '" y1="' + (y0 + al) + '" y2="' + (y0 + al) + '"/>' +
+      '<line class="eje" x1="' + x0 + '" x2="' + x0 + '" y1="' + y0 + '" y2="' + (y0 + al) + '"/>' +
+      '<text class="eje-texto" x="' + (x0 + an / 2) + '" y="' + (y0 + al + 32) + '" text-anchor="middle">' + tx + '</text>' +
+      '<text class="eje-texto" x="' + (x0 - 24) + '" y="' + (y0 + al / 2) + '" text-anchor="middle" transform="rotate(-90 ' + (x0 - 24) + ' ' + (y0 + al / 2) + ')">' + ty + '</text>';
+  }
+  function dibujar() {
+    var rho = parseFloat(ctl.value); sal.textContent = rho.toFixed(2);
+    var g = eje(40, 20, 230, 230, "x₁", "x₂") + eje(360, 20, 250, 230, "b₁ estimado", "b₂ estimado");
+    for (var tk = -1; tk <= 3; tk++) {
+      g += '<text class="eje-texto" x="' + (360 + (tk + 1.5) / 5 * 250) + '" y="264" text-anchor="middle">' + tk + '</text>' +
+        '<text class="eje-texto" x="352" y="' + (254 - (tk + 1.5) / 5 * 230) + '" text-anchor="end">' + tk + '</text>';
+    }
+    var b1s = [], b2s = [];
+    for (var k = 0; k < M; k++) {
+      var x1 = [], x2 = [], y = [], m1 = 0, m2 = 0, my = 0;
+      for (var i = 0; i < n; i++) {
+        var u = Z1[k][i], v = rho * Z1[k][i] + Math.sqrt(1 - rho * rho) * Z2[k][i];
+        x1.push(u); x2.push(v); y.push(2 + u + v + E[k][i]);
+        m1 += u / n; m2 += v / n; my += y[i] / n;
+      }
+      var s11 = 0, s22 = 0, s12 = 0, s1y = 0, s2y = 0;
+      for (var j = 0; j < n; j++) {
+        var d1 = x1[j] - m1, d2 = x2[j] - m2, dy = y[j] - my;
+        s11 += d1 * d1; s22 += d2 * d2; s12 += d1 * d2; s1y += d1 * dy; s2y += d2 * dy;
+      }
+      var den = s11 * s22 - s12 * s12;
+      b1s.push((s1y * s22 - s2y * s12) / den); b2s.push((s2y * s11 - s1y * s12) / den);
+      if (k === 0) {
+        for (var q = 0; q < n; q++) {
+          g += '<circle class="punto" cx="' + (155 + x1[q] * 36).toFixed(1) + '" cy="' + (135 - x2[q] * 36).toFixed(1) + '" r="3.5"/>';
+        }
+      }
+    }
+    var sb = function (b) { return Math.max(-1.5, Math.min(3.5, b)); };
+    for (var p = 0; p < M; p++) {
+      g += '<circle cx="' + (360 + (sb(b1s[p]) + 1.5) / 5 * 250).toFixed(1) + '" cy="' + (250 - (sb(b2s[p]) + 1.5) / 5 * 230).toFixed(1) +
+        '" r="2.5" fill="#1b7f8c" fill-opacity="0.45"/>';
+    }
+    g += '<circle cx="' + (360 + 2.5 / 5 * 250) + '" cy="' + (250 - 2.5 / 5 * 230) + '" r="6" fill="none" stroke="#D55E00" stroke-width="2.5"/>';
+    var mb = 0, vb = 0;
+    for (var t = 0; t < M; t++) mb += b1s[t] / M;
+    for (var s = 0; s < M; s++) vb += Math.pow(b1s[s] - mb, 2) / (M - 1);
+    texto.textContent = "VIF = 1/(1 − r²) = " + (1 / (1 - rho * rho)).toFixed(1) + "   |   desviación estándar de b₁ en las 200 muestras = " +
+      Math.sqrt(vb).toFixed(3) + "   |   valor real: b₁ = b₂ = 1 (círculo naranja)";
+    svg.innerHTML = g;
+  }
+  ctl.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Multicolinealidad y coeficientes estimados.
+
+:::
+
+Con $r_{12} = 0$, la nube de coeficientes es redonda y está centrada en el valor real: cada muestra estima bien los dos efectos. Al subir la correlación, la nube se estira en una diagonal que baja. Las estimaciones siguen centradas en el valor real (no hay sesgo), pero cada una por separado puede alejarse mucho: una muestra da $b_1$ grande y $b_2$ pequeño, otra al revés. La suma $b_1 + b_2$, en cambio, se mantiene cerca de 2. Eso es lo que significa que los datos no pueden separar los efectos: saben cuánto suman, pero no cómo repartirlos. Con $r_{12} = 0.95$ el VIF vale 10 y la desviación estándar de $b_1$ se triplica, como predice $\sqrt{VIF} = 3.2$.
+
 ## Comparar modelos {#sec-rlm-comparar}
 
 Para decidir si un grupo de predictores vale la pena se comparan dos modelos anidados: uno reducido y otro completo que tiene todos los predictores del reducido más algunos nuevos. La prueba $F$ parcial pregunta si los predictores nuevos reducen $SSE$ más de lo que se esperaría por azar [@montgomery2012introduction, cap. 3]:
@@ -605,6 +882,66 @@ Agregar el aditivo baja $SSE$ de 296.7 a 228.0 MPa², con $p < 0.001$, y el $R^2
 Un buen modelo de regresión se arma con criterio técnico: se empieza por los predictores que la teoría del problema señala, se revisa si cada uno aporta y si hay interacciones razonables, y se prefiere el modelo más simple que explique los datos. Probar automáticamente cientos de combinaciones hasta que algo salga significativo lleva a modelos que no se repiten con datos nuevos.
 :::
 
+### Criterios de información
+
+La prueba $F$ parcial solo compara modelos anidados. Para comparar modelos que no lo son, por ejemplo uno con la relación agua/cemento y otro con el contenido de cemento, se usan criterios de información. El más común es el de @akaike1974new:
+
+$$
+AIC = n \ln\!\left(\frac{SSE}{n}\right) + 2\,(p + 1) + \text{constante}
+$$ {#eq-rlm-aic}
+
+donde $n$ es el número de observaciones, $SSE$ la suma de cuadrados del error y $p + 1$ el número de coeficientes. El primer término baja cuando el modelo ajusta mejor; el segundo sube con cada coeficiente, como una multa por complejidad. Se prefiere el modelo con el AIC más bajo, y diferencias menores que 2 se consideran pequeñas. El criterio bayesiano (BIC) cambia la multa $2(p + 1)$ por $(p + 1)\ln n$ y castiga más los modelos grandes. En R se calculan con `AIC()` y `BIC()`; la constante depende de la función, así que solo se comparan valores calculados con la misma función y los mismos datos.
+
+```{r}
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+modelos <- list(
+  ac_edad = lm(resistencia_mpa ~ relacion_ac + edad_dias, data = cilindros),
+  ac_edad_aditivo = lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros),
+  con_cemento = lm(resistencia_mpa ~ relacion_ac + cemento_kg_m3 + edad_dias + aditivo, data = cilindros),
+  con_interaccion = lm(resistencia_mpa ~ relacion_ac * aditivo + edad_dias, data = cilindros)
+)
+data.frame(AIC = sapply(modelos, AIC), BIC = sapply(modelos, BIC),
+           R2_aj = sapply(modelos, function(m) summary(m)$adj.r.squared))
+```
+
+Los tres criterios coinciden: el modelo con la relación agua/cemento, la edad y el aditivo tiene el AIC y el BIC más bajos y el mayor $R^2_{\text{aj}}$. Agregar el cemento o la interacción sube el AIC en casi 2 unidades sin mejorar el ajuste.
+
+::: {.callout-warning title="Cuidado"}
+Los procedimientos automáticos que agregan o quitan predictores uno por uno según su valor $p$ o el AIC (selección paso a paso, con `step()` en R) son cómodos, pero tienen problemas conocidos: los valores $p$ del modelo final salen demasiado pequeños, porque se eligieron las variables que mejor salían en esta muestra, y el modelo elegido puede cambiar con unos pocos datos distintos [@montgomery2012introduction, cap. 10]. Se usan, si acaso, para explorar, y el modelo final se decide con criterio técnico.
+:::
+
+## Errores comunes con la regresión múltiple {#sec-rlm-errores}
+
+```{r}
+#| label: tbl-rlm-errores
+#| tbl-cap: "Errores frecuentes en la regresión múltiple."
+#| echo: false
+
+data.frame(
+  error = c("Interpretar un coeficiente sin \"los demás fijos\"", "Comparar coeficientes con unidades distintas",
+            "Quitar un predictor solo porque su <i>p</i> > 0.05", "Usar <i>R</i><sup>2</sup> para comparar modelos de distinto tamaño",
+            "Codificar categorías como 1, 2, 3", "Meter dos predictores casi redundantes",
+            "Agregar una interacción sin sus efectos principales", "Predecir con combinaciones que no están en los datos"),
+  por_que = c("El coeficiente parcial cambia si cambia el resto del modelo",
+              "Un coeficiente grande puede ser solo un cambio de unidades",
+              "Puede ser importante pero estar correlacionado con otro",
+              "<i>R</i><sup>2</sup> nunca baja al agregar predictores",
+              "Impone diferencias iguales entre categorías",
+              "Errores estándar enormes y signos absurdos",
+              "La interacción pierde su interpretación",
+              "Extrapolación oculta: cada variable está en rango, pero la combinación no"),
+  remedio = c("Leerlo siempre como efecto parcial", "Cambiar a unidades prácticas o estandarizar",
+              "Decidir con criterio técnico y la prueba <i>F</i> parcial", "Usar <i>R</i><sup>2</sup><sub>aj</sub>, AIC o BIC",
+              "Usar factores con <code>factor()</code>", "Revisar VIF y dejar una", "Mantener los dos predictores",
+              "Graficar los predictores entre sí antes de predecir")
+) %>%
+  kbl(col.names = c("Error", "Por qué engaña", "Qué hacer"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+El último error del cuadro merece un ejemplo. En los tramos de pavimento, el tránsito va de 0.5 a 10 millones de ejes y el espesor de 5 a 13 cm, pero los tramos de mucho tránsito siempre tienen carpeta gruesa. Un tramo hipotético de 10 millones de ejes con 5 cm de carpeta tiene cada variable dentro de su rango, pero la combinación está muy lejos de los datos, y la predicción del modelo para él es una extrapolación.
+
 ## Ejercicios propuestos
 
 1. En un modelo con dos predictores centrados se tiene $n = 5$, $\sum y = 50$, $\sum x_1 = \sum x_2 = 0$, $\sum x_1^2 = 10$, $\sum x_2^2 = 20$, $\sum x_1 x_2 = 0$, $\sum x_1 y = 15$ y $\sum x_2 y = -20$. Plantee las ecuaciones normales, calcule $b_0$, $b_1$ y $b_2$, y prediga $y$ para $x_1 = 2$ y $x_2 = 3$.
@@ -615,6 +952,10 @@ Un buen modelo de regresión se arma con criterio técnico: se empieza por los p
 6. Con los cilindros, ajuste el modelo con la relación agua/cemento, la edad y el aditivo, pero con "con" como categoría de referencia. ¿Qué cambia en los coeficientes y qué no?
 7. Agregue al modelo de los cilindros la interacción entre la edad y el aditivo. Escriba las dos rectas de resistencia contra edad (con y sin aditivo) para una relación de 0.50 y decida si la interacción hace falta.
 8. Con `mtcars`, un conjunto de datos que trae R, ajuste el consumo `mpg` en función de `disp`, `hp` y `wt`. Calcule los VIF y proponga un modelo más simple.
+9. Con `ahuellamiento_tramos_hipotetico.csv`, ajuste la regresión del ahuellamiento contra el tránsito solo y compare su pendiente con el coeficiente del tránsito en el modelo con los dos predictores. ¿Por qué la pendiente simple es menor?
+10. Con los mismos datos, dibuje el diagrama de dispersión del espesor contra el tránsito y marque el punto (10, 5). Explique por qué predecir el ahuellamiento de ese tramo es una extrapolación.
+11. Use el interactivo de la @fig-rlm-interactivo-vif para encontrar la correlación entre predictores con la que la desviación estándar de $b_1$ se duplica respecto de $r_{12} = 0$. Compare con el valor de $r_{12}$ que da $VIF = 4$.
+12. Un modelo de costo de puentes tiene como predictores la luz (m), el ancho (m) y el tipo de superestructura (losa, vigas de concreto presforzado, vigas de acero). Escriba la ecuación con las indicadoras necesarias e interprete el coeficiente de una de ellas.
 
 ## Lecturas recomendadas
 
@@ -622,3 +963,5 @@ Un buen modelo de regresión se arma con criterio técnico: se empieza por los p
 - @laneintroduction, capítulo 14: una introducción sencilla a la regresión múltiple y a la interpretación de los coeficientes parciales.
 - @fox2019companion: cómo ajustar e interpretar modelos de regresión con R, incluidos predictores categóricos e interacciones.
 - @wasserman2004all, capítulo 13: la regresión lineal desde la teoría, para quien busca un tratamiento más formal.
+
+- @akaike1974new: el artículo original del criterio de información de Akaike.
