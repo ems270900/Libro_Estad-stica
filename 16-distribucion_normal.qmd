@@ -918,63 +918,49 @@ La @fig-guia-diagrama ordena las preguntas en un diagrama. Se empieza arriba, se
 #| fig-cap: "Diagrama para elegir la distribución."
 #| fig-alt: "Diagrama de decisión. Arriba, la pregunta se cuenta o se mide. A la izquierda, preguntas para conteos que llevan a binomial o hipergeométrica, geométrica, binomial negativa y Poisson. A la derecha, preguntas para mediciones que llevan a exponencial o gamma, Weibull, Gumbel, beta, log-normal, normal y uniforme"
 #| echo: false
-#| fig-width: 9.5
-#| fig-height: 8.6
-#| out-width: "100%"
 
-petroleo <- "#0f5560"; ambar <- "#a26800"
-preg_d <- tibble(
-  y = c(8.4, 6.9, 5.4, 3.9),
-  q = c("¿Número fijo de ensayos n,\ncada uno éxito o fracaso?",
-        "¿Se cuentan ensayos hasta\nel primer éxito?",
-        "¿Se cuentan ensayos hasta\nel éxito número k?",
-        "¿Eventos al azar en un intervalo\nde tiempo, longitud o área?"),
-  r = c("Binomial\n(hipergeométrica si es sin\nreemplazo y n/N > 0.05)", "Geométrica", "Binomial negativa", "Poisson"))
-preg_c <- tibble(
-  y = c(8.4, 7.3, 6.2, 5.1, 4.0, 2.9, 1.8),
-  q = c("¿Tiempo de espera entre\neventos al azar?", "¿Vida útil con desgaste\no fallas tempranas?",
-        "¿Máximo de un año\no de un periodo?", "¿Proporción entre 0 y 1?",
-        "¿Positiva, con cola larga\na la derecha?", "¿Suma o promedio de muchos\nefectos; simétrica?",
-        "¿Solo se conocen los límites,\ntodo valor igual de probable?"),
-  r = c("Exponencial\n(gamma si es hasta\nel evento número α)", "Weibull", "Gumbel", "Beta",
-        "Log-normal", "Normal", "Uniforme"))
-xq_d <- 1.6; xr_d <- 4.15; xq_c <- 6.6; xr_c <- 9.1
-flecha <- arrow(length = unit(0.16, "cm"), type = "closed")
-ggplot() +
-  # Pregunta inicial y ramas
-  annotate("label", x = 5.35, y = 10, label = "¿La variable se cuenta (cuántos) o se mide (cuánto)?",
-           size = 4, fontface = "bold", color = "white", fill = petroleo, label.padding = unit(0.5, "lines")) +
-  annotate("segment", x = 5.35, xend = xq_d, y = 9.7, yend = 9.05, arrow = flecha, color = "grey40") +
-  annotate("segment", x = 5.35, xend = xq_c, y = 9.7, yend = 9.05, arrow = flecha, color = "grey40") +
-  annotate("text", x = c(3.1, 7.4), y = 9.5, label = c("Se cuenta: discreta", "Se mide: continua"),
-           size = 3.6, fontface = "bold", color = petroleo) +
-  # Columna discreta
-  geom_segment(data = preg_d[-4, ], aes(x = xq_d, xend = xq_d, y = y - 0.5, yend = y - 1.0),
-               arrow = flecha, color = "grey50") +
-  geom_text(data = preg_d[-4, ], aes(x = xq_d + 0.15, y = y - 0.75), label = "No", size = 3, hjust = 0, color = "grey35") +
-  geom_segment(data = preg_d, aes(x = xq_d + 1.25, xend = xr_d - 0.75, y = y, yend = y),
-               arrow = flecha, color = ambar) +
-  geom_text(data = preg_d, aes(x = (xq_d + xr_d) / 2 + 0.25, y = y + 0.16), label = "Sí", size = 3, color = ambar) +
-  geom_label(data = preg_d, aes(x = xq_d, y = y, label = q), size = 3, lineheight = 0.9,
-             label.padding = unit(0.35, "lines"), color = petroleo) +
-  geom_label(data = preg_d, aes(x = xr_d, y = y, label = r), size = 3.1, lineheight = 0.9, fontface = "bold",
-             fill = "#fbf1df", color = "#5c3d00", label.padding = unit(0.35, "lines")) +
-  # Columna continua
-  geom_segment(data = preg_c[-7, ], aes(x = xq_c, xend = xq_c, y = y - 0.42, yend = y - 0.68),
-               arrow = flecha, color = "grey50") +
-  geom_segment(data = preg_c, aes(x = xq_c + 1.2, xend = xr_c - 0.7, y = y, yend = y),
-               arrow = flecha, color = ambar) +
-  geom_text(data = preg_c, aes(x = (xq_c + xr_c) / 2 + 0.25, y = y + 0.16), label = "Sí", size = 3, color = ambar) +
-  geom_label(data = preg_c, aes(x = xq_c, y = y, label = q), size = 3, lineheight = 0.9,
-             label.padding = unit(0.35, "lines"), color = petroleo) +
-  geom_label(data = preg_c, aes(x = xr_c, y = y, label = r), size = 3.1, lineheight = 0.9, fontface = "bold",
-             fill = "#fbf1df", color = "#5c3d00", label.padding = unit(0.35, "lines")) +
-  annotate("text", x = xq_c + 0.15, y = 0.95, label = "Ninguna: mirar el histograma y\nprobar varias (capítulos 15 y 23)",
-           size = 3, hjust = 0.5, color = "grey30", lineheight = 0.9) +
-  annotate("text", x = xq_d, y = 2.75, label = "Ninguna: revisar los supuestos;\nvarianza > media sugiere\nbinomial negativa",
-           size = 3, color = "grey30", lineheight = 0.9) +
-  coord_cartesian(xlim = c(0.2, 10.2), ylim = c(0.6, 10.3)) +
-  theme_void()
+source("R/diagramas_red.R")
+local({
+  nd <- function(id, x, y, lineas, clase = "c1", w = NULL) list(id = id, x = x, y = y, lineas = lineas, clase = clase, w = w, tam = 14)
+  qd <- list(dg_lineas("¿Número fijo de ensayos n,", "t1", "cada uno éxito o fracaso?", "t1"),
+             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el primer éxito?", "t1"),
+             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el éxito número k?", "t1"),
+             dg_lineas("¿Eventos al azar en un", "t1", "intervalo de tiempo,", "t1", "longitud o área?", "t1"))
+  rd <- list(dg_lineas("Binomial", "t1", "hipergeométrica si es sin", "t2", "reemplazo y n/N > 0.05", "t2"),
+             dg_lineas("Geométrica", "t1"), dg_lineas("Binomial negativa", "t1"), dg_lineas("Poisson", "t1"))
+  qc <- list(dg_lineas("¿Tiempo de espera entre", "t1", "eventos al azar?", "t1"),
+             dg_lineas("¿Vida útil con desgaste", "t1", "o fallas tempranas?", "t1"),
+             dg_lineas("¿Máximo de un año", "t1", "o de un periodo?", "t1"),
+             dg_lineas("¿Proporción entre 0 y 1?", "t1"),
+             dg_lineas("¿Positiva, con cola", "t1", "larga a la derecha?", "t1"),
+             dg_lineas("¿Suma o promedio de", "t1", "muchos efectos; simétrica?", "t1"),
+             dg_lineas("¿Solo se conocen los", "t1", "límites y todo valor es", "t1", "igual de probable?", "t1"))
+  rc <- list(dg_lineas("Exponencial", "t1", "gamma si es hasta", "t2", "el evento número α", "t2"),
+             dg_lineas("Weibull", "t1"), dg_lineas("Gumbel", "t1"), dg_lineas("Beta", "t1"), dg_lineas("Log-normal", "t1"),
+             dg_lineas("Normal", "t1"), dg_lineas("Uniforme", "t1"))
+  y <- 150 + 100 * (0:6)
+  xq <- c(140, 700); xr <- c(405, 965); wq <- 250; wr <- 210
+  nodos <- list(list(id = "raiz", x = 552, y = 42, clase = "c0", tam = 15,
+                     lineas = dg_lineas("¿La variable se cuenta (cuántos) o se mide (cuánto)?", "t0")))
+  aristas <- list()
+  bloque <- function(pref, q, r, col, nota) {
+    for (i in seq_along(q)) {
+      nodos[[length(nodos) + 1]] <<- nd(paste0(pref, "q", i), xq[col], y[i], q[[i]], "c1", wq)
+      nodos[[length(nodos) + 1]] <<- nd(paste0(pref, "r", i), xr[col], y[i], r[[i]], "c3", wr)
+      aristas[[length(aristas) + 1]] <<- list(desde = paste0(pref, "q", i), hasta = paste0(pref, "r", i), estilo = "A",
+                                             etiqueta = "Sí", et_tipo = "texto", et_dy = -11)
+      sig <- if (i < length(q)) paste0(pref, "q", i + 1) else paste0(pref, "n")
+      aristas[[length(aristas) + 1]] <<- list(desde = paste0(pref, "q", i), hasta = sig,
+                                             etiqueta = "No", et_tipo = "texto", et_dx = 16)
+    }
+    nodos[[length(nodos) + 1]] <<- list(id = paste0(pref, "n"), x = xq[col], y = y[length(q)] + 100, clase = "texto", tam = 14, lineas = nota)
+  }
+  bloque("d", qd, rd, 1, dg_lineas("Ninguna: revisar los supuestos;", "t2", "si la varianza supera a la media,", "t2", "probar la binomial negativa", "t2"))
+  bloque("c", qc, rc, 2, dg_lineas("Ninguna: mirar el histograma", "t2", "y comparar varias (capítulos 15 y 23)", "t2"))
+  aristas <- c(list(list(desde = "raiz", hasta = "dq1", ruta = "codo", etiqueta = "Se cuenta: discreta"),
+                    list(desde = "raiz", hasta = "cq1", ruta = "codo", etiqueta = "Se mide: continua")), aristas)
+  dg_red(nodos, aristas, titulo = "Diagrama para elegir la distribución")
+})
 ```
 
 El diagrama es una guía, no un algoritmo infalible. Hay variables que caben en dos casillas: el tiempo hasta la falla de una bomba es un tiempo de espera, pero si la bomba se desgasta corresponde la Weibull y no la exponencial. Por eso, después de elegir, siempre se vuelve a los supuestos de la distribución.
@@ -1040,39 +1026,25 @@ tribble(
 #| fig-cap: "Red de relaciones entre distribuciones."
 #| fig-alt: "Diagrama con discretas a la izquierda y continuas a la derecha; flechas de binomial a Poisson y a normal, de Poisson a normal y una doble flecha entre Poisson y exponencial; de exponencial a gamma; de geométrica a exponencial; de hipergeométrica a binomial; de normal a log-normal"
 #| echo: false
-#| fig-width: 8.5
-#| fig-height: 4.6
 
-petroleo <- "#0f5560"; ambar <- "#a26800"
-nodos_r <- tibble(n = c("Hipergeométrica", "Binomial", "Poisson", "Geométrica",
-                        "Normal", "Log-normal", "Exponencial", "Gamma"),
-                  x = c(0.5, 2.4, 2.4, 0.5, 5.6, 7.6, 5.6, 7.6),
-                  y = c(4, 4, 1.9, 0.5, 4, 4, 1.9, 1.9),
-                  tipo = c(rep("Discreta", 4), rep("Continua", 4)))
-aristas_r <- tribble(
-  ~x, ~y, ~xend, ~yend, ~et, ~tx, ~ty,
-  1.35, 4, 1.85, 4, "n/N ≤ 0.05", 1.6, 4.35,
-  2.4, 3.7, 2.4, 2.2, "n grande,\np pequeña", 1.75, 2.95,
-  2.95, 4, 4.95, 4, "np > 5, n(1 − p) > 5", 3.95, 4.3,
-  2.85, 2.15, 5.1, 3.7, "λ grande", 3.55, 3.1,
-  2.85, 1.9, 4.85, 1.9, "mismo proceso", 3.85, 1.6,
-  6.25, 1.9, 7.05, 1.9, "suma de α", 6.65, 2.2,
-  6.25, 4, 6.95, 4, "exp(·)", 6.6, 4.3,
-  1.05, 0.55, 4.9, 1.75, "tiempo continuo", 3.2, 0.85
-)
-ggplot() +
-  annotate("rect", xmin = -0.3, xmax = 3.3, ymin = 0, ymax = 4.75, fill = "#eef4f5") +
-  annotate("rect", xmin = 4.7, xmax = 8.5, ymin = 0, ymax = 4.75, fill = "#fbf1df") +
-  annotate("text", x = c(1.5, 6.6), y = 4.62, label = c("Discretas", "Continuas"),
-           fontface = "bold", size = 3.8, color = c(petroleo, "#5c3d00")) +
-  geom_segment(data = aristas_r, aes(x = x, y = y, xend = xend, yend = yend),
-               arrow = arrow(length = unit(0.16, "cm"), type = "closed"), color = "grey40") +
-  annotate("segment", x = 4.85, y = 1.9, xend = 2.85, yend = 1.9,
-           arrow = arrow(length = unit(0.16, "cm"), type = "closed"), color = "grey40") +
-  geom_text(data = aristas_r, aes(tx, ty, label = et), size = 2.9, color = "grey25", lineheight = 0.9) +
-  geom_label(data = nodos_r, aes(x, y, label = n), size = 3.4, color = petroleo, label.padding = unit(0.35, "lines")) +
-  coord_cartesian(xlim = c(-0.3, 8.5), ylim = c(0, 4.75)) +
-  theme_void()
+source("R/diagramas_red.R")
+local({
+  n <- function(id, x, y, t) list(id = id, x = x, y = y, lineas = dg_lineas(t, "t1"), clase = "c1")
+  nodos <- list(n("hip", 110, 90, "Hipergeométrica"), n("bin", 370, 90, "Binomial"), n("poi", 370, 290, "Poisson"),
+                n("geo", 110, 420, "Geométrica"), n("nor", 650, 90, "Normal"), n("lgn", 900, 90, "Log-normal"),
+                n("exp", 650, 290, "Exponencial"), n("gam", 900, 290, "Gamma"))
+  aristas <- list(list(desde = "hip", hasta = "bin", etiqueta = "n/N ≤ 0.05"),
+                  list(desde = "bin", hasta = "poi", etiqueta = c("n grande,", "p pequeña")),
+                  list(desde = "bin", hasta = "nor", etiqueta = c("np > 5 y", "n(1 − p) > 5")),
+                  list(desde = "poi", hasta = "nor", etiqueta = "λ grande", et_pos = 0.55),
+                  list(desde = "poi", hasta = "exp", etiqueta = "mismo proceso", doble = TRUE),
+                  list(desde = "exp", hasta = "gam", etiqueta = "suma de α"),
+                  list(desde = "nor", hasta = "lgn", etiqueta = "exp(·)"),
+                  list(desde = "geo", hasta = "exp", etiqueta = "tiempo continuo"))
+  zonas <- list(list(x0 = 12, y0 = 12, x1 = 478, y1 = 468, titulo = "Discretas"),
+                list(x0 = 522, y0 = 12, x1 = 1000, y1 = 468, titulo = "Continuas", clase = "zA"))
+  dg_red(nodos, aristas, zonas, titulo = "Red de relaciones entre distribuciones")
+})
 ```
 
 ### Cómo leer un enunciado: tres casos resueltos

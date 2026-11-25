@@ -123,38 +123,42 @@ $$
 \binom{n}{x} = \frac{n!}{x!\,(n - x)!}
 $$ {#eq-disc-coef-binomial}
 
-La @fig-disc-arbol muestra el razonamiento con un árbol para $n = 3$ ensayos. Cada rama hacia arriba es un éxito (con probabilidad $p$) y cada rama hacia abajo, un fracaso (con probabilidad $1 - p$). Las tres trayectorias que terminan con exactamente dos éxitos tienen la misma probabilidad, $p^2(1 - p)$, porque solo cambia el orden en que ocurren los éxitos. Por eso basta con contar las trayectorias, $\binom{3}{2} = 3$, y multiplicar.
+La @fig-disc-arbol muestra el razonamiento con un árbol para $n = 3$ ensayos. Cada rama hacia arriba es un éxito (E, con probabilidad $p$) y cada rama hacia abajo, un fracaso (F, con probabilidad $1 - p$). Las tres trayectorias que terminan con exactamente dos éxitos tienen la misma probabilidad, $p^2(1 - p)$, porque solo cambia el orden en que ocurren los éxitos. Por eso basta con contar las trayectorias, $\binom{3}{2} = 3$, y multiplicar.
 
 ```{r}
 #| label: fig-disc-arbol
 #| fig-cap: "Árbol de tres ensayos de Bernoulli."
-#| fig-alt: "Árbol binario de tres niveles; al final, ocho trayectorias con 3, 2, 2, 1, 2, 1, 1 y 0 éxitos; las tres con dos éxitos están resaltadas"
+#| fig-alt: "Árbol binario de tres niveles con ramas de éxito E, probabilidad p, en ámbar y de fracaso F, probabilidad 1 − p, en gris; al final, ocho trayectorias con 3, 2, 2, 1, 2, 1, 1 y 0 éxitos; las tres con dos éxitos están resaltadas"
 #| echo: false
-#| fig-width: 7
-#| fig-height: 4.2
 
-nodos <- tibble(id = 1:15, nivel = c(0, rep(1, 2), rep(2, 4), rep(3, 8)),
-                pos = c(0, 1, -1, 1.5, 0.5, -0.5, -1.5, seq(1.75, -1.75, by = -0.5)))
-nodos$exitos <- c(0, 1, 0, 2, 1, 1, 0, 3, 2, 2, 1, 2, 1, 1, 0)
-aristas <- tibble(desde = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7), hasta = 2:15) %>%
-  left_join(nodos, by = c("desde" = "id")) %>%
-  left_join(nodos, by = c("hasta" = "id"), suffix = c("", "_h")) %>%
-  mutate(exito = exitos_h > exitos, etiqueta = ifelse(exito, "p", "1 − p"))
-hojas <- filter(nodos, nivel == 3)
-ggplot() +
-  geom_segment(data = aristas, aes(x = nivel, y = pos, xend = nivel_h, yend = pos_h,
-                                   color = exito), linewidth = 0.9) +
-  geom_text(data = aristas, aes(x = (nivel + nivel_h) / 2, y = (pos + pos_h) / 2 + 0.12,
-                                label = etiqueta), size = 3, color = "grey30") +
-  geom_point(data = nodos, aes(nivel, pos), size = 2.5, color = "grey30") +
-  geom_label(data = hojas, aes(x = 3.25, y = pos, label = paste(exitos, "éxitos"),
-                               fill = exitos == 2), size = 3.2, hjust = 0) +
-  scale_color_manual(values = c(`TRUE` = azul, `FALSE` = naranja), guide = "none") +
-  scale_fill_manual(values = c(`TRUE` = "#cfe2ef", `FALSE` = "white"), guide = "none") +
-  scale_x_continuous(breaks = 1:3, labels = paste("Ensayo", 1:3)) +
-  coord_cartesian(xlim = c(-0.1, 3.9)) +
-  theme_void() +
-  theme(axis.text.x = element_text(size = 10))
+source("R/diagramas_red.R")
+local({
+  yh <- 56 + 44 * (0:7); y2 <- (yh[c(1, 3, 5, 7)] + yh[c(2, 4, 6, 8)]) / 2; y1 <- (y2[c(1, 3)] + y2[c(2, 4)]) / 2; y0 <- mean(y1)
+  xs <- c(24, 170, 330, 490, 660)
+  nodos <- list(list(id = "r", x = xs[1], y = y0, clase = "punto"))
+  aristas <- list()
+  sec <- c("EEE", "EEF", "EFE", "EFF", "FEE", "FEF", "FFE", "FFF")
+  agrega <- function(id, x, y, letra, padre) {
+    nodos[[length(nodos) + 1]] <<- list(id = id, x = x, y = y, lineas = dg_lineas(letra, "t1"), clase = "c1", w = 42, h = 30)
+    exito <- letra == "E"
+    aristas[[length(aristas) + 1]] <<- list(desde = padre, hasta = id, ruta = "curva", flecha = FALSE,
+                                           estilo = if (exito) "A" else "normal", etiqueta = if (exito) "p" else "1 − p", et_pos = 0.62)
+  }
+  for (i in 1:2) agrega(paste0("a", i), xs[2], y1[i], c("E", "F")[i], "r")
+  for (j in 1:4) agrega(paste0("b", j), xs[3], y2[j], c("E", "F")[(j - 1) %% 2 + 1], paste0("a", (j - 1) %/% 2 + 1))
+  for (k in 1:8) {
+    agrega(paste0("c", k), xs[4], yh[k], c("E", "F")[(k - 1) %% 2 + 1], paste0("b", (k - 1) %/% 2 + 1))
+    ex <- lengths(regmatches(sec[k], gregexpr("E", sec[k])))
+    nodos[[length(nodos) + 1]] <- list(id = paste0("h", k), x = xs[5], y = yh[k], w = 190, h = 32,
+                                       clase = if (ex == 2) "c3" else "c2",
+                                       lineas = dg_lineas(paste0(paste(strsplit(sec[k], "")[[1]], collapse = " "), ": ", ex,
+                                                         if (ex == 1) " éxito" else " éxitos"), if (ex == 2) "t1" else "t2"))
+    aristas[[length(aristas) + 1]] <- list(desde = paste0("c", k), hasta = paste0("h", k), estilo = "suave", flecha = FALSE)
+  }
+  for (i in 1:3) nodos[[length(nodos) + 1]] <- list(id = paste0("e", i), x = xs[i + 1], y = 18, clase = "texto", lineas = dg_lineas(paste("Ensayo", i), "enc"))
+  nodos[[length(nodos) + 1]] <- list(id = "e4", x = xs[5], y = 18, clase = "texto", lineas = dg_lineas("Trayectoria", "enc"))
+  dg_red(nodos, aristas, titulo = "Árbol de tres ensayos de Bernoulli")
+})
 ```
 
 Al multiplicar el número de secuencias por la probabilidad de cada una se obtiene la función de probabilidad binomial [@illowsky2018introductory, cap. 4]:
@@ -1010,28 +1014,19 @@ Las distribuciones del capítulo no son independientes entre sí: unas salen de 
 #| fig-cap: "Relaciones entre las distribuciones discretas."
 #| fig-alt: "Diagrama de cajas y flechas: Bernoulli lleva a binomial y a geométrica; geométrica a binomial negativa; hipergeométrica a binomial; binomial a Poisson"
 #| echo: false
-#| fig-width: 7.5
-#| fig-height: 3.8
 
-cajas <- tibble(nombre = c("Bernoulli", "Binomial", "Geométrica", "Binomial negativa",
-                           "Hipergeométrica", "Poisson"),
-                x = c(2, 4, 2, 2, 6, 6), y = c(3, 3, 1.7, 0.4, 3, 1.4))
-flechas <- tribble(
-  ~x, ~y, ~xend, ~yend, ~texto, ~tx, ~ty,
-  2.6, 3, 3.45, 3, "suma de n\nensayos", 3.02, 3.42,
-  2, 2.75, 2, 1.95, "espera hasta\nel 1.er éxito", 1.25, 2.35,
-  2, 1.45, 2, 0.65, "suma de k\ngeométricas", 1.25, 1.05,
-  5.25, 3, 4.55, 3, "N grande,\nn/N ≤ 0.05", 4.9, 3.42,
-  4.35, 2.75, 5.45, 1.6, "n grande,\np pequeña", 5.25, 2.35
-)
-ggplot() +
-  geom_segment(data = flechas, aes(x = x, y = y, xend = xend, yend = yend),
-               arrow = arrow(length = unit(0.22, "cm"), type = "closed"), color = "grey40") +
-  geom_text(data = flechas, aes(tx, ty, label = texto), size = 3, color = "grey25", lineheight = 0.9) +
-  geom_label(data = cajas, aes(x, y, label = nombre), size = 3.8, fill = "#e3eef6",
-             label.padding = unit(0.35, "lines")) +
-  coord_cartesian(xlim = c(0.6, 7), ylim = c(0, 3.7)) +
-  theme_void()
+source("R/diagramas_red.R")
+local({
+  n <- function(id, x, y, t) list(id = id, x = x, y = y, lineas = dg_lineas(t, "t1"), clase = "c1")
+  nodos <- list(n("ber", 115, 50, "Bernoulli"), n("bin", 420, 50, "Binomial"), n("geo", 115, 220, "Geométrica"),
+                n("bng", 115, 390, "Binomial negativa"), n("hip", 740, 50, "Hipergeométrica"), n("poi", 740, 270, "Poisson"))
+  aristas <- list(list(desde = "ber", hasta = "bin", etiqueta = c("suma de n", "ensayos")),
+                  list(desde = "ber", hasta = "geo", etiqueta = c("espera hasta", "el 1.er éxito")),
+                  list(desde = "geo", hasta = "bng", etiqueta = c("suma de k", "geométricas")),
+                  list(desde = "hip", hasta = "bin", etiqueta = c("N grande,", "n/N ≤ 0.05")),
+                  list(desde = "bin", hasta = "poi", etiqueta = c("n grande,", "p pequeña")))
+  dg_red(nodos, aristas, titulo = "Relaciones entre las distribuciones discretas")
+})
 ```
 
 ## Errores comunes con las distribuciones discretas {#sec-disc-errores}

@@ -66,24 +66,25 @@ La @fig-va-funcion dibuja la regla como un conjunto de flechas. Cada resultado d
 #| fig-cap: "La variable aleatoria como regla."
 #| fig-alt: "A la izquierda, los ocho resultados de lanzar tres monedas; a la derecha, los números 0, 1, 2 y 3; flechas unen cada resultado con su número de escudos"
 #| echo: false
-#| fig-width: 6.5
-#| fig-height: 4
 
-res_m <- c("CCC", "CCE", "CEC", "ECC", "CEE", "ECE", "EEC", "EEE")
-x_m <- c(0, 1, 1, 1, 2, 2, 2, 3)
-flechas <- tibble(res = res_m, x = x_m, y0 = 8:1, y1 = 7.5 - x_m * 2)
-ggplot(flechas) +
-  geom_segment(aes(x = 0.35, xend = 2.55, y = y0, yend = y1),
-               arrow = arrow(length = unit(0.18, "cm"), type = "closed"),
-               color = "grey55", linewidth = 0.5) +
-  geom_label(aes(x = 0, y = y0, label = res), size = 3.6, label.size = 0.3) +
-  geom_point(data = tibble(x = 0:3), aes(x = 2.75, y = 7.5 - x * 2), size = 4, color = azul) +
-  geom_text(data = tibble(x = 0:3), aes(x = 3.05, y = 7.5 - x * 2, label = x), size = 4.5) +
-  annotate("text", x = 0, y = 9, label = "Espacio muestral Ω", fontface = "bold", size = 4) +
-  annotate("text", x = 2.9, y = 9, label = "Valor de X", fontface = "bold", size = 4) +
-  annotate("segment", x = 2.75, xend = 2.75, y = 0.5, yend = 8, color = "grey40") +
-  coord_cartesian(xlim = c(-0.4, 3.4), ylim = c(0.5, 9.3)) +
-  theme_void()
+source("R/diagramas_red.R")
+local({
+  res <- c("CCC", "CCE", "CEC", "ECC", "CEE", "ECE", "EEC", "EEE"); xv <- c(0, 1, 1, 1, 2, 2, 2, 3)
+  yo <- 64 + 44 * (0:7); yv <- 64 + (0:3) * (44 * 7 / 3)
+  nodos <- list(); aristas <- list()
+  for (i in 1:8) {
+    nodos[[length(nodos) + 1]] <- list(id = paste0("o", i), x = 70, y = yo[i], w = 84, h = 32, clase = "c1", lineas = dg_lineas(res[i], "t1"))
+    aristas[[length(aristas) + 1]] <- list(desde = paste0("o", i), hasta = paste0("v", xv[i]))
+  }
+  for (v in 0:3) {
+    nodos[[length(nodos) + 1]] <- list(id = paste0("v", v), x = 420, y = yv[v + 1], clase = "punto")
+    nodos[[length(nodos) + 1]] <- list(id = paste0("t", v), x = 450, y = yv[v + 1], clase = "texto", tam = 17, lineas = dg_lineas(as.character(v), "t1"))
+  }
+  nodos[[length(nodos) + 1]] <- list(id = "e1", x = 70, y = 20, clase = "texto", lineas = dg_lineas("Espacio muestral Ω", "enc"))
+  nodos[[length(nodos) + 1]] <- list(id = "e2", x = 432, y = 20, clase = "texto", lineas = dg_lineas("Valor de X", "enc"))
+  eje <- '<path class="lnS" d="M420,44V384"/>'
+  dg_red(nodos, aristas, extra = eje, titulo = "La variable aleatoria como regla")
+})
 ```
 
 Una analogía útil es la de un instrumento de medición. El experimento (lanzar las monedas, ensayar una probeta, observar el tránsito durante una hora) produce un resultado que puede ser complejo. La variable aleatoria es el instrumento que lee ese resultado y entrega un número. Del mismo experimento se pueden leer varios números distintos, igual que de una probeta se leen la carga máxima, la deformación y el tipo de falla. Cada lectura es una variable aleatoria diferente, con su propia distribución.
