@@ -30,35 +30,20 @@ Resolver un problema de ingeniería sigue casi siempre los mismos pasos: describ
 #| label: fig-est-metodo
 #| fig-cap: "Pasos del método de la ingeniería. Fuente: con base en @montgomery2014applied."
 #| fig-alt: "Siete cajas unidas por flechas de izquierda a derecha: describir el problema, identificar los factores, proponer o ajustar el modelo, hacer experimentos, manipular el modelo, confirmar la solución y concluir; las cajas de factores, modelo y experimentos están dentro de un recuadro discontinuo, con flechas de regreso que forman un ciclo"
-#| fig-width: 9
-#| fig-height: 2.4
-#| out-width: "95%"
 #| echo: false
 
 library(ggplot2)
-cajas <- data.frame(
-  x = c(1, 2.7, 4.4, 6.1, 7.9, 9.6, 11.3),
-  y = 0,
-  texto = c("Describir\nel problema", "Identificar\nlos factores", "Proponer o\najustar el modelo",
-            "Hacer\nexperimentos", "Manipular\nel modelo", "Confirmar\nla solución",
-            "Conclusiones y\nrecomendaciones")
-)
-ida <- data.frame(x = c(1.7, 3.4, 5.1, 6.85, 8.6, 10.3),
-                  xend = c(2.0, 3.7, 5.4, 7.2, 8.9, 10.6))
-ggplot() +
-  annotate("rect", xmin = 1.9, xmax = 6.9, ymin = -0.55, ymax = 0.95,
-           fill = NA, color = "grey50", linetype = "dashed") +
-  geom_tile(data = cajas, aes(x, y), width = 1.4, height = 0.7,
-            fill = "#1C6BA0", alpha = 0.12, color = "#1C6BA0") +
-  geom_text(data = cajas, aes(x, y, label = texto), size = 2.9, lineheight = 0.9) +
-  geom_segment(data = ida, aes(x = x, xend = xend, y = 0, yend = 0),
-               arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
-  annotate("curve", x = 6.1, xend = 4.4, y = 0.38, yend = 0.38, curvature = 0.45,
-           arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
-  annotate("curve", x = 4.4, xend = 2.7, y = 0.38, yend = 0.38, curvature = 0.45,
-           arrow = arrow(length = unit(0.15, "cm")), color = "grey30") +
-  coord_cartesian(xlim = c(0.2, 12.1), ylim = c(-0.6, 1.1)) +
-  theme_void()
+source("R/diagramas.R")
+dg_flujo(
+  list(list(c("Describir", "t1"), c("el problema", "t1")),
+       list(c("Identificar", "t1"), c("los factores", "t1")),
+       list(c("Proponer o", "t1"), c("ajustar el modelo", "t1")),
+       list(c("Hacer", "t1"), c("experimentos", "t1")),
+       list(c("Manipular", "t1"), c("el modelo", "t1")),
+       list(c("Confirmar", "t1"), c("la solución", "t1")),
+       list(c("Conclusiones y", "t1"), c("recomendaciones", "t1"))),
+  grupo = c(2, 4), regreso = list(c(4, 3), c(3, 2)), por_fila = 4,
+  titulo = "Pasos del método de la ingeniería")
 ```
 
 Un ejemplo concreto: para diseñar el puente de una ruta nacional se necesita el caudal que el río alcanza, en promedio, una vez cada 100 años. Primero se describe el problema (la obra y su vida útil) y se identifican los factores (lluvia, área y forma de la cuenca, uso del suelo). Luego se propone un modelo de la lluvia máxima anual y se compara con los registros de una estación. Al final se calcula el caudal de diseño y se verifica que la solución sea razonable. La estadística aparece en casi todos esos pasos.
@@ -288,29 +273,18 @@ Antes de hacer un cuadro, un gráfico o un cálculo hay que saber de qué tipo e
 #| label: fig-est-tipos
 #| fig-cap: "Clasificación de las variables."
 #| fig-alt: "Diagrama de árbol: las variables se dividen en cualitativas y cuantitativas; las cualitativas en nominales y ordinales, y las cuantitativas en discretas y continuas, cada una con un ejemplo"
-#| fig-width: 9
-#| fig-height: 3.6
-#| out-width: "85%"
 #| echo: false
 
-nodos <- data.frame(
-  x = c(5, 2.5, 7.5, 1.25, 3.75, 6.25, 8.75),
-  y = c(3, 2, 2, 0.8, 0.8, 0.8, 0.8),
-  texto = c("Variable", "Cualitativa\n(categórica)", "Cuantitativa\n(numérica)",
-            "Nominal\nmaterial del puente", "Ordinal\nestado: bueno, regular, malo",
-            "Discreta\nnúmero de carriles", "Continua\nlongitud (m)"),
-  nivel = c(1, 2, 2, 3, 3, 3, 3)
-)
-aristas <- data.frame(x = c(5, 5, 2.5, 2.5, 7.5, 7.5), y = c(2.75, 2.75, 1.75, 1.75, 1.75, 1.75),
-                      xend = c(2.5, 7.5, 1.25, 3.75, 6.25, 8.75), yend = c(2.3, 2.3, 1.15, 1.15, 1.15, 1.15))
-ggplot() +
-  geom_segment(data = aristas, aes(x = x, y = y, xend = xend, yend = yend), color = "grey40") +
-  geom_tile(data = nodos, aes(x, y, alpha = factor(nivel)), width = 2.2, height = 0.6,
-            fill = "#1C6BA0", color = "#1C6BA0") +
-  geom_text(data = nodos, aes(x, y, label = texto), size = 3.8, lineheight = 0.9) +
-  scale_alpha_manual(values = c(0.35, 0.2, 0.08), guide = "none") +
-  coord_cartesian(xlim = c(0, 10), ylim = c(0.4, 3.3)) +
-  theme_void()
+dg_jerarquia(
+  raiz = list(c("Variable", "t0")),
+  ramas = list(
+    list(caja = list(c("Cualitativa", "t1"), c("(categórica)", "t2")),
+         hojas = list(list(c("Nominal", "t1"), c("material del puente", "te")),
+                      list(c("Ordinal", "t1"), c("estado: bueno, regular, malo", "te")))),
+    list(caja = list(c("Cuantitativa", "t1"), c("(numérica)", "t2")),
+         hojas = list(list(c("Discreta", "t1"), c("número de carriles", "te")),
+                      list(c("Continua", "t1"), c("longitud (m)", "te"))))),
+  titulo = "Clasificación de las variables")
 ```
 
 ### Variables cualitativas

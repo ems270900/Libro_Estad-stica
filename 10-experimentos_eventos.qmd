@@ -96,53 +96,24 @@ Como los eventos son conjuntos, se combinan con las operaciones de la teoría de
 - **Eventos mutuamente excluyentes o disjuntos.** $A$ y $B$ son mutuamente excluyentes si no tienen resultados en común, es decir, si $A \cap B = \emptyset$. No pueden ocurrir al mismo tiempo.
 - **Inclusión** $A \subset B$ (se lee "$A$ está contenido en $B$"). Todo resultado de $A$ es también de $B$: si ocurre $A$, ocurre $B$.
 
-La @fig-eventos-venn muestra en azul la región que corresponde a cada operación.
+La @fig-eventos-venn colorea la región que corresponde a cada operación.
 
 ```{r}
 #| label: fig-eventos-venn
-#| fig-cap: "Operaciones con dos eventos en un diagrama de Venn. La región azul es el resultado de cada operación."
+#| fig-cap: "Operaciones con dos eventos. La región coloreada es el resultado de cada operación."
 #| fig-alt: "Seis diagramas de Venn con dos círculos A y B dentro de un rectángulo S; en cada uno se colorea la unión, la intersección, el complemento de A, la diferencia A menos B, la diferencia B menos A y el complemento de la unión"
 #| echo: false
-#| fig-width: 9
-#| fig-height: 5
-#| out-width: "90%"
 
 library(ggplot2)
-rejilla <- expand.grid(x = seq(-2.3, 2.3, length.out = 230),
-                       y = seq(-1.45, 1.45, length.out = 150))
-en_a <- (rejilla$x + 0.6)^2 + rejilla$y^2 <= 1
-en_b <- (rejilla$x - 0.6)^2 + rejilla$y^2 <= 1
-operaciones <- list(
-  "A ∪ B  (unión)" = en_a | en_b,
-  "A ∩ B  (intersección)" = en_a & en_b,
-  "Aᶜ  (complemento de A)" = !en_a,
-  "A − B  (diferencia)" = en_a & !en_b,
-  "B − A  (diferencia)" = en_b & !en_a,
-  "(A ∪ B)ᶜ  (ninguno)" = !(en_a | en_b)
-)
-regiones <- do.call(rbind, lapply(names(operaciones), function(nom) {
-  d <- rejilla[operaciones[[nom]], ]
-  d$panel <- nom
-  d
-}))
-regiones$panel <- factor(regiones$panel, levels = names(operaciones))
-angulo <- seq(0, 2 * pi, length.out = 200)
-circulos <- rbind(
-  data.frame(x = -0.6 + cos(angulo), y = sin(angulo), circulo = "A"),
-  data.frame(x = 0.6 + cos(angulo), y = sin(angulo), circulo = "B")
-)
-ggplot() +
-  geom_raster(data = regiones, aes(x, y), fill = "#1C6BA0", alpha = 0.75) +
-  annotate("rect", xmin = -2.3, xmax = 2.3, ymin = -1.45, ymax = 1.45,
-           fill = NA, color = "grey30") +
-  geom_path(data = circulos, aes(x, y, group = circulo), color = "grey15", linewidth = 0.7) +
-  geom_text(data = data.frame(x = c(-1.15, 1.15, 2.05), y = c(0.95, 0.95, -1.2),
-                              rotulo = c("A", "B", "S")),
-            aes(x, y, label = rotulo), size = 5, fontface = "italic") +
-  facet_wrap(~panel, ncol = 3) +
-  coord_equal() +
-  theme_void(base_size = 15) +
-  theme(strip.text = element_text(margin = margin(4, 0, 4, 0)))
+source("R/diagramas.R")
+dg_venn(list(
+  list(titulo = "A ∪ B  (unión)", region = "AuB"),
+  list(titulo = "A ∩ B  (intersección)", region = "AnB"),
+  list(titulo = "Aᶜ  (complemento de A)", region = "Ac"),
+  list(titulo = "A − B  (diferencia)", region = "A-B"),
+  list(titulo = "B − A  (diferencia)", region = "B-A"),
+  list(titulo = "(A ∪ B)ᶜ  (ninguno)", region = "ninguno")),
+  ncol = 3, titulo = "Operaciones con dos eventos en diagramas de Venn")
 ```
 
 ::: {.callout-note title="Ejemplo: operaciones con eventos al lanzar un dado"}

@@ -10,30 +10,14 @@ El capítulo sigue a @bertsekas2008introduction [secs. 1.3 a 1.5], @illowsky2018
 
 ```{r}
 #| echo: false
-# Función auxiliar (oculta) para dibujar árboles de probabilidad de dos niveles
+# Funciones auxiliares (ocultas) para los diagramas del capítulo
 library(ggplot2)
-arbol <- function(nivel1, p1, nivel2, p2, unir = " y ") {
+source("R/diagramas.R")
+arbol <- function(nivel1, p1, nivel2, p2, unir = " y ", et_p2 = format(as.vector(t(p2)))) {
   # nivel1: nombres de las ramas del primer nivel; p1: sus probabilidades
   # nivel2: nombres de las ramas del segundo nivel; p2: matriz de probabilidades
-  #         condicionales, una fila por rama del primer nivel
-  k1 <- length(nivel1); k2 <- length(nivel2)
-  y2 <- rev(seq_len(k1 * k2)); y1 <- sapply(seq_len(k1), function(i) mean(y2[(i - 1) * k2 + 1:k2]))
-  r1 <- data.frame(x = 1, y = y1, et = nivel1, p = p1, y0 = mean(y2))
-  r2 <- data.frame(x = 2, y = y2, et = rep(nivel2, k1), p = as.vector(t(p2)),
-                   padre = rep(y1, each = k2), p_padre = rep(p1, each = k2),
-                   et_padre = rep(nivel1, each = k2))
-  r2$conjunta <- sprintf("%s%s%s:  %.3f", r2$et_padre, unir, r2$et, r2$p_padre * r2$p)
-  ggplot() +
-    geom_segment(data = r1, aes(x = 0, y = y0, xend = x, yend = y), color = "#1C6BA0", linewidth = 0.8) +
-    geom_segment(data = r2, aes(x = 1, y = padre, xend = x, yend = y), color = "#1C6BA0", linewidth = 0.8) +
-    geom_label(data = r1, aes(x = 0.5, y = (y0 + y) / 2, label = format(p)), size = 4, label.size = 0, fill = "white") +
-    geom_label(data = r2, aes(x = 1.5, y = (padre + y) / 2, label = format(p)), size = 4, label.size = 0, fill = "white") +
-    geom_point(aes(x = 0, y = mean(y2)), size = 3) +
-    geom_label(data = r1, aes(x, y, label = et), size = 4.5) +
-    geom_label(data = r2, aes(x, y, label = et), size = 4.5) +
-    geom_text(data = r2, aes(x = 2.3, y = y, label = conjunta), hjust = 0, size = 4.3) +
-    xlim(-0.1, 3.6) +
-    theme_void()
+  #         condicionales, una fila por rama del primer nivel; et_p2: cómo rotularlas
+  dg_arbol_prob(nivel1, p1, nivel2, p2, unir = unir, et_p2 = et_p2)
 }
 ```
 
@@ -60,39 +44,12 @@ La @fig-condicional-venn muestra la idea en un diagrama de Venn. A la izquierda,
 #| fig-cap: "Al condicionar en B, el círculo B pasa a ser el nuevo espacio muestral."
 #| fig-alt: "Dos diagramas de Venn. En el izquierdo se colorea el círculo A dentro del rectángulo S. En el derecho solo queda el círculo B en gris claro y se colorea la intersección de A y B."
 #| echo: false
-#| fig-width: 8
-#| fig-height: 3.4
-#| out-width: "85%"
 
-rejilla <- expand.grid(x = seq(-2.3, 2.3, length.out = 230), y = seq(-1.45, 1.45, length.out = 150))
-en_a <- (rejilla$x + 0.6)^2 + rejilla$y^2 <= 1
-en_b <- (rejilla$x - 0.6)^2 + rejilla$y^2 <= 1
-paneles <- c("Sin información: P(A)", "Sabiendo que ocurrió B: P(A | B)")
-fondo <- rbind(data.frame(rejilla[en_a, ], panel = paneles[1], tono = "a"),
-               data.frame(rejilla[en_b & !en_a, ], panel = paneles[2], tono = "b"),
-               data.frame(rejilla[en_a & en_b, ], panel = paneles[2], tono = "a"))
-fondo$panel <- factor(fondo$panel, levels = paneles)
-ang <- seq(0, 2 * pi, length.out = 200)
-circ <- rbind(data.frame(x = -0.6 + cos(ang), y = sin(ang), c = "A", panel = paneles[1]),
-              data.frame(x = 0.6 + cos(ang), y = sin(ang), c = "B", panel = paneles[1]),
-              data.frame(x = 0.6 + cos(ang), y = sin(ang), c = "B", panel = paneles[2]),
-              data.frame(x = -0.6 + cos(ang), y = sin(ang), c = "A", panel = paneles[2]))
-circ$panel <- factor(circ$panel, levels = paneles)
-circ$tipo <- ifelse(circ$panel == paneles[2] & circ$c == "A", "punteado", "continuo")
-rot <- data.frame(x = c(-1.15, 1.15, 2.05, 1.15, -1.15), y = c(0.95, 0.95, -1.2, 0.95, 0.95),
-                  r = c("A", "B", "S", "B", "A"), panel = factor(paneles[c(1, 1, 1, 2, 2)], levels = paneles))
-marco <- data.frame(panel = factor(paneles[1], levels = paneles))
-ggplot() +
-  geom_raster(data = fondo, aes(x, y, fill = tono), alpha = 0.8) +
-  scale_fill_manual(values = c(a = "#1C6BA0", b = "#d9e4ee"), guide = "none") +
-  geom_rect(data = marco, aes(xmin = -2.3, xmax = 2.3, ymin = -1.45, ymax = 1.45), fill = NA, color = "grey30") +
-  geom_path(data = circ, aes(x, y, group = c, linetype = tipo), color = "grey15", linewidth = 0.7) +
-  scale_linetype_manual(values = c(continuo = "solid", punteado = "dashed"), guide = "none") +
-  geom_text(data = rot, aes(x, y, label = r), size = 5, fontface = "italic") +
-  facet_wrap(~panel) +
-  coord_equal() +
-  theme_void(base_size = 14) +
-  theme(strip.text = element_text(margin = margin(4, 0, 6, 0)))
+dg_venn(list(
+  list(titulo = "Sin información: P(A)", region = "A"),
+  list(titulo = "Sabiendo que ocurrió B: P(A | B)", region = "AnB", secundaria = "B",
+       punteado = "A", marco = FALSE)),
+  titulo = "Probabilidad condicional en un diagrama de Venn")
 ```
 
 ::: {.callout-warning title="Cuidado"}
@@ -258,15 +215,14 @@ La @fig-condicional-arbol-vigas resume el cálculo. La probabilidad de cada cami
 
 ```{r}
 #| label: fig-condicional-arbol-vigas
-#| fig-cap: "Árbol de probabilidad para dos vigas escogidas sin reemplazo de un lote con 3 defectuosas y 7 buenas."
+#| fig-cap: "Árbol de probabilidad para dos vigas escogidas sin reemplazo."
 #| fig-alt: "Árbol con dos ramas iniciales, D con 0.3 y B con 0.7; de D salen D con 2/9 y B con 7/9; de B salen D con 3/9 y B con 6/9; a la derecha las probabilidades de los cuatro caminos"
 #| echo: false
-#| fig-width: 8
-#| fig-height: 3.8
 
 arbol(nivel1 = c("D1", "B1"), p1 = c(0.3, 0.7),
       nivel2 = c("D2", "B2"),
-      p2 = matrix(c(2/9, 7/9, 3/9, 6/9), nrow = 2, byrow = TRUE) %>% round(3))
+      p2 = matrix(c(2/9, 7/9, 3/9, 6/9), nrow = 2, byrow = TRUE),
+      et_p2 = c("2/9", "7/9", "3/9", "6/9"))
 ```
 
 **Pseudocódigo**
@@ -423,11 +379,9 @@ La @fig-condicional-arbol-plantas muestra el árbol. Los caminos que terminan en
 
 ```{r}
 #| label: fig-condicional-arbol-plantas
-#| fig-cap: "Árbol de probabilidad para el origen de una carga de concreto y su cumplimiento de la especificación."
+#| fig-cap: "Árbol de probabilidad del origen y el cumplimiento de una carga de concreto."
 #| fig-alt: "Árbol con tres ramas iniciales, planta 1 con 0.45, planta 2 con 0.35 y planta 3 con 0.20; de cada una salen las ramas F, fuera de especificación, y C, conforme; a la derecha las probabilidades de los seis caminos"
 #| echo: false
-#| fig-width: 8
-#| fig-height: 4.6
 
 arbol(nivel1 = c("A1", "A2", "A3"), p1 = c(0.45, 0.35, 0.20),
       nivel2 = c("F", "C"),

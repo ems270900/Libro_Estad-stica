@@ -80,3 +80,7 @@
 
 - Inventario y plan en `revision/inventario_ramas.md`. Parte VII lista (prueba de jarras en los capítulos 28 y 29). Parte VI lista (Greenshields en los capítulos 24, 25 y 27; el ejercicio 10 del capítulo 25 conserva las diez mezclas a/c con los datos escritos). Faltan las Partes V y I a IV.
 - La prueba de jarras usa dosis "recomendadas por el proveedor" sin dar valores en mg/L; si el autor quiere dosis típicas, hay que citarlas de un manual de potabilización.
+
+## Diagramas (2026-11-25)
+
+- Todos los diagramas (árboles, flujos, Venn y esquemas) usan `R/diagramas.R`: SVG dentro de la página, petróleo y ámbar, con modo oscuro. Los diagramas nuevos de cualquier capítulo deben usar esas funciones (`dg_jerarquia`, `dg_flujo`, `dg_arbol`, `dg_arbol_prob`, `dg_venn`, `dg_paneles`) para mantener el estilo común.
