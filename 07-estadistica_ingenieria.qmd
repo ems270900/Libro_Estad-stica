@@ -18,11 +18,11 @@ La respuesta corta es no. El promedio describe a los doce cilindros, pero la los
 
 ### Por qué varían los datos {#sec-est-variabilidad}
 
-Si se mide diez veces la misma cosa, casi nunca se obtiene diez veces el mismo número. La @fig-est-variabilidad lo muestra con cuatro magnitudes de ramas distintas de la ingeniería civil: el tiempo que tarda un bus en recorrer la misma ruta, el asentamiento de zapatas iguales sobre el mismo terreno, la demanda bioquímica de oxígeno (DBO) del efluente de una planta de tratamiento y el caudal de una quebrada medido a la misma hora. En las cuatro, los puntos forman una nube y no una sola marca.
+Si se mide diez veces la misma cosa, casi nunca se obtiene diez veces el mismo número. La @fig-est-variabilidad lo muestra con cuatro magnitudes de ramas distintas de la ingeniería civil. Son el tiempo que tarda un bus en recorrer la misma ruta, el asentamiento de zapatas iguales sobre el mismo terreno, la demanda bioquímica de oxígeno (DBO) del efluente de una planta de tratamiento y el caudal de una quebrada medido a la misma hora. En las cuatro, los puntos forman una nube y no una sola marca.
 
 ```{r}
 #| label: fig-est-variabilidad
-#| fig-cap: "Treinta mediciones repetidas de cuatro magnitudes de la ingeniería civil (datos hipotéticos)."
+#| fig-cap: "Mediciones repetidas de cuatro magnitudes (datos hipotéticos)."
 #| fig-alt: "Cuatro paneles con treinta puntos cada uno sobre una recta horizontal: tiempo de viaje en bus entre 39 y 57 minutos con una cola hacia los valores altos, asentamiento de zapatas entre 13 y 27 mm, DBO del efluente entre 16 y 35 mg/L y caudal de una quebrada entre 1.4 y 3.0 metros cúbicos por segundo; en cada panel una línea vertical marca el promedio"
 #| fig-width: 9
 #| fig-height: 3.6
@@ -65,11 +65,11 @@ La estadística descriptiva resume los datos que se tienen con cuadros, gráfico
 
 En el ejemplo de la losa, decir que los doce cilindros promedian 31 MPa y que el más débil dio 23.7 MPa es descriptivo. Decir que, con 95 % de confianza, la resistencia media del concreto de la losa está entre 28.6 y 33.3 MPa es inferencial. La Parte II de este libro trata la estadística descriptiva. La probabilidad (partes III y IV) es el puente que lleva a la inferencia (partes V a VII).
 
-La @fig-est-inferencia resume el recorrido completo. De la población se toma una muestra; con la muestra se calculan estadísticos (la parte descriptiva); y con los estadísticos, más un modelo de probabilidad, se vuelve a la población para decir algo de sus parámetros, con un margen de error (la parte inferencial). La flecha de regreso es la que necesita la probabilidad: sin ella no se puede decir cuánto puede equivocarse una muestra.
+La @fig-est-inferencia resume el recorrido completo. De la población se toma una muestra, y con la muestra se calculan estadísticos (la parte descriptiva). Con los estadísticos, más un modelo de probabilidad, se vuelve a la población para decir algo de sus parámetros, con un margen de error (la parte inferencial). La flecha de regreso es la que necesita la probabilidad: sin ella no se puede decir cuánto puede equivocarse una muestra.
 
 ```{r}
 #| label: fig-est-inferencia
-#| fig-cap: "Relación entre población, muestra, estadística descriptiva e inferencia."
+#| fig-cap: "Población, muestra e inferencia."
 #| fig-alt: "A la izquierda, un óvalo grande llamado población con muchos puntos grises y el parámetro mu; a la derecha, un óvalo pequeño llamado muestra con pocos puntos azules y el estadístico x barra; una flecha superior va de la población a la muestra con el rótulo muestreo; una flecha inferior regresa de la muestra a la población con el rótulo inferencia, con probabilidad; debajo de la muestra se lee estadística descriptiva"
 #| fig-width: 9
 #| fig-height: 3.8
@@ -210,7 +210,7 @@ Los datos se ordenan casi siempre en un cuadro con una fila por unidad y una col
 
 ```{r}
 #| label: fig-est-matriz
-#| fig-cap: "Datos ordenados: una fila por unidad estadística y una columna por variable."
+#| fig-cap: "Estructura de los datos ordenados."
 #| fig-alt: "Cuadrícula de cinco filas y cuatro columnas; la fila de arriba tiene los nombres de las variables material, estado, carriles y longitud; cada fila siguiente es un puente; una fila está resaltada con el rótulo unidad estadística, una columna con el rótulo variable y una celda con el rótulo observación"
 #| fig-width: 9
 #| fig-height: 3.4
@@ -484,11 +484,11 @@ En la @fig-est-int-metodos hay 48 alcantarillas hipotéticas de una red vial, re
 </script>
 ```
 
-Cuatro métodos para elegir 8 de 48 alcantarillas hipotéticas. Elija el método y pulse el botón para sortear.
+Cuatro métodos de muestreo sobre 48 alcantarillas hipotéticas.
 
 :::
 
-Con el muestreo aleatorio simple, las alcantarillas de bóveda (8 de 48) no aparecen en una de cada cinco muestras, más o menos: la probabilidad de que ninguna quede entre las 8 sorteadas es $\binom{40}{8} / \binom{48}{8} = 0.204$ (el capítulo 11 explica este cálculo). El estratificado garantiza al menos una de cada tipo. El de conglomerados es el más barato, porque solo se visita un distrito, pero su resultado depende mucho de qué distrito salió: en el distrito 1 no hay ninguna de bóveda y en los distritos 3, 5 y 6 hay dos.
+Con el muestreo aleatorio simple, las alcantarillas de bóveda (8 de 48) no aparecen en una de cada cinco muestras, más o menos. La probabilidad de que ninguna quede entre las 8 sorteadas es $\binom{40}{8} / \binom{48}{8} = 0.204$ (el capítulo 11 explica este cálculo). El estratificado garantiza al menos una de cada tipo. El de conglomerados es el más barato, porque solo se visita un distrito. Pero su resultado depende mucho de qué distrito salió: en el distrito 1 no hay ninguna de bóveda y en los distritos 3, 5 y 6 hay dos.
 
 ::: {.callout-warning title="Cuidado"}
 Una muestra de conveniencia, formada con lo que está más a mano, no representa a la población. Inspeccionar solo los puentes junto a la carretera principal, o tomar cilindros solo del primer camión de la mañana, deja fuera justo las unidades que podrían comportarse distinto. A ese error sistemático se le llama sesgo, y tomar más datos del mismo modo no lo corrige.
@@ -500,7 +500,7 @@ La analogía del tiro al blanco separa dos defectos que se confunden a menudo. E
 
 ```{r}
 #| label: fig-est-diana
-#| fig-cap: "Sesgo y precisión con la analogía del tiro al blanco."
+#| fig-cap: "Sesgo y precisión."
 #| fig-alt: "Cuatro dianas en una cuadrícula de dos por dos; arriba a la izquierda, disparos agrupados en el centro (sin sesgo y preciso); arriba a la derecha, disparos agrupados lejos del centro (con sesgo y preciso); abajo a la izquierda, disparos dispersos alrededor del centro (sin sesgo e impreciso); abajo a la derecha, disparos dispersos y corridos (con sesgo e impreciso)"
 #| fig-width: 7
 #| fig-height: 6.4
@@ -633,7 +633,7 @@ nucleos <- tibble(nucleo = 1:n_nucleos, posicion_m = posicion_m) %>%
 nucleos
 ```
 
-**Interpretación.** Con la semilla 2026 el arranque cae en 220 m, y los 30 núcleos quedan repartidos parejo a lo largo de los 12 km, sin tramos largos sin revisar, algo que un muestreo aleatorio simple no garantiza. El riesgo del método es la periodicidad: si el pavimento se colocó en jornadas de 400 m y el arranque cae siempre cerca de una junta de construcción, todos los núcleos estarían en el mismo tipo de punto y la muestra quedaría sesgada. Cuando se sospecha un patrón así, se cambia el intervalo o se sortea un arranque nuevo en cada kilómetro.
+**Interpretación.** Con la semilla 2026 el arranque cae en 220 m, y los 30 núcleos quedan repartidos parejo a lo largo de los 12 km, sin tramos largos sin revisar, algo que un muestreo aleatorio simple no garantiza. El riesgo del método es la periodicidad. Si el pavimento se colocó en jornadas de 400 m y el arranque cae siempre cerca de una junta de construcción, todos los núcleos estarían en el mismo tipo de punto y la muestra quedaría sesgada. Cuando se sospecha un patrón así, se cambia el intervalo o se sortea un arranque nuevo en cada kilómetro.
 
 :::
 
@@ -720,7 +720,7 @@ El tipo de variable decide qué resumen y qué gráfico tienen sentido. El @tbl-
 
 ```{r}
 #| label: tbl-est-tipo-uso
-#| tbl-cap: "Resúmenes y gráficos que admite cada tipo de variable."
+#| tbl-cap: "Resúmenes y gráficos por tipo de variable."
 #| echo: false
 
 data.frame(
@@ -736,7 +736,7 @@ data.frame(
   kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
 ```
 
-La mediana tiene sentido para una variable ordinal porque basta con ordenar los datos: si de 40 puentes 6 están en estado malo y 18 en regular, el puente número 20 de la lista ordenada está en estado regular, y esa es la mediana. La media no tiene sentido, porque exige sumar distancias entre categorías que no están definidas.
+La mediana tiene sentido para una variable ordinal porque basta con ordenar los datos. Si de 40 puentes 6 están en estado malo y 18 en regular, el puente número 20 de la lista ordenada está en estado regular, y esa es la mediana. La media no tiene sentido, porque exige sumar distancias entre categorías que no están definidas.
 
 ### Interactivo: clasifique la variable
 
@@ -806,7 +806,7 @@ El interactivo de la @fig-est-int-clasificar presenta variables de las distintas
 </script>
 ```
 
-Clasificador de variables. Elija el tipo de cada variable y pulse "Siguiente variable" para pasar a la próxima.
+Clasificador de variables.
 
 :::
 
