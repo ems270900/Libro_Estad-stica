@@ -32,7 +32,7 @@ En casi todos los problemas de ingeniería una de las dos variables es la que in
 
 ### El diagrama de dispersión
 
-El primer paso para estudiar una asociación es el diagrama de dispersión: un punto por cada par de valores $(x_i, y_i)$, con $X$ en el eje horizontal y $Y$ en el vertical. El capítulo 4 explica cómo hacerlo con `plot()` y con `geom_point()`. En el diagrama se miran cuatro cosas [@lanesfintroduction, cap. 4]:
+El primer paso para estudiar una asociación es el diagrama de dispersión: un punto por cada par de valores $(x_i, y_i)$, con $X$ en el eje horizontal y $Y$ en el vertical. La @sec-graf-base explica cómo hacerlo con `plot()` y la @sec-graf-ggplot con `geom_point()`. En el diagrama se miran cuatro cosas [@lanesfintroduction, cap. 4]:
 
 1. **Dirección.** Si al crecer $X$ crece $Y$, la asociación es positiva. Si al crecer $X$ baja $Y$, es negativa.
 2. **Forma.** Los puntos pueden seguir una recta, una curva o ningún patrón.

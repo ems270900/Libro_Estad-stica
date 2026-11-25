@@ -1,0 +1,7 @@
+---
+title: "Pendiente"
+---
+
+## Provisional {#sec-26-regresion_multiple}
+
+## Multicolinealidad {#sec-rlm-multicolinealidad}
