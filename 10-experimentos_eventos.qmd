@@ -9,7 +9,7 @@ suppress-bibliography: true
 — *Pierre-Simon Laplace, Ensayo filosófico sobre las probabilidades (1814)*
 :::
 
-Un puente se diseña para una crecida que puede o no llegar durante su vida útil. Un lote de cilindros de concreto puede cumplir o no la resistencia especificada. Una obra puede atrasarse un día cualquiera por lluvia, por una falla del equipo o por ambas cosas. En los tres casos no se sabe de antemano qué va a pasar, pero sí se puede medir qué tan posible es cada resultado. Esa medida es la probabilidad, y este capítulo construye su lenguaje desde cero: qué es un experimento aleatorio, qué es un evento, cómo se combinan los eventos y qué reglas cumple cualquier probabilidad. Al final se comprueba con R, simulando miles de lanzamientos, que la frecuencia con que ocurre un evento se acerca a su probabilidad.
+Un puente se diseña para una crecida que puede o no llegar durante su vida útil. Un lote de cilindros de concreto puede cumplir o no la resistencia especificada. Una obra puede atrasarse un día cualquiera por lluvia, por una falla del equipo o por ambas cosas. En los tres casos no se sabe de antemano qué va a pasar, pero sí se puede medir qué tan posible es cada resultado. Esa medida es la probabilidad, y este capítulo construye su lenguaje desde cero: qué es un experimento aleatorio, qué es un evento, cómo se combinan los eventos y qué reglas cumple cualquier probabilidad. Al final se comprueba con R, con las simulaciones que se aprendieron en el capítulo 6, que la frecuencia con que ocurre un evento se acerca a su probabilidad.
 
 Las ideas de este capítulo siguen a @bertsekas2008introduction [cap. 1] y a @illowsky2018introductory [cap. 3], donde el lector encuentra más ejemplos.
 
@@ -662,6 +662,7 @@ Con diez lanzamientos la frecuencia es 0.200, todavía lejos de 0.1667. Después
 
 ```{r}
 #| label: fig-eventos-lgn
+#| cache: true
 #| fig-cap: "Frecuencia relativa acumulada de sacar un 6 en 5000 lanzamientos simulados de un dado."
 #| fig-alt: "Línea que oscila mucho en los primeros lanzamientos y luego se estabiliza cerca de la línea horizontal punteada en 0.167"
 
@@ -693,7 +694,7 @@ ggplot(simulacion, aes(x = lanzamiento, y = frecuencia)) +
   theme_minimal(base_size = 13)
 ```
 
-`sample(1:6, size = n, replace = TRUE)` saca `n` valores al azar del vector `1:6`, devolviendo cada valor a la "bolsa" después de sacarlo (`replace = TRUE`), que es lo que pasa con un dado. `cumsum()` es la suma acumulada: en la posición 100 tiene el número de seises entre los primeros 100 lanzamientos. El eje horizontal está en escala logarítmica para que se vea bien tanto el inicio como el final.
+Como en la @sec-prog-simulacion, `sample(1:6, size = n, replace = TRUE)` saca `n` valores al azar del vector `1:6` y permite que se repitan (`replace = TRUE`), que es lo que pasa con un dado. `cumsum()` es la suma acumulada: en la posición 100 tiene el número de seises entre los primeros 100 lanzamientos. El eje horizontal está en escala logarítmica para que se vea bien tanto el inicio como el final.
 
 **Interpretación.** Al principio la frecuencia relativa salta mucho (como en el @tbl-eventos-acumulada), pero después de unos 1000 lanzamientos se queda muy cerca de 1/6, como predice la ley de los grandes números (@fig-eventos-lgn). Esta es la razón por la que la simulación sirve para comprobar cálculos de probabilidad: si la fórmula y la simulación con muchos casos no coinciden, hay un error en alguna de las dos.
 
