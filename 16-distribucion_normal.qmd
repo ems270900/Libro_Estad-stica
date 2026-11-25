@@ -115,7 +115,7 @@ La @fig-normal-regla la muestra para una resistencia con $\mu = 35$ MPa y $\sigm
 
 ```{r}
 #| label: fig-normal-regla
-#| fig-cap: "Regla empírica para una normal con μ = 35 MPa y σ = 5 MPa."
+#| fig-cap: "Regla empírica de la normal."
 #| fig-alt: "Campana normal con tres bandas sombreadas centradas en 35: de 30 a 40 con 68 por ciento, de 25 a 45 con 95 por ciento y de 20 a 50 con 99.7 por ciento"
 #| echo: false
 #| fig-width: 6.5
@@ -183,7 +183,7 @@ La FDA de la normal no tiene una fórmula con funciones elementales: la integral
 
 ```{r}
 #| label: tbl-normal-extracto
-#| tbl-cap: "Fragmento de la tabla de la normal estándar: valores de Φ(z) = P(Z ≤ z)."
+#| tbl-cap: "Fragmento de la tabla normal estándar."
 #| echo: false
 
 filas <- seq(0.8, 1.3, by = 0.1)
@@ -230,7 +230,7 @@ ggplot(curva_n, aes(z, f)) +
 
 ```{r}
 #| label: tbl-normal-casos
-#| tbl-cap: "Cálculo de probabilidades normales con la tabla Z y con R."
+#| tbl-cap: "Probabilidades normales con la tabla y con R."
 #| echo: false
 
 tibble(
@@ -404,7 +404,7 @@ La @fig-normal-cilindros muestra los dos gráficos hechos con ggplot2.
 
 ```{r}
 #| label: fig-normal-cilindros
-#| fig-cap: "Histograma con la curva normal ajustada y gráfico Q-Q de la resistencia de 60 cilindros."
+#| fig-cap: "Histograma y gráfico Q-Q de 60 cilindros."
 #| fig-alt: "A la izquierda, histograma con forma de campana y la curva normal encima; a la derecha, puntos alineados cerca de una recta"
 #| echo: false
 #| fig-subcap:
@@ -557,7 +557,7 @@ y $P(X = k)$ se aproxima con el área entre $k - 0.5$ y $k + 0.5$. La @fig-norma
 
 ```{r}
 #| label: fig-normal-continuidad
-#| fig-cap: "Binomial con n = 50 y p = 0.35 y la normal que la aproxima."
+#| fig-cap: "Binomial y su aproximación normal."
 #| fig-alt: "Barras de la binomial de 8 a 28 con una curva normal centrada en 17.5 que pasa por la parte alta de las barras; las barras de 20 en adelante están resaltadas"
 #| echo: false
 #| fig-width: 6.5
@@ -625,7 +625,7 @@ La Poisson con $\lambda$ grande también toma forma de campana, y se aproxima co
 
 ```{r}
 #| label: tbl-normal-aprox-poisson
-#| tbl-cap: "Error de la aproximación normal (con corrección por continuidad) a la Poisson."
+#| tbl-cap: "Error de la aproximación normal a la Poisson."
 #| echo: false
 
 map_dfr(c(2, 5, 10, 20, 50), function(l) {
@@ -717,7 +717,7 @@ En el interactivo de la @fig-normal-int-area se mueven la media, la desviación 
 </script>
 ```
 
-Área bajo la curva normal. Mueva los parámetros y los límites $a$ y $b$.
+Área bajo la curva normal.
 
 :::
 
@@ -798,7 +798,7 @@ El interactivo de la @fig-normal-int-binomial compara la binomial con su aproxim
 </script>
 ```
 
-Binomial y aproximación normal. Mueva $n$, $p$ y el umbral $k$.
+Binomial y aproximación normal.
 
 :::
 

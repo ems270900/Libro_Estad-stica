@@ -75,7 +75,7 @@ Pruebe con la @fig-fac-int-interaccion. Los controles fijan el efecto de A, el d
 </script>
 ```
 
-Gráfico de interacción de un diseño con dos factores de dos niveles. La media general es 50.
+Gráfico de interacción con dos factores.
 
 :::
 
@@ -177,7 +177,7 @@ ver_datos("datos/adherencia_pintura_hipotetica.csv",
 
 ```{r}
 #| label: tbl-fac-medias
-#| tbl-cap: "Adherencia (puntos) por método y pintura: observaciones y media de cada combinación."
+#| tbl-cap: "Adherencia por método y pintura."
 #| echo: false
 
 pintura <- read.csv("datos/adherencia_pintura_hipotetica.csv")
@@ -247,7 +247,7 @@ summary(modelo)
 
 ```{r}
 #| label: fig-fac-pintura
-#| fig-cap: "Gráfico de interacción: adherencia media por pintura y método de aplicación."
+#| fig-cap: "Interacción entre pintura y método."
 #| fig-alt: "Dos líneas que suben de P1 a P3; la de rociado se separa mucho de la de inmersión en P3"
 
 # 6) Gráfico de interacción con ggplot2
@@ -274,7 +274,7 @@ Cuando hay interacción, se compara un factor dentro de cada nivel del otro. En 
 
 ```{r}
 #| label: tbl-fac-simples
-#| tbl-cap: "Efectos simples del método de aplicación dentro de cada pintura (rociado menos inmersión)."
+#| tbl-cap: "Efectos simples del método por pintura."
 #| echo: false
 
 format_p <- function(p) ifelse(p < 0.001, "< 0.001", sprintf("%.3f", p))
@@ -457,7 +457,7 @@ round(efectos, 3)
 
 ```{r}
 #| label: fig-fac-efectos
-#| fig-cap: "Gráfico cuantil-cuantil normal de los efectos del diseño 2³ de mortero."
+#| fig-cap: "Gráfico Q-Q de los efectos del diseño 2³."
 #| fig-alt: "Siete puntos; AB, BC y ABC quedan alineados cerca de cero y A, B, C y AC se apartan"
 
 # 4) Gráfico de efectos

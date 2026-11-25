@@ -100,7 +100,7 @@ El @tbl-dce-ruido resume qué hacer con un factor de ruido, que es una fuente de
 
 ```{r}
 #| label: tbl-dce-ruido
-#| tbl-cap: "Qué hacer con un factor de ruido según se pueda controlar o medir."
+#| tbl-cap: "Manejo de un factor de ruido."
 #| echo: false
 
 ruido <- data.frame(
@@ -158,7 +158,7 @@ donde $\alpha$ es el nivel de significancia de cada prueba y $m$ es el número d
 
 ```{r}
 #| label: tbl-dce-familiar
-#| tbl-cap: "Error familiar aproximado al hacer todas las pruebas t por parejas con α = 0.05."
+#| tbl-cap: "Error familiar de las pruebas t por parejas."
 #| echo: false
 
 k <- 2:6
@@ -215,7 +215,7 @@ Mueva el control de la @fig-dce-int-familiar para ver cómo crece ese riesgo con
 </script>
 ```
 
-Error familiar al comparar todas las parejas con pruebas $t$ de nivel 0.05.
+Error familiar al comparar todas las parejas.
 
 :::
 
@@ -342,7 +342,7 @@ Pruebe con la @fig-dce-int-anova. Con poca separación y mucha dispersión, los 
 </script>
 ```
 
-Tres grupos de seis observaciones. Las líneas cortas son las medias de cada grupo y la línea punteada larga es la media general.
+Variación dentro y entre tres grupos.
 
 :::
 
@@ -465,7 +465,7 @@ ver_datos("datos/jarras_coagulantes_hipotetico.csv",
 
 ```{r}
 #| label: tbl-dce-calculos
-#| tbl-cap: "Desviaciones de la remoción de cada jarra respecto de la media de su coagulante (puntos porcentuales)."
+#| tbl-cap: "Desviaciones respecto de la media de cada coagulante."
 #| echo: false
 
 jarras <- read.csv("datos/jarras_coagulantes_hipotetico.csv")
@@ -564,7 +564,7 @@ La @fig-dce-curado muestra los datos. La separación entre las medias de los coa
 
 ```{r}
 #| label: fig-dce-curado
-#| fig-cap: "Remoción de turbiedad de las jarras por coagulante. Las líneas cortas son las medias de cada coagulante y la línea punteada es la media general."
+#| fig-cap: "Remoción de turbiedad por coagulante."
 #| fig-alt: "Puntos de remoción para cuatro coagulantes; el PAC tiene la media más alta y el sulfato de aluminio la más baja"
 #| echo: false
 
@@ -592,7 +592,7 @@ La @fig-dce-f ubica el resultado en la distribución $F$ con 3 y 16 grados de li
 
 ```{r}
 #| label: fig-dce-f
-#| fig-cap: "Distribución F con 3 y 16 grados de libertad. La zona sombreada es la región de rechazo con α = 0.05."
+#| fig-cap: "Distribución F y región de rechazo."
 #| fig-alt: "Curva de densidad F asimétrica a la derecha con la región de rechazo sombreada a partir de 3.24"
 #| echo: false
 

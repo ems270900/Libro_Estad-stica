@@ -76,7 +76,7 @@ La @fig-apa-z muestra lo que da la tabla: el área bajo la curva normal estánda
 
 ```{r}
 #| label: fig-apa-z
-#| fig-cap: "La tabla Z da el área a la izquierda de z."
+#| fig-cap: "Área que da la tabla Z."
 #| fig-alt: "Curva normal estándar con el área sombreada a la izquierda de un valor z positivo"
 #| echo: false
 #| fig-width: 7
@@ -160,7 +160,7 @@ La distribución $t$ se usa en lugar de la normal cuando la desviación estánda
 
 ```{r}
 #| label: fig-apa-t
-#| fig-cap: "La tabla t da el valor que deja un área α a la derecha."
+#| fig-cap: "Área que da la tabla t."
 #| fig-alt: "Curva t de Student con el área sombreada a la derecha del valor crítico"
 #| echo: false
 #| fig-width: 7
@@ -215,7 +215,7 @@ La distribución chi-cuadrado aparece en los intervalos y las pruebas para una v
 
 ```{r}
 #| label: fig-apa-chi
-#| fig-cap: "La tabla chi-cuadrado da el valor que deja un área α a la derecha."
+#| fig-cap: "Área que da la tabla chi-cuadrado."
 #| fig-alt: "Curva chi-cuadrado asimétrica con el área sombreada a la derecha del valor crítico"
 #| echo: false
 #| fig-width: 7
@@ -269,7 +269,7 @@ La distribución $F$ compara dos varianzas y es la base del análisis de varianz
 
 ```{r}
 #| label: fig-apa-f
-#| fig-cap: "La tabla F da el valor que deja un área α a la derecha."
+#| fig-cap: "Área que da la tabla F."
 #| fig-alt: "Curva F asimétrica con el área sombreada a la derecha del valor crítico"
 #| echo: false
 #| fig-width: 7
@@ -786,7 +786,7 @@ La calculadora de la @fig-apa-calculadora hace lo mismo que las tablas, pero con
 </script>
 ```
 
-Calculadora de áreas y valores críticos. El área sombreada es la probabilidad a la izquierda de $x$ y la línea discontinua marca el valor crítico.
+Calculadora de áreas y valores críticos.
 
 :::
 

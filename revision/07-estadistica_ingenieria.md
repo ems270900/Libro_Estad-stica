@@ -9,3 +9,12 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejemplos: muestra aleatoria simple de 5 puentes (`sample()` y `slice_sample()`); tipos de variables del inventario de puentes (`factor()`, `glimpse()`); registro de lluvia máxima diaria (población, muestra, gráfico en R base y ggplot2).
 - Fuentes: Illowsky y Dean (2013), Lane (s.f.), Montgomery y Runger (2014), Stevens (1946), Navidi (2006).
 - Pendiente: cita del Código Sísmico de Costa Rica (marcada con CITA PENDIENTE). La serie de lluvia es real y va anonimizada (decisión del autor).
+
+## Ampliación (2026-11-25)
+
+- Nuevo: por qué varían los datos (variación natural, de ensayo, de muestreo y por falta de conocimiento; incertidumbre aleatoria y epistémica según Ang y Tang, 2007; analogía señal y ruido); figura de población, muestra e inferencia; datos ordenados (Wickham, 2014) con figura; variable de confusión (Freedman et al., 2007) y cuadro de estudio observacional contra experimento; cuadro de cuándo conviene cada método de muestreo (Lohr, 2019); sesgo y precisión con la analogía del tiro al blanco; cuadro de resúmenes y gráficos por tipo de variable; casos límite de la clasificación; recuadro de errores frecuentes (incluye sesgo de supervivencia).
+- Figuras nuevas (propias): mediciones repetidas en cuatro ramas, población y muestra, datos ordenados, dianas de sesgo y precisión.
+- Interactivos nuevos: cuatro métodos de muestreo sobre 48 alcantarillas (`#fig-est-int-metodos`); clasificador de variables con 16 casos de las seis ramas (`#fig-est-int-clasificar`).
+- Ejemplo nuevo (transportes): muestreo sistemático de 30 núcleos en 12 km de pavimento, con cadenamiento km + m en R base y dplyr. Arranque con la semilla 2026: 220 m.
+- Ejercicios 9 a 13 nuevos (ambiental, hidráulica, geotecnia, transportes).
+- Fuentes nuevas verificadas: Ang y Tang (2007), Freedman, Pisani y Purves (2007), Lohr (2019), Wickham (2014, DOI verificado en Crossref).

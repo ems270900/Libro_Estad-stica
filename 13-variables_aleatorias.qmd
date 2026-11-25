@@ -41,7 +41,7 @@ El @tbl-va-monedas muestra la regla para el experimento de lanzar tres monedas e
 
 ```{r}
 #| label: tbl-va-monedas
-#| tbl-cap: "Resultados de lanzar tres monedas y valor de la variable aleatoria."
+#| tbl-cap: "Tres monedas y valor de la variable aleatoria."
 #| echo: false
 
 monedas <- expand.grid(m1 = c("C", "E"), m2 = c("C", "E"), m3 = c("C", "E"),
@@ -156,7 +156,7 @@ En el caso de las tres monedas, la función de probabilidad se obtiene contando 
 
 ```{r}
 #| label: fig-va-monedas-fmp
-#| fig-cap: "Función de probabilidad del número de escudos en tres lanzamientos."
+#| fig-cap: "Función de probabilidad del número de escudos."
 #| fig-alt: "Gráfico de bastones con alturas 1/8, 3/8, 3/8 y 1/8 para x igual a 0, 1, 2 y 3"
 #| echo: false
 #| fig-width: 6
@@ -217,7 +217,7 @@ Por ejemplo, $F_X(1.7) = P(X \le 1.7) = P(X = 0) + P(X = 1) = 4/8$, porque 1.7 e
 
 ```{r}
 #| label: fig-va-monedas-fda
-#| fig-cap: "Función de distribución acumulada del número de escudos en tres lanzamientos."
+#| fig-cap: "FDA del número de escudos."
 #| fig-alt: "Función escalonada que vale 0 antes de x igual a 0 y sube a 1/8, 4/8, 7/8 y 1 en x igual a 0, 1, 2 y 3"
 #| echo: false
 #| fig-width: 6
@@ -377,7 +377,7 @@ La función `integrate()` de R calcula el área bajo una curva por métodos num�
 
 ```{r}
 #| label: fig-va-reparacion
-#| fig-cap: "Densidad del tiempo de reparación y área entre 0.5 h y 1.5 h."
+#| fig-cap: "Densidad del tiempo de reparación."
 #| fig-alt: "Curva creciente de 0 a 2 horas con el área sombreada entre 0.5 y 1.5 horas"
 #| echo: false
 #| fig-width: 6
@@ -705,7 +705,7 @@ c(media_sim = mean(simuladas), desv_sim = sd(simuladas),
 
 ```{r}
 #| label: tbl-va-vigas
-#| tbl-cap: "Función de probabilidad y FDA del número de defectos por viga."
+#| tbl-cap: "Probabilidad y FDA de defectos por viga."
 #| echo: false
 
 tibble(x = x, n = vigas$vigas, p = p, F_x = F_x, xp = x * p, x2p = x^2 * p) %>%

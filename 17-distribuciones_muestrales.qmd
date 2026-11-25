@@ -107,7 +107,7 @@ La población tiene media $\mu = 20.21$ min y desviación estándar $\sigma = 14
 
 ```{r}
 #| label: fig-muestreo-medias
-#| fig-cap: "Población de tiempos de viaje y distribución de 5000 medias muestrales con n = 36."
+#| fig-cap: "Tiempos de viaje y medias muestrales."
 #| fig-alt: "A la izquierda, histograma muy asimétrico de los tiempos de viaje de 0 a 100 minutos; a la derecha, histograma con forma de campana de las medias, entre 13 y 28 minutos, con una curva normal encima"
 #| echo: false
 #| cache: true
@@ -202,7 +202,7 @@ El teorema no pide nada sobre la forma de la población: puede ser asimétrica, 
 
 ```{r}
 #| label: fig-muestreo-tlc
-#| fig-cap: "Distribución de la media muestral para tres poblaciones y cuatro tamaños de muestra."
+#| fig-cap: "Media muestral según la población y n."
 #| fig-alt: "Cuadrícula de doce histogramas: en las filas, poblaciones uniforme, exponencial y de ceros y unos; en las columnas, n igual a 1, 2, 5 y 30; con n igual a 30 los tres histogramas tienen forma de campana"
 #| echo: false
 #| cache: true
@@ -427,7 +427,7 @@ En el interactivo de la @fig-muestreo-interactivo se elige una población y un t
 </script>
 ```
 
-Teorema del límite central. Elija la población, mueva $n$ y repita el muestreo con el botón.
+Teorema del límite central.
 
 :::
 
@@ -465,7 +465,7 @@ sigue una distribución $t$ de Student con $\nu = n - 1$ grados de libertad [@wa
 
 ```{r}
 #| label: fig-muestreo-t
-#| fig-cap: "Distribución t de Student con 2 y 10 grados de libertad y normal estándar."
+#| fig-cap: "Distribución t y normal estándar."
 #| fig-alt: "Tres curvas en forma de campana centradas en cero; la t con 2 grados de libertad es la más baja y con colas más altas, la t con 10 casi coincide con la normal"
 #| echo: false
 #| fig-width: 6.5
@@ -488,7 +488,7 @@ La diferencia importa en la práctica a través de los cuantiles. El @tbl-muestr
 
 ```{r}
 #| label: tbl-muestreo-t
-#| tbl-cap: "Valor t que deja un área de 0.025 a la derecha según los grados de libertad."
+#| tbl-cap: "Valor t crítico según los grados de libertad."
 #| echo: false
 
 tibble(gl = c(2, 5, 9, 20, 30, 100, Inf)) %>%
@@ -564,7 +564,7 @@ mean(sqrt(varianzas) > 7)
 
 ```{r}
 #| label: fig-muestreo-chi2
-#| fig-cap: "Histograma de 10 000 valores simulados de (n − 1)S²/σ² y densidad chi-cuadrado con 9 grados de libertad."
+#| fig-cap: "Simulación de (n − 1)S²/σ² y chi-cuadrado."
 #| fig-alt: "Histograma asimétrico a la derecha con pico cerca de 7 y la curva chi-cuadrado encima, que lo sigue de cerca"
 #| echo: false
 #| fig-width: 6.5
