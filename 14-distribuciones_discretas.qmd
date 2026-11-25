@@ -401,7 +401,7 @@ $$
 T = \frac{1}{1 - (1 - R)^{1/n}}
 $$ {#eq-disc-retorno-diseno}
 
-Con un riesgo del 10 % en 50 años, $T = 1/(1 - 0.9^{1/50}) = 475$ años. Ese es el origen del sismo de 475 años de periodo de retorno que se usa en el diseño sismorresistente.<!-- CITA PENDIENTE: fuente normativa del criterio de 10 % de excedencia en 50 años --> El @tbl-disc-retorno da el periodo de retorno necesario para varias combinaciones de riesgo y vida útil.
+Con un riesgo del 10 % en 50 años, $T = 1/(1 - 0.9^{1/50}) = 475$ años. Ese es el origen del sismo de 475 años de periodo de retorno del diseño sismorresistente. El Código Sísmico de Costa Rica llama sismo fuerte al de 475 años, es decir, al que tiene una probabilidad de excedencia del 10 % en una vida útil de 50 años, y con él diseña las edificaciones de ocupación normal [@cfia2016codigo, art. 2.3 y 4.1]. El Eurocódigo 8 recomienda los mismos valores para el requisito de no colapso [@cen2004eurocode, cláusula 2.1]. El @tbl-disc-retorno da el periodo de retorno necesario para varias combinaciones de riesgo y vida útil.
 
 ```{r}
 #| label: tbl-disc-retorno

@@ -18,3 +18,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Interactivo nuevo (`#fig-disc-int-riesgo`): riesgo de excedencia según el periodo de retorno y la vida útil.
 - Pendiente: fuente normativa del criterio de 10 % de excedencia en 50 años (475 años), marcada con CITA PENDIENTE.
 - Ejercicios 10 a 12 y lecturas recomendadas.
+- Cita del criterio de 475 años (2026-11-25): Código Sísmico de Costa Rica 2010 (revisión 2014), art. 2.3(a) y 4.1.2, y Eurocódigo 8, EN 1998-1:2004, cláusula 2.1, nota 1. Ambos textos se leyeron completos; se quitó la CITA PENDIENTE.
