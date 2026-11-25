@@ -1059,7 +1059,17 @@ body.quarto-dark main h4 {
   border: 1px solid #d5dbe3;
   border-radius: 8px;
   background: #fafafa;
+  box-sizing: border-box;
 }
+/* Ningún control se sale del panel: los anchos incluyen relleno y borde,
+   y los cuadros de texto ocupan como máximo el ancho interior del panel. */
+.interactivo *, .interactivo *::before, .interactivo *::after { box-sizing: border-box; }
+.interactivo textarea { display: block; width: 100%; max-width: 100%; margin: 0.3rem 0; resize: vertical; }
+.interactivo input[type=text], .interactivo input[type=search], .interactivo select { max-width: 100%; min-width: 0; }
+.interactivo label { max-width: 100%; min-width: 0; }
+/* Cuadros de entrada anchos: en pantallas angostas se desplazan dentro del panel. */
+.interactivo table.entrada { display: block; max-width: 100%; overflow-x: auto; }
+@media (max-width: 480px) { .interactivo input[type=number] { width: 4.2rem; } }
 .interactivo label { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; flex-wrap: wrap; }
 .interactivo input[type=range] { flex: 1 1 12rem; accent-color: var(--acento-2); }
 .interactivo output { min-width: 2.5rem; font-variant-numeric: tabular-nums; font-weight: 600; }

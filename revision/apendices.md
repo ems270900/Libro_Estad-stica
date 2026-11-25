@@ -46,3 +46,7 @@ Fecha: 2026-11-25. Estado: borrador.
 
 - Apéndice B: fila de la distribución de Gumbel (no viene en R base; fórmulas de la FDA y del cuantil del capítulo 15).
 - Apéndice C: desigualdad de Chebyshev, distribución de Gumbel, función de riesgo, índice de confiabilidad, margen de seguridad, periodo de retorno, riesgo de excedencia, sobredispersión y variable indicadora.
+
+## Cambios del 2026-11-25: límites de Tukey y reorganización de gráficos
+
+- Glosario: entradas nuevas "Bigote" (whisker) y "Límite inferior, límite superior (de Tukey)" (lower and upper fence).

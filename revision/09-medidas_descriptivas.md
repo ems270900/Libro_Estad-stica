@@ -20,3 +20,9 @@ Fecha: 2026-11-25. Estado: borrador.
 - Ejercicios 10 a 15 nuevos (transportes, ambiental, hidráulica).
 - Todos los números de las soluciones se verificaron en R.
 - Percentil 85 citado con el MUTCD 2009, sección 2B.13 (2026-11-25).
+
+## Cambios del 2026-11-25: límites de Tukey y reorganización de gráficos
+
+- Terminología: "vallas de Tukey" pasa a "límite inferior" y "límite superior" en texto, ecuación, figuras, interactivos y calculadora; se menciona una vez que en otros textos se llaman vallas o cercas (fences). La etiqueta `eq-med-vallas` se conserva porque ya está citada. Límites internos (1.5 RIC) y externos (3 RIC).
+- Recibe del capítulo 4 las variantes horizontal y por dos variables y la nota de la muesca que se sale de la caja; remite al código de la sección `sec-graf-caja`.
+- La calculadora (fig. 9.20) y los demás interactivos: los cuadros de texto quedan dentro del panel (CSS común en `assets/css/styles.css`).

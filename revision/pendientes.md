@@ -18,6 +18,7 @@
 ## Parte II (estadística descriptiva)
 
 - Revisión del autor de los capítulos 7 a 9.
+- Revisar la reorganización de gráficos del 2026-11-25: el capítulo 4 quedó con el código y la parte conceptual pasó a los capítulos 8 y 9 (límites inferior y superior de Tukey en lugar de vallas).
 ## Parte III (Probabilidad)
 
 - Revisión del autor de los capítulos 10 a 12, ampliados el 2026-11-25 (secciones nuevas, cinco interactivos nuevos, cuatro ejemplos nuevos y errores frecuentes por capítulo).

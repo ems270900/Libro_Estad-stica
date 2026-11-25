@@ -4,7 +4,7 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-Un cuadro con 60 resistencias de cilindros no dice mucho a simple vista. Un gráfico de esos mismos datos muestra en un segundo si los valores se agrupan, si hay dos grupos distintos, si algún dato está muy lejos del resto o si un proyecto rinde más que otro. Por eso el primer paso de cualquier análisis, antes de calcular promedios o hacer pruebas, es graficar. Este capítulo explica qué gráfico conviene según el tipo de variable, cómo hacerlo con las funciones básicas de R y cómo hacerlo con el paquete ggplot2, que es el que se usa en el resto del libro.
+Un cuadro con 60 resistencias de cilindros no dice mucho a simple vista. Un gráfico de esos mismos datos muestra en un segundo si los valores se agrupan, si hay dos grupos distintos, si algún dato está muy lejos del resto o si un proyecto rinde más que otro. Por eso el primer paso de cualquier análisis, antes de calcular promedios o hacer pruebas, es graficar. Este capítulo enseña a hacer los gráficos en R: primero con las funciones básicas de R y después con el paquete ggplot2, que es el que se usa en el resto del libro. Qué muestra cada gráfico, cómo se lee, cuándo conviene y qué errores evitar se explica en la Parte II, junto a las ideas estadísticas que lo sostienen: el capítulo 8 trata las barras, el histograma, la dispersión y las series de tiempo, y el capítulo 9, el diagrama de caja.
 
 ```{r}
 #| echo: false
@@ -36,15 +36,15 @@ data.frame(
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-El gráfico circular (de pastel) se usa poco en este libro: el ojo compara mal los ángulos, y casi siempre un gráfico de barras muestra lo mismo con más claridad [@wilke2019fundamentals].
+La @sec-pres-elegir amplía este cuadro con los gráficos del capítulo 8 y explica qué gráficos conviene evitar, como el circular con muchas categorías.
 
 ## Gráficos con R base {#sec-graf-base}
 
-R trae funciones para hacer gráficos sin instalar nada. Son rápidas para mirar los datos mientras se trabaja. Las principales son `barplot()`, `hist()`, `boxplot()` y `plot()`. Todas aceptan los argumentos `main` (título), `xlab` y `ylab` (nombres de los ejes) y `col` (color).
+R trae funciones para hacer gráficos sin instalar nada. Son rápidas para mirar los datos mientras se trabaja. Las principales son `barplot()`, `hist()`, `boxplot()` y `plot()`. Todas aceptan los argumentos `main` (título), `xlab` y `ylab` (nombres de los ejes) y `col` (color). Cada sección dice cómo se hace el gráfico y remite a la sección de la Parte II donde se explica cómo leerlo.
 
 ### Barras {#sec-graf-barras}
 
-El gráfico de barras dibuja una barra por categoría, con altura igual a un número: cuántos datos hay en esa categoría o una cantidad ya calculada, como el costo de cada obra. Es el gráfico de las variables categóricas, como el material de un puente, el tipo de suelo o el proyecto al que pertenece un cilindro. El ojo compara muy bien longitudes que parten de una misma línea, y por eso las barras se leen mejor que los sectores de un gráfico circular [@cleveland1984graphical].
+El gráfico de barras dibuja una barra por categoría, con altura igual a un número: cuántos datos hay en esa categoría o una cantidad ya calculada, como el costo de cada obra. Es el gráfico de las variables categóricas, como el material de un puente o el proyecto al que pertenece un cilindro. Cuándo conviene y cómo se lee se explica en la @sec-pres-cualitativa.
 
 `barplot()` recibe los conteos de cada categoría, que se obtienen con `table()`:
 
@@ -60,84 +60,39 @@ barplot(conteo, col = "#1C6BA0",
 
 Las tres barras de la @fig-graf-barras-base miden lo mismo porque cada proyecto tiene 20 cilindros. Un gráfico así no dice mucho, pero sirve para comprobar que los datos están completos antes de seguir.
 
-#### Cuándo conviene y cuándo no
-
-Las barras convienen para contar datos por categoría, para comparar una cantidad entre grupos (el costo por obra, los vehículos por carril) y para mostrar cómo se reparten dos variables categóricas a la vez, como el material y el estado de los puentes. No convienen para una variable numérica continua: con la resistencia o el caudal cada valor es distinto, y una barra por valor no dice nada; para eso está el histograma. Tampoco convienen para resumir una variable numérica con una barra de su promedio, porque la barra esconde cuánto varían los datos; en ese caso la caja o los puntos muestran más [@wilke2019fundamentals].
-
-::: {.callout-warning title="Cuidado"}
-El eje de un gráfico de barras empieza siempre en cero. La longitud de la barra es lo que el ojo compara, y si el eje empieza en otro valor una diferencia pequeña parece enorme [@wilke2019fundamentals]. La @fig-graf-barras-eje muestra el mismo dato con los dos ejes. En los gráficos de puntos y de líneas, en cambio, el eje no necesita empezar en cero.
-:::
-
-```{r}
-#| label: fig-graf-barras-eje
-#| fig-cap: "Eje desde cero y eje recortado."
-#| fig-alt: "A la izquierda dos barras de altura casi igual, 31 y 33 MPa, con el eje desde cero; a la derecha las mismas barras con el eje desde 30, donde una parece el triple de la otra"
-#| echo: false
-#| fig-height: 3.4
-
-medias <- c(A = 31.0, B = 33.0)
-par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2, 1))
-barplot(medias, col = "#1C6BA0", ylim = c(0, 35), main = "Eje desde cero",
-        xlab = "Mezcla", ylab = "Resistencia media (MPa)", cex.main = 0.95)
-barplot(medias, col = "#D55E00", ylim = c(30, 33.5), xpd = FALSE, main = "Eje recortado (engaña)",
-        xlab = "Mezcla", ylab = "Resistencia media (MPa)", cex.main = 0.95)
-box(bty = "l")
-par(mfrow = c(1, 1))
-```
-
 #### Variantes del gráfico de barras
 
-Con dos variables categóricas hay tres formas de dibujar las barras, y cada una responde una pregunta distinta. La @fig-graf-barras-variantes las muestra con el inventario hipotético de 40 puentes del capítulo 8, según su material y su estado:
-
-- **Agrupadas** (una al lado de la otra). Comparan los conteos dentro de cada material: ¿hay más puentes de concreto en estado bueno o en regular?
-- **Apiladas** (una encima de la otra). Muestran el total de cada material y cómo se reparte, pero solo la primera parte de cada barra empieza en cero, así que las demás partes se comparan mal.
-- **De proporción** (apiladas al 100 %). Cada barra mide lo mismo y se compara la fracción de cada estado. Responden a la pregunta: ¿qué material tiene la mayor fracción de puentes en mal estado?
-
-Además, cuando los nombres son largos o hay muchas categorías, las barras horizontales se leen mejor, y ordenar las barras de mayor a menor ayuda a ver enseguida cuál es la categoría más frecuente. Solo se dejan en su orden natural cuando las categorías tienen uno, como "bueno, regular, malo" o los meses del año.
+Con dos variables categóricas, como el material y el estado de los 40 puentes hipotéticos del capítulo 8, las barras pueden ir agrupadas, apiladas o apiladas al 100 %. Cada forma responde una pregunta distinta, como se explica en la @sec-pres-contingencia. Con R base, cada variante cambia en un solo argumento. Primero se arma el cuadro de dos variables con `table()`, y `prop.table(..., margin = 2)` lo convierte en proporciones por columna. Las barras horizontales (`horiz = TRUE`) y ordenadas con `sort()` se leen mejor cuando los nombres son largos. La @fig-graf-barras-variantes muestra el resultado del código.
 
 ```{r}
 #| label: fig-graf-barras-variantes
-#| fig-cap: "Variantes del gráfico de barras."
+#| fig-cap: "Variantes del gráfico de barras con `barplot()`."
 #| fig-alt: "Cuatro paneles: barras horizontales ordenadas por número de puentes, barras agrupadas por estado, barras apiladas y barras apiladas al 100 por ciento"
-#| echo: false
 #| fig-height: 6
 #| fig-width: 9
 #| out-width: "95%"
 
 puentes <- read.csv("datos/inspeccion_puentes_hipotetica.csv")
 puentes$estado <- factor(puentes$estado, levels = c("Bueno", "Regular", "Malo"))
-tab <- table(puentes$estado, puentes$material)
+tab <- table(puentes$estado, puentes$material)  # filas: estado; columnas: material
 colores <- c("#1C6BA0", "#E69F00", "#D55E00")
-par(mfrow = c(2, 2), mar = c(4.2, 5.5, 2.2, 1))
+
+par(mfrow = c(2, 2), mar = c(4.2, 5.5, 2.2, 1))   # cuatro gráficos en una ventana
 barplot(sort(table(puentes$material)), horiz = TRUE, las = 1, col = "#1C6BA0",
-        main = "Horizontales y ordenadas", xlab = "Número de puentes", cex.main = 0.95)
+        main = "Horizontales y ordenadas", xlab = "Número de puentes")
 barplot(tab, beside = TRUE, col = colores, main = "Agrupadas", ylab = "Número de puentes",
-        legend.text = TRUE, args.legend = list(x = "topright", bty = "n", cex = 0.8), cex.main = 0.95)
-barplot(tab, col = colores, main = "Apiladas", ylab = "Número de puentes", cex.main = 0.95)
+        legend.text = TRUE, args.legend = list(x = "topright", bty = "n", cex = 0.8))
+barplot(tab, col = colores, main = "Apiladas", ylab = "Número de puentes")
 barplot(prop.table(tab, margin = 2), col = colores, main = "De proporción",
-        ylab = "Fracción de los puentes", cex.main = 0.95)
+        ylab = "Fracción de los puentes")
 par(mfrow = c(1, 1))
 ```
 
-El código de cada variante con R base cambia en un solo argumento. Primero se arma el cuadro de dos variables con `table()`, y `prop.table(..., margin = 2)` lo convierte en proporciones por columna:
-
-```{r}
-#| eval: false
-
-puentes <- read.csv("datos/inspeccion_puentes_hipotetica.csv")
-tab <- table(puentes$estado, puentes$material)    # filas: estado; columnas: material
-
-barplot(sort(table(puentes$material)), horiz = TRUE, las = 1)  # horizontales y ordenadas
-barplot(tab, beside = TRUE, legend.text = TRUE)                # agrupadas
-barplot(tab)                                                   # apiladas
-barplot(prop.table(tab, margin = 2))                           # de proporción
-```
-
-En ggplot2 se usa `geom_bar()` con `position = "dodge"` (agrupadas), `"stack"` (apiladas, la opción por defecto) o `"fill"` (proporción), como se ve en la @sec-graf-ggplot.
+En ggplot2 se usa `geom_bar()` con `position = "dodge"` (agrupadas), `"stack"` (apiladas, la opción por defecto) o `"fill"` (proporción), como se ve en la @sec-graf-ggplot. `barplot()` dibuja el eje vertical desde cero, y conviene no cambiarlo con `ylim`: la @fig-pres-eje muestra cómo engaña un eje recortado.
 
 ### Histograma {#sec-graf-hist}
 
-Un histograma divide el rango de los datos en intervalos, llamados clases, y dibuja una barra por clase con altura igual al número de datos que caen en ella. A diferencia del gráfico de barras, el eje horizontal es numérico y las barras van pegadas, porque las clases son tramos seguidos de la misma recta. Muestra la forma de la distribución: dónde se concentran los datos, qué tan dispersos están y si son simétricos.
+Un histograma divide el rango de los datos en intervalos, llamados clases, y dibuja una barra por clase con altura igual al número de datos que caen en ella. Cómo se arman las clases, cómo se lee su forma y cuándo conviene se explica en la @sec-pres-cuantitativa. En R lo dibuja `hist()`:
 
 ```{r}
 #| label: fig-graf-hist-base
@@ -150,44 +105,13 @@ hist(ensayos$resistencia_mpa, col = "#1C6BA0", border = "white",
 
 El histograma de la @fig-graf-hist-base tiene dos grupos de barras. No es un error: el archivo mezcla cilindros ensayados a 7 y a 28 días, y el concreto gana resistencia con la edad. Es el tipo de cosa que un gráfico deja ver y un promedio esconde.
 
-#### Cómo leer la forma de un histograma
+#### Conjuntos de datos para practicar
 
-La @fig-graf-hist-formas muestra las cuatro formas que más se ven en ingeniería, con conjuntos de datos que trae R:
+Para practicar con histogramas de otras formas, R trae decenas de conjuntos de datos libres, listos para usar sin descargar nada: `airquality` (calidad del aire en Nueva York), `faithful` (erupciones de un géiser), `mtcars` (consumo y potencia de automóviles), `iris` (medidas de flores), `trees` (diámetro, altura y volumen de árboles) y muchos más. La lista completa sale con `data()`, y la descripción de cada uno con `?airquality` [@rcoreteam2025r]. Por ejemplo, `hist(airquality$Ozone)` muestra una distribución con cola larga a la derecha y `hist(faithful$waiting, breaks = 15)`, una con dos picos; la @fig-pres-formas explica qué indica cada forma.
 
-- **Simétrica, en forma de campana.** Los datos se reparten por igual a los dos lados del centro, como la resistencia de un lote de concreto bien controlado (en la figura, simulada con `rnorm()`). La media y la mediana casi coinciden.
-- **Asimétrica a la derecha.** La mayoría de los datos son bajos y unos pocos muy altos forman una cola larga. Es la forma típica de las concentraciones de contaminantes, las lluvias máximas y los caudales. En el conjunto `airquality`, el ozono diario en Nueva York en 1973 va de 1 a 168 ppb, con mediana de 31.5 ppb. La media queda por encima de la mediana.
-- **Bimodal.** Dos montañas indican dos grupos mezclados, como los cilindros a 7 y a 28 días de la @fig-graf-hist-base, o los tiempos entre erupciones de un géiser del conjunto `faithful`. Antes de calcular un promedio hay que separar los grupos.
-- **Uniforme.** Todas las clases tienen más o menos la misma altura. Aparece con números aleatorios, como los de `runif()` del capítulo 6.
+#### Número de clases
 
-```{r}
-#| label: fig-graf-hist-formas
-#| fig-cap: "Formas frecuentes de un histograma."
-#| fig-alt: "Cuatro histogramas: uno simétrico en forma de campana, uno con cola larga a la derecha, uno con dos montañas separadas y uno plano"
-#| echo: false
-#| fig-height: 5.6
-#| fig-width: 9
-#| out-width: "95%"
-
-set.seed(4)
-par(mfrow = c(2, 2), mar = c(4.2, 4.2, 2.2, 1))
-hist(rnorm(300, mean = 30, sd = 3), col = "#1C6BA0", border = "white", main = "Simétrica",
-     xlab = "Resistencia simulada (MPa)", ylab = "Frecuencia", cex.main = 0.95)
-hist(airquality$Ozone, col = "#1C6BA0", border = "white", main = "Asimétrica a la derecha",
-     xlab = "Ozono (ppb), airquality", ylab = "Frecuencia", cex.main = 0.95)
-hist(faithful$waiting, breaks = 15, col = "#1C6BA0", border = "white", main = "Bimodal",
-     xlab = "Minutos entre erupciones, faithful", ylab = "Frecuencia", cex.main = 0.95)
-hist(runif(300, 0, 10), breaks = 10, col = "#1C6BA0", border = "white", main = "Uniforme",
-     xlab = "Números aleatorios entre 0 y 10", ylab = "Frecuencia", cex.main = 0.95)
-par(mfrow = c(1, 1))
-```
-
-R trae decenas de conjuntos de datos libres, listos para practicar sin descargar nada: `airquality` (calidad del aire en Nueva York), `faithful` (erupciones de un géiser), `mtcars` (consumo y potencia de automóviles), `iris` (medidas de flores), `trees` (diámetro, altura y volumen de árboles) y muchos más. La lista completa sale con `data()`, y la descripción de cada uno con `?airquality` [@rcoreteam2025r].
-
-#### Cuándo conviene y cuándo no
-
-El histograma conviene para ver la forma de una variable numérica con unos 30 datos o más, para detectar grupos mezclados y para decidir qué distribución de probabilidad describe los datos (Parte IV). No conviene con pocos datos, porque con 10 datos la forma depende casi por completo de dónde caen los límites de las clases; ahí es mejor dibujar los puntos o una caja. Tampoco sirve para comparar muchos grupos: tres histogramas uno encima del otro se leen peor que tres cajas lado a lado.
-
-El aspecto de un histograma depende del número de clases. Con muy pocas se pierde la forma, y con demasiadas aparecen huecos que son solo ruido. `hist()` elige el número con la regla de @sturges1926choice, y el argumento `breaks` lo cambia: `breaks = 15` pide unas 15 clases, y `breaks = seq(10, 45, by = 5)` fija los límites exactos. La @sec-pres-cuantitativa explica cómo se eligen las clases, y el interactivo de la @sec-graf-interactivo muestra el efecto de cambiarlas.
+`hist()` elige el número de clases con la regla de @sturges1926choice, y el argumento `breaks` lo cambia: `breaks = 15` pide unas 15 clases (R las ajusta a límites redondos), y `breaks = seq(10, 45, by = 5)` fija los límites exactos. Con `right = FALSE` cada clase incluye su límite inferior y excluye el superior. Las funciones `nclass.Sturges()`, `nclass.scott()` y `nclass.FD()` calculan el número de clases de tres reglas distintas. La @sec-pres-cuantitativa explica cómo se eligen las clases, y el interactivo de la @sec-graf-interactivo muestra el efecto de cambiarlas.
 
 #### Frecuencia o densidad
 
@@ -206,95 +130,7 @@ lines(density(ozono), col = "#D55E00", lwd = 2)
 
 ### Caja {#sec-graf-caja}
 
-::: {.pregunta}
-¿Cómo se comparan de un vistazo los tiempos de viaje de un bus en tres franjas del día, o la resistencia del concreto de tres proyectos, sin dibujar tres histogramas?
-:::
-
-El diagrama de caja (o de caja y bigotes) es la respuesta más usada. Lo propuso @tukey1977exploratory para explorar datos a mano, y resume una variable numérica con cinco valores y los posibles atípicos. Ocupa poco espacio, así que caben muchas cajas una junto a otra, y por eso es el gráfico preferido para comparar una variable numérica entre grupos [@wilke2019fundamentals].
-
-#### Las partes de la caja
-
-La @fig-graf-caja-partes señala cada pieza sobre los tiempos de recorrido de un bus en un tramo urbano:
-
-- La caja va del primer cuartil ($Q_1$) al tercer cuartil ($Q_3$). Dentro de ella está el 50 % central de los datos, y su largo es el rango intercuartílico, $\text{RIC} = Q_3 - Q_1$.
-- La línea dentro de la caja es la mediana: la mitad de los datos está por debajo y la otra mitad por encima.
-- Los bigotes salen de la caja hasta el dato más alejado que todavía está dentro de las vallas, que se ubican a 1.5 RIC de cada borde de la caja. El bigote termina en un dato real, no en la valla.
-- Cada dato que queda fuera de las vallas se dibuja como un punto suelto. Es un posible valor atípico.
-
-```{r}
-#| label: fig-graf-caja-partes
-#| fig-cap: "Partes de un diagrama de caja."
-#| fig-alt: "Diagrama de caja horizontal con flechas que señalan el bigote inferior en 18.4, el primer cuartil en 20.45, la mediana en 21.5, el tercer cuartil en 23.15, el bigote superior en 25.0, la valla superior en 27.2 y un punto atípico en 34.6 minutos"
-#| echo: false
-#| fig-height: 3.4
-
-library(ggplot2)
-tiempo <- c(18.4, 19.1, 19.8, 20.3, 20.6, 21.0, 21.2, 21.5, 21.9, 22.4,
-            22.8, 23.5, 24.1, 25.0, 34.6)
-q <- quantile(tiempo, c(0.25, 0.5, 0.75))
-ric <- unname(q[3] - q[1])
-valla_sup <- unname(q[3] + 1.5 * ric)
-marcas <- data.frame(
-  x = c(18.4, q[1], q[2], q[3], 25.0, 34.6),
-  y = c(1.45, 1.45, 0.55, 1.45, 0.55, 1.45),
-  texto = c("Bigote inferior\n18.4", "Q1 = 20.45", "Mediana\n21.50", "Q3 = 23.15",
-            "Bigote superior\n25.0", "Atípico\n34.6")
-)
-ggplot(data.frame(tiempo), aes(x = tiempo, y = 1)) +
-  geom_boxplot(width = 0.35, fill = "#cfe0ee", outlier.size = 2.5, outlier.colour = "#D55E00") +
-  geom_vline(xintercept = valla_sup, linetype = 2, colour = "gray45") +
-  geom_segment(data = marcas, aes(x = x, xend = x, y = ifelse(y > 1, y - 0.12, y + 0.12),
-                                  yend = ifelse(y > 1, 1.2, 0.8)),
-               arrow = arrow(length = unit(0.12, "cm")), colour = "gray35") +
-  geom_text(data = marcas, aes(x = x, y = y, label = texto), size = 3.1, lineheight = 0.9,
-            vjust = ifelse(marcas$y > 1, 0, 1)) +
-  annotate("segment", x = q[1], xend = q[3], y = 1.3, yend = 1.3,
-           arrow = arrow(ends = "both", length = unit(0.1, "cm")), colour = "#1C6BA0") +
-  annotate("text", x = mean(q[c(1, 3)]), y = 1.36, label = "RIC = 2.70",
-           colour = "#1C6BA0", size = 3.1) +
-  annotate("text", x = valla_sup + 0.3, y = 0.45, hjust = 0, size = 3.1, lineheight = 0.9,
-           label = "Valla superior\nQ3 + 1.5 RIC = 27.2") +
-  scale_y_continuous(limits = c(0.0, 1.85), breaks = NULL) +
-  scale_x_continuous(breaks = seq(18, 36, 2), limits = c(16.8, 36)) +
-  labs(x = "Tiempo de recorrido (min)", y = NULL) +
-  theme_minimal(base_size = 12)
-```
-
-La caja dice tres cosas a la vez. La posición de la mediana indica el centro. El largo de la caja y de los bigotes indica la dispersión. Y la forma indica la asimetría: si la mediana está cerca de un borde de la caja, o si un bigote es mucho más largo que el otro, los datos se estiran hacia un lado. En la @fig-graf-caja-partes el bigote superior es más largo que el inferior y hay un atípico a la derecha: los viajes lentos se alejan más de lo normal que los rápidos, algo típico de los tiempos de viaje, donde un choque o una obra pueden duplicar el tiempo pero nada puede reducirlo a la mitad. La @sec-med-atipicos explica el cálculo de los cuartiles y de las vallas con más detalle.
-
-#### Cuándo conviene y cuándo no
-
-El diagrama de caja conviene en estos casos:
-
-- **Comparar grupos.** Varias cajas lado a lado muestran enseguida qué grupo tiene valores más altos y cuál es más variable. Es su uso principal.
-- **Buscar atípicos.** Los puntos sueltos marcan los datos que hay que revisar antes de calcular promedios.
-- **Ver la asimetría.** Con muchos datos (unos 20 o más por grupo), la forma de la caja muestra hacia dónde se estira la distribución.
-- **Resumir con poco espacio.** Una caja ocupa lo mismo con 15 datos que con 15 000.
-
-Y no conviene en estos otros:
-
-- **Pocos datos.** Con menos de unos 10 datos por grupo, los cuartiles cambian mucho si se agrega o se quita un dato, y la caja aparenta una precisión que no existe. Es mejor dibujar los puntos [@wilke2019fundamentals].
-- **Distribuciones con dos grupos de datos (bimodales).** La caja solo ve cinco números, así que no puede mostrar dos montañas. La @fig-graf-caja-bimodal lo muestra con los 60 cilindros: el histograma separa los ensayos a 7 y a 28 días, mientras que la caja los funde en una sola caja ancha que parece normal.
-- **Cuando importa el número de datos.** Una caja con 5 datos y otra con 500 se ven iguales. Si el tamaño de los grupos importa, se agrega el número debajo de cada caja o se usa el ancho variable que se describe más adelante.
-- **Variables categóricas.** Una caja necesita una variable numérica. Para contar categorías se usan barras.
-
-```{r}
-#| label: fig-graf-caja-bimodal
-#| fig-cap: "Histograma y caja de los mismos datos."
-#| fig-alt: "A la izquierda, un histograma con dos grupos de barras separados; a la derecha, una sola caja ancha sin señal de los dos grupos"
-#| echo: false
-#| fig-height: 3.6
-
-par(mfrow = c(1, 2), mar = c(4.2, 4.2, 1, 1))
-hist(ensayos$resistencia_mpa, col = "#1C6BA0", border = "white", main = "",
-     xlab = "Resistencia (MPa)", ylab = "Frecuencia")
-boxplot(ensayos$resistencia_mpa, col = "#cfe0ee", ylab = "Resistencia (MPa)")
-par(mfrow = c(1, 1))
-```
-
-::: {.callout-warning title="Cuidado"}
-Un punto fuera de las vallas no es un error por definición. Es un dato que merece una segunda mirada. Si resulta ser un error de digitación o de unidades, se corrige. Si es real, como un viaje con un choque en la vía o una crecida extraordinaria, se queda: suele ser el dato que más le importa a quien diseña.
-:::
+El diagrama de caja (o de caja y bigotes) resume una variable numérica con la mediana, los cuartiles y los posibles atípicos, y se usa sobre todo para comparar grupos. Sus partes, el cálculo del límite inferior y del límite superior, cómo se lee y cuándo conviene se explican en la @sec-med-atipicos, después de definir los cuartiles. Aquí se ve cómo se dibuja en R.
 
 #### Diagrama de caja con R base
 
@@ -314,7 +150,7 @@ En la @fig-graf-caja-base las tres cajas apenas se tocan: el concreto del puente
 
 ::: {.callout-note title="Ejemplo: atípicos en los tiempos de recorrido de un bus"}
 
-**Planteamiento.** Se midió el tiempo que tarda un bus en recorrer un tramo urbano en 15 viajes de la hora pico (datos hipotéticos), en minutos: 18.4, 19.1, 19.8, 20.3, 20.6, 21.0, 21.2, 21.5, 21.9, 22.4, 22.8, 23.5, 24.1, 25.0 y 34.6. Calcule los cuartiles, el RIC y las vallas, identifique los atípicos y dibuje el diagrama de caja.
+**Planteamiento.** Se midió el tiempo que tarda un bus en recorrer un tramo urbano en 15 viajes de la hora pico (datos hipotéticos), en minutos: 18.4, 19.1, 19.8, 20.3, 20.6, 21.0, 21.2, 21.5, 21.9, 22.4, 22.8, 23.5, 24.1, 25.0 y 34.6. Calcule los cuartiles, el RIC y los límites inferior y superior, identifique los atípicos y dibuje el diagrama de caja. La @sec-med-atipicos explica de dónde salen estos valores.
 
 **Solución:**
 
@@ -324,14 +160,14 @@ Los datos ya están ordenados y son $n = 15$. Con la regla que usa R por defecto
 2. $Q_1$: posición $1 + 14 \times 0.25 = 4.5$, a mitad de camino entre el cuarto (20.3) y el quinto dato (20.6): $Q_1 = 20.45$ min.
 3. $Q_3$: posición $1 + 14 \times 0.75 = 11.5$, entre el undécimo (22.8) y el duodécimo dato (23.5): $Q_3 = 23.15$ min.
 4. $\text{RIC} = 23.15 - 20.45 = 2.70$ min.
-5. Vallas: $20.45 - 1.5 \times 2.70 = 16.40$ min y $23.15 + 1.5 \times 2.70 = 27.20$ min.
-6. Ningún dato está por debajo de 16.40. Solo 34.6 min está por encima de 27.20, así que es el único atípico. El bigote inferior llega a 18.4 y el superior al último dato dentro de la valla, 25.0.
+5. Límite inferior y límite superior: $20.45 - 1.5 \times 2.70 = 16.40$ min y $23.15 + 1.5 \times 2.70 = 27.20$ min.
+6. Ningún dato está por debajo de 16.40. Solo 34.6 min está por encima de 27.20, así que es el único atípico. El bigote inferior llega a 18.4 y el superior al último dato que no pasa el límite superior, 25.0. El límite (27.20) y el extremo del bigote (25.0) no coinciden.
 
 **Pseudocódigo:**
 
 1. Guardar los tiempos en un vector.
 2. Calcular $Q_1$, la mediana y $Q_3$ con `quantile()`, y el RIC con `IQR()`.
-3. Calcular las vallas y elegir los datos que quedan fuera.
+3. Calcular los límites y elegir los datos que quedan fuera.
 4. Comprobar con `boxplot.stats()`.
 5. Dibujar la caja horizontal.
 
@@ -346,11 +182,11 @@ cuartiles
 ric <- IQR(tiempo)
 ric
 
-# 3) Vallas y atípicos
-valla_inf <- cuartiles[1] - 1.5 * ric
-valla_sup <- cuartiles[3] + 1.5 * ric
-c(valla_inf, valla_sup)
-tiempo[tiempo < valla_inf | tiempo > valla_sup]
+# 3) Límites inferior y superior, y atípicos
+lim_inf <- cuartiles[1] - 1.5 * ric
+lim_sup <- cuartiles[3] + 1.5 * ric
+c(lim_inf, lim_sup)
+tiempo[tiempo < lim_inf | tiempo > lim_sup]
 
 # 4) Comprobación: los cinco números del dibujo y los atípicos
 boxplot.stats(tiempo)$stats
@@ -373,7 +209,7 @@ boxplot(tiempo, horizontal = TRUE, col = "#cfe0ee",
 
 #### Variantes del diagrama de caja
 
-La caja básica tiene varias versiones. Cada una agrega algo que la caja sola esconde. La @fig-graf-caja-variantes las muestra con la resistencia a 28 días de los tres proyectos, y el @tbl-graf-caja-variantes dice cuándo conviene cada una y cómo se hace en R.
+La caja básica tiene varias versiones, que se explican en la @sec-med-atipicos. La @fig-graf-caja-variantes las muestra con la resistencia a 28 días de los tres proyectos, y el @tbl-graf-caja-variantes resume cómo se hace cada una en R.
 
 ```{r}
 #| label: fig-graf-caja-variantes
@@ -384,6 +220,7 @@ La caja básica tiene varias versiones. Cada una agrega algo que la caja sola es
 #| fig-width: 9
 #| out-width: "95%"
 
+library(ggplot2)
 library(patchwork)
 tema_v <- theme_minimal(base_size = 10) + theme(plot.title = element_text(size = 10, face = "bold"))
 ejes <- labs(x = NULL, y = "Resistencia (MPa)")
@@ -420,12 +257,7 @@ p6 <- ggplot(e28, aes(proyecto, resistencia_mpa, fill = mezcla)) +
 
 : Variantes del diagrama de caja. {#tbl-graf-caja-variantes}
 
-Algunas precisiones sobre las variantes:
-
-- **Muescas.** La muesca va de la mediana menos $1.58\,\text{RIC}/\sqrt{n}$ a la mediana más esa cantidad [@mcgill1978variations]. Con pocos datos la muesca puede salirse de la caja y el dibujo se ve doblado; es la señal de que el intervalo es muy ancho. En el panel 2 de la @fig-graf-caja-variantes las muescas del puente no tocan las de los otros proyectos: su mediana es más alta. La comparación formal de dos grupos se hace con las pruebas de hipótesis del capítulo 22.
-- **Ancho variable.** El ancho de cada caja es proporcional a la raíz cuadrada del número de datos [@mcgill1978variations]. En el panel 3 se quitó la mitad de los datos del pavimento, y por eso su caja es más angosta.
-- **Caja con puntos.** Al agregar los puntos con `geom_jitter()` se apagan los atípicos de la caja (`outlier.shape = NA`) para que no salgan dibujados dos veces. El *jitter* mueve cada punto un poco hacia los lados, sin cambiar su valor, para que los datos iguales no queden uno encima del otro.
-- **Violín.** El violín dibuja a cada lado una curva suave con la forma de la distribución, como un histograma alisado y puesto de pie [@hintze1998violin]. Muestra dos grupos de datos que la caja esconde, pero con pocos datos inventa formas que no existen.
+Al agregar los puntos con `geom_jitter()` se apagan los atípicos de la caja (`outlier.shape = NA`) para que no salgan dibujados dos veces. El *jitter* mueve cada punto un poco hacia los lados, sin cambiar su valor, para que los datos iguales no queden uno encima del otro.
 
 El código de cada variante con ggplot2 se arma con las capas de la @sec-graf-ggplot. En R base se escribe así:
 
@@ -447,127 +279,11 @@ stripchart(resistencia_mpa ~ proyecto, data = e28, vertical = TRUE,
 `boxplot()` de R base y `geom_boxplot()` de ggplot2 no calculan los cuartiles igual. R base usa las bisagras de Tukey (la mediana de cada mitad de los datos, función `fivenum()`) y ggplot2 usa `quantile()`, que por defecto aplica la regla de la posición $1 + (n - 1)\,p$. Con algunos tamaños de muestra las cajas difieren un poco. No es un error: hay al menos nueve definiciones de cuartil en uso [@hyndman1996sample]. Lo importante es decir cuál se usó cuando se informan los números.
 :::
 
-#### Interactivo: cómo responde la caja a los datos
-
-En el @fig-graf-caja-int se puede mover el último viaje del ejemplo con el deslizador o escribir otros datos en la casilla. La caja, los bigotes, las vallas y los atípicos se recalculan con la regla de `quantile()`. Vale la pena probar tres cosas: llevar el último viaje a 26 min (deja de ser atípico y el bigote se alarga), cambiar el factor de las vallas a 3 (solo quedan los atípicos extremos) y escribir datos con dos grupos, como 10, 11, 12, 13, 30, 31, 32, 33, para ver que la caja no los distingue.
-
-::: {#fig-graf-caja-int}
-
-```{=html}
-<div class="interactivo" id="int-caja">
-  <label>Datos (separados por comas):
-    <input type="text" class="datos-caja" style="flex:1 1 20rem; font-family:monospace; padding:0.2rem 0.4rem;"
-      value="18.4, 19.1, 19.8, 20.3, 20.6, 21.0, 21.2, 21.5, 21.9, 22.4, 22.8, 23.5, 24.1, 25.0, 34.6">
-  </label>
-  <label>Valor del último dato: <input type="range" class="ultimo" min="10" max="45" step="0.1" value="34.6"><output class="v-ultimo">34.6</output></label>
-  <label>Factor de las vallas (× RIC): <input type="range" class="factor" min="0.5" max="3" step="0.25" value="1.5"><output class="v-factor">1.5</output></label>
-  <label><input type="checkbox" class="ver-puntos" checked> Mostrar cada dato</label>
-  <label><input type="checkbox" class="ver-vallas" checked> Mostrar las vallas</label>
-  <svg viewBox="0 0 640 210" role="img" aria-label="Diagrama de caja horizontal que se actualiza con los datos"></svg>
-  <p class="resultado"></p>
-</div>
-<script>
-(function () {
-  const raiz = document.getElementById("int-caja");
-  const entrada = raiz.querySelector(".datos-caja");
-  const ultimo = raiz.querySelector(".ultimo");
-  const factor = raiz.querySelector(".factor");
-  const verPuntos = raiz.querySelector(".ver-puntos");
-  const verVallas = raiz.querySelector(".ver-vallas");
-  const svg = raiz.querySelector("svg");
-  const res = raiz.querySelector(".resultado");
-  const NS = "http://www.w3.org/2000/svg";
-  function el(tag, at, txt) {
-    const e = document.createElementNS(NS, tag);
-    for (const k in at) e.setAttribute(k, at[k]);
-    if (txt !== undefined) e.textContent = txt;
-    svg.appendChild(e); return e;
-  }
-  function leer() {
-    return entrada.value.split(/[,;\s]+/).map(Number).filter(v => isFinite(v) && entrada.value.trim() !== "");
-  }
-  // Cuantil tipo 7, el de quantile() en R
-  function cuantil(ord, p) {
-    const h = (ord.length - 1) * p, i = Math.floor(h);
-    return i + 1 < ord.length ? ord[i] + (h - i) * (ord[i + 1] - ord[i]) : ord[i];
-  }
-  function f(v) { return v.toFixed(2); }
-  function dibujar() {
-    const datos = leer();
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-    if (datos.length < 4) { res.textContent = "Escriba al menos 4 números."; return; }
-    const ord = datos.slice().sort((a, b) => a - b);
-    const q1 = cuantil(ord, 0.25), me = cuantil(ord, 0.5), q3 = cuantil(ord, 0.75);
-    const ric = q3 - q1, k = Number(factor.value);
-    const vi = q1 - k * ric, vs = q3 + k * ric;
-    const dentro = ord.filter(v => v >= vi && v <= vs);
-    const bi = dentro[0], bs = dentro[dentro.length - 1];
-    const atip = ord.filter(v => v < vi || v > vs);
-    let lo = Math.min(ord[0], verVallas.checked ? vi : ord[0]);
-    let hi = Math.max(ord[ord.length - 1], verVallas.checked ? vs : ord[ord.length - 1]);
-    const pad = (hi - lo) * 0.06 || 1; lo -= pad; hi += pad;
-    const X = v => 40 + (v - lo) / (hi - lo) * 570;
-    const yc = 95;
-    // Eje
-    el("line", { x1: 40, x2: 610, y1: 175, y2: 175, class: "eje" });
-    const paso = Math.pow(10, Math.floor(Math.log10((hi - lo) / 5)));
-    const m = [1, 2, 5, 10].find(m => (hi - lo) / (paso * m) <= 8) * paso;
-    for (let t = Math.ceil(lo / m) * m; t <= hi; t += m) {
-      el("line", { x1: X(t), x2: X(t), y1: 175, y2: 180, class: "eje" });
-      el("text", { x: X(t), y: 195, "text-anchor": "middle", class: "eje-texto" }, +t.toFixed(6));
-    }
-    // Vallas
-    if (verVallas.checked) {
-      [vi, vs].forEach((v, j) => {
-        el("line", { x1: X(v), x2: X(v), y1: 30, y2: 165, stroke: "#9aa3ad", "stroke-dasharray": "5 4" });
-        el("text", { x: X(v), y: 24, "text-anchor": "middle", class: "eje-texto" }, (j ? "valla sup. " : "valla inf. ") + f(v));
-      });
-    }
-    // Bigotes y caja
-    el("line", { x1: X(bi), x2: X(q1), y1: yc, y2: yc, class: "eje", "stroke-width": 2 });
-    el("line", { x1: X(q3), x2: X(bs), y1: yc, y2: yc, class: "eje", "stroke-width": 2 });
-    el("line", { x1: X(bi), x2: X(bi), y1: yc - 12, y2: yc + 12, class: "eje", "stroke-width": 2 });
-    el("line", { x1: X(bs), x2: X(bs), y1: yc - 12, y2: yc + 12, class: "eje", "stroke-width": 2 });
-    el("rect", { x: X(q1), y: yc - 28, width: Math.max(X(q3) - X(q1), 1), height: 56,
-                 fill: "var(--serie-1)", "fill-opacity": 0.25, stroke: "var(--serie-1)", "stroke-width": 2 });
-    el("line", { x1: X(me), x2: X(me), y1: yc - 28, y2: yc + 28, stroke: "var(--serie-1)", "stroke-width": 4 });
-    // Atípicos
-    atip.forEach(v => el("circle", { cx: X(v), cy: yc, r: 5, fill: "#D55E00" }));
-    // Puntos individuales debajo de la caja
-    if (verPuntos.checked) {
-      ord.forEach((v, i) => el("circle", { cx: X(v), cy: 148 + ((i % 3) - 1) * 5, r: 3,
-        fill: (v < vi || v > vs) ? "#D55E00" : "var(--serie-1)", "fill-opacity": 0.8 }));
-    }
-    const media = datos.reduce((a, b) => a + b, 0) / datos.length;
-    res.textContent = ["n = " + datos.length, "Q1 = " + f(q1), "mediana = " + f(me), "Q3 = " + f(q3),
-      "RIC = " + f(ric), "media = " + f(media), "atípicos: " + (atip.length ? atip.join(", ") : "ninguno")].join(" · ");
-  }
-  entrada.addEventListener("input", () => {
-    const d = leer();
-    if (d.length) { ultimo.value = d[d.length - 1]; raiz.querySelector(".v-ultimo").textContent = d[d.length - 1]; }
-    dibujar();
-  });
-  ultimo.addEventListener("input", () => {
-    const d = leer(); d[d.length - 1] = Number(ultimo.value);
-    entrada.value = d.map(v => v.toFixed(1)).join(", ");
-    raiz.querySelector(".v-ultimo").textContent = Number(ultimo.value).toFixed(1);
-    dibujar();
-  });
-  factor.addEventListener("input", () => { raiz.querySelector(".v-factor").textContent = factor.value; dibujar(); });
-  verPuntos.addEventListener("change", dibujar);
-  verVallas.addEventListener("change", dibujar);
-  dibujar();
-})();
-</script>
-```
-
-Diagrama de caja interactivo.
-
-:::
+Los interactivos de la @fig-med-int-caja y de la @fig-med-calculadora, en el capítulo 9, dibujan la caja con los datos que se escriban y muestran cómo cambian los límites y los atípicos.
 
 ### Dispersión {#sec-graf-dispersion}
 
-El gráfico de dispersión dibuja un punto por cada par de valores de dos variables numéricas medidas sobre lo mismo: el asentamiento y la resistencia de cada cilindro, la temperatura y el ozono de cada día, la relación agua/cemento y la resistencia de cada mezcla. Responde a la pregunta de si las dos variables se mueven juntas. `plot(x, y)` lo dibuja, con la primera variable en el eje horizontal y la segunda en el vertical. Por costumbre, en el eje horizontal va la variable que se cree que influye (la temperatura) y en el vertical la que responde (el ozono).
+El gráfico de dispersión dibuja un punto por cada par de valores de dos variables numéricas medidas sobre lo mismo, como la temperatura y el ozono de cada día. `plot(x, y)` lo dibuja, con la primera variable en el eje horizontal y la segunda en el vertical. Qué patrones se buscan en la nube de puntos se explica en la @sec-pres-dos-variables.
 
 ```{r}
 #| label: fig-graf-dispersion-base
@@ -580,43 +296,7 @@ plot(airquality$Temp, airquality$Ozone, pch = 19, col = "#1C6BA0",
 
 En la @fig-graf-dispersion-base los días calurosos tienen más ozono, porque el sol y el calor aceleran las reacciones que lo forman. La nube no sigue una recta: se curva hacia arriba, y con más de 80 °F casi 4 de cada 10 días pasan de 75 ppb, contra menos de 2 de cada 100 en los días más frescos. R descarta sin aviso los 37 días sin medición de ozono, porque un punto necesita sus dos coordenadas.
 
-#### Qué buscar en una nube de puntos
-
-La @fig-graf-dispersion-patrones muestra los patrones que se buscan al mirar un gráfico de dispersión:
-
-- **Dirección.** Si la nube sube, la relación es positiva; si baja, es negativa.
-- **Forma.** Si los puntos siguen una recta, la relación es lineal; si siguen una curva, no. Esto decide qué modelo usar en la Parte VI.
-- **Fuerza.** Cuanto más angosta la nube alrededor de la recta o la curva, más fuerte la relación. Una nube redonda indica que no hay relación.
-- **Atípicos y grupos.** Un punto lejos de la nube, o dos nubes separadas, piden revisar los datos antes de calcular nada.
-
-```{r}
-#| label: fig-graf-dispersion-patrones
-#| fig-cap: "Patrones de un gráfico de dispersión."
-#| fig-alt: "Cuatro nubes de puntos: una que sube en línea recta, una que baja, una redonda sin dirección y una en forma de curva"
-#| echo: false
-#| fig-height: 5.4
-#| fig-width: 8
-#| out-width: "90%"
-
-set.seed(11)
-x <- runif(60, 0, 10)
-par(mfrow = c(2, 2), mar = c(3.2, 3.2, 2.2, 1), mgp = c(2, 0.6, 0))
-plot(x, 2 + 0.8 * x + rnorm(60, 0, 0.8), pch = 19, col = "#1C6BA0", main = "Positiva y lineal",
-     xlab = "x", ylab = "y", cex.main = 0.95)
-plot(x, 10 - 0.7 * x + rnorm(60, 0, 1.2), pch = 19, col = "#1C6BA0", main = "Negativa y lineal",
-     xlab = "x", ylab = "y", cex.main = 0.95)
-plot(x, rnorm(60, 5, 2), pch = 19, col = "#1C6BA0", main = "Sin relación",
-     xlab = "x", ylab = "y", cex.main = 0.95)
-plot(x, 0.25 * (x - 5)^2 + rnorm(60, 0, 0.5), pch = 19, col = "#1C6BA0", main = "Curva",
-     xlab = "x", ylab = "y", cex.main = 0.95)
-par(mfrow = c(1, 1))
-```
-
-::: {.callout-warning title="Cuidado"}
-Que dos variables se muevan juntas no quiere decir que una cause la otra. En los días calurosos sube el ozono y también sube el consumo de helados, pero los helados no producen ozono: las dos variables dependen del calor. La Parte VI trata cómo medir una relación y qué se puede concluir de ella.
-:::
-
-#### Variantes y detalles
+#### Opciones útiles
 
 - **Color o forma por grupo.** Con `col = ` y un vector de colores, cada grupo sale de un color. Así se ve si la relación cambia, por ejemplo, de un mes a otro.
 - **Transparencia.** Cuando hay cientos de puntos, se tapan unos a otros y la nube parece uniforme. Un color semitransparente, como `adjustcolor("#1C6BA0", alpha.f = 0.3)` en R base o `alpha = 0.3` en ggplot2, deja ver dónde se acumulan.
@@ -625,7 +305,7 @@ Que dos variables se muevan juntas no quiere decir que una cause la otra. En los
 
 ### Líneas {#sec-graf-lineas}
 
-El gráfico de líneas une con segmentos los puntos de una variable medida en orden, casi siempre en el tiempo: los vehículos por hora, el caudal diario, la temperatura de cada día. La línea le dice al ojo que entre un punto y el siguiente hay continuidad. `plot(x, y, type = "l")` dibuja solo la línea, y `type = "o"` dibuja la línea con los puntos encima:
+El gráfico de líneas une con segmentos los puntos de una variable medida en orden, casi siempre en el tiempo: los vehículos por hora, el caudal diario, la temperatura de cada día. Cuándo conviene y qué se busca en él se explica en la @sec-pres-series. `plot(x, y, type = "l")` dibuja solo la línea, y `type = "o"` dibuja la línea con los puntos encima:
 
 ```{r}
 #| label: fig-graf-lineas-base
@@ -637,9 +317,7 @@ plot(lab$hora, lab$vehiculos, type = "o", pch = 19, col = "#1C6BA0",
      xlab = "Hora del día", ylab = "Vehículos por hora")
 ```
 
-La línea conviene cuando el eje horizontal tiene un orden natural y lo que interesa es el cambio: dónde están los picos, si hay una tendencia o un ciclo diario o anual. No conviene cuando el eje horizontal son categorías sin orden, como los proyectos o los materiales, porque la línea entre "Edificio" y "Pavimento" no significa nada; ahí van barras o puntos. Si faltan datos en la serie, la línea no debe saltarse el hueco como si nada: R corta la línea donde hay un `NA`, y es mejor así, porque unir los puntos de los dos lados inventa los valores del medio.
-
-Los puntos encima de la línea (`type = "o"`) conviene ponerlos cuando hay pocos datos, para que se vea dónde están las mediciones. Con cientos de datos, como una serie diaria de varios años, basta con la línea.
+Si la serie tiene un `NA`, `plot()` corta la línea en ese punto en vez de unir los dos lados del hueco.
 
 ### Agregar detalles a un gráfico de R base
 
