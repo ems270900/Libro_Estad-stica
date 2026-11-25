@@ -12,7 +12,9 @@ Este libro reúne ese lenguaje en el orden en que se aprende. Empieza por R, el 
 
 ## Para quién es este libro {.unnumbered}
 
-El libro se escribió para estudiantes de ingeniería civil que aprenden estadística y R por primera vez. No se supone experiencia previa en ninguno de los dos. Basta con el álgebra del colegio y con nociones de cálculo diferencial e integral, que aparecen en los capítulos de variables aleatorias continuas; cuando se usa una integral, el resultado también se obtiene con R, de modo que nadie se queda atascado por una antiderivada.
+El libro se escribió para estudiantes de ingeniería civil que aprenden estadística y R por primera vez. No se supone experiencia previa en ninguno de los dos, y cada tema empieza desde lo más básico. Las fórmulas se presentan después de explicar qué problema resuelven, cada símbolo se define al aparecer y los cálculos se hacen paso a paso, con todos los números a la vista. Eso no le quita rigor: los métodos son los mismos que se usan en la práctica profesional, con sus supuestos y sus límites.
+
+En los capítulos de variables aleatorias continuas aparecen algunas integrales. Cada una se explica paso a paso y su resultado también se obtiene con R, así que se puede avanzar aunque el cálculo integral se sienta lejano.
 
 También sirve como referencia para quien ya trabaja. Un profesional que necesita repasar cómo se compara la resistencia de dos mezclas, qué supuestos tiene una regresión o cómo se lee una tabla de ANOVA puede ir directo al capítulo. No hace falta leer los anteriores: basta con seguir las referencias cruzadas cuando le falte un concepto.
 
