@@ -43,6 +43,49 @@ Cuando los datos de un análisis están organizados con una variable por columna
 
 Ese cuadro es cómodo para mirar, pero la edad, que es una variable, quedó repartida en los encabezados de dos columnas. Para preguntarle a R "¿cuál es la resistencia media a 28 días?" o para dibujar la resistencia contra la edad, conviene la forma ordenada del data frame `cilindros`, donde la edad es una columna. En la @sec-datos-formas se explica cómo pasar de una forma a la otra con R. Si se puede elegir, los datos se registran desde el inicio en forma ordenada: una fila por cilindro ensayado.
 
+La @fig-datos-ordenados resume las tres reglas de los datos ordenados, propuestas por @wickham2014tidy. Se ven obvias, pero muchas hojas de cálculo reales rompen alguna: una columna "7 días" y otra "28 días" (la edad quedó en los encabezados), una celda con "27.4 MPa" (el valor y la unidad juntos) o una fila de totales al final (una fila que no es una observación).
+
+::: {#fig-datos-ordenados}
+
+```{=html}
+<svg class="diagrama" viewBox="0 0 700 215" role="img" aria-label="Un cuadro de cuatro columnas: muestra, mezcla, edad y resistencia. Una columna resaltada se rotula cada variable es una columna; una fila resaltada, cada observación es una fila; una celda resaltada, cada valor es una celda">
+  <g font-family="ui-monospace, monospace" font-size="13">
+    <rect x="150" y="30" width="400" height="30" class="d-caja d-gris"/>
+    <text x="200" y="50" class="d-texto">muestra</text><text x="300" y="50" class="d-texto">mezcla</text><text x="400" y="50" class="d-texto">edad_dias</text><text x="500" y="50" class="d-texto">resistencia</text>
+    <rect x="150" y="60" width="400" height="30" class="d-caja"/>
+    <text x="200" y="80" class="d-texto">M01</text><text x="300" y="80" class="d-texto">A</text><text x="400" y="80" class="d-texto">7</text><text x="500" y="80" class="d-texto">22.7</text>
+    <rect x="150" y="90" width="400" height="30" class="d-caja d-naranja"/>
+    <text x="200" y="110" class="d-texto">M02</text><text x="300" y="110" class="d-texto">A</text><text x="400" y="110" class="d-texto">28</text><text x="500" y="110" class="d-texto">37.7</text>
+    <rect x="150" y="120" width="400" height="30" class="d-caja"/>
+    <text x="200" y="140" class="d-texto">M03</text><text x="300" y="140" class="d-texto">B</text><text x="400" y="140" class="d-texto">7</text><text x="500" y="140" class="d-texto">24.1</text>
+    <rect x="150" y="150" width="400" height="30" class="d-caja"/>
+    <text x="200" y="170" class="d-texto">M04</text><text x="300" y="170" class="d-texto">B</text><text x="400" y="170" class="d-texto">28</text><text x="500" y="170" class="d-texto">39.6</text>
+    <rect x="350" y="30" width="100" height="150" fill="none" stroke="#a26800" stroke-width="3"/>
+    <rect x="450" y="150" width="100" height="30" fill="none" stroke="#1b7f8c" stroke-width="3"/>
+  </g>
+  <text x="400" y="18" class="d-nota" style="fill:#a26800">cada variable es una columna</text>
+  <text x="140" y="110" class="d-nota" style="text-anchor:end; fill:#D55E00">cada observación</text>
+  <text x="140" y="125" class="d-nota" style="text-anchor:end; fill:#D55E00">es una fila</text>
+  <text x="560" y="170" class="d-nota" style="text-anchor:start; fill:#1b7f8c">cada valor</text>
+  <text x="560" y="185" class="d-nota" style="text-anchor:start; fill:#1b7f8c">es una celda</text>
+</svg>
+```
+
+Las tres reglas de los datos ordenados.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Muchos problemas de un análisis nacen en la hoja de cálculo donde se anotaron los datos. @broman2018data recomiendan, entre otras cosas:
+
+- Una sola fila de encabezados, con nombres cortos, sin espacios ni tildes.
+- Una celda, un dato: "27.4" en una columna y la unidad en el nombre de la columna (`resistencia_mpa`), no "27.4 MPa".
+- Nada de celdas combinadas ni de colores con significado. R no ve el color amarillo que marcaba los cilindros dudosos; esa información va en una columna (`observacion`).
+- Las celdas vacías solo para datos que faltan, y siempre de la misma forma.
+- Las fechas en formato año-mes-día (2026-11-25), que no se confunde entre países.
+- Los datos crudos en una hoja aparte, sin fórmulas ni totales. Los cálculos se hacen en R.
+:::
+
 ## Leer datos desde un archivo {#sec-datos-leer}
 
 En la práctica los datos vienen en un archivo. Los dos formatos más comunes son CSV (*comma-separated values*, valores separados por comas), que es un archivo de texto que cualquier programa abre, y Excel. Los ejemplos usan un conjunto de 60 ensayos de compresión de cilindros de concreto de tres proyectos. Los datos son hipotéticos y se pueden descargar con el botón siguiente.
@@ -136,6 +179,28 @@ ensayos_xl <- read_excel("datos/ensayos_concreto_hipoteticos.xlsx", sheet = 1)
 #| echo: false
 ver_datos("datos/ensayos_concreto_hipoteticos.xlsx", tabla = FALSE)
 ```
+
+### Datos que vienen con R
+
+R trae decenas de conjuntos de datos listos para usar, sin leer ningún archivo. Sirven para practicar y para probar una función antes de aplicarla a los datos propios, y aparecen en muchos libros y foros de ayuda, así que un ejemplo con ellos lo puede reproducir cualquier persona [@rcoreteam2025r]. `data()` muestra la lista completa, y cada conjunto tiene su página de ayuda, que se abre con `?` y su nombre. El @tbl-datos-r reúne algunos útiles para ingeniería.
+
+| Conjunto | Contenido | Filas | Útil para practicar |
+|:--|:--|:-:|:--|
+| `airquality` | Ozono, radiación solar, viento y temperatura diarios en Nueva York, mayo a setiembre de 1973 | 153 | Datos faltantes, resúmenes por mes, gráficos de dispersión |
+| `mtcars` | Consumo, potencia, peso y otras características de 32 automóviles de 1973–1974 | 32 | Resúmenes por grupo, regresión |
+| `trees` | Diámetro, altura y volumen de madera de 31 cerezos | 31 | Relación entre variables, regresión |
+| `faithful` | Duración de las erupciones de un géiser y tiempo de espera entre ellas | 272 | Histogramas con dos grupos de datos |
+| `warpbreaks` | Roturas de hilo según el tipo de lana y la tensión | 54 | Comparación de grupos, diseño de experimentos |
+| `ToothGrowth` | Crecimiento de dientes de cobayos según el suplemento y la dosis | 60 | Comparación de grupos, diseño factorial |
+| `Nile` | Caudal anual del río Nilo en Asuán, 1871–1970 | 100 | Series de tiempo de caudales |
+
+: Algunos conjuntos de datos que vienen con R. {#tbl-datos-r}
+
+```{r}
+head(airquality)    # primeras filas; ?airquality abre su ayuda
+```
+
+Un conjunto de datos de R ya está disponible como un objeto más: se escribe su nombre y se usa como cualquier data frame. Si se modifica, el cambio se guarda en una copia del entorno de trabajo, y el original queda intacto. Algunos, como `Nile`, no son data frames sino series de tiempo, y se convierten con `data.frame(anio = 1871:1970, caudal = as.numeric(Nile))`.
 
 ## Revisar un data frame {#sec-datos-revisar}
 
@@ -400,6 +465,131 @@ ensayos %>%
             .groups = "drop")
 ```
 
+La @fig-datos-dac muestra lo que pasa por dentro. `group_by()` divide el data frame en un pedazo por grupo, `summarise()` aplica el mismo cálculo a cada pedazo y al final los resultados se combinan en un data frame nuevo, con una fila por grupo. A esa secuencia se le llama dividir, aplicar y combinar, y es la base de casi todos los resúmenes de datos [@wickham2011split].
+
+::: {#fig-datos-dac}
+
+```{=html}
+<svg class="diagrama" viewBox="0 0 700 230" role="img" aria-label="Un cuadro de seis filas de tres proyectos se divide en tres cuadros pequeños, uno por proyecto; a cada uno se le calcula la media; las tres medias se combinan en un cuadro de tres filas">
+  <defs><marker id="dac-flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-punta"/></marker></defs>
+  <text x="80" y="18" class="d-titulo">Datos</text>
+  <g font-size="12">
+    <rect x="20" y="30" width="120" height="26" class="d-caja d-acento"/><text x="80" y="48" class="d-texto">Puente 37.7</text>
+    <rect x="20" y="56" width="120" height="26" class="d-caja"/><text x="80" y="74" class="d-texto">Edificio 30.9</text>
+    <rect x="20" y="82" width="120" height="26" class="d-caja d-naranja"/><text x="80" y="100" class="d-texto">Pavim. 32.7</text>
+    <rect x="20" y="108" width="120" height="26" class="d-caja d-acento"/><text x="80" y="126" class="d-texto">Puente 36.3</text>
+    <rect x="20" y="134" width="120" height="26" class="d-caja"/><text x="80" y="152" class="d-texto">Edificio 30.1</text>
+    <rect x="20" y="160" width="120" height="26" class="d-caja d-naranja"/><text x="80" y="178" class="d-texto">Pavim. 36.0</text>
+  </g>
+  <text x="290" y="18" class="d-titulo">Dividir</text>
+  <rect x="230" y="30" width="120" height="26" class="d-caja d-acento"/><text x="290" y="48" class="d-texto">37.7  36.3</text>
+  <rect x="230" y="95" width="120" height="26" class="d-caja"/><text x="290" y="113" class="d-texto">30.9  30.1</text>
+  <rect x="230" y="160" width="120" height="26" class="d-caja d-naranja"/><text x="290" y="178" class="d-texto">32.7  36.0</text>
+  <text x="460" y="18" class="d-titulo">Aplicar</text>
+  <text x="460" y="48" class="d-texto">mean() = 37.00</text>
+  <text x="460" y="113" class="d-texto">mean() = 30.50</text>
+  <text x="460" y="178" class="d-texto">mean() = 34.35</text>
+  <text x="625" y="18" class="d-titulo">Combinar</text>
+  <rect x="565" y="70" width="120" height="26" class="d-caja d-acento"/><text x="625" y="88" class="d-texto">Puente 37.00</text>
+  <rect x="565" y="96" width="120" height="26" class="d-caja"/><text x="625" y="114" class="d-texto">Edificio 30.50</text>
+  <rect x="565" y="122" width="120" height="26" class="d-caja d-naranja"/><text x="625" y="140" class="d-texto">Pavim. 34.35</text>
+  <line x1="145" y1="108" x2="225" y2="108" class="d-linea" marker-end="url(#dac-flecha)"/>
+  <text x="185" y="210" class="d-nota">group_by(proyecto)</text>
+  <line x1="355" y1="108" x2="395" y2="108" class="d-linea" marker-end="url(#dac-flecha)"/>
+  <line x1="525" y1="108" x2="560" y2="108" class="d-linea" marker-end="url(#dac-flecha)"/>
+  <text x="460" y="210" class="d-nota">summarise(media = mean(...))</text>
+</svg>
+```
+
+Dividir, aplicar y combinar con seis cilindros.
+
+:::
+
+En el @fig-datos-dac-int se hace lo mismo con los 60 ensayos. Cada punto es un cilindro, coloreado según el grupo al que pertenece; al cambiar la variable de agrupación o el resumen, cambian el código y el resultado.
+
+::: {#fig-datos-dac-int}
+
+```{=html}
+<div class="interactivo" id="int-dac" style="max-width:740px;">
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
+    <label>group_by(
+      <select class="dac-grupo">
+        <option value="">(sin agrupar)</option><option value="1" selected>proyecto</option><option value="2">mezcla</option>
+        <option value="3">edad_dias</option><option value="1,3">proyecto, edad_dias</option><option value="2,3">mezcla, edad_dias</option>
+      </select>)
+    </label>
+    <label>summarise(
+      <select class="dac-fun">
+        <option value="mean" selected>media = mean(resistencia_mpa)</option><option value="median">mediana = median(resistencia_mpa)</option>
+        <option value="n">n = n()</option><option value="max">maximo = max(resistencia_mpa)</option><option value="min">minimo = min(resistencia_mpa)</option>
+        <option value="sd">de = sd(resistencia_mpa)</option>
+      </select>)
+    </label>
+  </div>
+  <svg class="dac-svg" viewBox="0 0 640 150" aria-label="Puntos de los 60 cilindros coloreados por grupo"></svg>
+  <div style="display:flex; flex-wrap:wrap; gap:0.8rem; text-align:left;">
+    <pre class="dac-codigo" style="flex:1 1 15rem; margin:0; font-size:0.82rem; white-space:pre-wrap;"></pre>
+    <div class="dac-tabla" style="flex:1 1 15rem; font-size:0.85rem;"></div>
+  </div>
+</div>
+<script>
+(function () {
+  const datos = [["M01","Puente","A",7,22.7,35],["M02","Puente","A",28,37.7,35],["M03","Puente","A",7,28,35],["M04","Puente","A",28,36.3,35],["M05","Puente","A",7,18.7,35],["M06","Puente","A",28,37.8,35],["M07","Puente","A",7,23.4,35],["M08","Puente","A",28,39.4,35],["M09","Puente","A",7,23.7,35],["M10","Puente","A",28,37.2,35],["M11","Puente","B",7,22.6,35],["M12","Puente","B",28,37.1,35],["M13","Puente","B",7,23.8,35],["M14","Puente","B",28,40.2,35],["M15","Puente","B",7,26.9,35],["M16","Puente","B",28,37.1,35],["M17","Puente","B",7,25.6,35],["M18","Puente","B",28,39.6,35],["M19","Puente","B",7,27.6,35],["M20","Puente","B",28,39,35],["M21","Edificio","A",7,19.8,28],["M22","Edificio","A",28,27.6,28],["M23","Edificio","A",7,19.3,28],["M24","Edificio","A",28,30.9,28],["M25","Edificio","A",7,18.1,28],["M26","Edificio","A",28,30.1,28],["M27","Edificio","A",7,17.4,28],["M28","Edificio","A",28,28.3,28],["M29","Edificio","A",7,16.9,28],["M30","Edificio","A",28,31.3,28],["M31","Edificio","B",7,23.1,28],["M32","Edificio","B",28,32.3,28],["M33","Edificio","B",7,24.3,28],["M34","Edificio","B",28,31.1,28],["M35","Edificio","B",7,17.2,28],["M36","Edificio","B",28,33.4,28],["M37","Edificio","B",7,19.4,28],["M38","Edificio","B",28,33.2,28],["M39","Edificio","B",7,19,28],["M40","Edificio","B",28,32.8,28],["M41","Pavimento","A",7,25.4,30],["M42","Pavimento","A",28,32.7,30],["M43","Pavimento","A",7,21.3,30],["M44","Pavimento","A",28,36,30],["M45","Pavimento","A",7,19.2,30],["M46","Pavimento","A",28,31.2,30],["M47","Pavimento","A",7,18,30],["M48","Pavimento","A",28,31.7,30],["M49","Pavimento","A",7,22.3,30],["M50","Pavimento","A",28,35.8,30],["M51","Pavimento","B",7,22.3,30],["M52","Pavimento","B",28,33.2,30],["M53","Pavimento","B",7,19.7,30],["M54","Pavimento","B",28,33.7,30],["M55","Pavimento","B",7,20.3,30],["M56","Pavimento","B",28,37.2,30],["M57","Pavimento","B",7,22.5,30],["M58","Pavimento","B",28,34.3,30],["M59","Pavimento","B",7,24.3,30],["M60","Pavimento","B",28,39.7,30]];
+  const r = document.getElementById("int-dac"), svg = r.querySelector(".dac-svg");
+  const nombres = ["muestra", "proyecto", "mezcla", "edad_dias"];
+  const colores = ["#1C6BA0", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00"];
+  const NS = "http://www.w3.org/2000/svg";
+  function resumen(v, f) {
+    const o = v.slice().sort((a, b) => a - b), n = v.length, m = v.reduce((a, b) => a + b, 0) / n;
+    if (f === "mean") return m.toFixed(2);
+    if (f === "median") return (n % 2 ? o[(n - 1) / 2] : (o[n / 2 - 1] + o[n / 2]) / 2).toFixed(2);
+    if (f === "n") return String(n);
+    if (f === "max") return o[n - 1].toFixed(1);
+    if (f === "min") return o[0].toFixed(1);
+    return Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / (n - 1)).toFixed(2);
+  }
+  function actualizar() {
+    const g = r.querySelector(".dac-grupo").value, f = r.querySelector(".dac-fun").value;
+    const cols = g ? g.split(",").map(Number) : [];
+    const clave = d => cols.map(c => d[c]).join(" · ");
+    const grupos = [];
+    datos.forEach(d => { const k = clave(d); if (!grupos.includes(k)) grupos.push(k); });
+    grupos.sort();
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const X = v => 30 + (v - 15) / (42 - 15) * 590;
+    datos.forEach((d, i) => {
+      const k = grupos.indexOf(clave(d)), c = document.createElementNS(NS, "circle");
+      c.setAttribute("cx", X(d[4])); c.setAttribute("cy", 20 + (k % 6) * 18 + (i % 3) * 3);
+      c.setAttribute("r", 4.5); c.setAttribute("fill", colores[k % 6]); c.setAttribute("fill-opacity", 0.85);
+      svg.appendChild(c);
+    });
+    for (let t = 15; t <= 40; t += 5) {
+      const tx = document.createElementNS(NS, "text");
+      tx.setAttribute("x", X(t)); tx.setAttribute("y", 145); tx.setAttribute("text-anchor", "middle");
+      tx.setAttribute("class", "eje-texto"); tx.textContent = t + " MPa"; svg.appendChild(tx);
+    }
+    const etiqueta = r.querySelector(".dac-fun").selectedOptions[0].textContent;
+    r.querySelector(".dac-codigo").textContent = "ensayos %>%\n" + (cols.length ? "  group_by(" + cols.map(c => nombres[c]).join(", ") + ") %>%\n" : "") +
+      "  summarise(" + etiqueta + ")";
+    const nomRes = etiqueta.split(" =")[0];
+    let html = "<" + "table class='table table-sm'><thead><tr>" + cols.map(c => "<th>" + nombres[c] + "</th>").join("") + "<th>" + nomRes + "</th></tr></thead><tbody>";
+    grupos.forEach((k, j) => {
+      const v = datos.filter(d => clave(d) === k).map(d => d[4]);
+      const celdas = cols.length ? k.split(" · ").map(x => "<td>" + x + "</td>").join("") : "";
+      html += "<tr style='border-left:6px solid " + colores[j % 6] + "'>" + celdas + "<td>" + resumen(v, f) + "</td></tr>";
+    });
+    r.querySelector(".dac-tabla").innerHTML = html + "</tbody></table>";
+  }
+  r.querySelectorAll("select").forEach(s => s.addEventListener("change", actualizar));
+  actualizar();
+})();
+</script>
+```
+
+Dividir, aplicar y combinar con los 60 ensayos.
+
+:::
+
 La función `n()` cuenta las filas de cada grupo. Para contar sin calcular nada más está `count()`:
 
 ```{r}
@@ -553,6 +743,37 @@ ensayos_completo %>%
 
 La "left" del nombre indica que se conservan todas las filas de la tabla de la izquierda, la primera. Si un proyecto de los ensayos no estuviera en la tabla de proyectos, sus filas se conservarían con `NA` en la provincia y el elemento. En R base, la función equivalente es `merge(ensayos, proyectos, by = "proyecto", all.x = TRUE)`.
 
+### Tipos de unión
+
+`left_join()` es la unión que más se usa, pero no la única. La diferencia entre los tipos de unión está en qué pasa con las filas que no encuentran pareja en la otra tabla. Para verlo, sirven dos tablas pequeñas (datos hipotéticos): `muestras` tiene tres sondeos de suelo con su humedad, y `ubicaciones` tiene la provincia de tres sondeos. Solo P1 y P2 están en las dos.
+
+```{r}
+muestras <- data.frame(sondeo = c("P1", "P2", "P3"),
+                       humedad_pct = c(18.4, 27.9, 31.2))
+ubicaciones <- data.frame(sondeo = c("P1", "P2", "P4"),
+                          provincia = c("Cartago", "Heredia", "Limón"))
+```
+
+```{r}
+left_join(muestras, ubicaciones, by = "sondeo")    # todas las de la izquierda
+inner_join(muestras, ubicaciones, by = "sondeo")   # solo las que están en las dos
+full_join(muestras, ubicaciones, by = "sondeo")    # todas las de las dos tablas
+anti_join(muestras, ubicaciones, by = "sondeo")    # las de la izquierda sin pareja
+```
+
+El @tbl-datos-uniones resume cada tipo y cuándo se usa.
+
+| Función | Qué filas conserva | Cuándo se usa | R base |
+|:--|:--|:--|:--|
+| `left_join(x, y)` | Todas las de `x`; `NA` donde `y` no tiene pareja | Agregar información a los datos principales sin perder filas | `merge(x, y, all.x = TRUE)` |
+| `inner_join(x, y)` | Solo las que están en las dos | Trabajar solo con los casos completos | `merge(x, y)` |
+| `full_join(x, y)` | Todas las de las dos tablas | Juntar dos registros sin perder nada | `merge(x, y, all = TRUE)` |
+| `anti_join(x, y)` | Las de `x` que no están en `y` | Encontrar qué falta: sondeos sin ubicación, ensayos sin proyecto | `x[!x$clave %in% y$clave, ]` |
+
+: Tipos de unión de dplyr. {#tbl-datos-uniones}
+
+`anti_join()` es muy útil para revisar datos antes de unirlos: si devuelve filas, hay claves de una tabla que no aparecen en la otra, casi siempre por un error de escritura.
+
 ::: {.callout-warning title="Cuidado"}
 La clave debe escribirse exactamente igual en las dos tablas. "Puente" y "puente" son valores distintos para R, y también "Puente" y "Puente " (con un espacio al final). Si después de unir aparecen `NA` inesperados, lo primero es revisar la clave con `unique()` en las dos tablas.
 :::
@@ -563,6 +784,39 @@ El @tbl-datos-ancho, al inicio del capítulo, tenía una columna por edad: es un
 
 - `pivot_wider()` pasa de largo a ancho: toma los valores de una columna (`names_from`) y los convierte en nombres de columnas nuevas, que se llenan con los valores de otra (`values_from`).
 - `pivot_longer()` hace lo contrario: junta varias columnas (`cols`) en dos, una con el nombre de la columna original (`names_to`) y otra con su valor (`values_to`).
+
+La @fig-datos-pivotar muestra las dos transformaciones con los cuatro resultados del inicio del capítulo.
+
+::: {#fig-datos-pivotar}
+
+```{=html}
+<svg class="diagrama" viewBox="0 0 700 200" role="img" aria-label="A la izquierda, formato largo de cuatro filas con mezcla, edad y resistencia; a la derecha, formato ancho de dos filas con mezcla, columna 7 y columna 28; una flecha de ida dice pivot_wider y una de vuelta dice pivot_longer">
+  <defs><marker id="pv-flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-punta"/></marker></defs>
+  <text x="140" y="18" class="d-titulo">Formato largo</text>
+  <rect x="20" y="30" width="240" height="28" class="d-caja d-gris"/>
+  <text x="60" y="49" class="d-texto">mezcla</text><text x="140" y="49" class="d-texto">edad_dias</text><text x="220" y="49" class="d-texto">resist.</text>
+  <rect x="20" y="58" width="240" height="28" class="d-caja"/><text x="60" y="77" class="d-texto">A</text><text x="140" y="77" class="d-texto" style="fill:#a26800">7</text><text x="220" y="77" class="d-texto">22.7</text>
+  <rect x="20" y="86" width="240" height="28" class="d-caja"/><text x="60" y="105" class="d-texto">A</text><text x="140" y="105" class="d-texto" style="fill:#a26800">28</text><text x="220" y="105" class="d-texto">37.7</text>
+  <rect x="20" y="114" width="240" height="28" class="d-caja"/><text x="60" y="133" class="d-texto">B</text><text x="140" y="133" class="d-texto" style="fill:#a26800">7</text><text x="220" y="133" class="d-texto">24.1</text>
+  <rect x="20" y="142" width="240" height="28" class="d-caja"/><text x="60" y="161" class="d-texto">B</text><text x="140" y="161" class="d-texto" style="fill:#a26800">28</text><text x="220" y="161" class="d-texto">39.6</text>
+  <text x="560" y="18" class="d-titulo">Formato ancho</text>
+  <rect x="450" y="58" width="220" height="28" class="d-caja d-gris"/>
+  <text x="490" y="77" class="d-texto">mezcla</text><text x="563" y="77" class="d-texto" style="fill:#a26800">7</text><text x="633" y="77" class="d-texto" style="fill:#a26800">28</text>
+  <rect x="450" y="86" width="220" height="28" class="d-caja"/><text x="490" y="105" class="d-texto">A</text><text x="563" y="105" class="d-texto">22.7</text><text x="633" y="105" class="d-texto">37.7</text>
+  <rect x="450" y="114" width="220" height="28" class="d-caja"/><text x="490" y="133" class="d-texto">B</text><text x="563" y="133" class="d-texto">24.1</text><text x="633" y="133" class="d-texto">39.6</text>
+  <line x1="275" y1="80" x2="440" y2="80" class="d-linea" marker-end="url(#pv-flecha)"/>
+  <text x="357" y="70" class="d-nota">pivot_wider()</text>
+  <line x1="440" y1="135" x2="275" y2="135" class="d-linea" marker-end="url(#pv-flecha)"/>
+  <text x="357" y="155" class="d-nota">pivot_longer()</text>
+</svg>
+```
+
+Pasar de formato largo a ancho y de vuelta.
+
+:::
+
+Los valores de la columna `edad_dias` (en ámbar) se convierten en nombres de columnas al ensanchar y vuelven a ser valores al alargar. El formato ancho se lee mejor en un informe; el largo es el que necesitan ggplot2 y los verbos de dplyr. Por eso lo usual es trabajar en largo y ensanchar solo el cuadro final.
+
 
 Un uso típico de `pivot_wider()` es presentar un resumen en un informe, con los proyectos en filas y las edades en columnas:
 
