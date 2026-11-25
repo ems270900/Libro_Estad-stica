@@ -836,7 +836,7 @@ Proceso de Poisson y tiempos entre eventos.
 
 ## Cómo elegir la distribución {#sec-cont-elegir}
 
-La elección de una distribución continua combina dos cosas: lo que se sabe de la física del problema y lo que muestran los datos. El @tbl-cont-resumen resume las distribuciones del capítulo con el tipo de variable para el que suelen servir.
+La elección de una distribución continua combina dos cosas: lo que se sabe de la física del problema y lo que muestran los datos. La guía completa para elegir entre todas las distribuciones de la Parte IV, con un diagrama de decisión y un cuestionario para practicar, está al final del capítulo 16 (@sec-guia-distribuciones). El @tbl-cont-resumen resume las distribuciones del capítulo con el tipo de variable para el que suelen servir.
 
 ```{r}
 #| label: tbl-cont-resumen
