@@ -32,6 +32,7 @@
 - Epígrafes: los de los capítulos 24 y 25 son de Galton, citados por Watkins (fuente secundaria); el del 27 es de Box (1979, p. 202). El capítulo 26 no lleva epígrafe; el autor puede proponer uno.
 - Los capítulos remiten a capítulos todavía no escritos (2, 9, 17, 19 a 21 y la Parte VII) por su número. Cuando existan, conviene cambiar esas menciones por referencias cruzadas `@sec-`.
 - Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.
+- `references.bib` tiene dos claves para Lane (`laneintroduction`, de la Parte III y usada en la VI, y `lanesfintroduction`, de la Parte II) y dos para Watkins (`watkinsintroduction` y `watkinssfintroduction`). No se renombran claves ya citadas; conviene que el autor elija una de cada par y se unifiquen en un PR aparte.
 - Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Agregarlos a las instrucciones de instalación de la introducción.
 
 ## Apéndices
