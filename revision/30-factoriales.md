@@ -22,3 +22,7 @@
 
 - Sin epígrafe, por decisión del autor.
 - Referencias cruzadas a las Partes IV a VI y al Apéndice A.
+
+## Cambios (2026-11-25): ejemplos de otras ramas
+
+- Ejercicio 1: el factorial cemento × temperatura de curado pasa a inóculo × temperatura en reactores anaerobios (producción de metano, mL/d), con los mismos números. Los ejemplos resueltos no cambian.

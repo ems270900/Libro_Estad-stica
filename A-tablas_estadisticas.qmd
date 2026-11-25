@@ -413,7 +413,7 @@ cuadro_binomial <- function(enes) {
 
 ```{r}
 #| label: tbl-apa-binom-1
-#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 1 a 5."
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ entre 1 y 5."
 #| echo: false
 
 cuadro_binomial(1:5)
@@ -423,7 +423,7 @@ cuadro_binomial(1:5)
 
 ```{r}
 #| label: tbl-apa-binom-2
-#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 6 a 10."
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ entre 6 y 10."
 #| echo: false
 
 cuadro_binomial(6:10)
@@ -433,7 +433,7 @@ cuadro_binomial(6:10)
 
 ```{r}
 #| label: tbl-apa-binom-3
-#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 11 a 15."
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ entre 11 y 15."
 #| echo: false
 
 cuadro_binomial(11:15)
@@ -443,7 +443,7 @@ cuadro_binomial(11:15)
 
 ```{r}
 #| label: tbl-apa-binom-4
-#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ de 16 a 20."
+#| tbl-cap: "Binomial: $P(X \\le x)$ para $n$ entre 16 y 20."
 #| echo: false
 
 cuadro_binomial(16:20)
