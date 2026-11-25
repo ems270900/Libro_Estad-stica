@@ -26,7 +26,9 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Español | Inglés | Qué significa |
 |:--|:--|:--|
 | Aleatorización | Randomization | Asignar los tratamientos a las unidades experimentales al azar. |
+| Alias | Alias | En un factorial fraccionado, dos efectos que se estiman con la misma columna de signos y no se pueden separar. |
 | Análisis de varianza (ANOVA) | Analysis of variance (ANOVA) | Método que compara las medias de varios grupos a partir de sus varianzas. |
+| ANOVA de Welch | Welch ANOVA | Versión del ANOVA de un factor que no supone varianzas iguales entre los grupos. |
 | Apalancamiento | Leverage | Cuánto pesa una observación en la recta de regresión por tener un valor de $x$ alejado de los demás. |
 | Asimetría | Skewness | Falta de simetría de una distribución: una cola más larga que la otra. |
 | Atípico, valor atípico | Outlier | Dato muy alejado del resto. |
@@ -60,6 +62,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Distribución muestral | Sampling distribution | Distribución de un estadístico, como la media, al repetir el muestreo muchas veces. |
 | Distribución normal | Normal distribution | Distribución continua con forma de campana, simétrica alrededor de la media. |
 | Efecto principal | Main effect | Cambio promedio de la respuesta al pasar de un nivel a otro de un factor. |
+| Efecto simple | Simple effect | Efecto de un factor dentro de un nivel fijo de otro factor. |
 | Error cuadrático medio | Mean squared error (MSE) | Promedio de los errores al cuadrado de un estimador: su varianza más su sesgo al cuadrado. |
 | Error estándar | Standard error | Desviación estándar de un estimador; mide cuánto cambiaría de una muestra a otra. |
 | Error tipo I | Type I error | Rechazar la hipótesis nula cuando es verdadera. |
@@ -73,11 +76,13 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Estimador | Estimator | Fórmula que se usa para estimar un parámetro a partir de la muestra. |
 | Estimador insesgado | Unbiased estimator | Estimador cuyo valor promedio es igual al parámetro que estima. |
 | Estudio observacional | Observational study | Estudio en el que se mide sin intervenir ni asignar tratamientos. |
+| Eta cuadrado parcial | Partial eta squared | Proporción de la variación que explica un efecto, sin contar la de los otros efectos del diseño. |
 | Evento | Event | Conjunto de resultados del espacio muestral. |
 | Eventos independientes | Independent events | Eventos en los que saber que ocurrió uno no cambia la probabilidad del otro. |
 | Eventos mutuamente excluyentes | Mutually exclusive events | Eventos que no pueden ocurrir al mismo tiempo. |
 | Experimento | Experiment | Estudio en el que se aplican tratamientos y se mide la respuesta. |
 | Factor | Factor | Variable que se controla en un experimento; en R, vector de categorías. |
+| Factorial fraccionado | Fractional factorial design | Diseño que ensaya solo una fracción de las combinaciones de un factorial 2^k. |
 | Frecuencia relativa | Relative frequency | Número de veces que aparece un valor dividido entre el total de datos. |
 | Función de densidad de probabilidad (FDP) | Probability density function (PDF) | Curva cuya área entre dos valores da la probabilidad de una variable continua. |
 | Función de distribución acumulada (FDA) | Cumulative distribution function (CDF) | Probabilidad de que la variable sea menor o igual que un valor: $P(X \le x)$. |
@@ -99,6 +104,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Media ponderada | Weighted mean | Promedio en el que cada dato pesa distinto. |
 | Mediana | Median | Valor central de los datos ordenados. |
 | Medida de tendencia central | Measure of central tendency | Número que indica el centro de los datos: media, mediana o moda. |
+| Método de Holm | Holm method | Ajuste por pasos de los valores p que controla el error familiar con más potencia que Bonferroni. |
 | Mínimos cuadrados | Least squares | Método que ajusta la recta que hace mínima la suma de los residuos al cuadrado. |
 | Moda | Mode | Valor que más se repite. |
 | Muestra | Sample | Parte de la población que se mide. |
@@ -108,6 +114,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Nivel de confianza | Confidence level | Porcentaje de intervalos que contendrían al parámetro si se repitiera el muestreo. |
 | Nivel de significancia ($\alpha$) | Significance level | Probabilidad de error tipo I que se acepta al decidir. |
 | Ojiva | Ogive, cumulative frequency plot | Gráfico de frecuencias acumuladas. |
+| Omega cuadrado | Omega squared | Medida del tamaño del efecto en el ANOVA, corregida para no sobrestimar como el eta cuadrado. |
 | Parámetro | Parameter | Número que describe a la población, como la media poblacional $\mu$. |
 | Percentil | Percentile | Cuantil expresado en porcentaje: el percentil 90 deja por debajo el 90 % de los datos. |
 | Permutación | Permutation | Forma de ordenar $k$ elementos elegidos de $n$, cuando importa el orden. |
@@ -118,10 +125,12 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Probabilidad total | Total probability | Regla que suma las probabilidades de un evento en cada uno de los casos posibles. |
 | Proporción | Proportion | Fracción de los elementos que cumplen una condición. |
 | Prueba bilateral | Two-sided test, two-tailed test | Prueba en la que la hipótesis alternativa es "distinto de". |
+| Prueba de Friedman | Friedman test | Alternativa por rangos al ANOVA de un diseño en bloques. |
 | Prueba de hipótesis | Hypothesis test | Procedimiento para decidir con datos si se rechaza la hipótesis nula. |
 | Prueba de Kruskal-Wallis | Kruskal-Wallis test | Alternativa al ANOVA de un factor que usa rangos y no supone normalidad. |
 | Prueba unilateral | One-sided test, one-tailed test | Prueba en la que la hipótesis alternativa es "mayor que" o "menor que". |
 | Pseudorreplicación | Pseudoreplication | Tratar como independientes mediciones que vienen de la misma unidad experimental. |
+| Punto central | Center point | Corrida con todos los factores en el valor medio de su rango; sirve para detectar curvatura. |
 | Rango | Range | Diferencia entre el valor máximo y el mínimo. |
 | Rango estudentizado | Studentized range | Diferencia entre la media mayor y la menor dividida entre su error estándar; base del método de Tukey. |
 | Rango intercuartílico | Interquartile range (IQR) | Diferencia entre el tercer y el primer cuartil. |
@@ -138,12 +147,14 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Transformación | Transformation | Cambio de escala de una variable (logaritmo, raíz cuadrada) para que se cumplan los supuestos de un modelo. |
 | Tratamiento | Treatment | Condición que se aplica a una unidad experimental, como un tipo de mezcla. |
 | Unidad experimental | Experimental unit | Elemento al que se le aplica un tratamiento, como un cilindro o una viga. |
+| Valor $p$ | $p$-value | Probabilidad de obtener un resultado tan extremo como el observado si $H_0$ fuera cierta. |
 | Valor crítico | Critical value | Valor que separa la región donde se rechaza la hipótesis nula de la región donde no. |
 | Valor esperado | Expected value | Promedio a largo plazo de una variable aleatoria. |
-| Valor $p$ | $p$-value | Probabilidad de obtener un resultado tan extremo como el observado si $H_0$ fuera cierta. |
+| Valor $p$ ajustado | Adjusted $p$-value | Menor error familiar con el que una comparación se declararía significativa. |
 | Variable aleatoria | Random variable | Número cuyo valor depende del resultado de un experimento aleatorio. |
 | Variable categórica | Categorical variable | Variable cuyos valores son categorías, como el tipo de suelo. |
 | Variable continua | Continuous variable | Variable que puede tomar cualquier valor en un intervalo, como una resistencia. |
+| Variable de confusión | Confounding variable | Variable que influye en la respuesta y en el tratamiento recibido, y mezcla su efecto con el de este. |
 | Variable dependiente, de respuesta | Response variable, dependent variable | Variable que se quiere explicar o predecir. |
 | Variable discreta | Discrete variable | Variable que toma valores separados, como un conteo de vehículos. |
 | Variable independiente, predictora | Predictor, explanatory variable | Variable que se usa para explicar o predecir otra. |

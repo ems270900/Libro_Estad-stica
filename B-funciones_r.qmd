@@ -298,6 +298,12 @@ Las funciones `p` dan siempre el área a la izquierda. Para el área a la derech
 | `residuals()`, `fitted()` | Residuos y valores ajustados | `residuals(modelo)` | 27 |
 | `plot()` | Gráficos de diagnóstico de un modelo | `plot(modelo)` | 27 |
 | `sigma()` | Desviación estándar de los residuos del modelo | `sigma(modelo)` | 25 |
+| `atanh()`, `tanh()` | Transformación de Fisher de una correlación y su inversa | `tanh(atanh(r) + c(-1, 1) * 1.96 / sqrt(n - 3))` | 24 |
+| `lm(y ~ 0 + x)` | Regresión por el origen (sin intercepto) | `lm(caudal ~ 0 + intensidad, data = d)` | 25 |
+| `I()` | Calcula una expresión dentro de una fórmula | `lm(y ~ x + I(x^2))` | 25, 27 |
+| `AIC()`, `BIC()` | Criterios de información para comparar modelos | `AIC(modelo1, modelo2)` | 26 |
+| `step()` | Selección automática de predictores (solo para explorar) | `step(modelo)` | 26 |
+| `lm(..., weights = )` | Mínimos cuadrados ponderados | `lm(y ~ x, weights = 1 / x^2)` | 27 |
 | `vif()` | Factor de inflación de la varianza de cada predictor [car] | `vif(modelo)` | 26 |
 | `rstandard()`, `rstudent()` | Residuos estandarizados y estudentizados | `rstandard(modelo)` | 27 |
 | `hatvalues()` | Apalancamiento de cada observación | `hatvalues(modelo)` | 27 |
@@ -326,6 +332,11 @@ Las funciones `p` dan siempre el área a la izquierda. Para el área a la derech
 | `interaction.plot()` | Gráfico de interacción entre dos factores | `interaction.plot(datos$a, datos$b, datos$y)` | 30 |
 | `model.matrix()` | Matriz de signos de un factorial 2^k | `model.matrix(~ A * B * C, data = datos)` | 30 |
 | `leveneTest()` | Prueba de Levene de igualdad de varianzas [car] | `leveneTest(mpa ~ mezcla, data = datos)` | 29 |
+| `oneway.test()` | ANOVA de un factor de Welch (sin varianza común) | `oneway.test(y ~ trat, data = datos)` | 28 |
+| `power.anova.test()` | Potencia o número de repeticiones de un ANOVA de un factor | `power.anova.test(groups = 4, between.var = 2.67, within.var = 2.5, power = 0.9)` | 28 |
+| `p.adjust()` | Ajusta valores p por Holm, Bonferroni y otros métodos | `p.adjust(p, method = "holm")` | 29 |
+| `friedman.test()` | Prueba de Friedman para un diseño en bloques | `friedman.test(datos$y, datos$trat, datos$bloque)` | 29 |
+| `expand.grid()` | Combinaciones de los niveles de un factorial | `expand.grid(A = c(-1, 1), B = c(-1, 1))` | 30 |
 
 : Funciones de diseño de experimentos. {#tbl-apb-experimentos}
 

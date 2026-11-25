@@ -71,7 +71,7 @@ La revisión de un modelo empieza por los gráficos. La @fig-diag-patrones muest
 
 ```{r}
 #| label: fig-diag-patrones
-#| fig-cap: "Patrones de residuos contra valores ajustados (datos simulados)."
+#| fig-cap: "Patrones de residuos."
 #| fig-alt: "Cuatro paneles: una nube sin forma alrededor de cero, una curva en forma de U, un embudo que se abre hacia la derecha y una nube con un punto muy alto"
 #| fig-width: 8
 #| fig-height: 5.5
@@ -101,6 +101,92 @@ Cada patrón apunta a un problema distinto:
 - **Curvatura.** Los residuos forman una U o una U invertida: la relación no es lineal y falta un término en el modelo.
 - **Varianza creciente.** La nube se abre como un embudo: la variabilidad crece con el nivel de la respuesta. Es común en caudales, costos y tiempos.
 - **Valor atípico.** Un punto muy lejos del resto, que puede ser un error o un caso distinto.
+
+### Interactivo: cómo se ven los problemas en los residuos
+
+Un mismo problema se ve de dos formas: en el diagrama de dispersión original y en el gráfico de residuos. El interactivo genera 60 datos con el problema elegido, les ajusta una recta y dibuja los dos gráficos lado a lado. Con el segundo control se cambia la intensidad del problema. Fíjese en que el gráfico de residuos muestra el problema mucho antes que el diagrama original, porque quita la tendencia y amplía lo que queda.
+
+::: {#fig-diag-interactivo-patrones}
+
+```{=html}
+<div class="interactivo" id="int-patrones">
+  <label><span>Problema:</span>
+    <select>
+      <option value="ninguno">Ninguno (modelo correcto)</option>
+      <option value="curva">Curvatura</option>
+      <option value="embudo">Varianza creciente</option>
+      <option value="atipico">Valor atípico</option>
+      <option value="serie">Errores dependientes (en orden de tiempo)</option>
+    </select></label>
+  <label><span>Intensidad:</span> <output>0.5</output>
+    <input type="range" min="0" max="1" step="0.05" value="0.5"></label>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Diagrama de dispersión con recta ajustada y gráfico de residuos contra valores ajustados"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-patrones");
+  var sel = raiz.querySelector("select"), ctl = raiz.querySelector("input"), sal = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var n = 60, semilla = 27, Z = [];
+  function azar() { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; }
+  for (var i = 0; i < n; i++) { var u = azar(), v = azar(); Z.push(Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)); }
+  var mensajes = {
+    ninguno: "Banda horizontal sin forma alrededor de cero: no hay nada que corregir.",
+    curva: "Los residuos forman una U: falta un término (x², ln x) o una variable en el modelo.",
+    embudo: "Los residuos se abren como un embudo: conviene transformar y o usar mínimos cuadrados ponderados.",
+    atipico: "Un residuo muy grande: revisar el dato en su fuente antes de decidir.",
+    serie: "Los residuos vecinos tienen el mismo signo y forman rachas: los errores no son independientes (Durbin-Watson)."
+  };
+  function panel(x0, xs, ys, linea, tx, ty) {
+    var minx = Math.min.apply(null, xs), maxx = Math.max.apply(null, xs);
+    var miny = Math.min.apply(null, ys), maxy = Math.max.apply(null, ys);
+    if (linea === "cero") { var a = Math.max(Math.abs(miny), Math.abs(maxy)); miny = -a; maxy = a; }
+    var an = 260, al = 220, y0 = 15;
+    var sx = function (x) { return x0 + (x - minx) / (maxx - minx) * an; };
+    var sy = function (y) { return y0 + al - (y - miny) / (maxy - miny) * al; };
+    var g = '<line class="eje" x1="' + x0 + '" x2="' + (x0 + an) + '" y1="' + (y0 + al) + '" y2="' + (y0 + al) + '"/>' +
+      '<line class="eje" x1="' + x0 + '" x2="' + x0 + '" y1="' + y0 + '" y2="' + (y0 + al) + '"/>' +
+      '<text class="eje-texto" x="' + (x0 + an / 2) + '" y="' + (y0 + al + 22) + '" text-anchor="middle">' + tx + '</text>' +
+      '<text class="eje-texto" x="' + (x0 - 12) + '" y="' + (y0 + al / 2) + '" text-anchor="middle" transform="rotate(-90 ' + (x0 - 12) + ' ' + (y0 + al / 2) + ')">' + ty + '</text>';
+    if (linea === "cero") {
+      g += '<line x1="' + x0 + '" x2="' + (x0 + an) + '" y1="' + sy(0) + '" y2="' + sy(0) + '" stroke="#D55E00" stroke-dasharray="6 4" stroke-width="1.5"/>';
+    } else {
+      g += '<line x1="' + sx(minx) + '" x2="' + sx(maxx) + '" y1="' + sy(linea[0] + linea[1] * minx) + '" y2="' + sy(linea[0] + linea[1] * maxx) + '" stroke="#D55E00" stroke-width="2"/>';
+    }
+    for (var k = 0; k < xs.length; k++) g += '<circle class="punto" cx="' + sx(xs[k]).toFixed(1) + '" cy="' + sy(ys[k]).toFixed(1) + '" r="3.5"/>';
+    return g;
+  }
+  function dibujar() {
+    var tipo = sel.value, a = parseFloat(ctl.value); sal.textContent = a.toFixed(2);
+    var xs = [], ys = [], prev = 0;
+    for (var i = 0; i < n; i++) {
+      var x = 1 + 9 * i / (n - 1), e = Z[i];
+      if (tipo === "embudo") e = Z[i] * (0.2 + a * 0.6 * x);
+      if (tipo === "serie") { prev = a * 0.95 * prev + Z[i] * Math.sqrt(1 - Math.pow(a * 0.95, 2)); e = prev; }
+      var y = 5 + 2 * x + e;
+      if (tipo === "curva") y += a * 1.2 * Math.pow(x - 5.5, 2);
+      if (tipo === "atipico" && i === 40) y += 3 + a * 15;
+      xs.push(x); ys.push(y);
+    }
+    var mx = 0, my = 0, sxx = 0, sxy = 0;
+    for (var j = 0; j < n; j++) { mx += xs[j] / n; my += ys[j] / n; }
+    for (var k = 0; k < n; k++) { sxx += Math.pow(xs[k] - mx, 2); sxy += (xs[k] - mx) * (ys[k] - my); }
+    var b1 = sxy / sxx, b0 = my - b1 * mx, aj = [], res = [], num = 0, den = 0;
+    for (var q = 0; q < n; q++) { aj.push(b0 + b1 * xs[q]); res.push(ys[q] - aj[q]); den += res[q] * res[q]; if (q > 0) num += Math.pow(res[q] - res[q - 1], 2); }
+    svg.innerHTML = panel(40, xs, ys, [b0, b1], "x", "y") + panel(360, aj, res, "cero", "Valores ajustados", "Residuos");
+    texto.textContent = mensajes[tipo] + "   (Durbin-Watson = " + (num / den).toFixed(2) + ")";
+  }
+  sel.addEventListener("change", dibujar);
+  ctl.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Problemas vistos en los residuos.
+
+:::
 
 La función `plot()` aplicada a un modelo de `lm()` dibuja cuatro gráficos de diagnóstico (@fig-diag-plot-base) [@fox2019companion, cap. 8]:
 
@@ -190,13 +276,48 @@ g1 + g2 + plot_layout(axes = "collect")
 
 :::
 
+### Cómo leer el gráfico cuantil-cuantil
+
+El gráfico cuantil-cuantil (Q-Q) compara los residuos ordenados con los valores que tendría, en promedio, una muestra del mismo tamaño de una distribución normal [@wilk1968probability]. Si los residuos son normales, los puntos siguen la diagonal. Las desviaciones tienen formas típicas, que la @fig-diag-qq muestra con residuos simulados de 50 datos:
+
+- **Colas pesadas.** Los puntos de los extremos se salen de la diagonal en sentidos opuestos (abajo a la izquierda y arriba a la derecha), formando una S acostada. Hay más residuos grandes de los que tendría una normal: suele indicar atípicos o una mezcla de dos poblaciones.
+- **Asimetría hacia la derecha.** Los puntos forman una curva que se dobla hacia arriba: los residuos positivos son más grandes que los negativos. Es común con respuestas que no pueden ser negativas, como caudales, costos o tiempos, y suele corregirse con un logaritmo.
+- **Colas ligeras.** La S va al revés: los extremos quedan más cerca del centro de lo esperado. Es poco grave para la inferencia.
+
+```{r}
+#| label: fig-diag-qq
+#| fig-cap: "Patrones del gráfico Q-Q."
+#| fig-alt: "Cuatro gráficos de puntos contra una diagonal: en el primero siguen la diagonal; en el segundo forman una S con los extremos alejados; en el tercero una curva que sube; en el cuarto una S invertida"
+#| fig-width: 8
+#| fig-height: 5.5
+#| echo: false
+
+set.seed(2701)
+qq <- rbind(
+  data.frame(r = rnorm(50), caso = "Normal"),
+  data.frame(r = rt(50, df = 2.5), caso = "Colas pesadas"),
+  data.frame(r = rexp(50) - 1, caso = "Asimetría a la derecha"),
+  data.frame(r = runif(50, -1.7, 1.7), caso = "Colas ligeras")
+)
+qq$caso <- factor(qq$caso, levels = unique(qq$caso))
+qq$r <- ave(qq$r, qq$caso, FUN = function(v) (v - mean(v)) / sd(v))
+ggplot(qq, aes(sample = r)) +
+  stat_qq_line(color = "#D55E00", linewidth = 0.9) +
+  stat_qq(color = azul, size = 1.6) +
+  facet_wrap(~ caso) +
+  labs(x = "Cuantiles teóricos de la normal", y = "Residuos estandarizados") +
+  theme_minimal(base_size = 12)
+```
+
+Con pocos datos, incluso residuos normales se apartan algo de la diagonal en los extremos. Una forma de calibrar el ojo es simular varias muestras normales del mismo tamaño con `qqnorm(rnorm(10))` y ver cuánto se separan por puro azar.
+
 ## Pruebas formales de los supuestos {#sec-diag-pruebas}
 
 Los gráficos se complementan con pruebas de hipótesis. En todas, $H_0$ es que el supuesto se cumple.
 
 ### Normalidad: prueba de Shapiro-Wilk
 
-La prueba de @shapiro1965analysis compara el orden de los residuos con el que tendría una muestra normal. En R: `shapiro.test(residuals(modelo))`. Un valor $p$ pequeño indica que los residuos no parecen normales.
+La prueba de @shapiro1965analysis compara el orden de los residuos con el que tendría una muestra normal. En R: `shapiro.test(residuals(modelo))`. Un valor $p$ pequeño indica que los residuos no parecen normales. Es una de las pruebas de normalidad con más potencia para muestras pequeñas y medianas, y por eso es la más usada. Se aplica a los residuos del modelo, nunca a la variable $Y$ sola: la respuesta puede tener cualquier forma porque su media cambia con $x$, y lo que el modelo supone normal son los errores alrededor de esa media. Un rechazo se interpreta junto con el gráfico Q-Q, que dice qué tipo de desviación hay (colas o asimetría) y si es grave.
 
 ### Varianza constante: prueba de Breusch-Pagan
 
@@ -217,6 +338,88 @@ DW = \frac{\sum_{t=2}^{n} \left(e_t - e_{t-1}\right)^2}{\sum_{t=1}^{n} e_t^2}
 $$ {#eq-diag-dw}
 
 donde $e_t$ es el residuo de la observación $t$ en el orden de tiempo. $DW$ va de 0 a 4: cerca de 2 indica que no hay correlación, y valores cercanos a 0 indican correlación positiva. En R: `lmtest::dwtest(modelo)`.
+
+El estadístico se relaciona con la correlación entre residuos consecutivos, $r_1$, por la aproximación $DW \approx 2(1 - r_1)$: si $r_1 = 0$, $DW \approx 2$; si los residuos vecinos se parecen mucho ($r_1$ cerca de 1), $DW$ se acerca a 0. La causa física suele ser una "memoria" del sistema. Un talud que drena despacio conserva parte del agua del mes anterior; un pavimento conserva el daño de los años previos; un sensor que se descalibra arrastra el error de una lectura a la siguiente.
+
+::: {.callout-note title="Ejemplo: autocorrelación en las lecturas de un piezómetro"}
+
+**Planteamiento.** En un talud instrumentado se registraron durante doce meses consecutivos la lluvia del mes (mm) y el nivel del agua en un piezómetro (m sobre su base). Los datos son hipotéticos y están en el orden en que se tomaron. Ajuste la recta del nivel contra la lluvia, calcule el estadístico de Durbin-Watson y decida si los errores son independientes.
+
+```{r}
+#| echo: false
+ver_datos("datos/piezometro_talud_hipotetico.csv", filas = 12,
+          nombres = c("Mes", "Lluvia (mm)", "Nivel piezométrico (m)"))
+```
+
+**Solución:**
+
+1. La recta de mínimos cuadrados es $\hat{y} = 1.9995 + 0.004579\,x$, con $x$ la lluvia en mm.
+2. Los residuos y sus diferencias se calculan en el @tbl-diag-dw. Por ejemplo, para el mes 1, $\hat{y}_1 = 1.9995 + 0.004579(20) = 2.091$ m y $e_1 = 2.18 - 2.091 = 0.089$ m; para el mes 2, $e_2 = 0.030$ m y $e_2 - e_1 = -0.059$ m.
+3. Sumas: $\sum e_t^2 = 0.2053$ y $\sum (e_t - e_{t-1})^2 = 0.2214$ m².
+4. Estadístico (@eq-diag-dw): $DW = 0.2214/0.2053 = 1.08$.
+5. La correlación entre residuos consecutivos es $r_1 = 0.44$, y $2(1 - 0.44) = 1.11$, cerca del valor exacto.
+6. `lmtest::dwtest()` da $p = 0.022$ para $H_1$: autocorrelación positiva. Con $\alpha = 0.05$ se rechaza la independencia.
+
+```{r}
+#| label: tbl-diag-dw
+#| tbl-cap: "Residuos y diferencias para el estadístico de Durbin-Watson."
+#| echo: false
+
+pz <- read.csv("datos/piezometro_talud_hipotetico.csv")
+e_pz <- residuals(lm(nivel_m ~ lluvia_mm, data = pz))
+d_pz <- c(NA, diff(e_pz))
+data.frame(t = c(pz$mes, "Suma"), e = c(sprintf("%.3f", e_pz), ""),
+           e2 = c(sprintf("%.4f", e_pz^2), sprintf("%.4f", sum(e_pz^2))),
+           d = c("", sprintf("%.3f", d_pz[-1]), ""),
+           d2 = c("", sprintf("%.4f", d_pz[-1]^2), sprintf("%.4f", sum(d_pz[-1]^2)))) %>%
+  kbl(col.names = c("Mes <i>t</i>", "<i>e<sub>t</sub></i> (m)", "<i>e<sub>t</sub></i><sup>2</sup>",
+                    "<i>e<sub>t</sub></i> − <i>e</i><sub><i>t</i>−1</sub>", "(<i>e<sub>t</sub></i> − <i>e</i><sub><i>t</i>−1</sub>)<sup>2</sup>"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(13, bold = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Leer los datos en orden de tiempo y ajustar la recta.
+2. Calcular los residuos, sus cuadrados y las diferencias entre residuos consecutivos.
+3. Calcular $DW$ con la @eq-diag-dw y $r_1$.
+4. Comparar con `lmtest::dwtest()` y graficar los residuos en orden de tiempo.
+
+```{r}
+# 1) Datos en orden de tiempo y recta
+pz <- read.csv("datos/piezometro_talud_hipotetico.csv")
+modelo <- lm(nivel_m ~ lluvia_mm, data = pz)
+e <- residuals(modelo)
+
+# 2) y 3) Durbin-Watson a mano y correlación entre residuos vecinos
+DW <- sum(diff(e)^2) / sum(e^2)
+r1 <- cor(e[-1], e[-length(e)])
+c(DW = DW, r1 = r1, aproximacion = 2 * (1 - r1))
+
+# 4) Prueba con lmtest (H1: autocorrelación positiva)
+lmtest::dwtest(modelo)
+```
+
+```{r}
+#| label: fig-diag-piezometro
+#| fig-cap: "Residuos en orden de tiempo."
+#| fig-alt: "Doce residuos unidos por una línea que forman rachas: tres negativos seguidos en los meses 3 a 5 y tres positivos en los meses 10 a 12"
+#| echo: false
+
+ggplot(data.frame(mes = pz$mes, e = e_pz), aes(mes, e)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey45") +
+  geom_line(color = "grey60") +
+  geom_point(aes(color = e > 0), size = 2.8) +
+  scale_color_manual(values = c("TRUE" = azul, "FALSE" = "#D55E00"), guide = "none") +
+  scale_x_continuous(breaks = 1:12) +
+  labs(x = "Mes", y = "Residuo (m)") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** Los residuos forman rachas del mismo signo (@fig-diag-piezometro): los meses 3 a 5 quedan por debajo de la recta y los meses 10 a 12 por encima, y un residuo grande suele ir seguido de otro parecido. El nivel de un mes no depende solo de la lluvia de ese mes, sino también de la de los anteriores, porque el talud drena despacio. Con errores dependientes, los errores estándar de `summary()` son demasiado optimistas. Una corrección razonable es agregar la lluvia del mes anterior como segundo predictor; otra, usar modelos de series de tiempo, que están fuera del alcance de este libro. Con solo doce meses, la conclusión es provisional y conviene confirmarla con más registro.
+
+:::
 
 ::: {.callout-warning title="Cuidado"}
 Las pruebas formales tienen dos limitaciones. Con muestras pequeñas casi nunca rechazan, aunque el supuesto falle; con muestras muy grandes rechazan por desviaciones tan pequeñas que no afectan los resultados. Además, Durbin-Watson solo tiene sentido si las filas están en el orden en que se tomaron los datos: si se ordenaron por otra variable, el resultado no significa nada. Las pruebas no reemplazan a los gráficos; los acompañan.
@@ -415,7 +618,7 @@ Efecto de un periodo adicional sobre la recta.
 
 :::
 
-Si el punto naranja se pone en el centro (42 veh/km) y se sube hasta 90 km/h, el residuo estandarizado pasa de 2.9, pero la recta solo se desplaza hacia arriba, no gira, y $D$ queda en 0.44. Si se lleva a 105 veh/km sobre la prolongación de la recta (unos 5 km/h), el apalancamiento pasa de 0.5 y $D$ sigue pequeña. Si a esa misma densidad se le pone una velocidad de 40 km/h, la recta gira y $D$ pasa de 4.
+Si el punto naranja se pone en el centro (42 veh/km) y se sube hasta 90 km/h, el residuo estandarizado pasa de 2.9, pero la recta solo se desplaza hacia arriba, no gira, y $D$ queda en 0.44. Si se lleva a 105 veh/km sobre la prolongación de la recta (unos 5 km/h), el apalancamiento pasa de 0.5 y $D$ sigue pequeña. Si a esa misma densidad se le pone una velocidad de 40 km/h, la recta gira y $D$ pasa de 4. Con once puntos, el límite de apalancamiento es $2(2)/11 = 0.36$.
 
 ### Qué hacer con un punto influyente
 
@@ -565,12 +768,82 @@ h1 + h2
 :::
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
-Al devolver una predicción con `exp()`, el resultado estima la mediana de $Q$, no su media, porque la media de $\ln Q$ no es el logaritmo de la media de $Q$. Si interesa la media (por ejemplo, para un balance de volúmenes), se multiplica por un factor de corrección. Uno sencillo es el de *smearing* de Duan: el promedio de $e^{e_i}$ de los residuos del modelo logarítmico, que aquí vale `r round(mean(exp(residuals(lm(log(caudal_m3s) ~ log(area_km2), data = read.csv("datos/cuencas_caudal_hipoteticas.csv"))))), 3)`. @helsel2020statistical [cap. 9] discuten este sesgo y sus correcciones en hidrología.
+Al devolver una predicción con `exp()`, el resultado estima la mediana de $Q$, no su media, porque la media de $\ln Q$ no es el logaritmo de la media de $Q$. Si interesa la media (por ejemplo, para un balance de volúmenes), se multiplica por un factor de corrección. Uno sencillo es el de *smearing* de @duan1983smearing: el promedio de $e^{e_i}$ de los residuos del modelo logarítmico, que aquí vale `r round(mean(exp(residuals(lm(log(caudal_m3s) ~ log(area_km2), data = read.csv("datos/cuencas_caudal_hipoteticas.csv"))))), 3)`. @helsel2020statistical [cap. 9] discuten este sesgo y sus correcciones en hidrología.
 :::
 
 ::: {.callout-warning title="Cuidado"}
 Después de transformar hay que repetir todo el diagnóstico, porque una transformación puede arreglar un problema y crear otro. También cambian la interpretación de los coeficientes y las unidades de $R^2$ y de $s$: un $R^2$ calculado con $\ln Q$ no se compara directamente con uno calculado con $Q$.
 :::
+
+### Agregar un término cuadrático
+
+Cuando los residuos muestran una U, otra salida es agregar $x^2$ como predictor: $Y = \beta_0 + \beta_1 x + \beta_2 x^2 + \varepsilon$. Sigue siendo un modelo lineal en los coeficientes, así que se ajusta con `lm(y ~ x + I(x^2))`. La parábola tiene un máximo (si $b_2 < 0$) o un mínimo (si $b_2 > 0$) en $x^{*} = -b_1/(2 b_2)$.
+
+Para el cálculo a mano conviene centrar $x$ en un valor central $c$, con $z = x - c$. Si los valores de $x$ están igualmente espaciados alrededor de $c$, las sumas impares de $z$ ($\sum z$ y $\sum z^3$) valen cero y las ecuaciones normales se separan en dos partes:
+
+$$
+b_1 = \frac{\sum z_i y_i}{\sum z_i^2}, \qquad
+\begin{aligned}
+\textstyle\sum y_i &= n\, b_0 + b_2 \textstyle\sum z_i^2 \\
+\textstyle\sum z_i^2 y_i &= b_0 \textstyle\sum z_i^2 + b_2 \textstyle\sum z_i^4
+\end{aligned}
+$$ {#eq-diag-cuadratica}
+
+donde $b_0$, $b_1$ y $b_2$ son los coeficientes del modelo en $z$ y las sumas van de $i = 1$ a $n$.
+
+::: {.callout-note title="Ejemplo: humedad óptima de un ensayo Proctor"}
+
+**Planteamiento.** En un ensayo Proctor hipotético se compactaron seis probetas de un suelo con humedades de 8 a 18 % y se midió la densidad seca de cada una (g/cm³): 1.80, 1.87, 1.92, 1.93, 1.90 y 1.84. Ajuste una recta y una parábola, compare sus residuos y estime la humedad óptima y la densidad seca máxima.
+
+**Solución:**
+
+1. La recta da $R^2 = 0.10$ y residuos con forma de U invertida: $-0.055$, $0.006$, $0.048$, $0.049$, $0.010$ y $-0.058$ g/cm³. La forma es evidente: la densidad sube y luego baja.
+2. Se centra en $c = 13$ %: $z = -5, -3, -1, 1, 3, 5$. Sumas: $\sum z^2 = 70$, $\sum z^4 = 1414$, $\sum y = 11.26$, $\sum z y = 0.30$ y $\sum z^2 y = 128.78$.
+3. Pendiente lineal (@eq-diag-cuadratica): $b_1 = 0.30/70 = 0.004286$.
+4. Sistema para $b_0$ y $b_2$: $11.26 = 6\,b_0 + 70\,b_2$ y $128.78 = 70\,b_0 + 1414\,b_2$. De la primera, $b_0 = (11.26 - 70\,b_2)/6$; al sustituir en la segunda, $128.78 = 131.367 + 597.33\,b_2$, así que $b_2 = -0.0043304$ y $b_0 = 1.92719$.
+5. Parábola: $\hat{y} = 1.92719 + 0.004286\,z - 0.0043304\,z^2$, con $R^2 = 0.996$.
+6. Máximo: $z^{*} = -0.004286/(2 \times -0.0043304) = 0.495$, es decir, una humedad óptima de $13 + 0.495 = 13.5$ %, y una densidad seca máxima de $\hat{y} = 1.9272 + 0.004286(0.495) - 0.0043304(0.495)^2 = 1.928$ g/cm³.
+
+**Pseudocódigo**
+
+1. Ajustar la recta y revisar los residuos.
+2. Centrar $x$, calcular las sumas y resolver la @eq-diag-cuadratica.
+3. Calcular $x^{*} = c - b_1/(2 b_2)$ y el valor máximo.
+4. Comparar con `lm(y ~ x + I(x^2))`.
+
+```{r}
+# 1) Datos y recta
+proctor <- data.frame(humedad = c(8, 10, 12, 14, 16, 18),
+                      densidad = c(1.80, 1.87, 1.92, 1.93, 1.90, 1.84))
+recta <- lm(densidad ~ humedad, data = proctor)
+round(residuals(recta), 3)
+
+# 2) Parábola a mano con x centrada en 13 %
+z <- proctor$humedad - 13
+y <- proctor$densidad
+n <- length(y)
+b1 <- sum(z * y) / sum(z^2)
+A <- rbind(c(n, sum(z^2)), c(sum(z^2), sum(z^4)))
+b02 <- solve(A, c(sum(y), sum(z^2 * y)))
+c(b0 = b02[1], b1 = b1, b2 = b02[2])
+
+# 3) Humedad óptima y densidad máxima
+z_opt <- -b1 / (2 * b02[2])
+c(humedad_optima = 13 + z_opt, densidad_maxima = b02[1] + b1 * z_opt + b02[2] * z_opt^2)
+
+# 4) Con lm(): I() hace que ^2 se calcule como potencia
+parabola <- lm(densidad ~ humedad + I(humedad^2), data = proctor)
+coef(parabola)
+c(R2_recta = summary(recta)$r.squared, R2_parabola = summary(parabola)$r.squared)
+```
+
+**Interpretación.** La recta no sirve: explica el 10 % de la variación y sus residuos tienen una forma clarísima. La parábola sigue los datos y da una humedad óptima de 13.5 % con una densidad seca máxima de 1.93 g/cm³, que son los dos números que el ensayo Proctor busca. Los coeficientes de la parábola en $x$ son distintos de los calculados en $z$, pero la curva y el máximo son los mismos. La parábola es una aproximación local alrededor del máximo: no se usa fuera del rango de 8 a 18 %.
+
+:::
+
+### Mínimos cuadrados ponderados
+
+Cuando la varianza crece con la respuesta y no se quiere transformar $Y$ (por ejemplo, porque la ecuación se necesita en m³/s y no en logaritmos), se puede dar menos peso a las observaciones más variables. Los mínimos cuadrados ponderados minimizan $\sum w_i e_i^2$, con pesos $w_i$ inversamente proporcionales a la varianza de cada observación [@montgomery2012introduction, cap. 5]. Si la desviación estándar crece en proporción a $x$, se usa $w_i = 1/x_i^2$. En R: `lm(y ~ x, weights = 1 / x^2)`. Los coeficientes cambian poco, pero los errores estándar y los intervalos de predicción quedan correctos: angostos donde los datos son precisos y anchos donde no.
 
 ## Estrategia completa de un análisis de regresión {#sec-diag-estrategia}
 
@@ -585,6 +858,34 @@ Los capítulos 24 a 27 se resumen en una secuencia de trabajo que sirve para cua
 7. **Hacer inferencia** solo cuando el diagnóstico es aceptable: pruebas, intervalos y predicciones.
 8. **Comunicar** la ecuación con sus unidades, la incertidumbre, el rango de validez y las limitaciones.
 
+## Errores comunes en el diagnóstico {#sec-diag-errores}
+
+```{r}
+#| label: tbl-diag-errores
+#| tbl-cap: "Errores frecuentes al revisar un modelo de regresión."
+#| echo: false
+
+data.frame(
+  error = c("No mirar los residuos porque <i>R</i><sup>2</sup> es alto", "Revisar la normalidad de <i>y</i> en vez de la de los residuos",
+            "Decidir solo con pruebas formales", "Borrar datos con residuo mayor que 2",
+            "Hacer Durbin-Watson con filas desordenadas", "No repetir el diagnóstico después de transformar",
+            "Comparar <i>R</i><sup>2</sup> de <i>y</i> y de ln <i>y</i>", "Devolver una predicción logarítmica con <code>exp()</code> y llamarla media"),
+  por_que = c("Un <i>R</i><sup>2</sup> alto convive con curvatura y atípicos",
+              "El supuesto es sobre los errores; <i>y</i> puede no ser normal porque depende de <i>x</i>",
+              "Con <i>n</i> pequeño no rechazan; con <i>n</i> grande rechazan todo",
+              "En una muestra normal de 100, unos 5 residuos pasan de 2",
+              "La prueba mide dependencia entre filas vecinas en el tiempo",
+              "Una transformación puede crear un problema nuevo",
+              "Están en escalas distintas", "Da la mediana, no la media"),
+  remedio = c("Graficar siempre los residuos", "Usar el Q-Q de los residuos",
+              "Usar gráficos y pruebas juntos", "Revisar cada dato en su fuente",
+              "Ordenar por tiempo antes de la prueba", "Volver al paso de los residuos",
+              "Comparar predicciones o <i>s</i> en la escala original", "Aplicar una corrección (Duan)")
+) %>%
+  kbl(col.names = c("Error", "Por qué engaña", "Qué hacer"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
 ## Ejercicios propuestos
 
 1. Para cada patrón, diga cuál es el problema más probable y una medida razonable: (a) residuos en forma de U contra los ajustados; (b) residuos cuya dispersión crece con los ajustados; (c) dos predictores con $r = 0.98$ y errores estándar muy grandes; (d) residuos consecutivos en el tiempo con el mismo signo; (e) una observación que cambia todos los coeficientes al quitarla.
@@ -595,6 +896,10 @@ Los capítulos 24 a 27 se resumen en una secuencia de trabajo que sirve para cua
 6. Simule en R 100 pares con `x <- runif(100, 1, 10)` y `y <- 2 + 3 * x + rnorm(100, sd = x)`. Ajuste la recta, haga los gráficos de diagnóstico y la prueba de Breusch-Pagan, y explique el resultado.
 7. Con los datos `cars` que trae R (distancia de frenado contra velocidad), ajuste la recta, revise los supuestos y pruebe un modelo con la velocidad al cuadrado. ¿Cuál modelo prefiere y por qué?
 8. Un compañero eliminó tres datos de un análisis "porque tenían residuos mayores que 2". Escriba un párrafo que explique por qué ese criterio no es suficiente y qué debió hacer.
+9. Con `piezometro_talud_hipotetico.csv`, cree la lluvia del mes anterior con `c(NA, head(pz$lluvia_mm, -1))`, ajuste el nivel contra la lluvia del mes y la del mes anterior y repita la prueba de Durbin-Watson. ¿Mejoró la independencia de los residuos?
+10. En el ejemplo del ensayo Proctor, calcule la humedad óptima directamente con los coeficientes de `lm(densidad ~ humedad + I(humedad^2))` y compruebe que coincide con la obtenida con $x$ centrada.
+11. Use el interactivo de la @fig-diag-interactivo-patrones con "Errores dependientes". ¿Con qué intensidad baja el estadístico de Durbin-Watson de 1.5? Describa cómo se ven los residuos en ese punto.
+12. Simule 50 residuos de una distribución $t$ con 3 grados de libertad, dibuje su gráfico Q-Q y aplique la prueba de Shapiro-Wilk. Repita con 10 residuos. ¿En cuál caso detecta la prueba las colas pesadas?
 
 ## Lecturas recomendadas
 
@@ -602,3 +907,5 @@ Los capítulos 24 a 27 se resumen en una secuencia de trabajo que sirve para cua
 - @fox2019companion, capítulo 8: cómo hacer el diagnóstico de un modelo en R, con los gráficos de `plot()` y las funciones del paquete car.
 - @helsel2020statistical, capítulo 9: regresión simple con datos de recursos hídricos, con atención especial a las transformaciones logarítmicas y a la corrección del sesgo al volver a la escala original.
 - @box1979robustness: el artículo de "todos los modelos están equivocados, pero algunos son útiles", sobre cómo construir modelos útiles sabiendo que ninguno es exacto.
+- @wilk1968probability: el artículo que presentó los gráficos de probabilidad, base del gráfico cuantil-cuantil.
+- @duan1983smearing: la corrección para volver a la escala original después de transformar con logaritmos.
