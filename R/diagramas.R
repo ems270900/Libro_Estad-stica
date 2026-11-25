@@ -628,3 +628,87 @@ dg_dianas <- function(casos, titulo = "Sesgo y precisión", tam = 15, semilla = 
   }
   .dg_svg(ancho, alto, s, titulo)
 }
+
+# ---------------------------------------------------------------- flujograma con rombos de decisión
+# Columna principal de arriba hacia abajo. pasos: lista de
+#   list(id = "a", tipo = "inicio" | "proceso" | "decision" | "fin", lineas = lista de c(texto, clase),
+#        clase = "c1" (opcional), sigue = "no" (etiqueta de la flecha hacia abajo, opcional),
+#        lado = list(etiqueta = "sí", lineas = ..., clase = "c3") (salida a la derecha, opcional),
+#        regreso = list(a = "id_destino", etiqueta = "vuelve") (lazo por la izquierda, opcional))
+# Los rombos se dimensionan para que el texto quede siempre dentro.
+dg_flujograma <- function(pasos, titulo = "Diagrama de flujo", tam = 15) {
+  n <- length(pasos); marg <- 16; vgap <- 40; hgap <- 96; dlazo <- 30
+  ids <- vapply(pasos, function(p) if (is.null(p$id)) "" else p$id, "")
+  for (i in seq_len(n)) {
+    p <- pasos[[i]]; tp <- if (is.null(p$tipo)) "proceso" else p$tipo
+    m <- .dg_caja_medir(p$lineas, tam = tam, pad_x = if (tp == "decision") 6 else 18, pad_y = if (tp == "decision") 4 else 12)
+    if (tp == "decision") {               # rombo que contiene el rectángulo del texto
+      b <- m$h / 2 + 18; a <- (m$w / 2) / (1 - (m$h / 2) / b)
+      m$w <- 2 * a; m$h <- 2 * b
+    }
+    pasos[[i]]$tp <- tp; pasos[[i]]$m <- m
+    if (!is.null(p$lado)) pasos[[i]]$ml <- .dg_caja_medir(p$lado$lineas, tam = tam)
+  }
+  # lazos: cada uno ocupa un carril a la izquierda
+  lazos <- Filter(Negate(is.null), lapply(seq_len(n), function(i) if (!is.null(pasos[[i]]$regreso)) c(i, match(pasos[[i]]$regreso$a, ids))))
+  nl <- length(lazos)
+  et_l <- vapply(seq_len(n), function(i) if (!is.null(pasos[[i]]$regreso$etiqueta)) .dg_ancho(pasos[[i]]$regreso$etiqueta, 13, TRUE) + 16 else 0, 0)
+  izq <- if (nl) max(nl * dlazo, max(et_l) / 2 + 12) + 14 else 0
+  wcol <- max(vapply(pasos, function(p) p$m$w, 0))
+  wlado <- max(c(0, unlist(lapply(pasos, function(p) if (!is.null(p$ml)) p$ml$w))))
+  xc <- marg + izq + wcol / 2
+  # posiciones verticales
+  y <- numeric(n); cur <- marg
+  for (i in seq_len(n)) {
+    h <- max(pasos[[i]]$m$h, if (!is.null(pasos[[i]]$ml)) pasos[[i]]$ml$h else 0)
+    y[i] <- cur + h / 2; cur <- cur + h + vgap + if (!is.null(pasos[[i]]$sigue)) 12 else 0
+  }
+  alto <- cur - vgap + marg - if (!is.null(pasos[[n]]$sigue)) 12 else 0
+  xl <- xc + wcol / 2 + hgap + wlado / 2
+  ancho <- if (wlado > 0) xl + wlado / 2 + marg else xc + wcol / 2 + marg
+  lin <- character(); cajas <- character(); pas <- character()
+  for (i in seq_len(n)) {
+    p <- pasos[[i]]; m <- p$m; cl <- if (!is.null(p$clase)) p$clase else switch(p$tp, inicio = "c0", fin = "c0", decision = "c3", "c1")
+    if (p$tp == "decision") {
+      a <- m$w / 2; b <- m$h / 2
+      cajas <- c(cajas, paste0('<polygon class="', cl, '" stroke-width="1.5" stroke-linejoin="round" filter="SOMBRA" points="',
+                               .dg_f(xc), ",", .dg_f(y[i] - b), " ", .dg_f(xc + a), ",", .dg_f(y[i]), " ",
+                               .dg_f(xc), ",", .dg_f(y[i] + b), " ", .dg_f(xc - a), ",", .dg_f(y[i]), '"/>'))
+      mt <- m; mt$lineas <- p$lineas
+      if (cl == "c0") mt$lineas <- lapply(mt$lineas, function(l) c(l[1], "t0"))
+      cajas <- c(cajas, sub("^<rect[^>]*/>", "", .dg_caja_dibujar(mt, xc, y[i], "c3")))
+    } else {
+      lns <- if (cl %in% c("c0", "c4")) lapply(p$lineas, function(l) c(l[1], "t0")) else p$lineas
+      mm <- m; mm$lineas <- lns
+      cajas <- c(cajas, .dg_caja_dibujar(mm, xc, y[i], cl, w = m$w, h = m$h, rx = if (p$tp %in% c("inicio", "fin")) m$h / 2 else 10))
+    }
+    if (i < n) {                          # flecha hacia el siguiente paso
+      y1 <- y[i] + m$h / 2; y2 <- y[i + 1] - pasos[[i + 1]]$m$h / 2 - 2
+      lin <- c(lin, .dg_flecha(paste0("M", .dg_f(xc), ",", .dg_f(y1), "V", .dg_f(y2))))
+      if (!is.null(p$sigue)) pas <- c(pas, .dg_pastilla(xc + .dg_ancho(p$sigue, 13, TRUE) / 2 + 20, (y1 + y2) / 2, p$sigue))
+    }
+    if (!is.null(p$lado)) {               # salida lateral derecha
+      ml <- p$ml; cll <- if (is.null(p$lado$clase)) "c2" else p$lado$clase
+      lnsl <- if (cll %in% c("c0", "c4")) lapply(ml$lineas, function(l) c(l[1], "t0")) else ml$lineas
+      ml2 <- ml; ml2$lineas <- lnsl
+      cajas <- c(cajas, .dg_caja_dibujar(ml2, xl, y[i], cll))
+      x1 <- xc + m$w / 2; x2 <- xl - ml$w / 2 - 2
+      lin <- c(lin, .dg_flecha(paste0("M", .dg_f(x1), ",", .dg_f(y[i]), "H", .dg_f(x2))))
+      if (!is.null(p$lado$etiqueta)) pas <- c(pas, .dg_pastilla((x1 + x2) / 2, y[i] - 15, p$lado$etiqueta))
+    }
+  }
+  # lazos de regreso por la izquierda (el más largo va por fuera)
+  if (nl) {
+    ord <- order(vapply(lazos, function(l) l[1] - l[2], 0))
+    for (k in seq_along(ord)) {
+      l <- lazos[[ord[k]]]; i <- l[1]; j <- l[2]; r <- 10
+      xi <- xc - pasos[[i]]$m$w / 2; xj <- xc - pasos[[j]]$m$w / 2; xs <- marg + izq - 14 - (k - 1) * dlazo - (wcol / 2 - wcol / 2)
+      xs <- min(xs, xi - 24, xj - 24)
+      d <- paste0("M", .dg_f(xi), ",", .dg_f(y[i]), "H", .dg_f(xs + r), "Q", .dg_f(xs), ",", .dg_f(y[i]), " ", .dg_f(xs), ",", .dg_f(y[i] - r),
+                  "V", .dg_f(y[j] + r), "Q", .dg_f(xs), ",", .dg_f(y[j]), " ", .dg_f(xs + r), ",", .dg_f(y[j]), "H", .dg_f(xj - 2))
+      lin <- c(lin, paste0('<path class="lnA" d="', d, '" marker-end="FLECHAA"/>'))
+      if (!is.null(pasos[[i]]$regreso$etiqueta)) pas <- c(pas, .dg_pastilla(xs, (y[i] + y[j]) / 2, pasos[[i]]$regreso$etiqueta))
+    }
+  }
+  .dg_svg(ancho, alto, c(lin, cajas, pas), titulo)
+}
