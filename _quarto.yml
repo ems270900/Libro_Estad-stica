@@ -52,6 +52,13 @@ book:
     #     - 01-tema_corto.qmd
     #     - 02-otro_tema.qmd
 
+    - part: "Correlación y regresión"
+      chapters:
+        - 24-correlacion.qmd
+        - 25-regresion_simple.qmd
+        - 26-regresion_multiple.qmd
+        - 27-diagnostico_regresion.qmd
+
     - epilogo.qmd
     - 99-Referencias.qmd
 
