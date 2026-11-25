@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Para entender los cálculos en R, ayudan dos lemas: todo lo que existe es un objeto; todo lo que ocurre es una llamada a una función."\
-— *John M. Chambers, creador del lenguaje S, del que proviene R [@chambers2014object]. Traducción propia.*
-:::
-
 En el capítulo anterior R se usó como una calculadora: se escribía una operación y R devolvía el resultado. Eso sirve para un cálculo aislado, pero en ingeniería casi nunca se trabaja con un solo número. Un lote de cilindros de concreto tiene diez, veinte o cien resultados; una estación de conteo vehicular registra un valor por hora durante semanas. Para trabajar con esos datos hace falta guardarlos con un nombre, saber de qué tipo son y operar con todos a la vez. Este capítulo presenta los objetos, los vectores, los tipos de datos y los operadores de R, que son la base de todo lo que sigue en el libro.
 
 ## Objetos y asignación {#sec-obj-asignacion}

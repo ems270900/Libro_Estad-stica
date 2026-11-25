@@ -35,3 +35,8 @@ Fecha: 2026-11-25. Estado: borrador.
 - Un apéndice solo (`quarto render A-tablas_estadisticas.qmd`): unos 12 s.
 - Libro completo de varias páginas con la Parte I y los apéndices: unos 30 s.
 - HTML de un solo archivo: unos 25 s.
+
+## Cambios del 2026-11-25 (segunda entrega)
+
+- Apéndice A: nueva sección del rango estudentizado (`@sec-apa-q`), con los cuadros `@tbl-apa-q05` y `@tbl-apa-q01` ($k$ de 2 a 20, $gl_E$ de 2 a ∞), generados con `qtukey()`, y un ejemplo a mano que coincide con el del capítulo 29 ($q_{0.05;4,16} = 4.05$, HSD = 2.86 MPa). Con $gl_E = 1$ `qtukey()` no converge, por eso la tabla empieza en 2.
+- Libro sin epígrafes por decisión del autor: se quitaron de los capítulos 2, 4, 5, 7, 8, 10, 12, 13, 15, 20, 24, 25, 27, 28, 29 y 30 y de la plantilla. Se ajustó `GUIA_ESTILO.md` y se borraron de `references.bib` las cuatro entradas que solo se citaban en epígrafes (Chambers 2014, Fisher 1926, Fisher 1938, Tukey 1962).

@@ -4,8 +4,6 @@
 /.quarto/
 /_cache/
 *_cache/
-/_freeze/
-/*_cache/
 *_files/
 *.quarto_ipynb
 index.tex

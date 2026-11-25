@@ -17,7 +17,6 @@
 
 ## Pendiente para el autor
 
-
 ## Cambios (2026-11-24, noche)
 
 - Sin epígrafe, por decisión del autor.

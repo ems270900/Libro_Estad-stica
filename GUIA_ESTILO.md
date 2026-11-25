@@ -54,7 +54,7 @@ Estas palabras y giros no son errores por sí mismos. El problema es la frecuenc
 | es importante (destacar, tener presente) | Borrar y decir la cosa importante directamente. |
 | en este contexto, en este sentido | Borrar. |
 | no solo… sino también | Dos oraciones simples. |
-| raya (—) en medio de la oración | Comas o paréntesis. La raya queda solo para la firma de los epígrafes. |
+| raya (—) en medio de la oración | Comas o paréntesis. |
 
 Otros patrones que delatan texto generado:
 
@@ -258,9 +258,9 @@ No se cita la teoría general que está en cualquier libro de texto (la ecuació
 
 - **Nunca se inventa una referencia.** Si no se encuentra la fuente de una cifra, se marca en el texto con `<!-- CITA PENDIENTE: … -->` para que el autor la complete, o se quita la cifra.
 
-### Epígrafes
+### Sin epígrafes
 
-Las frases al inicio de cada capítulo (`.quote-block`) se atribuyen solo si la fuente está verificada. Varias citas famosas sobre estadística circulan con autor dudoso. Si no se puede verificar, se cambia la frase o se quita. No se usan citas bíblicas.
+Este libro no lleva epígrafes: los capítulos empiezan directamente con el párrafo de entrada (decisión del autor, 25 de noviembre de 2026). Si una frase de un autor ayuda a explicar una idea, va dentro del texto, con su cita verificada.
 
 ---
 
@@ -375,7 +375,6 @@ Para revisar un capítulo existente o cerrar uno nuevo:
 - [ ] Las ecuaciones citadas tienen etiqueta `eq-` y "donde" con unidades.
 - [ ] Figuras y cuadros tienen etiqueta, leyenda y fuente cuando corresponde, y se citan antes de aparecer.
 - [ ] Cada dato, método con autor, figura ajena y norma tiene su cita. Las que faltan quedan marcadas con `CITA PENDIENTE`.
-- [ ] El epígrafe tiene fuente verificada.
 - [ ] Cada ejemplo tiene planteamiento, Solución: a mano, pseudocódigo, código en base R y con la función del paquete, resultado e interpretación.
 - [ ] Cada conjunto de datos tiene vista paginada y botón de descarga, y está descrito en `datos/LEEME.md`.
 - [ ] El capítulo termina con ejercicios propuestos, sin solucionario.

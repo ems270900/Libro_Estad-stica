@@ -8,4 +8,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - El ejemplo de horas de estudio y notas de las diapositivas se sustituyó por mezclas de concreto, para mantener el contexto de ingeniería civil y no usar nada parecido a datos de estudiantes. El ejemplo de helados y rescates se cambió por caudal y deslizamientos (ambos dependen de la lluvia).
 - Figuras propias generadas con R: cuatro patrones, dispersión de las mezclas, relación monótona no lineal, variable de confusión y cuarteto de Anscombe (datos `anscombe` de R, citados).
 - Interactivo: nube de 60 puntos con $\rho$ elegido y un dato atípico opcional, con Pearson y Spearman en vivo (`#fig-cor-interactivo`).
-- Epígrafe: Galton, citado por @watkinsintroduction (tema 3). Se cita la fuente secundaria porque no se tuvo a mano la obra original.
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Todos los modelos están equivocados, pero algunos son útiles."\
-— *George E. P. Box [-@box1979robustness, p. 202]. Traducción propia.*
-:::
-
 `lm()` siempre entrega una ecuación, un $R^2$ y unos valores $p$, aunque el modelo no tenga nada que ver con los datos. Las pruebas e intervalos de los capítulos 25 y 26 solo valen si se cumplen ciertos supuestos sobre los errores, y una recta puede estar dominada por un único dato mal digitado. Este capítulo explica cómo revisar un modelo antes de usarlo: qué supuestos hace, cómo se ven sus fallas en los residuos, cómo encontrar los datos que mueven la recta y qué hacer cuando algo falla. El objetivo no es un modelo perfecto, que no existe, sino uno cuyas limitaciones se conocen.
 
 ```{r}
@@ -606,4 +601,4 @@ Los capítulos 24 a 27 se resumen en una secuencia de trabajo que sirve para cua
 - @montgomery2012introduction, capítulos 4 a 6: diagnóstico con residuos, transformaciones y medidas de influencia, con todas las fórmulas y muchos ejemplos.
 - @fox2019companion, capítulo 8: cómo hacer el diagnóstico de un modelo en R, con los gráficos de `plot()` y las funciones del paquete car.
 - @helsel2020statistical, capítulo 9: regresión simple con datos de recursos hídricos, con atención especial a las transformaciones logarítmicas y a la corrección del sesgo al volver a la escala original.
-- @box1979robustness: el artículo de la frase del epígrafe, sobre cómo construir modelos útiles sabiendo que ninguno es exacto.
+- @box1979robustness: el artículo de "todos los modelos están equivocados, pero algunos son útiles", sobre cómo construir modelos útiles sabiendo que ninguno es exacto.

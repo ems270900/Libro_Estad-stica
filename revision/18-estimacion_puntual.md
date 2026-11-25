@@ -8,4 +8,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Figuras propias (R): sesgo de los dos estimadores de la varianza, log-verosimilitud de la exponencial.
 - Datos: `lote_cilindros_hipotetico.csv`, `tiempo_falla_bombas_hipotetico.csv`.
 - Fuentes: Montgomery y Runger (2014), Walpole et al. (2012), Wasserman (2004), Illowsky y Dean (2018), Fisher (1922).
-- Pendiente: epígrafe (no se puso ninguno por no tener una frase con fuente verificada).
+- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).

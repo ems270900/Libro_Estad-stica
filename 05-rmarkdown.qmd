@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Cambiemos nuestra actitud tradicional ante la construcción de programas: en lugar de imaginar que nuestra tarea principal es indicarle a una computadora qué hacer, concentrémonos en explicarles a seres humanos qué queremos que haga la computadora."\
-— *Donald E. Knuth [-@knuth1984literate, p. 97]. Traducción propia.*
-:::
-
 Un informe de laboratorio hecho de la forma tradicional tiene tres piezas separadas: una hoja de cálculo con los datos, un programa o una calculadora para los resultados y un procesador de texto donde se copian los números y se pegan los gráficos. Si aparece un dato corregido, hay que repetir los cálculos, volver a copiar cada número y volver a pegar cada gráfico, y es fácil que alguno quede desactualizado. R Markdown junta las tres piezas en un solo archivo: el texto, el código y los resultados viven juntos, y el documento se vuelve a generar completo con un clic. A esa propiedad se le llama reproducibilidad: cualquier persona con el archivo y los datos obtiene el mismo informe. Este capítulo explica cómo se arma un documento de R Markdown, cómo se compila a HTML y cómo se incluyen cuadros, ecuaciones y resultados dentro del texto [@xie2018rmarkdown].
 
 ## Qué es un documento de R Markdown {#sec-rmd-que-es}
@@ -67,9 +62,9 @@ Se usa el menú File > New File > R Markdown. Se abre la ventana de la @fig-rmd-
 
 ### Paso 3: guardar y compilar
 
-Antes de compilar se guarda el archivo (Ctrl + S) dentro de la carpeta del proyecto, junto a la carpeta de datos. Luego se presiona el botón Knit de la barra del editor, o el atajo Ctrl + Shift + K. RStudio ejecuta todos los bloques en orden, genera un archivo `.html` con el mismo nombre en la misma carpeta y lo abre en una ventana de vista previa (@fig-rmd-knit).
+Antes de compilar se guarda el archivo (Ctrl + S) dentro de la carpeta del proyecto, junto a la carpeta de datos. Luego se presiona el botón Knit de la barra del editor, o el atajo Ctrl + Shift + K. RStudio ejecuta todos los bloques en orden, genera un archivo `.html` con el mismo nombre en la misma carpeta y lo muestra en una ventana aparte o en el panel Viewer, según la configuración (@fig-rmd-knit).
 
-![Botón Knit y vista previa del documento compilado. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="Editor de RStudio con un archivo Rmd abierto, el botón Knit resaltado y al lado la ventana de vista previa con el documento HTML resultante" width="85%"}
+![Archivo de R Markdown y el documento compilado en el panel Viewer. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="RStudio con el archivo informe_cilindros.Rmd abierto en el editor, el botón Knit en la barra del editor y, en el panel Viewer de la derecha, el documento HTML compilado" width="85%"}
 
 ::: {.callout-warning title="Cuidado"}
 Al compilar, R empieza desde cero, en una sesión vacía: no ve los objetos que se crearon en la consola. Si un bloque usa un objeto o un paquete que solo se cargó en la consola, la compilación se detiene con un error como `object 'ensayos' not found`. Todo lo que el documento necesita, incluidos `library()` y la lectura de los datos, tiene que estar escrito en sus propios bloques. Esa exigencia es justamente lo que garantiza que el informe se pueda reproducir.

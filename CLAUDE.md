@@ -33,4 +33,6 @@ quarto render                 # libro completo
 quarto render 03-tema.qmd     # un capítulo
 ```
 
+Durante el trabajo se compila solo el capítulo que se edita; el libro completo, al final. Bloques pesados con `#| cache: true` y cálculos muy lentos guardados con `R/resultado_guardado.R` (ver "Compilación rápida" en README.md). Después de compilar, incluir en el commit los cambios de `_freeze/`.
+
 El autor no compila en su PC (Smart App Control bloquea DLL de algunos paquetes): se compila en la nube y el HTML se copia a la carpeta de su PC que indique.

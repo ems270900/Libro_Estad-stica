@@ -4,11 +4,6 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-::: {.quote-block}
-"Para nosotros, la probabilidad es la guía misma de la vida."\
-— *Joseph Butler, The Analogy of Religion (1736)*
-:::
-
 En ingeniería casi nunca se calcula una probabilidad a ciegas: casi siempre se sabe algo. Se sabe que la varilla que se compró es lisa, que el ensayo no destructivo dio positivo o que la carga de concreto vino de cierta planta. Esa información cambia las probabilidades. La probabilidad condicional es la manera de incorporar al cálculo lo que ya se sabe. De ella salen tres resultados que se usan todo el tiempo: la regla de la multiplicación, para calcular la probabilidad de que pasen varias cosas seguidas; la idea de independencia, que dice cuándo un evento no da información sobre otro; y el teorema de Bayes, que dice cómo cambiar una probabilidad cuando llega un dato nuevo.
 
 El capítulo sigue a @bertsekas2008introduction [secs. 1.3 a 1.5], @illowsky2018introductory [secs. 3.2 a 3.5] y @blitzstein2019introduction [cap. 2].
