@@ -138,6 +138,42 @@ clasificar(30.2, 28)
 
 R revisa las condiciones en orden y se detiene en la primera que es verdadera. Por eso la segunda condición no necesita decir `f >= 0.9 * fc`: si R llegó hasta ahí, ya sabe que la primera fue falsa.
 
+La @fig-prog-flujo dibuja como diagrama de flujo las dos estructuras de este capítulo. A la izquierda, la cadena de `if` y `else if` de `clasificar()`: R pregunta en orden y sale por la primera respuesta afirmativa. A la derecha, un ciclo `for`: mientras queden elementos, toma el siguiente, ejecuta el bloque y vuelve a preguntar. Dibujar el diagrama antes de escribir el código ayuda a no olvidar ningún caso.
+
+::: {#fig-prog-flujo}
+
+```{=html}
+<svg class="diagrama" viewBox="0 0 700 330" role="img" aria-label="Dos diagramas de flujo. Izquierda: rombo f menor que 0.9 fc, si sí Muy bajo; si no, rombo f menor que fc, si sí Bajo, si no Cumple. Derecha: rombo quedan elementos, si sí tomar el siguiente y ejecutar el bloque y volver al rombo; si no, fin del ciclo">
+  <defs><marker id="pf-flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-punta"/></marker></defs>
+  <text x="170" y="18" class="d-titulo">if, else if, else</text>
+  <polygon points="120,40 210,75 120,110 30,75" class="d-caja d-acento"/><text x="120" y="80" class="d-texto">f &lt; 0.9 fc</text>
+  <rect x="240" y="57" width="100" height="36" rx="6" class="d-caja d-naranja"/><text x="290" y="80" class="d-texto">"Muy bajo"</text>
+  <line x1="210" y1="75" x2="238" y2="75" class="d-linea" marker-end="url(#pf-flecha)"/><text x="224" y="68" class="d-nota">sí</text>
+  <line x1="120" y1="110" x2="120" y2="143" class="d-linea" marker-end="url(#pf-flecha)"/><text x="132" y="130" class="d-nota">no</text>
+  <polygon points="120,145 200,180 120,215 40,180" class="d-caja d-acento"/><text x="120" y="185" class="d-texto">f &lt; fc</text>
+  <rect x="240" y="162" width="100" height="36" rx="6" class="d-caja d-naranja"/><text x="290" y="185" class="d-texto">"Bajo"</text>
+  <line x1="200" y1="180" x2="238" y2="180" class="d-linea" marker-end="url(#pf-flecha)"/><text x="219" y="173" class="d-nota">sí</text>
+  <line x1="120" y1="215" x2="120" y2="248" class="d-linea" marker-end="url(#pf-flecha)"/><text x="132" y="235" class="d-nota">no</text>
+  <rect x="70" y="250" width="100" height="36" rx="6" class="d-caja"/><text x="120" y="273" class="d-texto">"Cumple"</text>
+
+  <text x="530" y="18" class="d-titulo">for (i in x)</text>
+  <polygon points="530,40 630,80 530,120 430,80" class="d-caja d-acento"/><text x="530" y="78" class="d-texto">¿quedan</text><text x="530" y="94" class="d-texto">elementos?</text>
+  <rect x="460" y="155" width="140" height="36" rx="6" class="d-caja"/><text x="530" y="178" class="d-texto">i = el siguiente</text>
+  <rect x="460" y="220" width="140" height="36" rx="6" class="d-caja"/><text x="530" y="243" class="d-texto">ejecutar { ... }</text>
+  <rect x="640" y="62" width="55" height="36" rx="6" class="d-caja d-gris"/><text x="667" y="85" class="d-texto">fin</text>
+  <line x1="530" y1="120" x2="530" y2="153" class="d-linea" marker-end="url(#pf-flecha)"/><text x="542" y="140" class="d-nota">sí</text>
+  <line x1="530" y1="191" x2="530" y2="218" class="d-linea" marker-end="url(#pf-flecha)"/>
+  <polyline points="460,238 410,238 410,80 428,80" class="d-linea" marker-end="url(#pf-flecha)"/>
+  <text x="398" y="165" class="d-nota" style="text-anchor:end">vuelve</text>
+  <line x1="630" y1="80" x2="638" y2="80" class="d-linea" marker-end="url(#pf-flecha)"/><text x="634" y="112" class="d-nota">no</text>
+</svg>
+```
+
+Diagramas de flujo de una condición y de un ciclo.
+
+:::
+
+
 ## Ciclos {#sec-prog-ciclos}
 
 Un ciclo `for` repite un bloque de instrucciones una vez por cada elemento de un vector. Se lee "para cada `i` en ..., haga ...":
@@ -205,6 +241,87 @@ round(cumsum(x) / seq_along(x), 2)
 
 ::: {.callout-tip title="En la práctica"}
 Para entender qué hace un ciclo, conviene seguirlo con lápiz y papel, como en el cuadro del ejemplo: anotar en cada vuelta el valor de `i` y de cada objeto. Si el resultado de R no coincide con el de la tabla, el error está en la vuelta donde los dos empiezan a diferir.
+:::
+
+### Interactivo: seguir un ciclo paso a paso
+
+El @fig-prog-paso-int hace lo que recomienda el recuadro anterior, pero solo. El código cuenta los días de lluvia fuerte (más de 20 mm) en cinco días de registro (datos hipotéticos), con un `if` dentro de un `for`. Cada clic en "Paso siguiente" ejecuta una línea: la línea resaltada es la que R acaba de ejecutar, y el cuadro anota el valor de cada objeto en cada vuelta.
+
+::: {#fig-prog-paso-int}
+
+```{=html}
+<div class="interactivo" id="int-paso" style="max-width:740px;">
+  <div style="display:flex; flex-wrap:wrap; gap:0.8rem; text-align:left;">
+    <pre class="paso-codigo" style="flex:1 1 18rem; margin:0; font-size:0.85rem; line-height:1.5;"></pre>
+    <div style="flex:1 1 14rem; font-size:0.88rem;">
+      <div class="paso-estado" style="font-family:ui-monospace, monospace; margin-bottom:0.4rem;"></div>
+      <div class="paso-tabla"></div>
+    </div>
+  </div>
+  <button type="button" class="paso-sig">Paso siguiente</button>
+  <button type="button" class="paso-fin">Hasta el final</button>
+  <button type="button" class="paso-reini" style="background:#6c757d;">Reiniciar</button>
+  <p class="resultado paso-nota"></p>
+</div>
+<script>
+(function () {
+  const r = document.getElementById("int-paso");
+  const lineas = [
+    "lluvia <- c(12, 0, 35, 8, 41)   # mm",
+    "fuertes <- 0",
+    "for (i in seq_along(lluvia)) {",
+    "  if (lluvia[i] > 20) {",
+    "    fuertes <- fuertes + 1",
+    "  }",
+    "}",
+    "fuertes"
+  ];
+  const lluvia = [12, 0, 35, 8, 41];
+  // Secuencia de pasos: línea ejecutada y estado después de ejecutarla
+  let pasos = [];
+  function armar() {
+    pasos = [];
+    let fuertes = null, i = null, cond = null, traza = [];
+    pasos.push({ l: 0, i, fuertes, cond, traza: [], nota: "Se crea el vector con las cinco lluvias." });
+    fuertes = 0;
+    pasos.push({ l: 1, i, fuertes, cond, traza: [], nota: "El contador empieza en 0, antes del ciclo." });
+    for (let k = 0; k < lluvia.length; k++) {
+      i = k + 1; cond = null;
+      pasos.push({ l: 2, i, fuertes, cond, traza: traza.slice(), nota: "Vuelta " + i + ": i toma el valor " + i + "." });
+      cond = lluvia[k] > 20;
+      pasos.push({ l: 3, i, fuertes, cond, traza: traza.slice(), nota: "lluvia[" + i + "] es " + lluvia[k] + " mm; " + lluvia[k] + " > 20 es " + (cond ? "TRUE: se entra al if." : "FALSE: se salta el bloque del if.") });
+      if (cond) { fuertes++; pasos.push({ l: 4, i, fuertes, cond, traza: traza.slice(), nota: "El contador sube a " + fuertes + "." }); }
+      traza.push({ i, x: lluvia[k], cond, fuertes });
+      pasos.push({ l: 6, i, fuertes, cond, traza: traza.slice(), nota: i < lluvia.length ? "Fin de la vuelta " + i + "; R vuelve al for." : "Era el último elemento: el ciclo termina." });
+    }
+    pasos.push({ l: 7, i, fuertes, cond: null, traza: traza.slice(), nota: "Resultado: [1] " + fuertes + ". Hubo " + fuertes + " días con más de 20 mm." });
+  }
+  let actual = -1;
+  function mostrar() {
+    const p = pasos[actual];
+    r.querySelector(".paso-codigo").innerHTML = lineas.map((t, j) => {
+      const e = t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      return p && p.l === j ? '<span style="background:var(--acento-2); color:#fff; display:block;">' + e + "</span>" : '<span style="display:block;">' + e + "</span>";
+    }).join("");
+    const v = x => x === null || x === undefined ? "—" : x;
+    r.querySelector(".paso-estado").textContent = p ? "i = " + v(p.i) + "   fuertes = " + v(p.fuertes) + (p.cond === null ? "" : "   condición = " + (p.cond ? "TRUE" : "FALSE")) : "Presione «Paso siguiente».";
+    const filas = p ? p.traza : [];
+    let html = "<" + "table class='table table-sm'><thead><tr><th>i</th><th>lluvia[i]</th><th>¿> 20?</th><th>fuertes</th></tr></thead><tbody>";
+    filas.forEach(f => { html += "<tr><td>" + f.i + "</td><td>" + f.x + "</td><td>" + (f.cond ? "TRUE" : "FALSE") + "</td><td>" + f.fuertes + "</td></tr>"; });
+    r.querySelector(".paso-tabla").innerHTML = html + "</tbody></table>";
+    r.querySelector(".paso-nota").textContent = p ? p.nota : "";
+    r.querySelector(".paso-sig").disabled = actual >= pasos.length - 1;
+  }
+  r.querySelector(".paso-sig").addEventListener("click", () => { if (actual < pasos.length - 1) actual++; mostrar(); });
+  r.querySelector(".paso-fin").addEventListener("click", () => { actual = pasos.length - 1; mostrar(); });
+  r.querySelector(".paso-reini").addEventListener("click", () => { actual = -1; mostrar(); });
+  armar(); mostrar();
+})();
+</script>
+```
+
+Ejecución de un ciclo línea por línea.
+
 :::
 
 ### Repetir mientras se cumpla una condición
