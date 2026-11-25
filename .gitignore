@@ -3,6 +3,7 @@
 /_site/
 /.quarto/
 /_cache/
+*_cache/
 /_freeze/
 *_files/
 *.quarto_ipynb
