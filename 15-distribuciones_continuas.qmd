@@ -17,6 +17,15 @@ tema_libro <- theme_minimal(base_size = 13) +
 
 El tiempo hasta la próxima tormenta intensa, la vida útil de una bomba, el porcentaje de finos de un material de préstamo o el caudal máximo de un río en un año son variables continuas. Para cada una se puede escribir una densidad a la medida, como en el capítulo 13, pero casi nunca hace falta: unas pocas familias de densidades con nombre cubren la gran mayoría de los casos de ingeniería. Este capítulo presenta seis de ellas (uniforme, exponencial, gamma, beta, log-normal y Weibull), explica de qué situación física sale cada una y muestra cómo calcular probabilidades a mano y con R. La distribución normal, la más usada de todas, tiene su propio capítulo, el 16.
 
+Trabajar con una distribución continua sigue casi siempre los mismos cuatro pasos, y conviene tenerlos presentes en cada sección:
+
+1. **Elegir la familia** a partir de la física del problema: ¿la variable es un tiempo de espera, una proporción, un valor máximo, el producto de muchos factores?
+2. **Estimar los parámetros** con los datos, casi siempre igualando la media (y a veces la varianza) del modelo con las de la muestra. El capítulo 18 presenta métodos más finos.
+3. **Comprobar el ajuste** comparando el histograma con la densidad, o las proporciones observadas con las del modelo.
+4. **Calcular** probabilidades y cuantiles con la FDA, a mano o con las funciones `p` y `q` de R.
+
+Cada distribución del capítulo se presenta con la misma estructura: de qué situación física sale, sus fórmulas, cuándo usarla, cuándo no y un ejemplo resuelto.
+
 ## Parámetros de una distribución continua {#sec-cont-parametros}
 
 Igual que en las distribuciones discretas (capítulo 14), cada familia continua tiene una fórmula y unos parámetros. Los parámetros de las densidades suelen cumplir uno de tres papeles:
@@ -24,6 +33,34 @@ Igual que en las distribuciones discretas (capítulo 14), cada familia continua 
 - **Localización.** Mueve la curva a la izquierda o a la derecha sin cambiar su forma, como la media de la normal.
 - **Escala.** Estira o comprime la curva a lo largo del eje horizontal. Si los datos pasan de horas a días, cambia la escala.
 - **Forma.** Cambia el aspecto de la curva: más o menos asimétrica, con un pico o sin él.
+
+La @fig-cont-papeles muestra el efecto de cada tipo de parámetro. Distinguirlos ayuda a leer cualquier distribución nueva: los parámetros de localización y escala tienen las unidades de la variable (MPa, horas, m³/s), mientras que los de forma no tienen unidades.
+
+```{r}
+#| label: fig-cont-papeles
+#| fig-cap: "Efecto de los parámetros de localización, escala y forma."
+#| fig-alt: "Tres paneles: en el primero la misma curva desplazada a la derecha; en el segundo una curva estirada y más baja; en el tercero curvas gamma que pasan de decrecientes a casi simétricas"
+#| echo: false
+#| fig-width: 8.5
+#| fig-height: 3
+
+x_g <- seq(0.01, 14, length.out = 400)
+bind_rows(
+  tibble(x = x_g, f = dgamma(x_g, 3, scale = 1), curva = "a", panel = "Localización"),
+  tibble(x = x_g, f = dgamma(x_g - 4, 3, scale = 1), curva = "b", panel = "Localización"),
+  tibble(x = x_g, f = dgamma(x_g, 3, scale = 1), curva = "a", panel = "Escala"),
+  tibble(x = x_g, f = dgamma(x_g, 3, scale = 2), curva = "b", panel = "Escala"),
+  tibble(x = x_g, f = dgamma(x_g, 1, scale = 2), curva = "a", panel = "Forma"),
+  tibble(x = x_g, f = dgamma(x_g, 4, scale = 1), curva = "b", panel = "Forma")
+) %>%
+  mutate(panel = factor(panel, levels = c("Localización", "Escala", "Forma"))) %>%
+  ggplot(aes(x, f, color = curva)) +
+  geom_line(linewidth = 1.1) +
+  facet_wrap(~panel) +
+  scale_color_manual(values = c(azul, naranja), guide = "none") +
+  labs(x = "x", y = "Densidad") +
+  tema_libro
+```
 
 En R, cada distribución continua tiene las mismas cuatro funciones que las discretas (`d`, `p`, `q` y `r`), con una diferencia de significado en la primera: `d` ya no da una probabilidad, sino la altura de la densidad $f_X(x)$. Las raíces de este capítulo son `unif`, `exp`, `gamma`, `beta`, `lnorm` y `weibull`. Las probabilidades se calculan siempre con `p` (la FDA) y los valores que dejan cierta probabilidad a su izquierda, con `q` (el cuantil).
 
@@ -53,6 +90,12 @@ $$ {#eq-cont-uniforme-momentos}
 
 Por ejemplo, si un bus pasa cada 15 minutos exactos y una persona llega a la parada sin conocer el horario, su tiempo de espera es $X \sim \text{U}(0, 15)$. La probabilidad de esperar más de 10 minutos es $1 - F_X(10) = 1 - 10/15 = 1/3$; la espera media es 7.5 minutos y la desviación estándar es $15/\sqrt{12} = 4.33$ minutos. En R: `punif(10, min = 0, max = 15, lower.tail = FALSE)`. La uniforme sirve también como modelo cuando solo se conocen los límites de una variable y no hay razón para preferir ningún valor dentro de ellos, y es la base de la simulación: `runif()` genera los números al azar con los que R construye todas las demás distribuciones.
 
+La uniforme conviene cuando el mecanismo físico hace igualmente probable cualquier punto del intervalo: el instante de llegada a una parada sin horario, la posición de un defecto a lo largo de una barra, el error de redondeo de una lectura. No conviene como modelo por defecto "porque no se sabe nada": casi siempre se sabe algo, por ejemplo, que los valores centrales son más frecuentes que los extremos. En ese caso una distribución triangular o una beta describen mejor lo que se sabe.
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**Cómo convierte R números uniformes en cualquier distribución.** Si $U$ es uniforme en $[0, 1]$ y $F$ es una FDA continua y creciente, entonces $X = F^{-1}(U)$ tiene FDA $F$. Es el método de la transformación inversa. Para la exponencial, $F(t) = 1 - e^{-\lambda t}$ se despeja como $t = -\ln(1 - u)/\lambda$, así que `-log(1 - runif(1000)) / lambda` produce 1000 tiempos exponenciales, igual que `rexp(1000, lambda)`. Con este método se simularon los tiempos de reparación de la @fig-va-histograma-densidad del capítulo 13.
+:::
+
 ## Distribución exponencial {#sec-cont-exponencial}
 
 ::: {.pregunta}
@@ -70,6 +113,35 @@ donde $\lambda$ es la tasa de ocurrencia (eventos por unidad de tiempo) y $t$ es
 $$
 E(T) = \frac{1}{\lambda}, \qquad \operatorname{Var}(T) = \frac{1}{\lambda^2}
 $$ {#eq-cont-exponencial-momentos}
+
+La @fig-cont-proceso-poisson muestra las dos caras del mismo proceso. Arriba, una línea de tiempo con eventos que llegan al azar: los conteos por intervalo siguen una Poisson y los huecos entre eventos siguen una exponencial. Abajo, el histograma de esos huecos con la densidad exponencial encima. Los huecos cortos son los más frecuentes y los muy largos son raros, aunque los eventos lleguen "al azar": esa es la forma típica de la exponencial, y explica por qué las llegadas aleatorias parecen formar grupos.
+
+```{r}
+#| label: fig-cont-proceso-poisson
+#| fig-cap: "Proceso de Poisson y tiempos entre eventos."
+#| fig-alt: "Arriba, una línea de tiempo de 200 horas con marcas irregulares de eventos; abajo, histograma decreciente de los tiempos entre eventos con una curva exponencial encima"
+#| echo: false
+#| cache: true
+#| fig-width: 7.5
+#| fig-height: 4.6
+
+set.seed(1515)
+llegadas <- cumsum(rexp(4000, rate = 1 / 10))
+g_linea <- ggplot(tibble(t = llegadas[llegadas <= 200])) +
+  geom_segment(aes(x = t, xend = t, y = 0, yend = 1), color = azul, linewidth = 0.8) +
+  geom_vline(xintercept = seq(0, 200, 50), color = "grey70", linetype = "dashed") +
+  scale_y_continuous(breaks = NULL) +
+  labs(x = "Tiempo (h)", y = NULL) +
+  tema_libro
+g_huecos <- ggplot(tibble(hueco = diff(llegadas)), aes(hueco)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 2.5, boundary = 0,
+                 fill = azul, alpha = 0.6, color = "white") +
+  stat_function(fun = dexp, args = list(rate = 1 / 10), color = naranja, linewidth = 1.1, n = 300) +
+  coord_cartesian(xlim = c(0, 60)) +
+  labs(x = "Tiempo entre eventos (h)", y = "Densidad") +
+  tema_libro
+patchwork::wrap_plots(g_linea, g_huecos, ncol = 1, heights = c(1, 2.2))
+```
 
 La media es el tiempo promedio entre eventos y la desviación estándar es igual a la media. Una tasa de $\lambda = 1/45$ tormentas por hora equivale a un tiempo medio de 45 horas entre tormentas. De la FDA salen dos fórmulas que se usan mucho:
 
@@ -249,6 +321,8 @@ $$
 
 En R: `pgamma(72, shape = 3, scale = 45)`, que da el mismo valor.
 
+¿Cuándo usar la gamma? Cuando la variable es un tiempo hasta que se acumulan varios eventos (la llegada del tercer camión, la tercera falla de un equipo) o, en general, una variable positiva con asimetría moderada a la derecha. En hidrología se usa mucho para la lluvia de los días lluviosos y para volúmenes de escorrentía [@chow1988applied]. Su pariente cercano, la distribución de Pearson tipo III, es una gamma con un parámetro de localización adicional; aplicada a los logaritmos de los caudales da la log-Pearson tipo III, muy usada en el análisis de frecuencia de crecientes. No conviene cuando la cola derecha es muy larga, porque la gamma la subestima; ahí suele ajustar mejor la log-normal.
+
 ## Distribución beta {#sec-cont-beta}
 
 Las distribuciones anteriores sirven para variables positivas sin límite superior. Para proporciones y porcentajes, que están entre 0 y 1, se usa la beta. Con dos parámetros de forma $\alpha > 0$ y $\beta > 0$, su densidad es [@wasserman2004all, cap. 2]
@@ -263,7 +337,30 @@ $$
 E(X) = \frac{\alpha}{\alpha + \beta}, \qquad \operatorname{Var}(X) = \frac{\alpha\,\beta}{(\alpha + \beta)^2\,(\alpha + \beta + 1)}
 $$ {#eq-cont-beta-momentos}
 
-Con $\alpha = \beta = 1$ es la uniforme en $[0, 1]$. Si $\alpha = \beta$, es simétrica alrededor de 0.5. Si $\alpha < \beta$, se carga hacia 0, y si $\alpha > \beta$, hacia 1. Cuanto mayor es $\alpha + \beta$, más concentrada queda la curva alrededor de su media. Se usa para fracciones como el porcentaje de finos de un material, la proporción de vacíos de una mezcla asfáltica o el grado de avance de una actividad.
+Con $\alpha = \beta = 1$ es la uniforme en $[0, 1]$. Si $\alpha = \beta$, es simétrica alrededor de 0.5. Si $\alpha < \beta$, se carga hacia 0, y si $\alpha > \beta$, hacia 1. Cuanto mayor es $\alpha + \beta$, más concentrada queda la curva alrededor de su media. Se usa para fracciones como el porcentaje de finos de un material, la proporción de vacíos de una mezcla asfáltica o el grado de avance de una actividad. La @fig-cont-beta-formas muestra la variedad de formas que se obtienen con solo dos parámetros.
+
+```{r}
+#| label: fig-cont-beta-formas
+#| fig-cap: "Densidad beta para cuatro combinaciones de parámetros."
+#| fig-alt: "Cuatro curvas entre 0 y 1: una plana, una simétrica con pico en 0.5, una cargada hacia 0 y una en forma de U"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+tibble(par = c("α = 1, β = 1", "α = 5, β = 5", "α = 2, β = 8", "α = 0.6, β = 0.6"),
+       a = c(1, 5, 2, 0.6), b = c(1, 5, 8, 0.6)) %>%
+  mutate(datos = map2(a, b, ~ tibble(x = seq(0.005, 0.995, length.out = 400),
+                                     f = dbeta(x, .x, .y)))) %>%
+  unnest(datos) %>%
+  mutate(par = fct_inorder(par)) %>%
+  ggplot(aes(x, f, color = par)) +
+  geom_line(linewidth = 1.1) +
+  scale_color_viridis_d(end = 0.85) +
+  coord_cartesian(ylim = c(0, 4)) +
+  labs(x = "Proporción, x", y = "Densidad", color = NULL) +
+  tema_libro +
+  theme(legend.position = "top")
+```
 
 Por ejemplo, si la fracción de un material de préstamo que pasa la malla N.º 200 se modela con una beta con $\alpha = 2$ y $\beta = 18$ (valores hipotéticos), su media es $2/20 = 0.10$ (10 % de finos) y su desviación estándar es $\sqrt{36/(400 \cdot 21)} = 0.065$. La probabilidad de que un banco tenga más de 15 % de finos es `pbeta(0.15, 2, 18, lower.tail = FALSE)` = 0.198. Esa integral se puede hacer a mano porque $\alpha$ y $\beta$ son enteros, pero es larga: para la beta, R es el camino práctico.
 
@@ -282,6 +379,36 @@ E(X) = e^{\mu + \sigma^2/2}, \qquad \operatorname{Var}(X) = \left(e^{\sigma^2} -
 $$ {#eq-cont-lognormal-momentos}
 
 y la mediana es $e^{\mu}$, menor que la media por la cola derecha.
+
+¿De dónde sale la log-normal? De variables que resultan de multiplicar muchos factores independientes. La permeabilidad de un suelo depende del producto de efectos de tamaño de grano, compacidad y estructura; el caudal máximo, del producto de lluvia, área, pendiente y estado de humedad. Al tomar logaritmos, el producto se vuelve una suma, y una suma de muchos efectos pequeños tiende a la normal (capítulo 17). La @fig-cont-lognormal-log muestra el efecto: los datos originales tienen una cola larga a la derecha y sus logaritmos tienen forma de campana.
+
+```{r}
+#| label: fig-cont-lognormal-log
+#| fig-cap: "Datos log-normales y sus logaritmos."
+#| fig-alt: "A la izquierda, histograma muy asimétrico a la derecha; a la derecha, histograma simétrico en forma de campana de los logaritmos"
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.2
+
+set.seed(1516)
+x_ln <- rlnorm(2000, meanlog = 4, sdlog = 0.5)
+bind_rows(tibble(v = x_ln, panel = "Caudal, X (m³/s)"),
+          tibble(v = log(x_ln), panel = "Logaritmo, ln X")) %>%
+  mutate(panel = fct_inorder(panel)) %>%
+  ggplot(aes(v)) +
+  geom_histogram(bins = 40, fill = azul, alpha = 0.7, color = "white") +
+  facet_wrap(~panel, scales = "free") +
+  labs(x = NULL, y = "Frecuencia") +
+  tema_libro
+```
+
+En ingeniería es común conocer la media $m$ y el coeficiente de variación $\text{CV}$ de la variable original, y no los parámetros del logaritmo. Despejando de la @eq-cont-lognormal-momentos se obtienen [@ang2007probability]
+
+$$
+\sigma^2 = \ln\left(1 + \text{CV}^2\right), \qquad \mu = \ln m - \frac{\sigma^2}{2}
+$$ {#eq-cont-lognormal-cv}
+
+Por ejemplo, si la conductividad hidráulica de un acuífero tiene media $5 \times 10^{-5}$ m/s y CV de 1.2, entonces $\sigma^2 = \ln(2.44) = 0.892$, $\sigma = 0.944$ y $\mu = \ln(5 \times 10^{-5}) - 0.446 = -9.904 - 0.446 = -10.350$.
 
 Para calcular probabilidades no hace falta integrar la @eq-cont-lognormal: basta con pasar a logaritmos y usar la normal estándar del capítulo 16. Si el caudal máximo anual de un río, en m³/s, es log-normal con $\mu = 4$ y $\sigma = 0.5$ (valores hipotéticos, en escala de $\ln$), la probabilidad de que supere 100 m³/s en un año es
 
@@ -316,6 +443,42 @@ El parámetro de forma tiene una lectura física, que es la razón de su uso en 
 - **$\alpha < 1$.** La tasa de fallas baja con el tiempo: fallas tempranas por defectos de fabricación o de instalación.
 - **$\alpha = 1$.** La tasa de fallas es constante y la Weibull es una exponencial con media $\beta$. Las fallas no dependen de la edad.
 - **$\alpha > 1$.** La tasa de fallas sube con el tiempo: desgaste, fatiga, corrosión.
+
+La tasa de fallas de esa lista tiene una definición precisa. La función de riesgo (o tasa de falla) $h(x)$ es la probabilidad, por unidad de tiempo, de que un elemento falle justo después de $x$, sabiendo que llegó vivo hasta $x$:
+
+$$
+h(x) = \frac{f_X(x)}{1 - F_X(x)}
+$$ {#eq-cont-riesgo}
+
+donde $f_X$ es la densidad y $1 - F_X(x)$ es la probabilidad de sobrevivir hasta $x$, llamada también función de confiabilidad. Para la exponencial, $h(x) = \lambda e^{-\lambda x}/e^{-\lambda x} = \lambda$, constante: es otra forma de decir que no tiene memoria. Para la Weibull,
+
+$$
+h(x) = \frac{\alpha}{\beta}\left(\frac{x}{\beta}\right)^{\alpha - 1}
+$$ {#eq-cont-weibull-riesgo}
+
+que baja con $x$ si $\alpha < 1$, es constante si $\alpha = 1$ y sube si $\alpha > 1$. Waloddi Weibull propuso esta distribución para la resistencia de materiales y la fatiga, y mostró que se ajustaba a datos muy distintos, desde la resistencia del acero hasta el tamaño de partículas de ceniza [@weibull1951statistical].
+
+La vida de muchos equipos (bombas, compuertas, sistemas eléctricos de un edificio) recorre las tres etapas a lo largo del tiempo, y su tasa de falla dibuja la llamada curva de la bañera de la @fig-cont-banera: fallas tempranas que bajan durante el rodaje, un periodo largo de fallas aleatorias con tasa casi constante y un aumento final por desgaste. Cada tramo se describe con una Weibull de distinta forma.
+
+```{r}
+#| label: fig-cont-banera
+#| fig-cap: "Tasa de falla en forma de bañera."
+#| fig-alt: "Curva de tasa de falla que baja al inicio, se mantiene plana y sube al final, con tres zonas rotuladas: fallas tempranas, fallas aleatorias y desgaste"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+tibble(x = seq(0.2, 30, length.out = 500)) %>%
+  mutate(h = 0.15 * (x / 2)^(-0.5) + 0.06 + 0.55 * (x / 30)^5) %>%
+  ggplot(aes(x, h)) +
+  geom_line(color = azul, linewidth = 1.3) +
+  annotate("text", x = c(3.2, 15, 25), y = c(0.42, 0.2, 0.5),
+           label = c("Fallas\ntempranas\n(α < 1)", "Fallas aleatorias\n(α ≈ 1)", "Desgaste\n(α > 1)"),
+           size = 3.4, lineheight = 0.9) +
+  coord_cartesian(ylim = c(0, 0.7)) +
+  labs(x = "Edad del equipo (años)", y = "Tasa de falla, h(x)") +
+  tema_libro
+```
 
 ::: {.callout-note title="Ejemplo: vida útil de un componente de una obra"}
 
@@ -355,6 +518,121 @@ c(media_sim = mean(vidas), desv_sim = sd(vidas))
 
 **Interpretación.** Un apoyo dura en promedio casi 9 años y uno de cada cuatro pasa de 12 años. Como $\alpha = 2 > 1$, el riesgo de falla crece con la edad, de modo que conviene reemplazarlos por programa y no esperar a que fallen.
 
+:::
+
+## Distribución de valores extremos de Gumbel {#sec-cont-gumbel}
+
+::: {.pregunta}
+Si en 53 años de registro el mayor caudal fue de 1496 m³/s, ¿con qué caudal se diseña un puente para la creciente de 100 años?
+:::
+
+Muchas decisiones de diseño no dependen del valor típico de una variable, sino de su máximo: el caudal máximo del año, la lluvia máxima en 24 horas, la velocidad máxima del viento, la carga máxima sobre un puente durante su vida útil. El máximo de muchas observaciones tiene su propia distribución, y la teoría de valores extremos muestra que, con muestras grandes, solo puede tener unas pocas formas. La más usada en ingeniería es la distribución de valores extremos tipo I, o distribución de Gumbel, en honor a Emil Gumbel, que la sistematizó para el análisis de crecientes [@gumbel1958statistics]. Su FDA es
+
+$$
+F_X(x) = \exp\left[-\exp\left(-\frac{x - u}{\alpha}\right)\right], \qquad -\infty < x < \infty
+$$ {#eq-cont-gumbel}
+
+donde $u$ es el parámetro de localización (la moda, en las unidades de $x$) y $\alpha > 0$ es el parámetro de escala. Su media y su desviación estándar son [@chow1988applied]
+
+$$
+E(X) = u + 0.5772\,\alpha, \qquad \sigma = \frac{\pi\,\alpha}{\sqrt{6}}
+$$ {#eq-cont-gumbel-momentos}
+
+donde 0.5772 es la constante de Euler. La Gumbel es asimétrica a la derecha, con un coeficiente de asimetría fijo de 1.14, y su cola derecha es más larga que la de la normal: los máximos muy altos son raros, pero menos raros de lo que diría una campana.
+
+Lo práctico de la Gumbel es que su FDA se despeja a mano. El valor con periodo de retorno $T$ (capítulo 14) es el que tiene probabilidad $1/T$ de excederse en un año, es decir, $F(x_T) = 1 - 1/T$. Despejando de la @eq-cont-gumbel:
+
+$$
+x_T = u - \alpha \ln\left[-\ln\left(1 - \frac{1}{T}\right)\right]
+$$ {#eq-cont-gumbel-cuantil}
+
+Los parámetros se estiman con el método de momentos: se igualan la media y la desviación estándar del modelo con las de los datos y se despeja, $\hat{\alpha} = \sqrt{6}\, s/\pi$ y $\hat{u} = \bar{x} - 0.5772\,\hat{\alpha}$.
+
+::: {.callout-note title="Ejemplo: creciente de diseño con caudales máximos anuales"}
+
+**Planteamiento.** Con los 53 caudales máximos anuales (1966–2018) del capítulo 8 (datos reales anonimizados), ajuste una distribución de Gumbel por el método de momentos y calcule:
+
+a) los caudales de 10, 50 y 100 años de periodo de retorno;
+b) la probabilidad de que el caudal máximo de un año pase de 1000 m³/s, y compárela con la proporción observada.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/caudal_maximo_anual.csv", nombres = c("Año", "Caudal máximo (m³/s)"))
+```
+
+**Solución:**
+
+1. Estadísticos de la muestra: $\bar{x} = 637.04$ m³/s y $s = 357.87$ m³/s.
+2. Parámetros: $\hat{\alpha} = \sqrt{6} \times 357.87/\pi = 2.4495 \times 357.87/3.1416 = 279.03$ m³/s y $\hat{u} = 637.04 - 0.5772 \times 279.03 = 475.98$ m³/s.
+3. a) Para $T = 100$: $-\ln(1 - 0.01) = 0.01005$ y $-\ln(0.01005) = 4.600$, así que $x_{100} = 475.98 + 279.03 \times 4.600 = 1759.6$ m³/s. Igual, $x_{10} = 475.98 + 279.03 \times 2.250 = 1103.9$ m³/s y $x_{50} = 475.98 + 279.03 \times 3.902 = 1564.7$ m³/s.
+4. b) $z = (1000 - 475.98)/279.03 = 1.878$, $e^{-1.878} = 0.1529$ y $F(1000) = e^{-0.1529} = 0.8582$. La probabilidad de excedencia es $1 - 0.8582 = 0.142$. En los datos, 7 de 53 años pasaron de 1000 m³/s, es decir, 0.132.
+
+**Pseudocódigo**
+
+1. Leer los caudales y calcular la media y la desviación estándar.
+2. Estimar $\alpha$ y $u$ por momentos.
+3. Escribir la FDA y la función de cuantiles de la Gumbel como funciones de R.
+4. Calcular los caudales de diseño y la probabilidad de excedencia, y comparar con los datos.
+5. Comprobar el modelo con una simulación de 100 000 años por el método de la transformación inversa.
+
+```{r}
+# 1) Datos
+caudal <- read.csv("datos/caudal_maximo_anual.csv")$caudal_m3s
+media <- mean(caudal); desv <- sd(caudal)
+
+# 2) Parámetros por el método de momentos
+alfa <- sqrt(6) * desv / pi
+u <- media - 0.5772 * alfa
+c(media = media, desv = desv, alfa = alfa, u = u)
+
+# 3) FDA y cuantil de la Gumbel (R base no las trae)
+pgumbel <- function(x, u, alfa) exp(-exp(-(x - u) / alfa))
+qgumbel <- function(p, u, alfa) u - alfa * log(-log(p))
+
+# 4) Caudales de diseño y probabilidad de excedencia
+T_ret <- c(10, 50, 100)
+data.frame(T_ret, caudal = qgumbel(1 - 1 / T_ret, u, alfa))
+c(modelo = 1 - pgumbel(1000, u, alfa), datos = mean(caudal > 1000))
+
+# 5) Simulación: si U es uniforme, qgumbel(U) es Gumbel
+set.seed(1517)
+sim <- qgumbel(runif(100000), u, alfa)
+c(media_sim = mean(sim), desv_sim = sd(sim), q100_sim = unname(quantile(sim, 0.99)))
+```
+
+Paquetes como `evd` o `extRemes` traen funciones listas para la Gumbel y otras distribuciones de extremos, con métodos de estimación más finos; aquí basta con dos líneas de R base. La @fig-cont-gumbel compara los datos con el modelo en el gráfico usual de hidrología. Cada caudal observado se ubica con su periodo de retorno empírico, calculado con la posición de graficación de Weibull: si el caudal ocupa el lugar $m$ al ordenar los $n$ datos de mayor a menor, su periodo de retorno empírico es $(n + 1)/m$ [@chow1988applied]. En el eje horizontal se usa la variable reducida $y = -\ln[-\ln(1 - 1/T)]$, que convierte la FDA de Gumbel en una recta.
+
+```{r}
+#| label: fig-cont-gumbel
+#| fig-cap: "Caudales máximos anuales y recta de Gumbel ajustada."
+#| fig-alt: "Puntos de los 53 caudales ordenados contra la variable reducida, alineados cerca de una recta que sube hasta 1760 metros cúbicos por segundo en el periodo de retorno de 100 años"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 4
+
+n_c <- length(caudal)
+empirico <- tibble(q = sort(caudal, decreasing = TRUE), m = 1:n_c,
+                   T_emp = (n_c + 1) / m, y = -log(-log(1 - 1 / T_emp)))
+recta <- tibble(T_r = c(1.05, 1.5, 2, 5, 10, 25, 50, 100, 200)) %>%
+  mutate(y = -log(-log(1 - 1 / T_r)), q = u + alfa * y)
+ggplot(empirico, aes(y, q)) +
+  geom_line(data = recta, color = naranja, linewidth = 1.1) +
+  geom_point(color = azul, size = 2.2) +
+  scale_x_continuous(name = "Variable reducida de Gumbel, y",
+                     sec.axis = sec_axis(~ ., breaks = -log(-log(1 - 1 / c(2, 5, 10, 25, 50, 100, 200))),
+                                         labels = c(2, 5, 10, 25, 50, 100, 200),
+                                         name = "Periodo de retorno, T (años)")) +
+  labs(y = "Caudal máximo anual (m³/s)") +
+  tema_libro
+```
+
+**Interpretación.** Desde unos 400 m³/s hacia arriba, que es la zona que interesa para diseño, los puntos siguen de cerca la recta; los caudales más bajos quedan algo por debajo de ella, lo que indica que la Gumbel describe peor los años secos. Para la creciente de diseño es un modelo razonable: la probabilidad de superar 1000 m³/s en un año (14 %) coincide con la frecuencia observada (13 %). La creciente de 100 años estimada, 1760 m³/s, es mayor que el máximo registrado (1496 m³/s). Eso es lo esperable: con 53 años de registro, el caudal de 100 años probablemente todavía no se ha presentado, y el modelo es la única forma de estimarlo.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Un caudal de 100 años calculado con 53 datos es una extrapolación, y su incertidumbre es grande. Con otro periodo de registro, o con otra distribución de extremos (log-normal, log-Pearson tipo III, valores extremos generalizada), el resultado puede cambiar varios cientos de metros cúbicos por segundo. Esos resultados no se promedian. Se elige el modelo con criterio físico, pruebas de ajuste y, cuando existe, la norma del país, y se informa el intervalo de confianza del cuantil, que se ve en el capítulo 19.
 :::
 
 ## Interactivo: explorar las distribuciones continuas {#sec-cont-interactivo}
@@ -483,9 +761,82 @@ Distribuciones continuas.
 
 :::
 
+### Interactivo: el proceso de Poisson
+
+El interactivo de la @fig-cont-int-poisson simula un proceso de Poisson con la tasa $\lambda$ que se elija. Arriba se ven los eventos de las primeras 24 horas y cuántos cayeron en cada bloque de 4 horas (conteos de Poisson con media $4\lambda$). Abajo, el histograma de 2000 tiempos entre eventos con la densidad exponencial encima. Conviene apretar el botón varias veces con la misma tasa para ver cuánto cambian los conteos de un bloque a otro, aunque la tasa sea constante.
+
+::: {#fig-cont-int-poisson}
+
+```{=html}
+<div class="interactivo" id="int-proceso-poisson">
+  <div class="controles">
+    <label><span>Tasa <i>λ</i> (eventos por hora):</span> <output class="ol"></output>
+      <input class="rl" type="range" min="0.1" max="3" step="0.1" value="0.8"></label>
+  </div>
+  <button type="button">Simular otra vez</button>
+  <svg class="linea" viewBox="0 0 640 110" role="img" aria-label="Línea de tiempo de 24 horas con los eventos simulados"></svg>
+  <svg class="hist" viewBox="0 0 640 220" role="img" aria-label="Histograma de los tiempos entre eventos con la densidad exponencial"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-proceso-poisson");
+  var rl = raiz.querySelector(".rl"), ol = raiz.querySelector(".ol"), boton = raiz.querySelector("button");
+  var svg1 = raiz.querySelector("svg.linea"), svg2 = raiz.querySelector("svg.hist"), res = raiz.querySelector(".resultado");
+  var w = 640, mi = 40, md = 16;
+  function expo(l) { return -Math.log(1 - Math.random()) / l; }
+  function dibujar() {
+    var l = +rl.value; ol.textContent = l.toFixed(1);
+    // Línea de tiempo de 24 h
+    var t = 0, ev = [];
+    while (true) { t += expo(l); if (t > 24) break; ev.push(t); }
+    var sx = function (v) { return mi + v / 24 * (w - mi - md); };
+    var s = '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="70" y2="70"/>';
+    for (var b = 0; b <= 6; b++) {
+      s += '<line class="guia" x1="' + sx(4 * b) + '" x2="' + sx(4 * b) + '" y1="18" y2="74"/>' +
+           '<text class="eje-texto" x="' + sx(4 * b) + '" y="90" text-anchor="middle">' + (4 * b) + ' h</text>';
+    }
+    var cuentas = [0, 0, 0, 0, 0, 0];
+    ev.forEach(function (e) {
+      s += '<line class="curva" x1="' + sx(e).toFixed(1) + '" x2="' + sx(e).toFixed(1) + '" y1="34" y2="70"/>';
+      cuentas[Math.min(5, Math.floor(e / 4))]++;
+    });
+    for (var c = 0; c < 6; c++) s += '<text class="eje-texto" x="' + sx(4 * c + 2) + '" y="14" text-anchor="middle">' + cuentas[c] + '</text>';
+    svg1.innerHTML = s;
+    // Histograma de 2000 tiempos entre eventos
+    var M = 2000, huecos = [], suma = 0, largos = 0;
+    for (var i = 0; i < M; i++) { var g = expo(l); huecos.push(g); suma += g; if (g > 1 / l) largos++; }
+    var xmax = 5 / l, nb = 30, anc = xmax / nb, hist = new Array(nb).fill(0);
+    huecos.forEach(function (g) { if (g < xmax) hist[Math.floor(g / anc)]++; });
+    var dens = hist.map(function (v) { return v / (M * anc); }), ymax = Math.max(l, Math.max.apply(null, dens)) * 1.1;
+    var h2 = 220, mb = 34, ms = 10;
+    var sx2 = function (v) { return mi + v / xmax * (w - mi - md); };
+    var sy2 = function (v) { return h2 - mb - v / ymax * (h2 - mb - ms); };
+    var s2 = '';
+    for (var k = 0; k < nb; k++) s2 += '<rect class="barra-p4" x="' + sx2(k * anc).toFixed(1) + '" y="' + sy2(dens[k]).toFixed(1) + '" width="' + (sx2(anc) - sx2(0)).toFixed(1) + '" height="' + (sy2(0) - sy2(dens[k])).toFixed(1) + '"/>';
+    var d = '';
+    for (var j = 0; j <= 200; j++) { var x = xmax * j / 200; d += (j ? 'L' : 'M') + sx2(x).toFixed(1) + ',' + sy2(l * Math.exp(-l * x)).toFixed(1); }
+    s2 += '<path class="curva-2" d="' + d + '"/><line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy2(0) + '" y2="' + sy2(0) + '"/>';
+    for (var q = 0; q <= 5; q++) s2 += '<text class="eje-texto" x="' + sx2(q / l).toFixed(1) + '" y="' + (sy2(0) + 16) + '" text-anchor="middle">' + (q / l).toPrecision(3) + '</text>';
+    s2 += '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h2 - 2) + '" text-anchor="middle">Tiempo entre eventos (h)</text>';
+    svg2.innerHTML = s2;
+    res.innerHTML = "Eventos en 24 h: " + ev.length + " (esperados: " + (24 * l).toFixed(1) + ") &nbsp;·&nbsp; tiempo medio entre eventos: " + (suma / M).toFixed(2) +
+      " h (1/<i>λ</i> = " + (1 / l).toFixed(2) + " h) &nbsp;·&nbsp; huecos mayores que 1/<i>λ</i>: " + (largos / M).toFixed(3) + " (teoría: <i>e</i><sup>−1</sup> = 0.368)";
+  }
+  rl.addEventListener("input", dibujar);
+  boton.addEventListener("click", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Proceso de Poisson y tiempos entre eventos.
+
+:::
+
 ## Cómo elegir la distribución {#sec-cont-elegir}
 
-La elección de una distribución continua combina dos cosas: lo que se sabe de la física del problema y lo que muestran los datos. El @tbl-cont-resumen resume las distribuciones del capítulo con el tipo de variable para el que suelen servir.
+La elección de una distribución continua combina dos cosas: lo que se sabe de la física del problema y lo que muestran los datos. La guía completa para elegir entre todas las distribuciones de la Parte IV, con un diagrama de decisión y un cuestionario para practicar, está al final del capítulo 16 (@sec-guia-distribuciones). El @tbl-cont-resumen resume las distribuciones del capítulo con el tipo de variable para el que suelen servir.
 
 ```{r}
 #| label: tbl-cont-resumen
@@ -493,19 +844,21 @@ La elección de una distribución continua combina dos cosas: lo que se sabe de 
 #| echo: false
 
 tibble(
-  dist = c("Uniforme", "Exponencial", "Gamma", "Beta", "Log-normal", "Weibull"),
-  rango = c("[<i>a</i>, <i>b</i>]", "<i>x</i> ≥ 0", "<i>x</i> > 0", "0 < <i>x</i> < 1", "<i>x</i> > 0", "<i>x</i> ≥ 0"),
+  dist = c("Uniforme", "Exponencial", "Gamma", "Beta", "Log-normal", "Weibull", "Gumbel"),
+  rango = c("[<i>a</i>, <i>b</i>]", "<i>x</i> ≥ 0", "<i>x</i> > 0", "0 < <i>x</i> < 1", "<i>x</i> > 0", "<i>x</i> ≥ 0", "Todos los reales"),
   uso = c("Solo se conocen los límites; simulación",
           "Tiempo entre eventos al azar (proceso de Poisson)",
           "Tiempo hasta el evento número <i>α</i>; variables positivas asimétricas",
           "Proporciones y porcentajes",
           "Variables positivas con cola larga (caudales, permeabilidad)",
-          "Vida útil y resistencia de materiales frágiles"),
+          "Vida útil y resistencia de materiales frágiles",
+          "Máximos anuales (caudales, lluvias, viento)"),
   media = c("(<i>a</i> + <i>b</i>)/2", "1/<i>λ</i>", "<i>αθ</i>", "<i>α</i>/(<i>α</i> + <i>β</i>)",
-            "<i>e</i><sup><i>μ</i> + <i>σ</i><sup>2</sup>/2</sup>", "<i>β</i> Γ(1 + 1/<i>α</i>)"),
+            "<i>e</i><sup><i>μ</i> + <i>σ</i><sup>2</sup>/2</sup>", "<i>β</i> Γ(1 + 1/<i>α</i>)", "<i>u</i> + 0.5772 <i>α</i>"),
   r = c("<code>punif(x, a, b)</code>", "<code>pexp(x, rate)</code>",
         "<code>pgamma(x, shape, scale = )</code>", "<code>pbeta(x, a, b)</code>",
-        "<code>plnorm(x, meanlog, sdlog)</code>", "<code>pweibull(x, shape, scale)</code>")
+        "<code>plnorm(x, meanlog, sdlog)</code>", "<code>pweibull(x, shape, scale)</code>",
+        "<code>exp(-exp(-(x - u)/alfa))</code>")
 ) %>%
   kbl(col.names = c("Distribución", "Valores", "Uso típico", "Media", "FDA en R"),
       escape = FALSE, align = "l") %>%
@@ -520,6 +873,16 @@ Un primer filtro es el rango de la variable. Si puede ser negativa, ninguna de l
 Si varias distribuciones se ajustan razonablemente bien a los mismos datos, sus resultados en las colas (por ejemplo, el caudal de 100 años) pueden ser muy distintos. Esos resultados no se promedian: cada modelo tiene sus supuestos. Se elige uno con criterio físico y con pruebas de ajuste, y se informa cuál se usó.
 :::
 
+## Errores comunes con las distribuciones continuas {#sec-cont-errores}
+
+- **Mezclar las unidades de la tasa y del tiempo.** Una tasa por hora con un tiempo en días da probabilidades absurdas sin ningún aviso.
+- **Confundir tasa con media.** En la exponencial, `pexp(x, rate = 45)` no es lo mismo que una media de 45; con media 45 se escribe `rate = 1/45`.
+- **Pasar la media y la desviación estándar de los datos a `plnorm()`.** Sus argumentos son los del logaritmo; si solo se conocen la media y el CV, se usa la @eq-cont-lognormal-cv.
+- **Usar la exponencial para elementos que envejecen.** Si la tasa de falla crece con la edad, corresponde una Weibull con $\alpha > 1$.
+- **Usar la normal para un máximo anual.** Los máximos tienen cola derecha larga; la normal subestima los caudales de periodo de retorno alto.
+- **Tomar como exacto un cuantil extrapolado.** El caudal de 100 años calculado con 30 o 50 datos tiene una incertidumbre grande.
+- **Promediar los resultados de varias distribuciones.** Cada una tiene sus supuestos; se elige una y se justifica.
+
 ## Ejercicios propuestos
 
 1. Un ensayo de laboratorio tarda entre 20 y 35 minutos, y cualquier duración en ese intervalo es igualmente probable. Calcule la probabilidad de que tarde más de 30 minutos, la media y la desviación estándar. Compruebe con `punif()` y con una simulación con `runif()`.
@@ -531,9 +894,17 @@ Si varias distribuciones se ajustan razonablemente bien a los mismos datos, sus 
 7. La conductividad hidráulica de un suelo es log-normal con $\mu = -11$ y $\sigma = 0.8$ ($\ln$ de m/s). Calcule la mediana, la media y la probabilidad de que supere $10^{-4}$ m/s.
 8. Los cables de un sistema de anclajes tienen una vida útil Weibull con $\alpha = 3$ y $\beta = 40$ años. Calcule la vida media, la probabilidad de que un cable falle antes de 20 años y la edad a la que ha fallado el 10 % de los cables (`qweibull()`).
 9. Use el interactivo con la Weibull y $\beta = 10$: describa cómo cambia la forma de la densidad al pasar $\alpha$ de 0.8 a 1 y a 3, y relacione cada caso con el tipo de falla que representa.
+10. La concentración de un contaminante en las muestras de un río tiene media 12 mg/L y coeficiente de variación de 0.6, y se modela como log-normal. Calcule los parámetros $\mu$ y $\sigma$ con la @eq-cont-lognormal-cv y la probabilidad de que una muestra supere el límite de 25 mg/L.
+11. Con los 53 caudales máximos anuales, ajuste una distribución log-normal (estime $\mu$ y $\sigma$ con la media y la desviación estándar de `log(caudal)`) y calcule el caudal de 100 años con `qlnorm(0.99, ...)`. Compárelo con el de la Gumbel del ejemplo y explique por qué no se deben promediar.
+12. Las bombas de una estación tienen vida Weibull con $\alpha = 0.7$ y $\beta = 8$ años. Calcule la tasa de falla a los 0.5, 2 y 8 años con la @eq-cont-weibull-riesgo. ¿Conviene un programa de reemplazo preventivo por edad? Justifique.
+13. Use el interactivo del proceso de Poisson con $\lambda = 0.5$ eventos por hora. Anote los seis conteos por bloque de 4 horas en cinco simulaciones y calcule su media y su varianza. ¿Se parecen, como predice la Poisson?
 
 ## Lecturas recomendadas
 
 - @illowsky2018introductory, capítulo 5: uniforme y exponencial con muchos ejemplos resueltos, incluida la falta de memoria.
+- @walpole2012probabilidad, capítulo 6: distribuciones continuas, incluidas la gamma, la log-normal y la Weibull, con aplicaciones de confiabilidad.
+- @montgomery2014applied, capítulo 4: distribuciones continuas desde la ingeniería.
+- @ang2007probability: log-normal, gamma y distribuciones de extremos aplicadas a cargas, resistencias y crecientes.
+- @chow1988applied y @gumbel1958statistics: análisis de frecuencia de crecientes y teoría de valores extremos.
 - @ayala2026estadistica: distribuciones continuas en español, con código de R.
 - @wasserman2004all, capítulo 2: densidades de la gamma, la beta y otras distribuciones, con la notación formal.

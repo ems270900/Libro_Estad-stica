@@ -254,6 +254,7 @@ En R, cada distribución tiene cuatro funciones que comparten el nombre y cambia
 | Beta | `beta` | `shape1`, `shape2` | `dbeta()`, `pbeta()`, `qbeta()`, `rbeta()` |
 | Log-normal | `lnorm` | `meanlog`, `sdlog` | `dlnorm()`, `plnorm()`, `qlnorm()`, `rlnorm()` |
 | Weibull | `weibull` | `shape`, `scale` | `dweibull()`, `pweibull()`, `qweibull()`, `rweibull()` |
+| Gumbel | (no viene en R base) | posición $u$, escala $\alpha$ | `exp(-exp(-(x - u) / alfa))` para la FDA y `u - alfa * log(-log(p))` para el cuantil (capítulo 15) |
 | $t$ de Student | `t` | `df` ($\nu$) | `dt()`, `pt()`, `qt()`, `rt()` |
 | Chi-cuadrado | `chisq` | `df` ($\nu$) | `dchisq()`, `pchisq()`, `qchisq()`, `rchisq()` |
 | $F$ de Fisher | `f` | `df1` ($\nu_1$), `df2` ($\nu_2$) | `df()`, `pf()`, `qf()`, `rf()` |

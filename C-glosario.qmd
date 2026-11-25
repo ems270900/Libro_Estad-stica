@@ -51,6 +51,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Cuartil | Quartile | Cuantil que divide los datos en cuatro partes iguales. |
 | Dato | Data point, observation | Un valor medido o registrado. |
 | Datos | Data | Conjunto de valores medidos o registrados. |
+| Desigualdad de Chebyshev | Chebyshev's inequality | Cota que vale para cualquier distribución: la probabilidad de alejarse más de k desviaciones estándar de la media es a lo sumo 1/k². |
 | Desviación estándar | Standard deviation | Medida de dispersión: distancia típica de los datos a su media, en las mismas unidades. |
 | Diagrama de dispersión | Scatter plot | Gráfico de puntos de una variable contra otra. |
 | Diagrama de Venn | Venn diagram | Dibujo de los eventos como regiones dentro del espacio muestral. |
@@ -58,6 +59,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Diseño de experimentos | Design of experiments (DOE) | Planear un ensayo para obtener la mayor información con el menor número de corridas. |
 | Diseño factorial | Factorial design | Experimento que prueba todas las combinaciones de los niveles de dos o más factores. |
 | Distancia de Cook | Cook's distance | Medida de cuánto cambia la regresión si se quita una observación. |
+| Distribución de Gumbel | Gumbel distribution | Distribución de valores extremos que se usa para el máximo anual de caudales, lluvias o vientos. |
 | Distribución de probabilidad | Probability distribution | Regla que dice qué valores puede tomar una variable aleatoria y con qué probabilidad. |
 | Distribución muestral | Sampling distribution | Distribución de un estadístico, como la media, al repetir el muestreo muchas veces. |
 | Distribución normal | Normal distribution | Distribución continua con forma de campana, simétrica alrededor de la media. |
@@ -87,17 +89,20 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Función de densidad de probabilidad (FDP) | Probability density function (PDF) | Curva cuya área entre dos valores da la probabilidad de una variable continua. |
 | Función de distribución acumulada (FDA) | Cumulative distribution function (CDF) | Probabilidad de que la variable sea menor o igual que un valor: $P(X \le x)$. |
 | Función de probabilidad | Probability mass function (PMF) | Probabilidad de cada valor de una variable discreta. |
+| Función de riesgo | Hazard function | Tasa de falla instantánea de un componente que ha sobrevivido hasta cierto tiempo; en la Weibull crece, decrece o es constante según la forma. |
 | Grados de libertad | Degrees of freedom | Número de valores que pueden variar libremente; define la forma de $t$, $\chi^2$ y $F$. |
 | Heterocedasticidad | Heteroscedasticity | Cuando la varianza de los residuos cambia a lo largo de los valores ajustados. |
 | Hipótesis alternativa ($H_1$) | Alternative hypothesis | Lo que se quiere demostrar con la prueba. |
 | Hipótesis nula ($H_0$) | Null hypothesis | Afirmación que se mantiene mientras los datos no muestren lo contrario. |
 | Histograma | Histogram | Gráfico de barras pegadas que muestra cuántos datos caen en cada intervalo. |
 | Homocedasticidad | Homoscedasticity | Varianza constante de los residuos. |
+| Índice de confiabilidad | Reliability index | Número de desviaciones estándar que separan la media del margen de seguridad del valor cero; con margen normal, la probabilidad de falla es Φ(−β). |
 | Interacción | Interaction | Cuando el efecto de un factor depende del nivel de otro factor. |
 | Intervalo de confianza | Confidence interval | Rango de valores que, con cierto nivel de confianza, contiene al parámetro. |
 | Intervalo de predicción | Prediction interval | Rango donde se espera que caiga una observación nueva. |
 | Intervalo de tolerancia | Tolerance interval | Rango que contiene una fracción dada de la población con cierto nivel de confianza. |
 | Ley de los grandes números | Law of large numbers | Al repetir un experimento muchas veces, la frecuencia relativa se acerca a la probabilidad. |
+| Margen de seguridad | Safety margin | Diferencia entre la resistencia y la carga; la falla ocurre cuando es negativa. |
 | Máxima verosimilitud | Maximum likelihood | Método que elige los parámetros que hacen más probables los datos observados. |
 | Media | Mean | Suma de los datos dividida entre su número (promedio). |
 | Media geométrica | Geometric mean | Raíz $n$-ésima del producto de $n$ datos; se usa para promediar tasas de cambio. |
@@ -117,6 +122,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Omega cuadrado | Omega squared | Medida del tamaño del efecto en el ANOVA, corregida para no sobrestimar como el eta cuadrado. |
 | Parámetro | Parameter | Número que describe a la población, como la media poblacional $\mu$. |
 | Percentil | Percentile | Cuantil expresado en porcentaje: el percentil 90 deja por debajo el 90 % de los datos. |
+| Periodo de retorno | Return period | Tiempo promedio entre excedencias de un valor; es el inverso de la probabilidad anual de excedencia. |
 | Permutación | Permutation | Forma de ordenar $k$ elementos elegidos de $n$, cuando importa el orden. |
 | Población | Population | Conjunto completo de elementos que se quiere estudiar. |
 | Potencia de una prueba | Power of a test | Probabilidad de rechazar la hipótesis nula cuando es falsa. |
@@ -137,8 +143,10 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Regresión lineal | Linear regression | Modelo que describe una variable como una recta en función de otra u otras. |
 | Repetición | Replication | Aplicar el mismo tratamiento a varias unidades experimentales. |
 | Residuo | Residual | Diferencia entre el valor observado y el que predice el modelo. |
+| Riesgo de excedencia | Exceedance risk | Probabilidad de que un valor de diseño se supere al menos una vez durante la vida útil de una obra. |
 | Sesgo | Bias | Diferencia entre el valor promedio de un estimador y el parámetro que estima. |
 | Simulación | Simulation | Repetir un experimento en la computadora con números al azar. |
+| Sobredispersión | Overdispersion | Situación en que la varianza de un conteo supera a su media; sugiere una binomial negativa en vez de una Poisson. |
 | Suma de cuadrados | Sum of squares | Suma de las desviaciones al cuadrado; mide la variación. |
 | Supuesto | Assumption | Condición que debe cumplirse para que un método dé resultados válidos. |
 | Tamaño de muestra | Sample size | Número de elementos de la muestra, $n$. |
@@ -158,6 +166,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Variable dependiente, de respuesta | Response variable, dependent variable | Variable que se quiere explicar o predecir. |
 | Variable discreta | Discrete variable | Variable que toma valores separados, como un conteo de vehículos. |
 | Variable independiente, predictora | Predictor, explanatory variable | Variable que se usa para explicar o predecir otra. |
+| Variable indicadora | Indicator variable | Variable que vale 1 si ocurre un evento y 0 si no; su media es la probabilidad del evento. |
 | Varianza | Variance | Promedio de las distancias al cuadrado de los datos a su media. |
 
 : Glosario de términos estadísticos, en orden alfabético del español. {#tbl-apc-glosario}

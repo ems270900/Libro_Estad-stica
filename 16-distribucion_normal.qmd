@@ -17,6 +17,47 @@ tema_libro <- theme_minimal(base_size = 13) +
 
 Si se ensayan cien cilindros de una misma mezcla de concreto, sus resistencias no son iguales: la mayoría queda cerca del promedio, unas pocas quedan bastante por encima o por debajo, y el histograma toma forma de campana. Lo mismo pasa con los errores de una nivelación topográfica, con el espesor de una capa de asfalto o con el peso de los sacos de cemento de un lote. La curva que describe esa campana es la distribución normal, también llamada gaussiana. Es la distribución más usada de la estadística por dos razones: describe bien muchas mediciones de ingeniería y, por el teorema del límite central del capítulo 17, describe también el comportamiento de los promedios, aunque los datos originales no sean normales. Casi todos los métodos de inferencia de la Parte V se apoyan en ella. Este capítulo enseña a calcular probabilidades y cuantiles con la normal, a mano con la tabla $Z$ y con R, y a usarla para aproximar la binomial y la Poisson.
 
+## Por qué aparece tanto la campana {#sec-normal-origen}
+
+::: {.pregunta}
+¿Por qué los errores de una nivelación, el espesor de una carpeta y el peso de los sacos de cemento tienen el mismo tipo de histograma, si no tienen nada que ver entre sí?
+:::
+
+Porque en los tres casos el valor final es la suma de muchos efectos pequeños e independientes. El error de cierre de una nivelación acumula los pequeños errores de lectura de cada cambio de estación; el espesor de una carpeta suma variaciones de la pavimentadora, del material y de la compactación. Cuando se suman muchos efectos pequeños, ninguno de los cuales domina, el resultado tiene forma de campana, sea cual sea la forma de cada efecto. Es el teorema del límite central, que el capítulo 17 enuncia con precisión.
+
+La @fig-normal-suma-errores lo muestra con una simulación. Cada error individual es uniforme entre −0.5 y 0.5 mm, es decir, cualquier valor del intervalo es igual de probable y el histograma es plano. Pero la suma de 2 errores ya tiene forma de triángulo, la de 4 se parece a una campana y la de 20 es prácticamente normal.
+
+```{r}
+#| label: fig-normal-suma-errores
+#| fig-cap: "Suma de errores uniformes y su tendencia a la normal."
+#| fig-alt: "Cuatro histogramas: con un error el histograma es plano, con dos es triangular, con cuatro y veinte tiene forma de campana y la curva normal lo sigue"
+#| echo: false
+#| cache: true
+#| fig-width: 8.5
+#| fig-height: 3
+
+set.seed(1616)
+sumas <- map_dfr(c(1, 2, 4, 20), function(k)
+  tibble(suma = rowSums(matrix(runif(20000 * k, -0.5, 0.5), ncol = k)),
+         panel = paste(k, ifelse(k == 1, "error", "errores")), k = k))
+sumas$panel <- factor(sumas$panel, levels = c("1 error", "2 errores", "4 errores", "20 errores"))
+curvas <- map_dfr(c(1, 2, 4, 20), function(k)
+  tibble(x = seq(-min(k / 2, 3.5 * sqrt(k / 12)), min(k / 2, 3.5 * sqrt(k / 12)), length.out = 200), f = dnorm(x, 0, sqrt(k / 12)),
+         panel = paste(k, ifelse(k == 1, "error", "errores"))))
+curvas$panel <- factor(curvas$panel, levels = levels(sumas$panel))
+ggplot(sumas, aes(suma)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 40, fill = azul, alpha = 0.6, color = "white") +
+  geom_line(data = curvas, aes(x, f), color = naranja, linewidth = 1) +
+  facet_wrap(~panel, scales = "free", nrow = 1) +
+  labs(x = "Error acumulado (mm)", y = "Densidad") +
+  tema_libro +
+  theme(axis.text.y = element_blank())
+```
+
+Francis Galton construyó en el siglo XIX un aparato para mostrar este fenómeno, el tablero que hoy lleva su nombre: bolitas que caen entre hileras de clavos y en cada clavo se desvían a la izquierda o a la derecha con la misma probabilidad. La posición final de cada bolita es la suma de muchas desviaciones pequeñas, y al acumularse en el fondo forman una campana [@galton1889natural]. Históricamente, la curva apareció primero como aproximación de la binomial, en el trabajo de Abraham de Moivre en el siglo XVIII, y después como ley de los errores de medición, con Gauss y Laplace; por eso se le llama también gaussiana.
+
+Esta explicación sirve también para saber cuándo no esperar una normal. Si el valor final resulta de multiplicar efectos, y no de sumarlos, se obtiene una log-normal (capítulo 15). Si es el máximo de muchos valores, como el caudal máximo del año, se obtiene una distribución de extremos, como la Gumbel. Y si un solo efecto domina sobre los demás, la variable hereda la forma de ese efecto.
+
 ## La curva normal {#sec-normal-curva}
 
 Una variable $X$ sigue una distribución normal con media $\mu$ y desviación estándar $\sigma$, lo que se escribe $X \sim N(\mu, \sigma)$, si su densidad es [@illowsky2018introductory, cap. 6]
@@ -95,6 +136,21 @@ ggplot(curva, aes(x, f)) +
   tema_libro
 ```
 
+El @tbl-normal-chebyshev compara la regla empírica con la desigualdad de Chebyshev del capítulo 13 (@eq-va-chebyshev). Chebyshev vale para cualquier distribución y por eso es mucho más conservadora; la regla empírica solo vale para la normal, pero da las proporciones exactas.
+
+```{r}
+#| label: tbl-normal-chebyshev
+#| tbl-cap: "Proporción dentro de k desviaciones estándar de la media."
+#| echo: false
+
+tibble(k = c(1, 1.5, 2, 3)) %>%
+  mutate(normal = pnorm(k) - pnorm(-k), cheb = pmax(0, 1 - 1 / k^2)) %>%
+  mutate(normal = sprintf("%.1f %%", 100 * normal), cheb = sprintf("al menos %.1f %%", 100 * cheb)) %>%
+  kbl(col.names = c("<i>k</i>", "Normal (exacta)", "Cualquier distribución (Chebyshev)"),
+      escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
 ::: {.callout-tip title="En la práctica"}
 La regla empírica sirve para revisar resultados de cabeza. Si un laboratorio reporta un concreto con media de 30 MPa y desviación estándar de 2 MPa, y en el mismo lote aparece un cilindro de 20 MPa, ese valor está a 5 desviaciones estándar de la media. Con una normal, eso casi nunca pasa por azar: lo razonable es revisar el ensayo (el refrentado, la prensa, la edad del cilindro) antes de culpar al concreto.
 :::
@@ -146,7 +202,31 @@ Para buscar $\Phi(1.23)$, se va a la fila 1.2 (el entero y la primera decimal) y
 - **Complemento.** $P(Z > z) = 1 - \Phi(z)$.
 - **Simetría.** Como la curva es simétrica alrededor de 0, $\Phi(-z) = 1 - \Phi(z)$. Por eso muchas tablas solo traen valores positivos de $z$.
 
-Con eso salen los tres casos que aparecen en la práctica, que se resumen en el @tbl-normal-casos.
+Con eso salen los tres casos que aparecen en la práctica, que la @fig-normal-tres-casos dibuja sobre la normal estándar y el @tbl-normal-casos resume.
+
+```{r}
+#| label: fig-normal-tres-casos
+#| fig-cap: "Las tres áreas que se calculan con la tabla Z."
+#| fig-alt: "Tres campanas: en la primera se sombrea el área a la izquierda de 1.23, en la segunda el área a la derecha de 1.23 y en la tercera el área entre menos 1 y 1"
+#| echo: false
+#| fig-width: 8.5
+#| fig-height: 2.8
+
+z_g <- seq(-3.5, 3.5, length.out = 400)
+casos <- tibble(panel = c("P(Z ≤ 1.23) = Φ(1.23) = 0.8907", "P(Z > 1.23) = 1 − Φ(1.23) = 0.1093",
+                          "P(−1 < Z < 1) = Φ(1) − Φ(−1) = 0.6827"),
+                a = c(-3.5, 1.23, -1), b = c(1.23, 3.5, 1))
+sombras <- casos %>% mutate(z = map2(a, b, ~ seq(.x, .y, length.out = 200))) %>%
+  unnest(z) %>% mutate(f = dnorm(z))
+curva_n <- casos %>% select(panel) %>% mutate(z = list(z_g)) %>% unnest(z) %>% mutate(f = dnorm(z))
+ggplot(curva_n, aes(z, f)) +
+  geom_area(data = sombras, fill = azul, alpha = 0.4) +
+  geom_line(color = azul, linewidth = 1) +
+  facet_wrap(~ factor(panel, levels = casos$panel), nrow = 1) +
+  labs(x = "z", y = NULL) +
+  tema_libro +
+  theme(axis.text.y = element_blank(), strip.text = element_text(size = 9))
+```
 
 ```{r}
 #| label: tbl-normal-casos
@@ -238,7 +318,37 @@ En R: `qnorm(0.05, mean = 35, sd = 5)`. Esa es la idea de la resistencia caracte
 
 ## ¿Siguen los datos una normal? {#sec-normal-datos}
 
-Antes de usar la normal con datos reales, hay que comprobar que la describe bien. Además del histograma, el gráfico más útil para eso es el gráfico cuantil-cuantil (gráfico Q-Q). En él se ordenan los datos y se comparan con los cuantiles que tendría una normal: si los datos son normales, los puntos quedan cerca de una línea recta. Las desviaciones típicas se reconocen con la práctica: una curva en forma de U indica asimetría a la derecha, y puntos que se alejan de la recta en los dos extremos indican colas más pesadas que las de la normal.
+Antes de usar la normal con datos reales, hay que comprobar que la describe bien. Además del histograma, el gráfico más útil para eso es el gráfico cuantil-cuantil (gráfico Q-Q). En él se ordenan los datos y se comparan con los cuantiles que tendría una normal: si los datos son normales, los puntos quedan cerca de una línea recta. Las desviaciones típicas se reconocen con la práctica, y la @fig-normal-qq-patrones muestra las cuatro más comunes con datos simulados.
+
+```{r}
+#| label: fig-normal-qq-patrones
+#| fig-cap: "Patrones típicos del gráfico Q-Q."
+#| fig-alt: "Cuatro gráficos Q-Q: puntos sobre la recta para datos normales; curva en forma de U para asimetría a la derecha; forma de S invertida para colas pesadas; forma de S para colas livianas"
+#| echo: false
+#| fig-width: 8.5
+#| fig-height: 2.9
+
+set.seed(1617)
+patrones <- bind_rows(
+  tibble(v = rnorm(80), panel = "Normal"),
+  tibble(v = rlnorm(80, 0, 0.7), panel = "Asimetría a la derecha"),
+  tibble(v = rt(80, df = 3), panel = "Colas pesadas"),
+  tibble(v = runif(80), panel = "Colas livianas")
+) %>% mutate(panel = factor(panel, levels = c("Normal", "Asimetría a la derecha", "Colas pesadas", "Colas livianas")))
+ggplot(patrones, aes(sample = v)) +
+  geom_qq(color = azul, size = 1.4) +
+  geom_qq_line(color = naranja, linewidth = 0.9) +
+  facet_wrap(~panel, scales = "free_y", nrow = 1) +
+  labs(x = "Cuantiles teóricos", y = "Datos") +
+  tema_libro +
+  theme(axis.text = element_blank(), strip.text = element_text(size = 9))
+```
+
+Una curva en forma de U, con los dos extremos por encima de la recta, indica asimetría a la derecha, como la de los caudales o los tiempos de espera. Una S invertida, con el extremo izquierdo por debajo y el derecho por encima, indica colas más pesadas que las de la normal: más valores extremos de los que la campana predice. Una S indica colas más livianas, como en datos acotados entre dos límites. Con muestras pequeñas (menos de unos 20 datos) los puntos se mueven bastante aunque los datos sean normales, así que solo se toman en serio las desviaciones claras y sistemáticas. En el capítulo 21 se verá la prueba de Shapiro-Wilk, que convierte esta mirada en una decisión con un valor $p$.
+
+::: {.callout-tip title="En la práctica"}
+Si los datos no son normales hay tres caminos. El primero es transformarlos: si son positivos y asimétricos a la derecha, sus logaritmos suelen ser normales, y se trabaja con la log-normal del capítulo 15. El segundo es elegir otra distribución que describa mejor su forma (Weibull, gamma, Gumbel). El tercero, cuando lo que interesa es un promedio de muchos datos, es apoyarse en el teorema del límite central del capítulo 17, que hace normal la media aunque los datos no lo sean. Lo que no conviene es usar la normal de todos modos para calcular probabilidades en las colas: ahí es donde más se equivoca.
+:::
 
 ::: {.callout-note title="Ejemplo: resistencia de 60 cilindros de una obra"}
 
@@ -333,6 +443,98 @@ aX_1 + bX_2 \sim N\left(a\mu_1 + b\mu_2,\ \sqrt{a^2\sigma_1^2 + b^2\sigma_2^2}\r
 $$ {#eq-normal-combinacion}
 
 Por ejemplo, si el espesor de una base granular es $N(20, 1.5)$ cm y el de la carpeta asfáltica colocada encima es $N(7.5, 0.8)$ cm, independientes, el espesor total es $N(27.5, \sqrt{1.5^2 + 0.8^2}) = N(27.5, 1.70)$ cm. La probabilidad de que el total quede por debajo del mínimo de diseño de 25 cm es $\Phi\big((25 - 27.5)/1.70\big) = \Phi(-1.47) = 0.071$. Esta propiedad es la base de la distribución de la media muestral en el capítulo 17.
+
+### Margen de seguridad e índice de confiabilidad {#sec-normal-confiabilidad}
+
+La aplicación más importante de la @eq-normal-combinacion en ingeniería civil es el cálculo de la probabilidad de falla de un elemento. Un elemento falla cuando la solicitación $S$ (la carga, el momento, el caudal) supera la resistencia $R$ (la capacidad del elemento). Se define el margen de seguridad $M = R - S$, que es negativo cuando hay falla. Si $R$ y $S$ son normales e independientes, $M$ también es normal, con
+
+$$
+\mu_M = \mu_R - \mu_S, \qquad \sigma_M = \sqrt{\sigma_R^2 + \sigma_S^2}
+$$ {#eq-normal-margen}
+
+y la probabilidad de falla es la de que $M$ sea negativo [@ang2007probability]:
+
+$$
+P_f = P(M < 0) = \Phi\left(\frac{0 - \mu_M}{\sigma_M}\right) = \Phi(-\beta), \qquad \beta = \frac{\mu_M}{\sigma_M}
+$$ {#eq-normal-beta}
+
+donde $\beta$ es el índice de confiabilidad: el número de desviaciones estándar que separan el margen medio del punto de falla. Un $\beta$ de 3 corresponde a $P_f = \Phi(-3) = 0.0013$, y uno de 4, a $P_f = 3.2 \times 10^{-5}$. Los códigos de diseño modernos basados en factores de carga y de resistencia se calibran para alcanzar valores de $\beta$ de ese orden.
+
+::: {.callout-note title="Ejemplo: probabilidad de falla de una viga de acero"}
+
+**Planteamiento.** La resistencia a flexión de una viga de acero es normal con media 400 kN·m y coeficiente de variación de 10 %. El momento máximo que recibe en su vida útil es normal con media 250 kN·m y coeficiente de variación de 15 %, independiente de la resistencia (valores hipotéticos).
+
+a) Calcule el factor de seguridad central, $\mu_R/\mu_S$.
+b) Calcule el índice de confiabilidad y la probabilidad de falla.
+c) Repita b) si, por un control de calidad deficiente, el coeficiente de variación de la resistencia sube a 20 % sin que cambie su media.
+
+**Solución:**
+
+1. a) Factor de seguridad central: $400/250 = 1.6$.
+2. Desviaciones estándar: $\sigma_R = 0.10 \times 400 = 40$ kN·m y $\sigma_S = 0.15 \times 250 = 37.5$ kN·m.
+3. b) Con la @eq-normal-margen: $\mu_M = 400 - 250 = 150$ kN·m y $\sigma_M = \sqrt{40^2 + 37.5^2} = \sqrt{3006.25} = 54.83$ kN·m. Entonces $\beta = 150/54.83 = 2.74$ y $P_f = \Phi(-2.74) = 1 - 0.9969 = 0.0031$.
+4. c) $\sigma_R = 0.20 \times 400 = 80$ kN·m, $\sigma_M = \sqrt{80^2 + 37.5^2} = 88.35$ kN·m, $\beta = 150/88.35 = 1.70$ y $P_f = \Phi(-1.70) = 1 - 0.9554 = 0.0446$.
+
+**Pseudocódigo**
+
+1. Calcular las desviaciones estándar a partir de los coeficientes de variación.
+2. Calcular la media y la desviación estándar del margen.
+3. Calcular $\beta$ y $P_f$ con `pnorm()`.
+4. Comprobar con una simulación: generar resistencias y solicitaciones y contar las veces que $S > R$.
+
+```{r}
+# 1) Parámetros (kN·m)
+mu_r <- 400; mu_s <- 250
+sd_r <- 0.10 * mu_r; sd_s <- 0.15 * mu_s
+
+# 2) y 3) Margen de seguridad, índice de confiabilidad y probabilidad de falla
+mu_m <- mu_r - mu_s
+sd_m <- sqrt(sd_r^2 + sd_s^2)
+beta <- mu_m / sd_m
+c(fs_central = mu_r / mu_s, beta = beta, p_falla = pnorm(-beta))
+
+# Caso c): resistencia con CV de 20 %
+beta_c <- mu_m / sqrt((0.20 * mu_r)^2 + sd_s^2)
+c(beta = beta_c, p_falla = pnorm(-beta_c))
+
+# 4) Simulación de un millón de vigas
+set.seed(1618)
+r <- rnorm(1e6, mu_r, sd_r)
+s_sol <- rnorm(1e6, mu_s, sd_s)
+mean(s_sol > r)
+```
+
+La @fig-normal-confiabilidad muestra las densidades de la solicitación y de la resistencia en el caso b). La falla ocurre cuando una solicitación de la cola derecha de $S$ coincide con una resistencia de la cola izquierda de $R$, en la zona donde las dos curvas se traslapan.
+
+```{r}
+#| label: fig-normal-confiabilidad
+#| fig-cap: "Solicitación y resistencia de la viga."
+#| fig-alt: "Dos campanas: la solicitación centrada en 250 y la resistencia centrada en 400, con una pequeña zona de traslape alrededor de 320"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.4
+
+tibble(x = seq(100, 560, length.out = 600)) %>%
+  mutate(`Solicitación S` = dnorm(x, 250, 37.5), `Resistencia R` = dnorm(x, 400, 40)) %>%
+  pivot_longer(-x, names_to = "curva", values_to = "f") %>%
+  mutate(curva = fct_inorder(curva)) %>%
+  ggplot(aes(x, f, color = curva, fill = curva)) +
+  geom_area(alpha = 0.15, position = "identity") +
+  geom_line(linewidth = 1.1) +
+  scale_color_manual(values = c(naranja, azul)) +
+  scale_fill_manual(values = c(naranja, azul)) +
+  labs(x = "Momento (kN·m)", y = "Densidad", color = NULL, fill = NULL) +
+  tema_libro +
+  theme(legend.position = "top")
+```
+
+**Interpretación.** Con el mismo factor de seguridad central de 1.6, la probabilidad de falla pasa de 3 en 1000 a 45 en 1000 cuando la resistencia se vuelve más variable: casi quince veces más. El factor de seguridad, por sí solo, no mide la seguridad; hace falta saber cuánto varían la carga y la resistencia. Por eso el control de calidad de los materiales tiene un efecto directo en la confiabilidad, y por eso los códigos actuales usan factores separados para cargas y resistencias.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+El cálculo con normales es una primera aproximación. Las resistencias suelen ajustarse mejor a una log-normal, y las cargas máximas, a distribuciones de extremos. Como $P_f$ depende de las colas de las dos distribuciones, el resultado es sensible a esa elección; en el diseño real se usan métodos más elaborados, como los descritos por @ang2007probability.
+:::
 
 ## Aproximación normal a la binomial {#sec-normal-aprox-binomial}
 
@@ -600,6 +802,347 @@ Binomial y aproximación normal.
 
 :::
 
+## Interactivo: confiabilidad de un elemento {#sec-normal-int-confiabilidad}
+
+En el interactivo de la @fig-normal-int-confiabilidad se mueven la media y el coeficiente de variación de la resistencia y de la solicitación. Arriba se ven las dos densidades; abajo, la densidad del margen $M = R - S$ con el área de falla ($M < 0$) sombreada. Conviene fijar el factor de seguridad central en 1.6 y ver cómo cambian $\beta$ y $P_f$ al mover solo los coeficientes de variación.
+
+::: {#fig-normal-int-confiabilidad}
+
+```{=html}
+<div class="interactivo" id="int-confiabilidad">
+  <div class="controles">
+    <label><span>Media de <i>R</i>:</span> <output class="omr"></output>
+      <input class="rmr" type="range" min="200" max="600" step="5" value="400"></label>
+    <label><span>CV de <i>R</i> (%):</span> <output class="ocr"></output>
+      <input class="rcr" type="range" min="2" max="30" step="1" value="10"></label>
+    <label><span>Media de <i>S</i>:</span> <output class="oms"></output>
+      <input class="rms" type="range" min="100" max="500" step="5" value="250"></label>
+    <label><span>CV de <i>S</i> (%):</span> <output class="ocs"></output>
+      <input class="rcs" type="range" min="2" max="40" step="1" value="15"></label>
+  </div>
+  <svg class="rs" viewBox="0 0 640 190" role="img" aria-label="Densidades de la solicitación y de la resistencia"></svg>
+  <svg class="m" viewBox="0 0 640 170" role="img" aria-label="Densidad del margen de seguridad con el área de falla sombreada"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-confiabilidad");
+  var q = function (c) { return raiz.querySelector(c); };
+  var rmr = q(".rmr"), rcr = q(".rcr"), rms = q(".rms"), rcs = q(".rcs");
+  var svg1 = q("svg.rs"), svg2 = q("svg.m"), res = q(".resultado");
+  var w = 640, mi = 20, md = 20;
+  function Phi(z) {
+    var t = 1 / (1 + 0.2316419 * Math.abs(z));
+    var d = 0.3989422804014327 * Math.exp(-z * z / 2);
+    var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return z >= 0 ? 1 - p : p;
+  }
+  function dn(x, m, s) { return Math.exp(-0.5 * Math.pow((x - m) / s, 2)) / (s * Math.sqrt(2 * Math.PI)); }
+  function curva(f, x0, x1, sx, sy) { var d = ""; for (var i = 0; i <= 300; i++) { var x = x0 + (x1 - x0) * i / 300; d += (i ? "L" : "M") + sx(x).toFixed(1) + "," + sy(f(x)).toFixed(1); } return d; }
+  function dibujar() {
+    var mr = +rmr.value, cr = +rcr.value / 100, ms = +rms.value, cs = +rcs.value / 100;
+    q(".omr").textContent = mr; q(".ocr").textContent = (cr * 100).toFixed(0); q(".oms").textContent = ms; q(".ocs").textContent = (cs * 100).toFixed(0);
+    var sr = cr * mr, ss = cs * ms, mm = mr - ms, sm = Math.sqrt(sr * sr + ss * ss), beta = mm / sm, pf = Phi(-beta);
+    // Panel 1: R y S
+    var x0 = 0, x1 = 900, h1 = 190, mb = 30, mt = 10;
+    var sx = function (x) { return mi + (x - x0) / (x1 - x0) * (w - mi - md); };
+    var ymax = Math.max(dn(mr, mr, sr), dn(ms, ms, ss)) * 1.08;
+    var sy = function (y) { return h1 - mb - y / ymax * (h1 - mb - mt); };
+    var s = '<path class="curva-2" d="' + curva(function (x) { return dn(x, ms, ss); }, x0, x1, sx, sy) + '"/>' +
+            '<path class="curva" d="' + curva(function (x) { return dn(x, mr, sr); }, x0, x1, sx, sy) + '"/>' +
+            '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>';
+    for (var t = 0; t <= 900; t += 100) s += '<text class="eje-texto" x="' + sx(t) + '" y="' + (sy(0) + 16) + '" text-anchor="middle">' + t + '</text>';
+    s += '<text class="eje-texto" x="' + sx(ms) + '" y="' + (mt + 8) + '" text-anchor="middle">S</text><text class="eje-texto" x="' + sx(mr) + '" y="' + (mt + 8) + '" text-anchor="middle">R</text>';
+    svg1.innerHTML = s;
+    // Panel 2: margen M
+    var m0 = Math.min(-100, mm - 4 * sm), m1 = Math.max(100, mm + 4 * sm), h2 = 170;
+    var sx2 = function (x) { return mi + (x - m0) / (m1 - m0) * (w - mi - md); };
+    var ymax2 = dn(mm, mm, sm) * 1.08, sy2 = function (y) { return h2 - mb - y / ymax2 * (h2 - mb - mt); };
+    var area = "M" + sx2(m0).toFixed(1) + "," + sy2(0).toFixed(1);
+    for (var i = 0; i <= 200; i++) { var x = m0 + (Math.min(0, m1) - m0) * i / 200; area += "L" + sx2(x).toFixed(1) + "," + sy2(dn(x, mm, sm)).toFixed(1); }
+    area += "L" + sx2(0).toFixed(1) + "," + sy2(0).toFixed(1) + "Z";
+    var s2 = '<path class="area-alfa" d="' + area + '"/><path class="curva" d="' + curva(function (x) { return dn(x, mm, sm); }, m0, m1, sx2, sy2) + '"/>' +
+             '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy2(0) + '" y2="' + sy2(0) + '"/>' +
+             '<line class="guia" x1="' + sx2(0) + '" x2="' + sx2(0) + '" y1="' + mt + '" y2="' + sy2(0) + '"/>' +
+             '<text class="eje-texto" x="' + (sx2(0) - 4) + '" y="' + (mt + 10) + '" text-anchor="end">falla (M &lt; 0)</text>' +
+             '<text class="eje-texto" x="' + sx2(0) + '" y="' + (sy2(0) + 16) + '" text-anchor="middle">0</text>' +
+             '<text class="eje-texto" x="' + sx2(mm) + '" y="' + (sy2(0) + 16) + '" text-anchor="middle">' + mm + '</text>' +
+             '<text class="eje-texto" x="' + (w - md) + '" y="' + (h2 - 2) + '" text-anchor="end">Margen M = R − S</text>';
+    svg2.innerHTML = s2;
+    res.innerHTML = "Factor de seguridad central = " + (mr / ms).toFixed(2) + " &nbsp;·&nbsp; <i>σ<sub>M</sub></i> = " + sm.toFixed(1) +
+      " &nbsp;·&nbsp; <i>β</i> = " + beta.toFixed(2) + " &nbsp;·&nbsp; <i>P<sub>f</sub></i> = Φ(−<i>β</i>) = " + (pf < 1e-4 ? pf.toExponential(2) : pf.toFixed(4));
+  }
+  [rmr, rcr, rms, rcs].forEach(function (r) { r.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Solicitación, resistencia y margen de seguridad.
+
+:::
+
+## Errores comunes con la distribución normal {#sec-normal-errores}
+
+- **Confundir $\sigma$ con $\sigma^2$.** R y este libro usan la desviación estándar: `pnorm(x, mean, sd)`.
+- **Tomar el área del lado equivocado.** La tabla y `pnorm()` dan el área a la izquierda; para "mayor que" se resta de 1 o se usa `lower.tail = FALSE`.
+- **Olvidar el signo de $z$.** Un valor por debajo de la media tiene $z$ negativo, y $\Phi(-z) = 1 - \Phi(z)$.
+- **Usar `qnorm(0.05)` cuando se pedía el valor que deja un 5 % a la derecha.** Ese es `qnorm(0.95)`, es decir, $z_{0.05} = 1.645$.
+- **Suponer normalidad sin mirar los datos.** Un histograma y un gráfico Q-Q toman un minuto.
+- **Sumar desviaciones estándar al combinar variables.** Se suman las varianzas.
+- **Usar la normal en las colas lejanas** de una binomial, una Poisson o datos asimétricos, que es justo donde más se equivoca.
+- **Medir la seguridad solo con el factor de seguridad.** El mismo factor puede corresponder a probabilidades de falla muy distintas.
+
+## Guía para elegir la distribución {#sec-guia-distribuciones}
+
+::: {.pregunta}
+Ante un enunciado nuevo, ¿cómo se sabe si es binomial, Poisson, exponencial o normal?
+:::
+
+Saber calcular con cada distribución sirve de poco si no se sabe cuál usar. Esta sección reúne en un solo lugar las distribuciones de los capítulos 14, 15 y 16, y da un procedimiento para elegir entre ellas. La idea central es que la distribución no se adivina por el tema del problema (concreto, tránsito, agua), sino por la estructura de la variable aleatoria: qué se cuenta o se mide, qué está fijo y qué varía.
+
+### Tres preguntas antes de elegir
+
+Antes de mirar el diagrama conviene responder por escrito tres preguntas sobre el enunciado:
+
+1. **¿Cuál es exactamente la variable aleatoria?** Escribirla en una oración completa, con sus unidades: "$X$ = número de muestras que incumplen, de las 15 de la semana", o "$T$ = horas hasta la próxima tormenta". La mitad de los errores de elección vienen de no tener clara la variable.
+2. **¿Se cuenta o se mide?** Si la respuesta natural es "cuántos", la variable es discreta. Si es "cuánto" o "cuánto tiempo", es continua.
+3. **¿Qué está fijo y qué es aleatorio?** En la binomial está fijo el número de ensayos y es aleatorio el número de éxitos; en la geométrica es al revés. En la Poisson está fijo el intervalo y es aleatorio el número de eventos; en la exponencial está fijo el número de eventos (uno) y es aleatorio el tiempo.
+
+### Diagrama de decisión
+
+La @fig-guia-diagrama ordena las preguntas en un diagrama. Se empieza arriba, se decide si la variable se cuenta o se mide y se baja por la columna que corresponde respondiendo una pregunta a la vez. La primera respuesta afirmativa da la distribución candidata. Después se revisan los supuestos de esa distribución en su sección y, si hay datos, se comprueba el ajuste.
+
+```{r}
+#| label: fig-guia-diagrama
+#| fig-cap: "Diagrama para elegir la distribución."
+#| fig-alt: "Diagrama de decisión. Arriba, la pregunta se cuenta o se mide. A la izquierda, preguntas para conteos que llevan a binomial o hipergeométrica, geométrica, binomial negativa y Poisson. A la derecha, preguntas para mediciones que llevan a exponencial o gamma, Weibull, Gumbel, beta, log-normal, normal y uniforme"
+#| echo: false
+
+source("R/diagramas_red.R")
+local({
+  nd <- function(id, x, y, lineas, clase = "c1", w = NULL) list(id = id, x = x, y = y, lineas = lineas, clase = clase, w = w, tam = 14)
+  qd <- list(dg_lineas("¿n ensayos fijos, cada", "t1", "uno éxito o fracaso?", "t1"),
+             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el 1.er éxito?", "t1"),
+             dg_lineas("¿Se cuentan ensayos", "t1", "hasta el éxito k?", "t1"),
+             dg_lineas("¿Eventos al azar en", "t1", "un tiempo, una longitud", "t1", "o un área?", "t1"))
+  rd <- list(dg_lineas("Binomial", "t1", "hipergeométrica si", "t2", "es sin reemplazo", "t2", "y n/N > 0.05", "t2"),
+             dg_lineas("Geométrica", "t1"), dg_lineas("Binomial negativa", "t1"), dg_lineas("Poisson", "t1"))
+  qc <- list(dg_lineas("¿Tiempo de espera", "t1", "entre eventos al azar?", "t1"),
+             dg_lineas("¿Vida útil con desgaste", "t1", "o fallas tempranas?", "t1"),
+             dg_lineas("¿Máximo de un año", "t1", "o de un periodo?", "t1"),
+             dg_lineas("¿Proporción", "t1", "entre 0 y 1?", "t1"),
+             dg_lineas("¿Positiva, con cola", "t1", "larga a la derecha?", "t1"),
+             dg_lineas("¿Suma o promedio de", "t1", "muchos efectos;", "t1", "simétrica?", "t1"),
+             dg_lineas("¿Solo se conocen los", "t1", "límites, todo valor", "t1", "igual de probable?", "t1"))
+  rc <- list(dg_lineas("Exponencial", "t1", "gamma si es hasta", "t2", "el evento número α", "t2"),
+             dg_lineas("Weibull", "t1"), dg_lineas("Gumbel", "t1"), dg_lineas("Beta", "t1"), dg_lineas("Log-normal", "t1"),
+             dg_lineas("Normal", "t1"), dg_lineas("Uniforme", "t1"))
+  y <- 150 + 100 * (0:6)
+  xq <- c(125, 590); xr <- c(352, 817); wq <- 210; wr <- 160
+  nodos <- list(list(id = "raiz", x = 471, y = 42, clase = "c0", tam = 15,
+                     lineas = dg_lineas("¿La variable se cuenta (cuántos) o se mide (cuánto)?", "t0")))
+  aristas <- list()
+  bloque <- function(pref, q, r, col, nota) {
+    for (i in seq_along(q)) {
+      nodos[[length(nodos) + 1]] <<- nd(paste0(pref, "q", i), xq[col], y[i], q[[i]], "c1", wq)
+      nodos[[length(nodos) + 1]] <<- nd(paste0(pref, "r", i), xr[col], y[i], r[[i]], "c3", wr)
+      aristas[[length(aristas) + 1]] <<- list(desde = paste0(pref, "q", i), hasta = paste0(pref, "r", i), estilo = "A",
+                                             etiqueta = "Sí", et_tipo = "texto", et_dy = -11)
+      sig <- if (i < length(q)) paste0(pref, "q", i + 1) else paste0(pref, "n")
+      aristas[[length(aristas) + 1]] <<- list(desde = paste0(pref, "q", i), hasta = sig,
+                                             etiqueta = "No", et_tipo = "texto", et_dx = 16)
+    }
+    nodos[[length(nodos) + 1]] <<- list(id = paste0(pref, "n"), x = xq[col], y = y[length(q)] + 118, clase = "texto", tam = 14, lineas = nota)
+  }
+  bloque("d", qd, rd, 1, dg_lineas("Ninguna: revisar los", "t2", "supuestos; si la varianza", "t2", "supera a la media, probar", "t2", "la binomial negativa", "t2"))
+  bloque("c", qc, rc, 2, dg_lineas("Ninguna: mirar el histograma", "t2", "y comparar varias", "t2", "(capítulos 15 y 23)", "t2"))
+  aristas <- c(list(list(desde = "raiz", hasta = "dq1", ruta = "codo", etiqueta = "Se cuenta: discreta"),
+                    list(desde = "raiz", hasta = "cq1", ruta = "codo", etiqueta = "Se mide: continua")), aristas)
+  dg_red(nodos, aristas, titulo = "Diagrama para elegir la distribución")
+})
+```
+
+El diagrama es una guía, no un algoritmo infalible. Hay variables que caben en dos casillas: el tiempo hasta la falla de una bomba es un tiempo de espera, pero si la bomba se desgasta corresponde la Weibull y no la exponencial. Por eso, después de elegir, siempre se vuelve a los supuestos de la distribución.
+
+### Cuadro resumen
+
+El @tbl-guia-resumen reúne, para cada distribución, la situación en que aparece, sus parámetros, las palabras del enunciado que suelen delatarla y un ejemplo de ingeniería civil. Esas palabras orientan, pero no deciden: "promedio" aparece en problemas de Poisson, de exponencial y de normal.
+
+```{r}
+#| label: tbl-guia-resumen
+#| tbl-cap: "Resumen de las distribuciones de la Parte IV."
+#| echo: false
+
+tribble(
+  ~dist, ~situacion, ~param, ~claves, ~ejemplo,
+  "Bernoulli", "Un solo ensayo con dos resultados", "<i>p</i>", "cumple o no cumple; pasa o falla", "Una soldadura inspeccionada es defectuosa o no",
+  "Binomial", "Éxitos en <i>n</i> ensayos independientes con <i>p</i> constante", "<i>n</i>, <i>p</i>", "de los <i>n</i>…, cuántos; en cada uno la probabilidad es", "Muestras de agua que incumplen, de 15 analizadas",
+  "Hipergeométrica", "Marcados en una muestra sin reemplazo de un lote finito", "<i>N</i>, <i>K</i>, <i>n</i>", "lote de <i>N</i> con <i>K</i> defectuosos; se eligen sin reemplazo", "Barras defectuosas en 5 elegidas de un lote de 20",
+  "Geométrica", "Ensayos hasta el primer éxito", "<i>p</i>", "hasta que; por primera vez; periodo de retorno", "Año de la primera creciente que supera el diseño",
+  "Binomial negativa", "Ensayos hasta el éxito número <i>k</i>; conteos con sobredispersión", "<i>k</i>, <i>p</i>", "hasta el tercer…; el quinto éxito", "Uniones revisadas hasta encontrar la tercera defectuosa",
+  "Poisson", "Eventos al azar en un intervalo, con tasa constante", "<i>λ</i>", "por hora, por km, por m²; en promedio ocurren", "Roturas de tubería por kilómetro de red en un año",
+  "Uniforme", "Cualquier valor de un intervalo es igual de probable", "<i>a</i>, <i>b</i>", "al azar entre; igualmente probable", "Espera de un bus que pasa cada 15 min sin horario",
+  "Exponencial", "Tiempo entre eventos de un proceso de Poisson; sin memoria", "<i>λ</i>", "tiempo hasta el próximo; tiempo entre llegadas", "Horas hasta la próxima tormenta intensa",
+  "Gamma", "Tiempo hasta el evento número <i>α</i>; positiva asimétrica", "<i>α</i>, <i>θ</i>", "hasta que se acumulen; tiempo total de varios", "Minutos hasta que lleguen 4 camiones",
+  "Beta", "Proporción o fracción entre 0 y 1", "<i>α</i>, <i>β</i>", "fracción, porcentaje de, proporción de", "Porcentaje de finos de un material de préstamo",
+  "Log-normal", "Positiva con cola larga; producto de muchos factores", "<i>μ</i>, <i>σ</i> de ln <i>X</i>", "siempre positiva, muy asimétrica; logaritmo normal", "Conductividad hidráulica de un suelo",
+  "Weibull", "Vida útil con tasa de falla que sube o baja con la edad", "<i>α</i>, <i>β</i>", "vida útil, confiabilidad, desgaste, fatiga", "Años de servicio de un apoyo de neopreno",
+  "Gumbel", "Máximo de un año o de un periodo", "<i>u</i>, <i>α</i>", "máximo anual, creciente de diseño, periodo de retorno", "Caudal máximo anual de un río",
+  "Normal", "Suma o promedio de muchos efectos pequeños; simétrica", "<i>μ</i>, <i>σ</i>", "en forma de campana; media y desviación estándar", "Error de cierre de una nivelación"
+) %>%
+  kbl(col.names = c("Distribución", "Situación típica", "Parámetros", "Palabras del enunciado", "Ejemplo de ingeniería"),
+      escape = FALSE, align = "l") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed", "striped"), font_size = 14) %>%
+  column_spec(1, bold = TRUE)
+```
+
+### Relaciones que conviene recordar
+
+Las distribuciones forman una red: unas aproximan a otras y algunas describen el mismo proceso desde dos lados. El @tbl-guia-relaciones reúne las relaciones que más se usan, y la @fig-guia-relaciones las dibuja. Conocerlas evita memorizar fórmulas sueltas y ayuda a reconocer el problema: si un enunciado habla de tiempos entre llegadas, la pregunta sobre cuántas llegadas hay en una hora es una Poisson con la misma tasa.
+
+```{r}
+#| label: tbl-guia-relaciones
+#| tbl-cap: "Relaciones entre distribuciones."
+#| echo: false
+
+tribble(
+  ~rel, ~cuando, ~uso,
+  "Binomial y Poisson", "<i>n</i> grande y <i>p</i> pequeña (<i>n</i> ≥ 20, <i>p</i> ≤ 0.05); <i>λ</i> = <i>np</i>", "Eventos raros con muchas oportunidades (@sec-disc-aprox-poisson)",
+  "Binomial y normal", "<i>np</i> > 5 y <i>n</i>(1 − <i>p</i>) > 5; <i>μ</i> = <i>np</i>, <i>σ</i> = √(<i>np</i>(1 − <i>p</i>))", "Proporciones con muestras grandes (@sec-normal-aprox-binomial)",
+  "Poisson y normal", "<i>λ</i> grande (mayor que unos 10 a 20)", "Conteos grandes, con cuidado en las colas (@sec-normal-aprox-poisson)",
+  "Poisson y exponencial", "Mismo proceso, misma tasa <i>λ</i>: conteos por intervalo y tiempos entre eventos", "Pasar de llegadas por hora a minutos entre llegadas (@sec-cont-exponencial)",
+  "Exponencial y gamma", "La suma de <i>α</i> exponenciales con media <i>θ</i> es una gamma (<i>α</i>, <i>θ</i>)", "Tiempo hasta el evento número <i>α</i> (@sec-cont-gamma)",
+  "Geométrica y exponencial", "Espera hasta el primer éxito: en ensayos (discreta) o en tiempo continuo", "Las dos sin memoria",
+  "Hipergeométrica y binomial", "<i>n</i>/<i>N</i> ≤ 0.05", "Muestreo de lotes grandes (@sec-disc-hipergeometrica)",
+  "Normal y log-normal", "Si ln <i>X</i> es normal, <i>X</i> es log-normal", "Calcular la log-normal con la tabla Z (@sec-cont-lognormal)"
+) %>%
+  kbl(col.names = c("Relación", "Cuándo se cumple", "Para qué sirve"), escape = FALSE, align = "l") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+```{r}
+#| label: fig-guia-relaciones
+#| fig-cap: "Red de relaciones entre distribuciones."
+#| fig-alt: "Diagrama con discretas a la izquierda y continuas a la derecha; flechas de binomial a Poisson y a normal, de Poisson a normal y una doble flecha entre Poisson y exponencial; de exponencial a gamma; de geométrica a exponencial; de hipergeométrica a binomial; de normal a log-normal"
+#| echo: false
+
+source("R/diagramas_red.R")
+local({
+  n <- function(id, x, y, t) list(id = id, x = x, y = y, lineas = dg_lineas(t, "t1"), clase = "c1")
+  nodos <- list(n("hip", 100, 90, "Hipergeométrica"), n("bin", 335, 90, "Binomial"), n("poi", 335, 290, "Poisson"),
+                n("geo", 100, 420, "Geométrica"), n("nor", 570, 90, "Normal"), n("lgn", 790, 90, "Log-normal"),
+                n("exp", 570, 290, "Exponencial"), n("gam", 790, 290, "Gamma"))
+  aristas <- list(list(desde = "hip", hasta = "bin", etiqueta = "n/N ≤ 0.05"),
+                  list(desde = "bin", hasta = "poi", etiqueta = c("n grande,", "p pequeña")),
+                  list(desde = "bin", hasta = "nor", etiqueta = c("np > 5 y", "n(1 − p) > 5")),
+                  list(desde = "poi", hasta = "nor", etiqueta = "λ grande", et_pos = 0.55),
+                  list(desde = "poi", hasta = "exp", etiqueta = c("mismo", "proceso"), doble = TRUE),
+                  list(desde = "exp", hasta = "gam", etiqueta = "suma de α"),
+                  list(desde = "nor", hasta = "lgn", etiqueta = "exp(·)"),
+                  list(desde = "geo", hasta = "exp", etiqueta = "tiempo continuo"))
+  zonas <- list(list(x0 = 12, y0 = 12, x1 = 430, y1 = 468, titulo = "Discretas"),
+                list(x0 = 466, y0 = 12, x1 = 880, y1 = 468, titulo = "Continuas", clase = "zA"))
+  dg_red(nodos, aristas, zonas, titulo = "Red de relaciones entre distribuciones")
+})
+```
+
+### Cómo leer un enunciado: tres casos resueltos
+
+Los tres casos siguientes muestran el razonamiento completo, de la lectura del enunciado a la distribución. No se calcula nada: el objetivo es practicar la elección.
+
+**Caso 1.** "En una planta de tratamiento, el 4 % de las muestras de agua tratada incumple el límite de turbiedad. Esta semana se analizan 15 muestras. ¿Cuál es la probabilidad de que incumplan dos o más?"
+
+- Variable: $X$ = número de muestras que incumplen, de 15. Se cuenta, así que es discreta.
+- ¿Número fijo de ensayos? Sí, 15 muestras, cada una incumple o no, con probabilidad 0.04.
+- ¿Sin reemplazo de un lote pequeño? No: las muestras salen de un proceso continuo, no de un lote finito.
+- Distribución: $X \sim \text{Bin}(15, 0.04)$. Supuesto que revisar: que una muestra no influya en otra (por ejemplo, que no se hayan tomado todas durante la misma falla de un filtro).
+
+**Caso 2.** "A una caseta de peaje llegan en promedio 4 vehículos por minuto. ¿Cuál es la probabilidad de que pasen más de 30 segundos sin que llegue ninguno?"
+
+- Variable: $T$ = segundos hasta el próximo vehículo. Se mide un tiempo, así que es continua.
+- ¿Tiempo de espera entre eventos al azar? Sí: las llegadas forman un proceso de Poisson con tasa de 4 por minuto.
+- Distribución: $T \sim$ exponencial con $\lambda = 4$ por minuto $= 1/15$ por segundo. Si la pregunta fuera "¿cuántos vehículos llegan en un minuto?", la variable sería un conteo y correspondería la Poisson con $\lambda = 4$. Mismo proceso, dos preguntas, dos distribuciones.
+
+**Caso 3.** "Se tienen los caudales máximos de cada año de un río durante 40 años. Estime el caudal que se supera en promedio una vez cada 50 años."
+
+- Variable: $Q$ = caudal máximo de un año (m³/s). Se mide, así que es continua.
+- ¿Tiempo de espera? No. ¿Vida útil? No. ¿Máximo de un periodo? Sí: cada dato es el máximo de un año.
+- Distribución: Gumbel, como primera candidata, con el caudal de 50 años dado por la @eq-cont-gumbel-cuantil. La normal no es adecuada aunque el enunciado no lo diga: los máximos tienen cola derecha larga. Si los datos no siguen la recta de Gumbel, se prueban la log-normal u otras de extremos.
+
+::: {.callout-warning title="Cuidado"}
+Los errores de elección más frecuentes son cuatro. Usar la binomial cuando no hay un número fijo de ensayos (si se ensaya "hasta que", es geométrica o binomial negativa). Usar la Poisson para un número de éxitos en $n$ ensayos con $p$ grande (es binomial). Usar la normal para un tiempo de espera o un máximo anual (son asimétricos). Y confundir la Poisson con la exponencial: la primera cuenta eventos en un intervalo fijo; la segunda mide el tiempo entre eventos.
+:::
+
+### Interactivo: ¿qué distribución es?
+
+El cuestionario de la @fig-guia-cuestionario presenta enunciados mezclados de todas las ramas de la ingeniería civil. Para cada uno se elige la distribución y se pulsa "Revisar"; el programa dice si la respuesta es correcta y explica por qué, siguiendo las preguntas del diagrama. El botón "Siguiente" pasa a otro enunciado, en orden aleatorio, y el marcador lleva la cuenta de aciertos.
+
+::: {#fig-guia-cuestionario}
+
+```{=html}
+<div class="interactivo" id="int-cuestionario">
+  <p class="enunciado"></p>
+  <div class="controles">
+    <label><span>Distribución:</span>
+      <select>
+        <option value="">Elija una…</option>
+        <option>Binomial</option><option>Hipergeométrica</option><option>Geométrica</option>
+        <option>Binomial negativa</option><option>Poisson</option><option>Uniforme</option>
+        <option>Exponencial</option><option>Gamma</option><option>Beta</option>
+        <option>Log-normal</option><option>Weibull</option><option>Gumbel</option><option>Normal</option>
+      </select></label>
+  </div>
+  <button type="button" class="revisar">Revisar</button>
+  <button type="button" class="siguiente">Siguiente</button>
+  <p class="resultado"></p>
+  <p class="marcador"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-cuestionario");
+  var enun = raiz.querySelector(".enunciado"), sel = raiz.querySelector("select");
+  var res = raiz.querySelector(".resultado"), marc = raiz.querySelector(".marcador");
+  var items = [
+    ["De 20 pilotes hincados, cada uno queda defectuoso con probabilidad 0.08, independientemente de los demás. ¿Cuántos quedan defectuosos?", "Binomial", "Se cuenta; hay un número fijo de ensayos (20) con dos resultados y probabilidad constante."],
+    ["Un inspector elige 6 tubos de un lote de 30, de los cuales 5 tienen fisuras, y cuenta cuántos fisurados salen en la muestra.", "Hipergeométrica", "Se cuenta en una muestra sin reemplazo y la muestra es una fracción grande del lote (6/30 = 0.2 > 0.05)."],
+    ["Se perforan sondeos uno tras otro hasta encontrar por primera vez el nivel freático a menos de 3 m. ¿En qué sondeo ocurre?", "Geométrica", "Se cuentan ensayos hasta el primer éxito."],
+    ["Un laboratorio ensaya probetas de mezcla asfáltica hasta obtener la cuarta que cumple la estabilidad Marshall. ¿Cuántas ensaya?", "Binomial negativa", "Se cuentan ensayos hasta el éxito número k = 4."],
+    ["En una red de alcantarillado ocurren en promedio 0.6 obstrucciones por kilómetro al mes. ¿Cuántas ocurren en un tramo de 5 km en un mes?", "Poisson", "Se cuentan eventos al azar en un intervalo (5 km durante un mes) con tasa constante; λ = 3."],
+    ["A una intersección llegan vehículos al azar, en promedio 12 por minuto. ¿Cuántos segundos pasan entre un vehículo y el siguiente?", "Exponencial", "Se mide el tiempo entre eventos de un proceso de Poisson."],
+    ["Con la misma intersección, ¿cuánto tiempo pasa hasta que se acumulan 5 vehículos en la fila?", "Gamma", "Se mide el tiempo hasta el evento número 5 de un proceso de Poisson: suma de 5 exponenciales."],
+    ["Se registra la fracción de vacíos de aire de núcleos de una carpeta asfáltica, un número entre 0 y 1.", "Beta", "Se mide una proporción acotada entre 0 y 1."],
+    ["La conductividad hidráulica de muestras de un acuífero es siempre positiva y varía en varios órdenes de magnitud; sus logaritmos tienen forma de campana.", "Log-normal", "Positiva, con cola larga, y su logaritmo es normal."],
+    ["Se estudia la vida útil de los aisladores sísmicos de un puente, que se degradan con el envejecimiento del caucho.", "Weibull", "Vida útil con tasa de falla que crece con la edad (desgaste): Weibull con forma mayor que 1."],
+    ["Con 45 años de registros de la lluvia máxima en 24 horas de cada año, se quiere la lluvia de 100 años de periodo de retorno.", "Gumbel", "Cada dato es el máximo de un año; es la distribución clásica de valores extremos."],
+    ["El error de cierre de una poligonal topográfica acumula pequeños errores independientes de 30 lecturas de ángulos y distancias.", "Normal", "Es la suma de muchos efectos pequeños e independientes: teorema del límite central."],
+    ["Un camión de agregados llega a la obra en algún momento entre las 8:00 y las 8:30, sin que ningún instante sea más probable que otro.", "Uniforme", "Solo se conocen los límites y todo valor del intervalo es igual de probable."],
+    ["En una encuesta de 400 hogares, cada hogar tiene una fuga intradomiciliaria con probabilidad 0.15. ¿Cuántos hogares tienen fuga?", "Binomial", "Número fijo de ensayos (400), dos resultados y p constante; si se pidiera una aproximación, sería la normal porque np = 60."],
+    ["Una creciente supera la capacidad de un puente con probabilidad 0.02 cada año. ¿En qué año ocurre la primera excedencia?", "Geométrica", "Años hasta la primera excedencia: ensayos de Bernoulli hasta el primer éxito; su media es el periodo de retorno, 50 años."],
+    ["Se cuentan las fisuras de retracción por cada 10 m² de losa de un estacionamiento, que aparecen al azar sobre la superficie.", "Poisson", "Se cuentan eventos al azar en un área con tasa constante."],
+    ["El espesor de la capa de base de una carretera resulta de muchas pequeñas variaciones del material, la extendedora y la compactación, y su histograma es simétrico.", "Normal", "Suma de muchos efectos pequeños con histograma simétrico en forma de campana."],
+    ["Se mide el tiempo que pasa desde que se instala un medidor de agua hasta que falla por una causa externa (golpes, vandalismo), que no depende de su edad.", "Exponencial", "Tiempo hasta la falla con tasa constante, sin desgaste: sin memoria."]
+  ];
+  var orden = [], pos = 0, aciertos = 0, intentos = 0, revisado = false;
+  function barajar() { orden = items.map(function (_, i) { return i; }); for (var i = orden.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = orden[i]; orden[i] = orden[j]; orden[j] = t; } pos = 0; }
+  function mostrar() { var it = items[orden[pos]]; enun.textContent = (pos + 1) + ". " + it[0]; sel.value = ""; res.textContent = ""; revisado = false; marc.textContent = "Aciertos: " + aciertos + " de " + intentos; }
+  raiz.querySelector(".revisar").addEventListener("click", function () {
+    if (!sel.value) { res.textContent = "Elija una distribución antes de revisar."; return; }
+    var it = items[orden[pos]];
+    if (!revisado) { intentos++; if (sel.value === it[1]) aciertos++; revisado = true; }
+    res.innerHTML = (sel.value === it[1] ? "Correcto. " : "No. La respuesta es <b>" + it[1] + "</b>. ") + it[2];
+    marc.textContent = "Aciertos: " + aciertos + " de " + intentos;
+  });
+  raiz.querySelector(".siguiente").addEventListener("click", function () { pos++; if (pos >= orden.length) barajar(); mostrar(); });
+  barajar(); mostrar();
+})();
+</script>
+```
+
+Cuestionario para practicar la elección de la distribución.
+
+:::
+
 ## Ejercicios propuestos
 
 1. El espesor de una carpeta asfáltica es normal con $\mu = 7.5$ cm y $\sigma = 0.6$ cm. Calcule, con la tabla del apéndice A y con R, la probabilidad de que un núcleo mida menos de 6.5 cm, más de 8.5 cm y entre 7 y 8 cm.
@@ -611,9 +1154,34 @@ Binomial y aproximación normal.
 7. En una auditoría se revisan 200 facturas de una obra, y cada una tiene un error con probabilidad 0.08. Calcule la probabilidad de encontrar más de 20 facturas con error con la binomial exacta y con la aproximación normal con corrección por continuidad.
 8. A una intersección llegan, en promedio, 36 vehículos por minuto en hora pico. Con la aproximación normal a la Poisson, calcule la probabilidad de que en un minuto lleguen más de 45. Compare con `ppois()`.
 9. Use el interactivo de la binomial para encontrar, con $p = 0.10$, a partir de qué $n$ la diferencia entre la probabilidad exacta y la aproximada con corrección es menor que 0.01 para $k$ igual a la media redondeada.
+10. La capacidad de carga de un pilote es normal con media 900 kN y CV de 15 %, y la carga que recibe es normal con media 500 kN y CV de 20 %, independientes. Calcule el factor de seguridad central, el índice de confiabilidad y la probabilidad de falla. ¿Qué media debería tener la capacidad para que $\beta = 3$?
+11. El error de cierre de una nivelación es la suma de los errores de 25 cambios de estación, cada uno con media 0 y desviación estándar 1.2 mm. Calcule la desviación estándar del error de cierre y la tolerancia que solo se excede el 5 % de las veces (en valor absoluto). ¿Por qué es razonable usar la normal aunque no se conozca la distribución de cada error?
+12. Simule 200 datos de una exponencial con `rexp()` y dibuje su gráfico Q-Q con `qqnorm()`. Repita con 200 datos de una $t$ con 3 grados de libertad (`rt()`). Describa el patrón de cada uno y compárelo con la @fig-normal-qq-patrones.
+13. Use el interactivo de confiabilidad para encontrar dos combinaciones de parámetros con el mismo factor de seguridad central de 2.0 y probabilidades de falla que difieran en más de diez veces.
+
+### ¿Qué distribución es?
+
+En cada enunciado, escriba la variable aleatoria en una oración, diga si se cuenta o se mide, identifique la distribución con el diagrama de la @fig-guia-diagrama y anote sus parámetros. No hace falta calcular probabilidades.
+
+14. En una auditoría de seguridad se revisan 25 trabajadores de una obra y cada uno lleva el equipo de protección completo con probabilidad 0.85.
+15. Un tramo de 3 km de una autopista registra en promedio 0.9 accidentes por kilómetro al año. Interesa el número de accidentes del tramo en seis meses.
+16. Un laboratorio de suelos recibe al azar, en promedio, 2 muestras por hora. Interesa el tiempo que pasa entre una muestra y la siguiente.
+17. Se registra la presión máxima de viento de cada año en un sitio durante 35 años para diseñar una torre.
+18. De un lote de 12 vigas prefabricadas, 3 tienen fisuras. Se eligen 4 vigas al azar para una prueba de carga.
+19. La resistencia a la fluencia de barras de acero de un mismo proveedor tiene histograma simétrico en forma de campana.
+20. Se inspeccionan soldaduras de una armadura, una tras otra, hasta encontrar la segunda defectuosa.
+21. La fracción del área de una cuenca cubierta por bosque, medida en 40 subcuencas.
+22. El tiempo total que tarda una cuadrilla en completar tres reparaciones sucesivas, si cada una dura un tiempo exponencial con media de 2 h.
+23. La concentración de coliformes en muestras de un río, siempre positiva y con unos pocos valores muy altos.
+24. El número de años, en una vida útil de 30, en que el nivel de un embalse supera la cota del vertedor, si eso ocurre con probabilidad 0.05 cada año.
+25. El tiempo hasta la falla de las luminarias LED de un túnel, cuya tasa de falla aumenta con las horas de uso.
 
 ## Lecturas recomendadas
 
 - @illowsky2018introductory, capítulo 6: la normal, la estandarización y la aproximación a la binomial, con ejercicios graduados.
+- @walpole2012probabilidad, capítulo 6: la normal y sus aplicaciones, con ejercicios de ingeniería en español.
+- @montgomery2014applied, capítulo 4: la normal, los gráficos de probabilidad y las aproximaciones.
+- @laneintroduction, capítulo 7: historia de la normal y una explicación muy visual de las áreas bajo la curva.
+- @ang2007probability: margen de seguridad, índice de confiabilidad y su uso en el diseño de ingeniería civil.
 - @ayala2026estadistica: distribución normal y gráficos de normalidad con R, en español.
 - @wasserman2004all, capítulo 2: propiedades de la normal y de sus combinaciones lineales.
