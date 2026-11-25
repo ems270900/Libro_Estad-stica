@@ -12,7 +12,7 @@ library(kableExtra)
 options(knitr.kable.NA = "")
 ```
 
-En el capítulo anterior se estimó que la resistencia media de un lote de concreto es de 32.15 MPa. Ese número solo no dice qué tan confiable es. Si se hubieran ensayado tres cilindros, la estimación podría estar a varios megapascales de la verdadera; con cien, a unas décimas. Un intervalo de confianza resuelve eso: da un rango de valores para el parámetro y dice con qué frecuencia el método acierta. Este capítulo construye los intervalos para la media, la proporción y la varianza, explica los intervalos de predicción y de tolerancia, que responden preguntas distintas, y muestra cómo calcular el tamaño de muestra necesario para una precisión dada [@montgomery2018applied; @walpole2012probabilidad].
+En el capítulo anterior se estimó que la resistencia media de un lote de concreto es de 32.15 MPa. Ese número solo no dice qué tan confiable es. Si se hubieran ensayado tres cilindros, la estimación podría estar a varios megapascales de la verdadera; con cien, a unas décimas. Un intervalo de confianza resuelve eso: da un rango de valores para el parámetro y dice con qué frecuencia el método acierta. Este capítulo construye los intervalos para la media, la proporción y la varianza, explica los intervalos de predicción y de tolerancia, que responden preguntas distintas, y muestra cómo calcular el tamaño de muestra necesario para una precisión dada [@montgomery2014applied; @walpole2012probabilidad].
 
 ## La idea de un intervalo de confianza {#sec-ic-idea}
 
@@ -137,7 +137,7 @@ $$
 \bar{x} - z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}} \;\le\; \mu \;\le\; \bar{x} + z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}}
 $$ {#eq-ic-media-z}
 
-donde $\bar{x}$ es la media muestral, $\sigma$ es la desviación estándar de la población, $n$ es el tamaño de la muestra y $z_{\alpha/2}$ es el valor crítico del @tbl-ic-criticos [@montgomery2018applied]. Conocer $\sigma$ es raro, pero ocurre cuando un proceso se ha controlado durante años, como la producción de una planta de concreto con un historial largo de ensayos.
+donde $\bar{x}$ es la media muestral, $\sigma$ es la desviación estándar de la población, $n$ es el tamaño de la muestra y $z_{\alpha/2}$ es el valor crítico del @tbl-ic-criticos [@montgomery2014applied]. Conocer $\sigma$ es raro, pero ocurre cuando un proceso se ha controlado durante años, como la producción de una planta de concreto con un historial largo de ensayos.
 
 ::: {.callout-note title="Ejemplo: resistencia media de una planta con historial conocido"}
 
@@ -282,7 +282,7 @@ $$
 \hat{p} - z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} \;\le\; p \;\le\; \hat{p} + z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
 $$ {#eq-ic-proporcion}
 
-donde $\hat{p}$ es la proporción muestral y $n$ es el tamaño de la muestra. Se le llama intervalo de Wald. La aproximación se considera aceptable cuando $n\hat{p} \ge 5$ y $n(1-\hat{p}) \ge 5$, es decir, cuando hay al menos cinco éxitos y cinco fracasos [@montgomery2018applied].
+donde $\hat{p}$ es la proporción muestral y $n$ es el tamaño de la muestra. Se le llama intervalo de Wald. La aproximación se considera aceptable cuando $n\hat{p} \ge 5$ y $n(1-\hat{p}) \ge 5$, es decir, cuando hay al menos cinco éxitos y cinco fracasos [@montgomery2014applied].
 
 El intervalo de Wald es fácil de calcular a mano, pero con muestras pequeñas o proporciones cercanas a 0 o a 1 contiene al parámetro menos veces de lo que promete. Por eso R ofrece otros dos. `prop.test()` usa el intervalo de Wilson [-@wilson1927probable], que corrige ese problema y se recomienda para uso general [@agresti1998approximate]. `binom.test()` usa el intervalo exacto de Clopper y Pearson [-@clopper1934use], basado en la distribución binomial, que es más conservador.
 
@@ -357,7 +357,7 @@ $$
 \frac{(n-1)\,s^2}{\chi^2_{\alpha/2,\,n-1}} \;\le\; \sigma^2 \;\le\; \frac{(n-1)\,s^2}{\chi^2_{1-\alpha/2,\,n-1}}
 $$ {#eq-ic-varianza}
 
-donde $s^2$ es la varianza muestral, $\chi^2_{\alpha/2,\,n-1}$ es el valor que deja un área $\alpha/2$ a la derecha (el grande) y $\chi^2_{1-\alpha/2,\,n-1}$ es el que deja $1 - \alpha/2$ a la derecha (el pequeño) [@montgomery2018applied]. Observe que el valor crítico grande va en el denominador del límite inferior. El intervalo para $\sigma$ se obtiene sacando la raíz cuadrada a los dos límites.
+donde $s^2$ es la varianza muestral, $\chi^2_{\alpha/2,\,n-1}$ es el valor que deja un área $\alpha/2$ a la derecha (el grande) y $\chi^2_{1-\alpha/2,\,n-1}$ es el que deja $1 - \alpha/2$ a la derecha (el pequeño) [@montgomery2014applied]. Observe que el valor crítico grande va en el denominador del límite inferior. El intervalo para $\sigma$ se obtiene sacando la raíz cuadrada a los dos límites.
 
 La distribución $\chi^2$ no es simétrica, como se ve en la @fig-ic-chi, y por eso el intervalo tampoco lo es: $s^2$ no queda en el centro.
 
@@ -440,7 +440,7 @@ El intervalo de la @eq-ic-varianza depende mucho del supuesto de normalidad. Si 
 ¿Entre qué valores caerá la resistencia del próximo cilindro que se ensaye?
 :::
 
-El intervalo de confianza de la sección anterior habla de la media $\mu$, no de los cilindros individuales. Para el próximo cilindro, o para la mayoría de los cilindros del lote, hacen falta otros dos intervalos. Los tres responden preguntas distintas [@montgomery2018applied]:
+El intervalo de confianza de la sección anterior habla de la media $\mu$, no de los cilindros individuales. Para el próximo cilindro, o para la mayoría de los cilindros del lote, hacen falta otros dos intervalos. Los tres responden preguntas distintas [@montgomery2014applied]:
 
 - **Intervalo de confianza.** ¿Dónde está la media de la población?
 - **Intervalo de predicción.** ¿Dónde caerá una observación futura?
@@ -464,7 +464,7 @@ $$
 \bar{x} \pm k\, s
 $$ {#eq-ic-tolerancia}
 
-donde $k$ es el factor de tolerancia, que depende de $n$, de $P$ y de la confianza. Se busca en tablas o se calcula [@montgomery2018applied]. Una aproximación precisa, debida a Howe [-@howe1969two], es
+donde $k$ es el factor de tolerancia, que depende de $n$, de $P$ y de la confianza. Se busca en tablas o se calcula [@montgomery2014applied]. Una aproximación precisa, debida a Howe [-@howe1969two], es
 
 $$
 k \approx z_{(1-P)/2}\,\sqrt{\frac{(n-1)\left(1 + \frac{1}{n}\right)}{\chi^2_{1-\alpha,\,n-1}}}
@@ -686,7 +686,7 @@ El @tbl-ic-resumen reúne los intervalos del capítulo.
 
 ## Lecturas recomendadas
 
-- @montgomery2018applied, capítulo 8: intervalos de confianza, de predicción y de tolerancia para una muestra, con tablas del factor $k$.
+- @montgomery2014applied, capítulo 8: intervalos de confianza, de predicción y de tolerancia para una muestra, con tablas del factor $k$.
 - @walpole2012probabilidad, capítulo 9: estimación por intervalos para una y dos muestras, en español.
 - @illowsky2018introductory, capítulo 8: intervalos de confianza con muchos ejercicios resueltos.
 - @agresti1998approximate: por qué el intervalo de Wald para proporciones falla y qué usar en su lugar.

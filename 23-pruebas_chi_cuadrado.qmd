@@ -47,7 +47,7 @@ $$
 \nu = k - 1 - m
 $$ {#eq-chi-gl-bondad}
 
-donde $k$ es el número de categorías (después de agrupar las que tengan esperados pequeños) y $m$ es el número de parámetros de la distribución que se estimaron con los mismos datos [@montgomery2018applied]. Se resta 1 porque los esperados deben sumar $n$, y se resta un grado más por cada parámetro estimado.
+donde $k$ es el número de categorías (después de agrupar las que tengan esperados pequeños) y $m$ es el número de parámetros de la distribución que se estimaron con los mismos datos [@montgomery2014applied]. Se resta 1 porque los esperados deben sumar $n$, y se resta un grado más por cada parámetro estimado.
 
 ::: {.callout-note title="Ejemplo: ¿se reparten los accidentes por igual entre los días?"}
 
@@ -228,7 +228,7 @@ $$
 \nu = (r - 1)(c - 1)
 $$ {#eq-chi-gl-independencia}
 
-grados de libertad [@montgomery2018applied]. La misma prueba sirve para la pregunta de homogeneidad, que compara la distribución de una variable en varias poblaciones muestreadas por separado: por ejemplo, si la distribución de los tipos de falla es la misma en las tres plantas. Los cálculos son idénticos.
+grados de libertad [@montgomery2014applied]. La misma prueba sirve para la pregunta de homogeneidad, que compara la distribución de una variable en varias poblaciones muestreadas por separado: por ejemplo, si la distribución de los tipos de falla es la misma en las tres plantas. Los cálculos son idénticos.
 
 ::: {.callout-note title="Ejemplo: tipo de falla de los cilindros según la planta"}
 
@@ -420,7 +420,7 @@ Las pruebas chi-cuadrado se aplican a conteos de elementos independientes, nunca
 
 ## Lecturas recomendadas
 
-- @montgomery2018applied, capítulo 9: pruebas de bondad de ajuste y de independencia en cuadros de contingencia.
+- @montgomery2014applied, capítulo 9: pruebas de bondad de ajuste y de independencia en cuadros de contingencia.
 - @walpole2012probabilidad, capítulo 10: prueba chi-cuadrado de bondad de ajuste, de independencia y de homogeneidad, en español.
 - @illowsky2018introductory, capítulo 11: la distribución chi-cuadrado y sus pruebas, con muchos ejercicios.
 - @cochran1954some: el artículo clásico sobre cuándo es confiable la aproximación chi-cuadrado y qué hacer cuando no lo es.

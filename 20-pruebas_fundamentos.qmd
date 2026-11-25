@@ -17,7 +17,7 @@ options(knitr.kable.NA = "")
 — *Ronald A. Fisher, The Design of Experiments (1935)*
 :::
 
-Una fábrica de varillas de acero tiene como objetivo un esfuerzo de fluencia medio de 300 MPa. En el último control, diez varillas dieron una media de 296.35 MPa. ¿Bajó la calidad, o la diferencia de 3.65 MPa es la variación normal de una muestra a otra? Si se ajusta el proceso cada vez que una muestra sale baja, se pierde dinero en correcciones innecesarias; si nunca se ajusta, se entregan varillas débiles. Una prueba de hipótesis es una regla para tomar esa decisión con los datos y con un riesgo de error conocido. Este capítulo presenta la lógica común a todas las pruebas; los tres capítulos siguientes la aplican a casos concretos [@montgomery2018applied; @walpole2012probabilidad].
+Una fábrica de varillas de acero tiene como objetivo un esfuerzo de fluencia medio de 300 MPa. En el último control, diez varillas dieron una media de 296.35 MPa. ¿Bajó la calidad, o la diferencia de 3.65 MPa es la variación normal de una muestra a otra? Si se ajusta el proceso cada vez que una muestra sale baja, se pierde dinero en correcciones innecesarias; si nunca se ajusta, se entregan varillas débiles. Una prueba de hipótesis es una regla para tomar esa decisión con los datos y con un riesgo de error conocido. Este capítulo presenta la lógica común a todas las pruebas; los tres capítulos siguientes la aplican a casos concretos [@montgomery2014applied; @walpole2012probabilidad].
 
 ## Hipótesis nula y alternativa {#sec-ph-hipotesis}
 
@@ -235,7 +235,7 @@ ggplot(curva, aes(t, d)) +
 
 ## Relación con los intervalos de confianza {#sec-ph-intervalos}
 
-Una prueba bilateral con nivel $\alpha$ y un intervalo de confianza del $100(1-\alpha)$ % usan el mismo estadístico y los mismos valores críticos. Por eso siempre llevan a la misma conclusión [@montgomery2018applied]:
+Una prueba bilateral con nivel $\alpha$ y un intervalo de confianza del $100(1-\alpha)$ % usan el mismo estadístico y los mismos valores críticos. Por eso siempre llevan a la misma conclusión [@montgomery2014applied]:
 
 - Si $\mu_0$ queda fuera del intervalo, se rechaza $H_0: \mu = \mu_0$.
 - Si $\mu_0$ queda dentro del intervalo, no se rechaza.
@@ -260,7 +260,7 @@ $$
 n = \left(\frac{(z_{\alpha/2} + z_{\beta})\,\sigma}{\delta}\right)^2
 $$ {#eq-ph-n-potencia}
 
-donde $z_\beta$ es el valor de la normal que deja un área $\beta$ a la derecha [@montgomery2018applied]. Para una prueba unilateral se cambia $z_{\alpha/2}$ por $z_\alpha$.
+donde $z_\beta$ es el valor de la normal que deja un área $\beta$ a la derecha [@montgomery2014applied]. Para una prueba unilateral se cambia $z_{\alpha/2}$ por $z_\alpha$.
 
 La @fig-ph-interactivo muestra de dónde salen $\alpha$ y $\beta$. La curva de la izquierda es la distribución del estadístico si $H_0$ es cierta; la de la derecha, si la media real se apartó $\delta$ unidades. El área naranja es $\alpha$ y el área gris es $\beta$.
 
@@ -409,7 +409,7 @@ Si se hacen muchas pruebas con $\alpha = 0.05$, alrededor de una de cada veinte 
 
 ## Lecturas recomendadas
 
-- @montgomery2018applied, capítulo 9: pruebas de hipótesis, errores, potencia y tamaño de muestra con ejemplos de ingeniería.
+- @montgomery2014applied, capítulo 9: pruebas de hipótesis, errores, potencia y tamaño de muestra con ejemplos de ingeniería.
 - @walpole2012probabilidad, capítulo 10: pruebas de hipótesis para una y dos muestras, en español.
 - @wasserstein2016asa: la declaración de la Asociación Estadounidense de Estadística sobre el uso correcto del valor $p$; es corta y muy clara.
 - @illowsky2018introductory, capítulo 9: pruebas de hipótesis con una muestra, con muchos ejercicios.

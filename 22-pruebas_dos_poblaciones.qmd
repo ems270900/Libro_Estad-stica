@@ -12,7 +12,7 @@ library(kableExtra)
 options(knitr.kable.NA = "")
 ```
 
-¿Un aditivo aumenta la resistencia del concreto? ¿Bajó la rugosidad de una carretera después del mantenimiento? ¿Una planta produce más bloques defectuosos que otra? Muchas preguntas de ingeniería no comparan una muestra con un valor fijo, sino dos grupos entre sí. La lógica es la del capítulo anterior, con una diferencia: ahora el parámetro de interés es una diferencia ($\mu_1 - \mu_2$, $p_1 - p_2$) o un cociente ($\sigma_1^2/\sigma_2^2$). Lo primero que hay que decidir es si las dos muestras son independientes o pareadas, porque de eso depende la prueba [@montgomery2018applied; @walpole2012probabilidad].
+¿Un aditivo aumenta la resistencia del concreto? ¿Bajó la rugosidad de una carretera después del mantenimiento? ¿Una planta produce más bloques defectuosos que otra? Muchas preguntas de ingeniería no comparan una muestra con un valor fijo, sino dos grupos entre sí. La lógica es la del capítulo anterior, con una diferencia: ahora el parámetro de interés es una diferencia ($\mu_1 - \mu_2$, $p_1 - p_2$) o un cociente ($\sigma_1^2/\sigma_2^2$). Lo primero que hay que decidir es si las dos muestras son independientes o pareadas, porque de eso depende la prueba [@montgomery2014applied; @walpole2012probabilidad].
 
 ## Muestras independientes y muestras pareadas {#sec-dos-diseno}
 
@@ -43,7 +43,7 @@ $$
 z = \frac{(\bar{x}_1 - \bar{x}_2) - \Delta_0}{\sqrt{\dfrac{\sigma_1^2}{n_1} + \dfrac{\sigma_2^2}{n_2}}}
 $$ {#eq-dos-z}
 
-donde $\bar{x}_1$ y $\bar{x}_2$ son las medias muestrales, $\sigma_1^2$ y $\sigma_2^2$ las varianzas conocidas, $n_1$ y $n_2$ los tamaños de muestra y $\Delta_0$ la diferencia de la hipótesis nula, casi siempre 0 [@montgomery2018applied]. Las varianzas se suman, aunque las medias se resten, porque las dos medias aportan incertidumbre.
+donde $\bar{x}_1$ y $\bar{x}_2$ son las medias muestrales, $\sigma_1^2$ y $\sigma_2^2$ las varianzas conocidas, $n_1$ y $n_2$ los tamaños de muestra y $\Delta_0$ la diferencia de la hipótesis nula, casi siempre 0 [@montgomery2014applied]. Las varianzas se suman, aunque las medias se resten, porque las dos medias aportan incertidumbre.
 
 ::: {.callout-note title="Ejemplo: dos concretos premezclados con historial conocido"}
 
@@ -115,7 +115,7 @@ $$
 t = \frac{(\bar{x}_1 - \bar{x}_2) - \Delta_0}{s_p\sqrt{\dfrac{1}{n_1} + \dfrac{1}{n_2}}}
 $$ {#eq-dos-t-combinada}
 
-con $n_1 + n_2 - 2$ grados de libertad [@montgomery2018applied].
+con $n_1 + n_2 - 2$ grados de libertad [@montgomery2014applied].
 
 ::: {.callout-tip title="En la práctica"}
 Se recomienda usar la prueba de Welch por omisión, y por eso es la que hace `t.test()` si no se le indica otra cosa. Cuando las varianzas son iguales, Welch pierde muy poca potencia frente a la prueba combinada; cuando son distintas, y sobre todo si los tamaños de muestra también lo son, la prueba combinada puede dar valores $p$ muy engañosos. Hacer primero una prueba $F$ para decidir cuál de las dos usar no se recomienda, porque la prueba $F$ es poco confiable si los datos no son normales.
@@ -211,7 +211,7 @@ $$
 F = \frac{s_1^2}{s_2^2}
 $$ {#eq-dos-f}
 
-que, si $H_0: \sigma_1^2 = \sigma_2^2$ es cierta, sigue una distribución $F$ con $n_1 - 1$ grados de libertad en el numerador y $n_2 - 1$ en el denominador [@montgomery2018applied]. Si las varianzas son iguales, $F$ ronda 1. Para la prueba bilateral se rechaza si $F > F_{\alpha/2,\,n_1-1,\,n_2-1}$ o si $F < F_{1-\alpha/2,\,n_1-1,\,n_2-1}$. El valor crítico inferior se obtiene de las tablas con la relación $F_{1-a,\,\nu_1,\,\nu_2} = 1/F_{a,\,\nu_2,\,\nu_1}$, porque las tablas solo traen la cola derecha.
+que, si $H_0: \sigma_1^2 = \sigma_2^2$ es cierta, sigue una distribución $F$ con $n_1 - 1$ grados de libertad en el numerador y $n_2 - 1$ en el denominador [@montgomery2014applied]. Si las varianzas son iguales, $F$ ronda 1. Para la prueba bilateral se rechaza si $F > F_{\alpha/2,\,n_1-1,\,n_2-1}$ o si $F < F_{1-\alpha/2,\,n_1-1,\,n_2-1}$. El valor crítico inferior se obtiene de las tablas con la relación $F_{1-a,\,\nu_1,\,\nu_2} = 1/F_{a,\,\nu_2,\,\nu_1}$, porque las tablas solo traen la cola derecha.
 
 ::: {.callout-note title="Ejemplo: variabilidad del concreto con y sin aditivo"}
 
@@ -261,7 +261,7 @@ $$
 t = \frac{\bar{d} - \Delta_0}{s_d/\sqrt{n}}
 $$ {#eq-dos-pareada}
 
-donde $\bar{d}$ y $s_d$ son la media y la desviación estándar de las $n$ diferencias, y el estadístico tiene $n - 1$ grados de libertad [@montgomery2018applied]. La prueba supone que las diferencias son aproximadamente normales; los datos originales no necesitan serlo.
+donde $\bar{d}$ y $s_d$ son la media y la desviación estándar de las $n$ diferencias, y el estadístico tiene $n - 1$ grados de libertad [@montgomery2014applied]. La prueba supone que las diferencias son aproximadamente normales; los datos originales no necesitan serlo.
 
 ::: {.callout-note title="Ejemplo: rugosidad de tramos antes y después del mantenimiento"}
 
@@ -338,7 +338,7 @@ $$
 z = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}\,(1-\hat{p})\left(\dfrac{1}{n_1} + \dfrac{1}{n_2}\right)}}
 $$ {#eq-dos-proporciones}
 
-donde $\hat{p}_1 = x_1/n_1$ y $\hat{p}_2 = x_2/n_2$ son las proporciones de cada muestra [@montgomery2018applied]. La aproximación es aceptable si cada muestra tiene al menos cinco éxitos y cinco fracasos. Como en una proporción, `prop.test()` reporta $\chi^2 = z^2$.
+donde $\hat{p}_1 = x_1/n_1$ y $\hat{p}_2 = x_2/n_2$ son las proporciones de cada muestra [@montgomery2014applied]. La aproximación es aceptable si cada muestra tiene al menos cinco éxitos y cinco fracasos. Como en una proporción, `prop.test()` reporta $\chi^2 = z^2$.
 
 ::: {.callout-note title="Ejemplo: bloques defectuosos de dos plantas"}
 
@@ -467,7 +467,7 @@ $$
 n = 2\left(\frac{(z_{\alpha/2} + z_{\beta})\,\sigma}{\delta}\right)^2
 $$ {#eq-dos-n}
 
-datos por grupo [@montgomery2018applied]. Es el doble que para una sola media (@eq-ph-n-potencia), porque ahora hay dos medias estimadas con error. Por ejemplo, para detectar una diferencia de 2 MPa en concretos con $\sigma = 2$ MPa, con $\alpha = 0.05$ y potencia de 0.80, $n = 2((1.960 + 0.842)(2)/2)^2 = 15.7$, es decir, 16 cilindros por mezcla. `power.t.test(delta = 2, sd = 2, power = 0.80)`, que usa la distribución $t$, pide 17.
+datos por grupo [@montgomery2014applied]. Es el doble que para una sola media (@eq-ph-n-potencia), porque ahora hay dos medias estimadas con error. Por ejemplo, para detectar una diferencia de 2 MPa en concretos con $\sigma = 2$ MPa, con $\alpha = 0.05$ y potencia de 0.80, $n = 2((1.960 + 0.842)(2)/2)^2 = 15.7$, es decir, 16 cilindros por mezcla. `power.t.test(delta = 2, sd = 2, power = 0.80)`, que usa la distribución $t$, pide 17.
 
 ## Ejercicios propuestos
 
@@ -480,7 +480,7 @@ datos por grupo [@montgomery2018applied]. Es el doble que para una sola media (@
 
 ## Lecturas recomendadas
 
-- @montgomery2018applied, capítulo 10: inferencia para dos muestras, incluidas la prueba de Welch, la prueba pareada, la prueba $F$ y el tamaño de muestra.
+- @montgomery2014applied, capítulo 10: inferencia para dos muestras, incluidas la prueba de Welch, la prueba pareada, la prueba $F$ y el tamaño de muestra.
 - @walpole2012probabilidad, capítulo 10: pruebas para dos medias, dos proporciones y dos varianzas, en español.
 - @helsel2020statistical, capítulos 5 y 6: comparación de dos grupos independientes y pareados con datos ambientales.
 - @illowsky2018introductory, capítulo 10: pruebas con dos muestras, con muchos ejercicios.

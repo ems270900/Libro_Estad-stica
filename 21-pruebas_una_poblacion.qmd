@@ -12,7 +12,7 @@ library(kableExtra)
 options(knitr.kable.NA = "")
 ```
 
-Un contratista debía colocar una carpeta asfáltica de 50 mm, y los núcleos extraídos dan en promedio 48.4 mm. Un proveedor de cemento declara sacos de 50 kg. Un laboratorio de suelos acepta que hasta el 10 % de los ensayos de compactación salga bajo, y en el último mes fueron 15 %. En los tres casos hay un valor de referencia y una muestra, y la pregunta es la misma: ¿los datos son compatibles con el valor de referencia, o lo contradicen? Este capítulo aplica el procedimiento del capítulo anterior a la media, a la proporción y a la varianza de una población, con el estadístico que corresponde a cada caso [@montgomery2018applied; @walpole2012probabilidad].
+Un contratista debía colocar una carpeta asfáltica de 50 mm, y los núcleos extraídos dan en promedio 48.4 mm. Un proveedor de cemento declara sacos de 50 kg. Un laboratorio de suelos acepta que hasta el 10 % de los ensayos de compactación salga bajo, y en el último mes fueron 15 %. En los tres casos hay un valor de referencia y una muestra, y la pregunta es la misma: ¿los datos son compatibles con el valor de referencia, o lo contradicen? Este capítulo aplica el procedimiento del capítulo anterior a la media, a la proporción y a la varianza de una población, con el estadístico que corresponde a cada caso [@montgomery2014applied; @walpole2012probabilidad].
 
 ## Qué prueba usar {#sec-una-eleccion}
 
@@ -36,7 +36,7 @@ $$
 z = \frac{\bar{x} - \mu_0}{\sigma/\sqrt{n}}
 $$ {#eq-una-z}
 
-sigue una distribución normal estándar cuando $H_0$ es cierta. Aquí $\bar{x}$ es la media muestral, $\mu_0$ es el valor de la hipótesis nula, $\sigma$ es la desviación estándar conocida de la población y $n$ es el tamaño de la muestra [@montgomery2018applied]. El estadístico dice a cuántos errores estándar de $\mu_0$ quedó la media de la muestra.
+sigue una distribución normal estándar cuando $H_0$ es cierta. Aquí $\bar{x}$ es la media muestral, $\mu_0$ es el valor de la hipótesis nula, $\sigma$ es la desviación estándar conocida de la población y $n$ es el tamaño de la muestra [@montgomery2014applied]. El estadístico dice a cuántos errores estándar de $\mu_0$ quedó la media de la muestra.
 
 ::: {.callout-note title="Ejemplo: peso de los sacos de cemento"}
 
@@ -247,7 +247,7 @@ $$
 z = \frac{\hat{p} - p_0}{\sqrt{p_0\,(1-p_0)/n}}
 $$ {#eq-una-proporcion}
 
-donde $\hat{p} = x/n$ es la proporción de la muestra y $p_0$ es la proporción de la hipótesis nula [@montgomery2018applied]. Observe que el error estándar se calcula con $p_0$ y no con $\hat{p}$, porque la distribución del estadístico se deduce suponiendo que $H_0$ es cierta. La aproximación es aceptable si $np_0 \ge 5$ y $n(1-p_0) \ge 5$.
+donde $\hat{p} = x/n$ es la proporción de la muestra y $p_0$ es la proporción de la hipótesis nula [@montgomery2014applied]. Observe que el error estándar se calcula con $p_0$ y no con $\hat{p}$, porque la distribución del estadístico se deduce suponiendo que $H_0$ es cierta. La aproximación es aceptable si $np_0 \ge 5$ y $n(1-p_0) \ge 5$.
 
 En R, `prop.test()` hace esta prueba, pero reporta el estadístico al cuadrado, como una $\chi^2$ con un grado de libertad ($\chi^2 = z^2$), y por omisión aplica una corrección por continuidad. Con `correct = FALSE` da el mismo valor $p$ que la @eq-una-proporcion.
 
@@ -308,7 +308,7 @@ $$
 p = P(X \ge x) = \sum_{k=x}^{n} \binom{n}{k} p_0^{\,k} (1-p_0)^{n-k}
 $$ {#eq-una-binomial}
 
-donde $x$ es el número de éxitos observado [@montgomery2018applied]. Para la cola izquierda se suma de 0 a $x$. Esta prueba se llama exacta porque no usa ninguna aproximación.
+donde $x$ es el número de éxitos observado [@montgomery2014applied]. Para la cola izquierda se suma de 0 a $x$. Esta prueba se llama exacta porque no usa ninguna aproximación.
 
 ::: {.callout-note title="Ejemplo: bloques de concreto defectuosos"}
 
@@ -371,7 +371,7 @@ $$
 \chi^2 = \frac{(n-1)\,s^2}{\sigma_0^2}
 $$ {#eq-una-chi}
 
-que sigue una distribución $\chi^2$ con $n - 1$ grados de libertad cuando $H_0$ es cierta. Aquí $s^2$ es la varianza muestral y $\sigma_0^2$ es la varianza de referencia [@montgomery2018applied]. Si la varianza real es mayor que $\sigma_0^2$, el estadístico tiende a salir grande; si es menor, pequeño. Las reglas de rechazo, con la convención de área a la derecha de la @sec-ic-valores-criticos, son:
+que sigue una distribución $\chi^2$ con $n - 1$ grados de libertad cuando $H_0$ es cierta. Aquí $s^2$ es la varianza muestral y $\sigma_0^2$ es la varianza de referencia [@montgomery2014applied]. Si la varianza real es mayor que $\sigma_0^2$, el estadístico tiende a salir grande; si es menor, pequeño. Las reglas de rechazo, con la convención de área a la derecha de la @sec-ic-valores-criticos, son:
 
 - $H_1: \sigma^2 > \sigma_0^2$: rechazar si $\chi^2 > \chi^2_{\alpha,\,n-1}$.
 - $H_1: \sigma^2 < \sigma_0^2$: rechazar si $\chi^2 < \chi^2_{1-\alpha,\,n-1}$.
@@ -435,6 +435,6 @@ La prueba para la varianza es muy sensible a la falta de normalidad, mucho más 
 
 ## Lecturas recomendadas
 
-- @montgomery2018applied, capítulo 9: pruebas para la media, la varianza y la proporción de una población normal, con tamaño de muestra.
+- @montgomery2014applied, capítulo 9: pruebas para la media, la varianza y la proporción de una población normal, con tamaño de muestra.
 - @walpole2012probabilidad, capítulo 10: pruebas sobre una media, una proporción y una varianza, en español.
 - @helsel2020statistical, capítulo 4: pruebas de hipótesis aplicadas a datos de recursos hídricos, con énfasis en datos que no son normales.

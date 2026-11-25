@@ -12,7 +12,7 @@ library(kableExtra)
 options(knitr.kable.NA = "")
 ```
 
-Un laboratorio ensaya 25 cilindros del concreto que llega a una obra. Lo que interesa no son esos 25 cilindros, que se destruyen en la prensa, sino los miles de metros cúbicos que quedan en la estructura. Con la muestra se quiere saber cuál es la resistencia media de todo el concreto, cuánto varía y qué fracción queda por debajo de la resistencia especificada. Esos valores de la población nunca se conocen con exactitud: se estiman. Este capítulo explica qué es un estimador, cómo se juzga si es bueno y cómo se construye uno con el método de máxima verosimilitud. Es la puerta de entrada a la inferencia estadística, que ocupa toda esta parte del libro [@montgomery2018applied; @walpole2012probabilidad].
+Un laboratorio ensaya 25 cilindros del concreto que llega a una obra. Lo que interesa no son esos 25 cilindros, que se destruyen en la prensa, sino los miles de metros cúbicos que quedan en la estructura. Con la muestra se quiere saber cuál es la resistencia media de todo el concreto, cuánto varía y qué fracción queda por debajo de la resistencia especificada. Esos valores de la población nunca se conocen con exactitud: se estiman. Este capítulo explica qué es un estimador, cómo se juzga si es bueno y cómo se construye uno con el método de máxima verosimilitud. Es la puerta de entrada a la inferencia estadística, que ocupa toda esta parte del libro [@montgomery2014applied; @walpole2012probabilidad].
 
 ## Parámetros, estimadores y estimaciones {#sec-est-conceptos}
 
@@ -55,7 +55,7 @@ $$
 \text{sesgo}(\hat{\theta}) = E(\hat{\theta}) - \theta
 $$ {#eq-est-sesgo}
 
-donde $E(\hat{\theta})$ es el valor esperado del estimador y $\theta$ es el parámetro. Si el sesgo es cero, el estimador es insesgado [@montgomery2018applied].
+donde $E(\hat{\theta})$ es el valor esperado del estimador y $\theta$ es el parámetro. Si el sesgo es cero, el estimador es insesgado [@montgomery2014applied].
 
 La media muestral es insesgada: $E(\bar{X}) = \mu$. La varianza muestral también lo es, pero solo si se divide entre $n - 1$. Si se divide entre $n$, el estimador da en promedio un valor menor que $\sigma^2$:
 
@@ -467,7 +467,7 @@ Cuando dos métodos de estimación dan valores distintos para el mismo parámetr
 
 ## Lecturas recomendadas
 
-- @montgomery2018applied, capítulo 7: propiedades de los estimadores y máxima verosimilitud con ejemplos de ingeniería.
+- @montgomery2014applied, capítulo 7: propiedades de los estimadores y máxima verosimilitud con ejemplos de ingeniería.
 - @walpole2012probabilidad, capítulo 9: estimación puntual y por intervalos, en español.
 - @wasserman2004all, capítulos 6 y 9: tratamiento más formal del sesgo, la consistencia y la máxima verosimilitud.
 - @illowsky2018introductory, capítulos 7 y 8: el error estándar, el teorema del límite central y la estimación, con muchos ejemplos.
