@@ -19,4 +19,4 @@ Fecha: 2026-11-25. Estado: borrador.
 - Cuadro de equivalencias R y Excel en español (CUARTIL.EXC = tipo 6, CUARTIL.INC = tipo 7) y recuadro de errores frecuentes.
 - Ejercicios 10 a 15 nuevos (transportes, ambiental, hidráulica).
 - Todos los números de las soluciones se verificaron en R.
-- Pendiente: cita del manual de tránsito para el uso del percentil 85 (CITA PENDIENTE).
+- Percentil 85 citado con el MUTCD 2009, sección 2B.13 (2026-11-25).

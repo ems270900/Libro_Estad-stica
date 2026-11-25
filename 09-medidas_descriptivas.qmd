@@ -343,7 +343,7 @@ No hay una sola fórmula para los cuantiles. @hyndman1996sample describen nueve 
 
 ::: {.callout-note title="Ejemplo: percentil 85 de la velocidad en un estudio de velocidad de punto"}
 
-**Planteamiento.** En un estudio de velocidad de punto se midió con radar la velocidad de 40 vehículos que circulaban libremente por un tramo recto de carretera (datos hipotéticos). Calcule los percentiles 15, 50 y 85 de la velocidad, y diga qué porcentaje de los vehículos circula por encima de 60 km/h. En ingeniería de tránsito, el percentil 85 se usa como referencia para fijar o revisar el límite de velocidad de un tramo <!-- CITA PENDIENTE: manual de ingeniería de tránsito que el autor prefiera (por ejemplo, el manual de estudios de tránsito del ITE o el MUTCD) -->.
+**Planteamiento.** En un estudio de velocidad de punto se midió con radar la velocidad de 40 vehículos que circulaban libremente por un tramo recto de carretera (datos hipotéticos). Calcule los percentiles 15, 50 y 85 de la velocidad, y diga qué porcentaje de los vehículos circula por encima de 60 km/h. En ingeniería de tránsito, el percentil 85 de la velocidad en flujo libre es el criterio clásico para fijar o revisar el límite de velocidad de un tramo. El manual de dispositivos de control de tránsito de Estados Unidos (MUTCD), en su edición de 2009, recomienda que el límite quede a no más de 5 mph (unos 8 km/h) de ese percentil [@fhwa2009mutcd].
 
 ```{r}
 #| echo: false
@@ -427,7 +427,7 @@ ggplot(vel, aes(x = velocidad_kmh)) +
   theme_minimal()
 ```
 
-**Interpretación.** La mitad de los vehículos circula a 61 km/h o menos, y el 85 % a 69 km/h o menos. Si el límite del tramo fuera 60 km/h, poco más de la mitad de los conductores lo excedería. Sería una señal de que el límite no corresponde con la velocidad que el diseño de la vía invita a llevar, o de que hace falta control. El percentil 15 (48.5 km/h) describe a los conductores más lentos; una diferencia grande entre $P_{15}$ y $P_{85}$ indica velocidades muy dispersas, lo que se asocia con más adelantamientos y conflictos. `quantile()` sin `type = 6` daría $P_{85} = 69$ km/h y $P_{15} = 50.55$ km/h: igual en el percentil 85 y 2.1 km/h más en el 15, porque con pocos datos en la cola las dos definiciones interpolan entre posiciones distintas.
+**Interpretación.** La mitad de los vehículos circula a 61 km/h o menos, y el 85 % a 69 km/h o menos. Con el criterio del MUTCD, el límite del tramo debería quedar entre unos 61 y 69 km/h; redondeado a un múltiplo de 10, como es usual en las señales en km/h, serían 60 o 70 km/h. Si el límite del tramo fuera 60 km/h, poco más de la mitad de los conductores lo excedería. Sería una señal de que el límite no corresponde con la velocidad que el diseño de la vía invita a llevar, o de que hace falta control. El percentil 15 (48.5 km/h) describe a los conductores más lentos; una diferencia grande entre $P_{15}$ y $P_{85}$ indica velocidades muy dispersas, lo que se asocia con más adelantamientos y conflictos. `quantile()` sin `type = 6` daría $P_{85} = 69$ km/h y $P_{15} = 50.55$ km/h: igual en el percentil 85 y 2.1 km/h más en el 15, porque con pocos datos en la cola las dos definiciones interpolan entre posiciones distintas.
 
 :::
 
