@@ -13,8 +13,12 @@
 ## Fuentes
 
 - Montgomery (2017), cap. 3 y 4. Tukey (1949), Kramer (1956), Levene (1960). Lane, cap. 12.
-- Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
 - Diapositivas de la Semana 8: datos del ejemplo de bloques.
 
 ## Pendiente para el autor
 
+## Cambios (2026-11-24, noche)
+
+- Sin epígrafe, por decisión del autor.
+- Referencias cruzadas a las Partes IV a VI y al Apéndice A.
+- Tukey a mano con la tabla q del Apéndice A (@tbl-apa-q05).
