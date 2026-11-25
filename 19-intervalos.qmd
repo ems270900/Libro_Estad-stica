@@ -557,11 +557,10 @@ $$
 \frac{2\sum x_i}{\chi^2_{\alpha/2,\,2n}} \;\le\; \theta \;\le\; \frac{2\sum x_i}{\chi^2_{1-\alpha/2,\,2n}}
 $$ {#eq-ic-exponencial}
 
-donde $\sum x_i$ es la suma de los $n$ tiempos observados (h) y los valores críticos siguen la convención de área a la derecha. La forma es la misma del intervalo para la varianza: el valor crítico grande da el límite inferior.
-<!-- CITA PENDIENTE: fuente de referencia para el intervalo exacto de la media exponencial con chi-cuadrado de 2n grados de libertad. -->
+donde $\sum x_i$ es la suma de los $n$ tiempos observados (h) y los valores críticos siguen la convención de área a la derecha. La forma es la misma del intervalo para la varianza: el valor crítico grande da el límite inferior. Es el intervalo que se usa en confiabilidad para el tiempo medio entre fallas (MTBF) con el modelo exponencial [@nist2012handbook, sec. 8.4.5.1]. La fórmula supone que se observó la falla de las $n$ unidades. Si el ensayo se detiene en un tiempo fijo antes de que todas fallen, $\sum x_i$ se reemplaza por el tiempo total de operación $T$ y, con $r$ fallas, el límite inferior usa $2(r + 1)$ grados de libertad y el superior $2r$ [@nist2012handbook, sec. 8.4.5.1].
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
-**De dónde sale la chi-cuadrado.** Si $X$ es exponencial con media $\theta$, la variable $2X/\theta$ es exponencial con media 2, que es una $\chi^2$ con 2 grados de libertad. La suma de $n$ variables $\chi^2$ independientes con 2 grados de libertad cada una es una $\chi^2$ con $2n$ grados de libertad. Por eso $2\sum X_i/\theta \sim \chi^2_{2n}$, y basta despejar $\theta$ de $\chi^2_{1-\alpha/2,\,2n} \le 2\sum X_i/\theta \le \chi^2_{\alpha/2,\,2n}$.
+**De dónde sale la chi-cuadrado.** Si $X$ es exponencial con media $\theta$, la variable $2X/\theta$ es exponencial con media 2, que es una $\chi^2$ con 2 grados de libertad. La suma de $n$ variables $\chi^2$ independientes con 2 grados de libertad cada una es una $\chi^2$ con $2n$ grados de libertad, porque la $\chi^2$ es un caso particular de la distribución gamma [@montgomery2014applied]. Por eso $2\sum X_i/\theta \sim \chi^2_{2n}$, y basta despejar $\theta$ de $\chi^2_{1-\alpha/2,\,2n} \le 2\sum X_i/\theta \le \chi^2_{\alpha/2,\,2n}$.
 :::
 
 ::: {.callout-note title="Ejemplo: intervalo para el tiempo medio entre fallas de bombas"}
