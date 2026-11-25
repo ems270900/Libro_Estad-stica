@@ -279,6 +279,8 @@ unir_capitulos <- function(cfg) {
                 enlace, txt, perl = TRUE)
     txt <- gsub("\\{\\{< video https://www\\.youtube\\.com/embed/([A-Za-z0-9_-]+) >\\}\\}",
                 enlace, txt, perl = TRUE)
+    # MathML (ecuaciones sin internet) no conoce \dbinom; \binom se ve igual
+    txt <- gsub("\\dbinom", "\\binom", txt, fixed = TRUE)
     cuerpo <- strsplit(txt, "\n", fixed = TRUE)[[1]]
     salida <- c(salida, cuerpo, "")
   }

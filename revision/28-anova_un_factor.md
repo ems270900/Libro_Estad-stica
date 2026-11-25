@@ -22,3 +22,8 @@
 ## Pendiente para el autor
 
 - Los cálculos se verificaron con R 4.3.3 en la nube.
+
+## Cambios (2026-11-24, noche)
+
+- Sin epígrafe, por decisión del autor.
+- Referencias cruzadas a las Partes IV a VI y al Apéndice A.

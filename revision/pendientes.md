@@ -29,12 +29,12 @@
 - Los capítulos 24 a 27 mencionan por su número otros capítulos (2, 9, 17, 19 a 21 y la Parte VII). Se escribieron en paralelo; conviene cambiar esas menciones por referencias cruzadas `@sec-` a medida que se unan las partes.
 - Se agregó `@montgomery2012introduction` (Montgomery, Peck y Vining, *Introduction to Linear Regression Analysis*, 5.ª ed.) como referencia de las fórmulas de diagnóstico, aunque no estaba en la lista base del autor. Confirmar si se mantiene.
 - `references.bib` tiene dos claves para Lane (`laneintroduction`, de la Parte III y usada en la VI, y `lanesfintroduction`, de la Parte II) y dos para Watkins (`watkinsintroduction` y `watkinssfintroduction`). No se renombran claves ya citadas; conviene que el autor elija una de cada par y se unifiquen en un PR aparte.
-- Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Agregarlos a las instrucciones de instalación de la introducción.
+- Paquetes nuevos en la Parte VI: car (solo `car::vif()`) y lmtest (`bptest()`, `dwtest()`). Ya están en las instrucciones de instalación de la introducción.
 
 ## Parte VII (diseño de experimentos)
 
 - Revisión del autor de los capítulos 28 a 30.
-- Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 puede remitir a la tabla del rango estudentizado del Apéndice A (`@tbl-apa-q05` y `@tbl-apa-q01`).
+
 ## Parte IV (variables aleatorias y distribuciones)
 
 - Revisión del autor de los capítulos 13 a 17.
@@ -44,8 +44,7 @@
 
 ## Apéndices
 
-- Apéndice B: las funciones de las partes II a VII se anotaron con el capítulo previsto en la estructura. Al cerrar cada parte se revisa qué funciones usa de verdad y se ajusta la columna "Cap." y las filas.
-- Apéndice C: agregar los términos nuevos que aparezcan en las partes II a VII.
+- Apéndices B y C: revisados contra las partes I a VII el 2026-11-25. Si un capítulo agrega funciones o términos, se suman ahí.
 - Notación de las tablas: $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha. Los capítulos 16 a 23 deben usar la misma convención.
 - Revisión del autor de los tres apéndices.
 
@@ -55,6 +54,14 @@
 - Los ejemplos con datos se escribieron con datos hipotéticos. Si el autor tiene datos reales publicables (tesis, informes), se pueden sustituir.
 - En el material de la Semana 6 hay dos errores que no pasaron al libro: el estadístico de las varillas (−3.2747 en lugar de −3.452) y la conclusión del ejemplo del pH.
 - Revisión del autor de los capítulos 18 a 23.
+
+## Prefacio, introducción y palabras finales
+
+- Revisión del autor de los tres textos. El prefacio y las palabras finales van en primera persona, como en el libro de hidrología.
+- Agradecimientos y firma (Cartago, Costa Rica): se adaptaron del libro de hidrología; el autor puede cambiarlos.
+- El prefacio dice que el texto nació del material de un curso de la Escuela de Ingeniería Civil de la UCR, sin nombrar el código del curso. Confirmar la redacción.
+- La introducción menciona R 4.6 y RStudio 2026.11 (versiones de las capturas). Actualizar si se repiten las capturas.
+- Ya se agregaron car, lmtest y tolerance a las instrucciones de instalación de la introducción.
 
 ## Decisiones del autor
 

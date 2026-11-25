@@ -39,7 +39,10 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Coeficiente de variación | Coefficient of variation | Desviación estándar dividida entre la media; mide la variabilidad relativa. |
 | Combinación | Combination | Forma de elegir $k$ elementos de $n$ sin que importe el orden. |
 | Comparaciones múltiples | Multiple comparisons | Pruebas que comparan los grupos de dos en dos después de un ANOVA. |
+| Contraste | Contrast | Combinación de medias de tratamientos con coeficientes que suman cero; sirve para hacer comparaciones planeadas. |
+| Corrección de continuidad | Continuity correction | Ajuste de 0.5 al aproximar una distribución discreta con una continua. |
 | Covarianza | Covariance | Medida de cómo varían juntas dos variables. |
+| Cuadrado medio | Mean square | Suma de cuadrados dividida entre sus grados de libertad. |
 | Cuadro de contingencia | Contingency table | Cuadro que cuenta cuántas observaciones caen en cada combinación de dos variables categóricas. |
 | Cuadro de frecuencias | Frequency table | Cuadro que dice cuántas veces aparece cada valor o cada intervalo. |
 | Cuantil | Quantile | Valor que deja por debajo una fracción dada de los datos. |
@@ -49,11 +52,15 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Desviación estándar | Standard deviation | Medida de dispersión: distancia típica de los datos a su media, en las mismas unidades. |
 | Diagrama de dispersión | Scatter plot | Gráfico de puntos de una variable contra otra. |
 | Diagrama de Venn | Venn diagram | Dibujo de los eventos como regiones dentro del espacio muestral. |
+| Diferencia honestamente significativa (HSD) | Honestly significant difference | Distancia mínima entre dos medias, en el método de Tukey, para declararlas distintas. |
 | Diseño de experimentos | Design of experiments (DOE) | Planear un ensayo para obtener la mayor información con el menor número de corridas. |
 | Diseño factorial | Factorial design | Experimento que prueba todas las combinaciones de los niveles de dos o más factores. |
+| Distancia de Cook | Cook's distance | Medida de cuánto cambia la regresión si se quita una observación. |
 | Distribución de probabilidad | Probability distribution | Regla que dice qué valores puede tomar una variable aleatoria y con qué probabilidad. |
 | Distribución muestral | Sampling distribution | Distribución de un estadístico, como la media, al repetir el muestreo muchas veces. |
 | Distribución normal | Normal distribution | Distribución continua con forma de campana, simétrica alrededor de la media. |
+| Efecto principal | Main effect | Cambio promedio de la respuesta al pasar de un nivel a otro de un factor. |
+| Error cuadrático medio | Mean squared error (MSE) | Promedio de los errores al cuadrado de un estimador: su varianza más su sesgo al cuadrado. |
 | Error estándar | Standard error | Desviación estándar de un estimador; mide cuánto cambiaría de una muestra a otra. |
 | Error tipo I | Type I error | Rechazar la hipótesis nula cuando es verdadera. |
 | Error tipo II | Type II error | No rechazar la hipótesis nula cuando es falsa. |
@@ -64,6 +71,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Estadístico de prueba | Test statistic | Número calculado con la muestra que se compara con un valor crítico para decidir. |
 | Estimación | Estimate | Valor numérico que da un estimador con una muestra concreta. |
 | Estimador | Estimator | Fórmula que se usa para estimar un parámetro a partir de la muestra. |
+| Estimador insesgado | Unbiased estimator | Estimador cuyo valor promedio es igual al parámetro que estima. |
 | Estudio observacional | Observational study | Estudio en el que se mide sin intervenir ni asignar tratamientos. |
 | Evento | Event | Conjunto de resultados del espacio muestral. |
 | Eventos independientes | Independent events | Eventos en los que saber que ocurrió uno no cambia la probabilidad del otro. |
@@ -75,9 +83,11 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Función de distribución acumulada (FDA) | Cumulative distribution function (CDF) | Probabilidad de que la variable sea menor o igual que un valor: $P(X \le x)$. |
 | Función de probabilidad | Probability mass function (PMF) | Probabilidad de cada valor de una variable discreta. |
 | Grados de libertad | Degrees of freedom | Número de valores que pueden variar libremente; define la forma de $t$, $\chi^2$ y $F$. |
+| Heterocedasticidad | Heteroscedasticity | Cuando la varianza de los residuos cambia a lo largo de los valores ajustados. |
 | Hipótesis alternativa ($H_1$) | Alternative hypothesis | Lo que se quiere demostrar con la prueba. |
 | Hipótesis nula ($H_0$) | Null hypothesis | Afirmación que se mantiene mientras los datos no muestren lo contrario. |
 | Histograma | Histogram | Gráfico de barras pegadas que muestra cuántos datos caen en cada intervalo. |
+| Homocedasticidad | Homoscedasticity | Varianza constante de los residuos. |
 | Interacción | Interaction | Cuando el efecto de un factor depende del nivel de otro factor. |
 | Intervalo de confianza | Confidence interval | Rango de valores que, con cierto nivel de confianza, contiene al parámetro. |
 | Intervalo de predicción | Prediction interval | Rango donde se espera que caiga una observación nueva. |
@@ -85,6 +95,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Ley de los grandes números | Law of large numbers | Al repetir un experimento muchas veces, la frecuencia relativa se acerca a la probabilidad. |
 | Máxima verosimilitud | Maximum likelihood | Método que elige los parámetros que hacen más probables los datos observados. |
 | Media | Mean | Suma de los datos dividida entre su número (promedio). |
+| Media geométrica | Geometric mean | Raíz $n$-ésima del producto de $n$ datos; se usa para promediar tasas de cambio. |
 | Media ponderada | Weighted mean | Promedio en el que cada dato pesa distinto. |
 | Mediana | Median | Valor central de los datos ordenados. |
 | Medida de tendencia central | Measure of central tendency | Número que indica el centro de los datos: media, mediana o moda. |
@@ -93,6 +104,7 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Muestra | Sample | Parte de la población que se mide. |
 | Muestra aleatoria | Random sample | Muestra en la que cada elemento de la población tiene la misma oportunidad de salir. |
 | Muestras pareadas | Paired samples | Dos mediciones hechas sobre el mismo elemento, como antes y después. |
+| Multicolinealidad | Multicollinearity | Cuando dos o más predictores de una regresión están muy relacionados entre sí. |
 | Nivel de confianza | Confidence level | Porcentaje de intervalos que contendrían al parámetro si se repitiera el muestreo. |
 | Nivel de significancia ($\alpha$) | Significance level | Probabilidad de error tipo I que se acepta al decidir. |
 | Ojiva | Ogive, cumulative frequency plot | Gráfico de frecuencias acumuladas. |
@@ -107,18 +119,23 @@ Escriba una palabra en español o en inglés. Los cuadros muestran solo las fila
 | Proporción | Proportion | Fracción de los elementos que cumplen una condición. |
 | Prueba bilateral | Two-sided test, two-tailed test | Prueba en la que la hipótesis alternativa es "distinto de". |
 | Prueba de hipótesis | Hypothesis test | Procedimiento para decidir con datos si se rechaza la hipótesis nula. |
+| Prueba de Kruskal-Wallis | Kruskal-Wallis test | Alternativa al ANOVA de un factor que usa rangos y no supone normalidad. |
 | Prueba unilateral | One-sided test, one-tailed test | Prueba en la que la hipótesis alternativa es "mayor que" o "menor que". |
+| Pseudorreplicación | Pseudoreplication | Tratar como independientes mediciones que vienen de la misma unidad experimental. |
 | Rango | Range | Diferencia entre el valor máximo y el mínimo. |
+| Rango estudentizado | Studentized range | Diferencia entre la media mayor y la menor dividida entre su error estándar; base del método de Tukey. |
 | Rango intercuartílico | Interquartile range (IQR) | Diferencia entre el tercer y el primer cuartil. |
 | Regresión lineal | Linear regression | Modelo que describe una variable como una recta en función de otra u otras. |
 | Repetición | Replication | Aplicar el mismo tratamiento a varias unidades experimentales. |
 | Residuo | Residual | Diferencia entre el valor observado y el que predice el modelo. |
 | Sesgo | Bias | Diferencia entre el valor promedio de un estimador y el parámetro que estima. |
 | Simulación | Simulation | Repetir un experimento en la computadora con números al azar. |
+| Suma de cuadrados | Sum of squares | Suma de las desviaciones al cuadrado; mide la variación. |
 | Supuesto | Assumption | Condición que debe cumplirse para que un método dé resultados válidos. |
 | Tamaño de muestra | Sample size | Número de elementos de la muestra, $n$. |
 | Teorema de Bayes | Bayes' theorem | Regla para actualizar una probabilidad cuando se conoce nueva información. |
 | Teorema del límite central | Central limit theorem | La media de muchas observaciones sigue aproximadamente una normal, sea cual sea la distribución original. |
+| Transformación | Transformation | Cambio de escala de una variable (logaritmo, raíz cuadrada) para que se cumplan los supuestos de un modelo. |
 | Tratamiento | Treatment | Condición que se aplica a una unidad experimental, como un tipo de mezcla. |
 | Unidad experimental | Experimental unit | Elemento al que se le aplica un tratamiento, como un cilindro o una viga. |
 | Valor crítico | Critical value | Valor que separa la región donde se rechaza la hipótesis nula de la región donde no. |

@@ -141,7 +141,7 @@ $$ {#eq-dce-hipotesis}
 
 ## Por qué no se hacen muchas pruebas t {#sec-dce-muchas-t}
 
-Con dos tratamientos, la prueba $t$ de dos muestras de la Parte V resuelve el problema. Con cuatro, la tentación es comparar todas las parejas con pruebas $t$. Hay
+Con dos tratamientos, la prueba $t$ de dos muestras (@sec-dos-t) resuelve el problema. Con cuatro, la tentación es comparar todas las parejas con pruebas $t$. Hay
 
 $$
 m = \binom{k}{2} = \frac{k\,(k-1)}{2}
@@ -389,7 +389,7 @@ $$
 F = \frac{CM_{\text{trat}}}{CM_E}
 $$ {#eq-dce-f}
 
-Si $H_0$ es cierta y se cumplen los supuestos del modelo, $F$ sigue una distribución $F$ con $k - 1$ grados de libertad en el numerador y $N - k$ en el denominador (Parte IV). Valores de $F$ cercanos a 1 son compatibles con $H_0$. Se rechaza $H_0$ al nivel $\alpha$ si
+Si $H_0$ es cierta y se cumplen los supuestos del modelo, $F$ sigue una distribución $F$ con $k - 1$ grados de libertad en el numerador y $N - k$ en el denominador (@sec-muestreo-derivadas). Valores de $F$ cercanos a 1 son compatibles con $H_0$. Se rechaza $H_0$ al nivel $\alpha$ si
 
 $$
 F > F_{\alpha;\,k-1,\,N-k}
@@ -527,7 +527,7 @@ c(F = f_calc, F_critico = f_crit, p = p_valor)
 
 Dos funciones de base R son nuevas en este bloque. `tapply(y, grupo, mean)` separa `y` según `grupo` y aplica `mean()` a cada parte; da lo mismo que `aggregate()` de la Parte I, pero devuelve un vector con nombres, cómodo para seguir calculando. `ave()` devuelve, para cada cilindro, la media de su método. Así la resta `y - media_de_su_grupo` da las desviaciones del @tbl-dce-calculos sin escribir un ciclo. Con dplyr, las medias por método saldrían con `curado %>% group_by(metodo) %>% summarise(media = mean(resistencia_mpa))`.
 
-Ahora el mismo análisis con la función de R. La fórmula `resistencia_mpa ~ metodo` se lee "resistencia explicada por el método", igual que en la regresión de la Parte VI:
+Ahora el mismo análisis con la función de R. La fórmula `resistencia_mpa ~ metodo` se lee "resistencia explicada por el método", igual que en la regresión (@sec-rls-modelo):
 
 ```{r}
 # 6) Misma prueba con aov()
@@ -535,7 +535,7 @@ modelo <- aov(resistencia_mpa ~ metodo, data = curado)
 summary(modelo)
 ```
 
-La columna `Df` son los grados de libertad, `Sum Sq` las sumas de cuadrados, `Mean Sq` los cuadrados medios, `F value` el estadístico y `Pr(>F)` el valor $p$. La fila `Residuals` corresponde al error. Los números coinciden con el cálculo manual. El mismo cuadro sale con `anova(lm(resistencia_mpa ~ metodo, data = curado))`, porque el ANOVA de un factor es un modelo lineal con un predictor categórico.
+La columna `Df` son los grados de libertad, `Sum Sq` las sumas de cuadrados, `Mean Sq` los cuadrados medios, `F value` el estadístico y `Pr(>F)` el valor $p$. La fila `Residuals` corresponde al error. Los números coinciden con el cálculo manual. El mismo cuadro sale con `anova(lm(resistencia_mpa ~ metodo, data = curado))`, porque el ANOVA de un factor es un modelo lineal con un predictor categórico (@sec-rlm-categoricos).
 
 ```{r}
 #| label: tbl-dce-anova-curado
@@ -614,10 +614,10 @@ $$
 \eta^2 = \frac{SC_{\text{trat}}}{SC_T}
 $$ {#eq-dce-eta}
 
-En el ejemplo, $\eta^2 = 260/300 = 0.867$: el método de curado explica el 86.7 % de la variación de resistencia entre los 20 cilindros. Es el mismo $R^2$ de la regresión (Parte VI) aplicado a un predictor categórico.
+En el ejemplo, $\eta^2 = 260/300 = 0.867$: el método de curado explica el 86.7 % de la variación de resistencia entre los 20 cilindros. Es el mismo $R^2$ de la regresión (@sec-rls-ajuste) aplicado a un predictor categórico.
 
 ::: {.callout-tip title="En la práctica"}
-Junto al valor $p$ conviene reportar las medias de cada tratamiento con sus unidades. Para quien diseña, que el vapor dé 10 MPa más que el agua dice más que "$p < 0.001$". Una diferencia puede ser estadísticamente significativa y no tener importancia para la obra, o al revés, si hay pocas repeticiones.
+Junto al valor $p$ conviene reportar las medias de cada tratamiento con sus unidades. Para quien diseña, que el vapor dé 10 MPa más que el agua dice más que "$p < 0.001$". Una diferencia puede ser estadísticamente significativa y no tener importancia para la obra (@sec-ph-practica), o al revés, si hay pocas repeticiones.
 :::
 
 ### Grupos de distinto tamaño {#sec-dce-desbalance}
