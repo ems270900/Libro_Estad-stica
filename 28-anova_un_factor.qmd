@@ -12,6 +12,34 @@ En un estudio observacional se miden las condiciones tal como se dieron, sin int
 
 Suponga que en los registros de la planta el policloruro de aluminio (PAC) removió más turbiedad. Puede ser por el coagulante, pero también porque se compró en los meses lluviosos, cuando el agua cruda trae partículas más grandes que sedimentan mejor. Con datos observacionales no hay forma de separar las dos explicaciones. En un experimento, todas las jarras se llenan con la misma agua y el coagulante se asigna al azar. Así, una diferencia grande entre coagulantes solo puede deberse al coagulante o a la casualidad, y la estadística mide cuánto puede atribuirse a la casualidad.
 
+La época del año, en ese razonamiento, es una variable de confusión: influye en la respuesta y, al mismo tiempo, en qué tratamiento se usó. Las variables de confusión aparecen en todas las ramas de la ingeniería civil. Las intersecciones donde se instalan cámaras de velocidad suelen ser las que tenían más accidentes, así que una baja posterior puede deberse a la cámara o a que los años malos tienden a seguirse de años más normales. Los taludes que se protegen con geomalla suelen ser los más empinados, y compararlos con los no protegidos mezcla la geomalla con la pendiente. En los dos casos la comparación honesta exige asignar el tratamiento sin mirar la condición previa, que es lo que hace el sorteo.
+
+El @tbl-dce-estudios compara los tipos de estudio según quién decide el tratamiento y qué tan fuerte es la conclusión que dejan sacar.
+
+```{r}
+#| label: tbl-dce-estudios
+#| tbl-cap: "Tipos de estudio y alcance de sus conclusiones."
+#| echo: false
+
+library(kableExtra)
+estudios <- data.frame(
+  tipo = c("Experimento aleatorizado", "Cuasiexperimento", "Estudio observacional"),
+  quien = c("Quien investiga, por sorteo.", "Quien investiga o un tercero, sin sorteo.", "Nadie: se registra lo que ocurrió."),
+  ejemplo = c("Prueba de jarras con coagulantes sorteados entre las jarras.",
+              "La municipalidad elige qué tramos repavimentar y se comparan con los demás.",
+              "Registros de operación de la planta durante cinco años."),
+  conclusion = c("Causa y efecto, dentro de las condiciones del ensayo.",
+                 "Causa y efecto solo si se controlan las diferencias previas entre grupos.",
+                 "Asociación; la causa queda abierta a otras explicaciones.")
+)
+estudios %>%
+  kbl(col.names = c("Tipo de estudio", "Quién asigna el tratamiento", "Ejemplo", "Qué se puede concluir"),
+      align = "llll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+Los estudios observacionales no son inútiles. Muchas preguntas de ingeniería no se pueden contestar con un experimento, como el efecto de veinte años de tránsito pesado en un puente, y los registros de campo son la única fuente. Lo que cambia es la forma de concluir: con datos observacionales se habla de asociación y se discuten las explicaciones alternativas; con un experimento aleatorizado se puede hablar de efecto.
+
 ::: {.pregunta}
 ¿Cuántas jarras hay que preparar, en qué orden y cómo se reparten entre los coagulantes para que la comparación sea justa?
 :::
@@ -80,6 +108,75 @@ orden_ensayo
 
 La primera jarra que se corre recibe el primer rótulo, la segunda el segundo, y así hasta la vigésima.
 
+La @fig-dce-int-aleatorizacion muestra qué protege el sorteo. Se comparan dos coagulantes, A y B, que en realidad remueven lo mismo, con diez jarras cada uno corridas una tras otra. Sin que nadie lo note, el agua cruda del bidón se asienta durante la jornada y cada jarra corrida remueve 0.4 puntos menos que la anterior. Con la asignación en orden, A ocupa las diez primeras jarras y B las diez últimas. Con la asignación por sorteo, el orden se mezcla.
+
+::: {#fig-dce-int-aleatorizacion}
+
+```{=html}
+<div class="interactivo" id="int-dce-aleatorizacion">
+  <label><span>Asignación:</span>
+    <select>
+      <option value="orden">En orden: A en las jarras 1 a 10, B en las 11 a 20</option>
+      <option value="sorteo" selected>Por sorteo</option>
+    </select></label>
+  <button type="button">Repetir el experimento</button>
+  <svg viewBox="0 0 640 240" role="img" aria-label="Remoción de veinte jarras según el orden en que se corrieron, con la deriva del agua cruda"></svg>
+  <p class="int-resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-dce-aleatorizacion");
+  var sel = raiz.querySelector("select"), boton = raiz.querySelector("button");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".int-resultado");
+  var historial = { orden: [], sorteo: [] };
+  function normal() { // Box-Muller
+    var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  var w = 640, h = 240, mi = 45, md = 15, ms = 15, mb = 35, ymin = 72, ymax = 92;
+  var sx = function (i) { return mi + (i + 0.5) * (w - mi - md) / 20; };
+  var sy = function (y) { return h - mb - (Math.max(ymin, Math.min(ymax, y)) - ymin) / (ymax - ymin) * (h - mb - ms); };
+  function correr() {
+    var modo = sel.value, rotulos = [];
+    for (var i = 0; i < 20; i++) rotulos.push(i < 10 ? "A" : "B");
+    if (modo === "sorteo") for (i = 19; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = rotulos[i]; rotulos[i] = rotulos[j]; rotulos[j] = t; }
+    var y = [], sa = 0, sb = 0;
+    for (i = 0; i < 20; i++) {
+      y.push(86 - 0.4 * i + 1.2 * normal());   // misma media para A y B; deriva de 0.4 por jarra
+      if (rotulos[i] === "A") sa += y[i]; else sb += y[i];
+    }
+    var dif = sb / 10 - sa / 10;
+    historial[modo].push(dif);
+    var g = "";
+    for (var v = 75; v <= 90; v += 5) {
+      g += '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke-dasharray="2,3"/>' +
+           '<text class="eje-texto" x="' + (mi - 6) + '" y="' + (sy(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    }
+    g += '<path class="linea-lote" d="M' + sx(0) + ',' + sy(86) + 'L' + sx(19) + ',' + sy(86 - 0.4 * 19) + '"/>';
+    for (i = 0; i < 20; i++) {
+      g += '<circle class="' + (rotulos[i] === "A" ? "punto" : "punto-b") + '" cx="' + sx(i).toFixed(1) + '" cy="' + sy(y[i]).toFixed(1) + '" r="6"/>' +
+           '<text class="eje-texto" x="' + sx(i).toFixed(1) + '" y="' + (h - mb + 15) + '" text-anchor="middle">' + rotulos[i] + '</text>';
+    }
+    g += '<text class="eje-texto" x="' + ((w + mi) / 2) + '" y="' + (h - 3) + '" text-anchor="middle">Orden de corrida (azul: A; ámbar: B; línea gris: deriva del agua cruda)</text>';
+    svg.innerHTML = g;
+    var hs = historial[modo], suma = 0;
+    for (i = 0; i < hs.length; i++) suma += hs[i];
+    texto.innerHTML = "Diferencia estimada B − A en este experimento: <b>" + dif.toFixed(2) + " puntos</b> (la verdadera es 0). " +
+      "Promedio de " + hs.length + (hs.length === 1 ? " experimento" : " experimentos") + " con esta asignación: <b>" + (suma / hs.length).toFixed(2) + " puntos</b>.";
+  }
+  sel.addEventListener("change", correr);
+  boton.addEventListener("click", correr);
+  correr();
+})();
+</script>
+```
+
+Asignación en orden frente a asignación por sorteo.
+
+:::
+
+Repita el experimento varias veces con cada asignación. En orden, B parece siempre unos 4 puntos peor que A, porque cada jarra de B se corrió después de todas las de A y le tocó agua más asentada: es un sesgo, y no desaparece al repetir. Por sorteo, la diferencia estimada cambia de un experimento a otro, a veces a favor de A y a veces de B, y su promedio se acerca a cero. El sorteo no elimina la deriva, que sigue agregando variación, pero impide que se cargue sobre un tratamiento.
+
 ### Repetición {#sec-dce-repeticion}
 
 Con una sola jarra por coagulante no se sabe si una remoción alta se debe al coagulante o a que esa jarra salió bien. Con varias unidades por tratamiento se puede medir cuánto varían entre sí las que recibieron el mismo trato, y esa variación es la vara con que se juzgan las diferencias entre tratamientos. Para el tratamiento $j$, la varianza de sus repeticiones es
@@ -92,6 +189,8 @@ donde $y_{ij}$ es la observación $i$ del tratamiento $j$, $\bar{y}_{j}$ es la m
 
 Repetir la lectura del turbidímetro sobre la misma jarra mejora la precisión de la medición, pero no es una repetición experimental: la jarra sigue siendo una sola.
 
+Más repeticiones dan medias más precisas, porque el error estándar de una media es $\sigma/\sqrt{n_j}$. La ganancia, sin embargo, tiene rendimientos decrecientes: pasar de 2 a 8 jarras por coagulante reduce el error estándar a la mitad, y para reducirlo otra vez a la mitad harían falta 32. Cuántas repeticiones conviene hacer depende de la diferencia más pequeña que importa detectar y del ruido del ensayo, y se calcula antes del experimento con la potencia de la prueba (@sec-dce-repeticiones).
+
 ### Bloqueo {#sec-dce-bloqueo}
 
 Algunas fuentes de variación se conocen de antemano: la muestra de agua cruda (que cambia de un día a otro con la lluvia), el equipo de jarras o el turbidímetro que se usa. Un bloque agrupa unidades parecidas respecto de esa fuente, y dentro de cada bloque se sortean todos los tratamientos. Así, las comparaciones entre coagulantes se hacen entre jarras de la misma muestra de agua, y la diferencia entre muestras sale del error. La @sec-mc-bloques desarrolla este diseño.
@@ -100,7 +199,7 @@ El @tbl-dce-ruido resume qué hacer con un factor de ruido, que es una fuente de
 
 ```{r}
 #| label: tbl-dce-ruido
-#| tbl-cap: "Qué hacer con un factor de ruido según se pueda controlar o medir."
+#| tbl-cap: "Qué hacer con un factor de ruido."
 #| echo: false
 
 ruido <- data.frame(
@@ -158,7 +257,7 @@ donde $\alpha$ es el nivel de significancia de cada prueba y $m$ es el número d
 
 ```{r}
 #| label: tbl-dce-familiar
-#| tbl-cap: "Error familiar aproximado al hacer todas las pruebas t por parejas con α = 0.05."
+#| tbl-cap: "Error familiar de las pruebas t por parejas (α = 0.05)."
 #| echo: false
 
 k <- 2:6
@@ -215,7 +314,7 @@ Mueva el control de la @fig-dce-int-familiar para ver cómo crece ese riesgo con
 </script>
 ```
 
-Error familiar al comparar todas las parejas con pruebas $t$ de nivel 0.05.
+Error familiar según el número de tratamientos.
 
 :::
 
@@ -244,7 +343,9 @@ Con seis pruebas $t$, cerca del 20 % de los experimentos declara alguna diferenc
 
 El ANOVA compara medias mirando varianzas. La idea es comparar dos cantidades: cuánto se separan las medias de los tratamientos entre sí, y cuánto varían las jarras dentro de un mismo tratamiento. Si la separación entre medias es parecida a la variación natural entre jarras, no hay razón para pensar que los coagulantes difieren. Si es mucho mayor, sí la hay.
 
-Pruebe con la @fig-dce-int-anova. Con poca separación y mucha dispersión, los grupos se traslapan y el estadístico $F$ queda cerca de 1. Con mucha separación y poca dispersión, los grupos se distinguen a simple vista y $F$ crece.
+Una analogía sirve para recordarlo. En una radio mal sintonizada, una voz se entiende si su volumen supera claramente al del ruido de fondo. El ANOVA mide las dos cosas en la misma escala: la "voz" es la diferencia entre los tratamientos y el "ruido" es la variación entre unidades que recibieron el mismo tratamiento. El estadístico $F$ es el cociente entre las dos. Por eso un experimento puede fallar de dos formas: porque la voz es débil (los tratamientos casi no difieren) o porque el ruido es fuerte (el ensayo es poco repetible). Repetir, bloquear y controlar el ensayo bajan el ruido; nada de eso cambia la voz.
+
+Pruebe con la @fig-dce-int-anova, que tiene tres grupos de seis observaciones; las líneas cortas son las medias de cada grupo y la punteada larga es la media general. Con poca separación y mucha dispersión, los grupos se traslapan y el estadístico $F$ queda cerca de 1. Con mucha separación y poca dispersión, los grupos se distinguen a simple vista y $F$ crece.
 
 ::: {#fig-dce-int-anova}
 
@@ -342,7 +443,7 @@ Pruebe con la @fig-dce-int-anova. Con poca separación y mucha dispersión, los 
 </script>
 ```
 
-Tres grupos de seis observaciones. Las líneas cortas son las medias de cada grupo y la línea punteada larga es la media general.
+Separación entre medias frente a dispersión.
 
 :::
 
@@ -374,6 +475,52 @@ $$ {#eq-dce-sce}
 
 donde $\bar{y}_j$ es la media del tratamiento $j$, $\bar{y}$ es la media de las $N$ observaciones y $s_j^2$ es la varianza del tratamiento $j$ (@eq-dce-varianza-grupo). La segunda forma de la @eq-dce-sce es más cómoda a mano cuando ya se tienen las varianzas de cada grupo.
 
+La @fig-dce-descomposicion dibuja las tres sumas de cuadrados con los datos de la prueba de jarras de la @sec-dce-ejemplo. Cada segmento vertical es una desviación; la suma de cuadrados es la suma de los cuadrados de sus largos. En el panel de la izquierda, cada jarra se compara con la media general. En el del centro, cada jarra se reemplaza por la media de su coagulante, y queda solo la parte que explica el tratamiento. En el de la derecha queda lo que sobra: la distancia de cada jarra a la media de su propio coagulante.
+
+```{r}
+#| label: fig-dce-descomposicion
+#| fig-cap: "Desviaciones total, entre tratamientos y dentro de tratamientos."
+#| fig-alt: "Tres paneles con segmentos verticales; los del panel entre tratamientos son largos y los del panel dentro de tratamientos son cortos"
+#| echo: false
+#| fig-height: 3.8
+
+library(ggplot2)
+jarras_d <- read.csv("datos/jarras_coagulantes_hipotetico.csv")
+jarras_d$coagulante <- factor(jarras_d$coagulante,
+                              levels = c("sulfato_aluminio", "sulfato_ferrico", "pac", "cloruro_ferrico"))
+jarras_d <- jarras_d[order(jarras_d$coagulante), ]
+jarras_d$x <- seq_len(nrow(jarras_d))
+mg_d <- mean(jarras_d$remocion_pct)
+jarras_d$media_j <- ave(jarras_d$remocion_pct, jarras_d$coagulante)
+paneles <- c("Total: y − ȳ (SC = 300)", "Entre: ȳj − ȳ (SC = 260)", "Dentro: y − ȳj (SC = 40)")
+desc <- rbind(
+  data.frame(panel = paneles[1], x = jarras_d$x, y0 = mg_d, y1 = jarras_d$remocion_pct, ref = mg_d, coag = jarras_d$coagulante),
+  data.frame(panel = paneles[2], x = jarras_d$x, y0 = mg_d, y1 = jarras_d$media_j, ref = mg_d, coag = jarras_d$coagulante),
+  data.frame(panel = paneles[3], x = jarras_d$x, y0 = jarras_d$media_j, y1 = jarras_d$remocion_pct, ref = jarras_d$media_j, coag = jarras_d$coagulante)
+)
+desc$panel <- factor(desc$panel, levels = paneles)
+ggplot(desc, aes(x = x)) +
+  geom_step(aes(y = ref), data = desc, color = "grey50", linetype = "dashed", direction = "mid") +
+  geom_segment(aes(xend = x, y = y0, yend = y1, color = coag), linewidth = 0.9) +
+  geom_point(aes(y = y1, color = coag), size = 1.8) +
+  facet_wrap(~ panel) +
+  scale_color_manual(values = c("#1C6BA0", "#E69F00", "#009E73", "#CC79A7"),
+                     labels = c("Sulfato de aluminio", "Sulfato férrico", "PAC", "Cloruro férrico"), name = NULL) +
+  labs(x = "Jarra (ordenadas por coagulante)", y = "Remoción (%)") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom", axis.text.x = element_blank())
+```
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+La @eq-dce-particion no es una aproximación: se cumple siempre. Cada desviación total se parte en dos, $y_{ij} - \bar{y} = (\bar{y}_j - \bar{y}) + (y_{ij} - \bar{y}_j)$. Al elevar al cuadrado y sumar sobre todas las observaciones aparecen los dos cuadrados y un término cruzado,
+
+$$
+2 \sum_{j=1}^{k} (\bar{y}_j - \bar{y}) \sum_{i=1}^{n_j} (y_{ij} - \bar{y}_j)
+$$
+
+que vale cero porque, dentro de cada grupo, las desviaciones respecto de la media del grupo suman cero. Es la misma razón por la que la suma de cuadrados de la regresión se parte en explicada y residual (@sec-rls-ajuste).
+:::
+
 ### Grados de libertad, cuadrados medios y estadístico F {#sec-dce-f}
 
 Una suma de cuadrados crece con el número de términos que suma, así que para comparar las dos piezas se divide cada una entre sus grados de libertad. El resultado se llama cuadrado medio:
@@ -397,6 +544,16 @@ F > F_{\alpha;\,k-1,\,N-k}
 $$ {#eq-dce-regla}
 
 donde $F_{\alpha;\,k-1,\,N-k}$ es el valor que deja un área $\alpha$ a su derecha en esa distribución. La prueba usa solo la cola derecha, porque únicamente un $F$ grande es evidencia contra $H_0$. En R, el valor crítico es `qf(1 - alpha, k - 1, N - k)` y el valor $p$ es `1 - pf(F, k - 1, N - k)`.
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+El argumento de por qué $F$ queda cerca de 1 cuando $H_0$ es cierta está en los valores esperados de los cuadrados medios [@montgomery2017design, sec. 3.3]:
+
+$$
+E(CM_E) = \sigma^2 \qquad E(CM_{\text{trat}}) = \sigma^2 + \frac{\sum_{j=1}^{k} n_j\,\tau_j^2}{k - 1}
+$$
+
+Si todos los $\tau_j$ son cero, numerador y denominador de $F$ estiman la misma $\sigma^2$. Si algún tratamiento difiere, el numerador crece en una cantidad que aumenta con el tamaño de los efectos y con el número de repeticiones. Por eso más repeticiones hacen más fácil detectar una misma diferencia, como se cuantifica en la @sec-dce-repeticiones.
+:::
 
 Todo el cálculo se ordena en el cuadro ANOVA (@tbl-dce-anova-general), que tiene siempre la misma forma.
 
@@ -465,7 +622,7 @@ ver_datos("datos/jarras_coagulantes_hipotetico.csv",
 
 ```{r}
 #| label: tbl-dce-calculos
-#| tbl-cap: "Desviaciones de la remoción de cada jarra respecto de la media de su coagulante (puntos porcentuales)."
+#| tbl-cap: "Desviaciones respecto de la media de cada coagulante."
 #| echo: false
 
 jarras <- read.csv("datos/jarras_coagulantes_hipotetico.csv")
@@ -560,11 +717,11 @@ tab %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
 ```
 
-La @fig-dce-curado muestra los datos. La separación entre las medias de los coagulantes es grande comparada con la dispersión de las jarras dentro de cada coagulante, y eso es lo que mide el estadístico $F$.
+La @fig-dce-curado muestra los datos. Las líneas cortas son las medias de cada coagulante y la punteada es la media general. La separación entre las medias de los coagulantes es grande comparada con la dispersión de las jarras dentro de cada coagulante, y eso es lo que mide el estadístico $F$.
 
 ```{r}
 #| label: fig-dce-curado
-#| fig-cap: "Remoción de turbiedad de las jarras por coagulante. Las líneas cortas son las medias de cada coagulante y la línea punteada es la media general."
+#| fig-cap: "Remoción de turbiedad por coagulante."
 #| fig-alt: "Puntos de remoción para cuatro coagulantes; el PAC tiene la media más alta y el sulfato de aluminio la más baja"
 #| echo: false
 
@@ -588,11 +745,11 @@ ggplot(jarras, aes(x = coagulante, y = remocion_pct)) +
 
 :::
 
-La @fig-dce-f ubica el resultado en la distribución $F$ con 3 y 16 grados de libertad. El valor crítico deja un 5 % del área a su derecha. El estadístico del ejemplo queda tan lejos que el área a su derecha, que es el valor $p$, es menor que 0.001.
+La @fig-dce-f ubica el resultado en la distribución $F$ con 3 y 16 grados de libertad. La zona sombreada es la región de rechazo: el valor crítico deja un 5 % del área a su derecha. El estadístico del ejemplo queda tan lejos que el área a su derecha, que es el valor $p$, es menor que 0.001.
 
 ```{r}
 #| label: fig-dce-f
-#| fig-cap: "Distribución F con 3 y 16 grados de libertad. La zona sombreada es la región de rechazo con α = 0.05."
+#| fig-cap: "Distribución F con 3 y 16 grados de libertad."
 #| fig-alt: "Curva de densidad F asimétrica a la derecha con la región de rechazo sombreada a partir de 3.24"
 #| echo: false
 
@@ -610,6 +767,122 @@ ggplot(dens, aes(x, y)) +
   theme_minimal(base_size = 13)
 ```
 
+### Cómo se interpreta el valor p del ANOVA {#sec-dce-valor-p}
+
+El valor $p$ se definió en la @sec-ph-valor-p. En el ANOVA tiene una lectura concreta: es la probabilidad de obtener un $F$ igual o mayor que el observado si los cuatro coagulantes tuvieran de verdad la misma remoción media y solo actuara el ruido entre jarras. En la @fig-dce-f es el área a la derecha de $F = 34.67$. Que sea menor que 0.001 quiere decir que, con medias iguales, una separación tan grande entre las medias de las jarras casi nunca saldría por azar. Por eso se rechaza $H_0$.
+
+Esa definición deja fuera varias lecturas comunes, que son incorrectas:
+
+- **No es la probabilidad de que $H_0$ sea cierta.** El valor $p$ se calcula suponiendo que $H_0$ es cierta; no puede, a la vez, dar la probabilidad de esa suposición.
+- **No dice cuáles medias difieren.** La hipótesis alternativa del ANOVA es "al menos una media es distinta". Un $p$ pequeño es compatible con que solo el PAC difiera de los otros tres o con que los cuatro sean distintos entre sí. Para saberlo se usan las comparaciones múltiples (@sec-mc-tukey).
+- **No mide el tamaño de las diferencias.** Con muchas repeticiones, una diferencia de 0.5 puntos porcentuales, sin importancia para la planta, puede dar $p < 0.001$. Con pocas, una diferencia de 5 puntos puede dar $p = 0.20$. El tamaño se mide con las diferencias entre medias y con las medidas de la @sec-dce-eta.
+- **Un $p$ grande no prueba que las medias sean iguales.** Solo dice que los datos no alcanzan para distinguirlas. Se escribe "no se rechaza $H_0$", nunca "se acepta", y conviene revisar si el experimento tenía potencia suficiente (@sec-dce-repeticiones).
+- **No es la probabilidad de que el resultado "se deba al azar".** El cálculo supone que solo actúa el azar y mide qué tan raro sería el resultado en ese caso; no reparte la responsabilidad entre azar y coagulante [@wasserstein2016asa].
+
+El umbral de 0.05 es una convención. Un valor $p$ de 0.049 y uno de 0.051 dan casi la misma evidencia, y presentarlos como "hay efecto" y "no hay efecto" exagera la diferencia. Por eso se recomienda reportar el valor $p$ exacto, junto con las medias y el tamaño del efecto, y dejar que el lector juzgue [@wasserstein2016asa].
+
+La @fig-dce-int-valores-p ayuda a fijar estas ideas. Simula mil pruebas de jarras con cuatro coagulantes y el ruido del ejemplo ($\sigma = 1.6$ puntos), y dibuja el histograma de los mil valores $p$. El control de la diferencia fija cuánto se separan, en la realidad, el mejor y el peor coagulante (los otros dos quedan en medio).
+
+::: {#fig-dce-int-valores-p}
+
+```{=html}
+<div class="interactivo" id="int-dce-valores-p">
+  <label><span>Diferencia real entre el mejor y el peor coagulante (puntos):</span> <output>0.0</output>
+    <input type="range" min="0" max="6" step="0.5" value="0"></label>
+  <label><span>Jarras por coagulante:</span> <output>5</output>
+    <input type="range" min="2" max="12" step="1" value="5"></label>
+  <button type="button">Simular otras mil pruebas</button>
+  <svg viewBox="0 0 640 240" role="img" aria-label="Histograma de mil valores p simulados; la barra de 0 a 0.05 se resalta"></svg>
+  <p class="int-resultado"></p>
+</div>
+<script>
+(function () {
+  function lnGamma(x) {
+    var c = [76.18009172947146, -86.50532032941677, 24.01409824083091,
+             -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, t = x + 5.5, s = 1.000000000190015;
+    t -= (x + 0.5) * Math.log(t);
+    for (var j = 0; j < 6; j++) s += c[j] / ++y;
+    return -t + Math.log(2.5066282746310005 * s / x);
+  }
+  function fracBeta(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-30) d = 1e-30;
+    d = 1 / d; var h = d;
+    for (var m = 1; m <= 200; m++) {
+      var m2 = 2 * m, aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30;
+      c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+      d = 1 / d; h *= d * c;
+      aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30;
+      c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+      d = 1 / d; var del = d * c; h *= del;
+      if (Math.abs(del - 1) < 1e-12) break;
+    }
+    return h;
+  }
+  function betaInc(x, a, b) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lnGamma(a + b) - lnGamma(a) - lnGamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    return x < (a + 1) / (a + b + 2) ? bt * fracBeta(a, b, x) / a : 1 - bt * fracBeta(b, a, 1 - x) / b;
+  }
+  function valorP(f, g1, g2) { return 1 - betaInc(g1 * f / (g1 * f + g2), g1 / 2, g2 / 2); }
+  function normal() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  var raiz = document.getElementById("int-dce-valores-p");
+  var controles = raiz.querySelectorAll("input"), salidas = raiz.querySelectorAll("output");
+  var boton = raiz.querySelector("button"), svg = raiz.querySelector("svg"), texto = raiz.querySelector(".int-resultado");
+  var w = 640, h = 240, mi = 45, md = 15, ms = 15, mb = 35;
+  function simular() {
+    var d = parseFloat(controles[0].value), n = parseInt(controles[1].value, 10);
+    salidas[0].textContent = d.toFixed(1); salidas[1].textContent = n;
+    var k = 4, sigma = 1.6, mu = [-d / 2, 0, 0, d / 2], cuentas = [], bajo = 0;
+    for (var b = 0; b < 20; b++) cuentas.push(0);
+    for (var r = 0; r < 1000; r++) {
+      var medias = [], total = 0, sce = 0;
+      for (var j = 0; j < k; j++) {
+        var suma = 0, datos = [];
+        for (var i = 0; i < n; i++) { var y = mu[j] + sigma * normal(); datos.push(y); suma += y; }
+        var m = suma / n; medias.push(m); total += suma;
+        for (i = 0; i < n; i++) sce += (datos[i] - m) * (datos[i] - m);
+      }
+      var mg = total / (k * n), sct = 0;
+      for (j = 0; j < k; j++) sct += n * (medias[j] - mg) * (medias[j] - mg);
+      var p = valorP((sct / (k - 1)) / (sce / (k * n - k)), k - 1, k * n - k);
+      cuentas[Math.min(19, Math.floor(p / 0.05))]++;
+      if (p < 0.05) bajo++;
+    }
+    var maximo = Math.max.apply(null, cuentas.concat([100])), ancho = (w - mi - md) / 20, g = "";
+    var sy = function (c) { return h - mb - c / maximo * (h - mb - ms); };
+    for (b = 0; b < 20; b++) {
+      g += '<rect x="' + (mi + b * ancho + 1).toFixed(1) + '" y="' + sy(cuentas[b]).toFixed(1) + '" width="' + (ancho - 2).toFixed(1) +
+           '" height="' + (h - mb - sy(cuentas[b])).toFixed(1) + '" class="' + (b === 0 ? "barra-activa" : "barra") + '"/>';
+    }
+    g += '<line class="media-general" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(50) + '" y2="' + sy(50) + '"/>';
+    for (var t = 0; t <= 1.0001; t += 0.25) {
+      g += '<text class="eje-texto" x="' + (mi + t * 20 * ancho) + '" y="' + (h - mb + 15) + '" text-anchor="middle">' + t.toFixed(2) + '</text>';
+    }
+    g += '<text class="eje-texto" x="' + ((w + mi) / 2) + '" y="' + (h - 3) + '" text-anchor="middle">Valor p (línea punteada: 50 pruebas por barra, lo esperado si H0 es cierta)</text>';
+    svg.innerHTML = g;
+    texto.innerHTML = "Pruebas con <i>p</i> &lt; 0.05: <b>" + (bajo / 10).toFixed(1) + " %</b>. " +
+      (d === 0 ? "Las medias son iguales: ese porcentaje es la tasa de falsas alarmas y debe rondar el 5 %."
+               : "Las medias difieren: ese porcentaje estima la potencia de la prueba.");
+  }
+  controles[0].addEventListener("input", simular);
+  controles[1].addEventListener("input", simular);
+  boton.addEventListener("click", simular);
+  simular();
+})();
+</script>
+```
+
+Distribución de los valores p en mil pruebas simuladas.
+
+:::
+
+Con la diferencia en cero, $H_0$ es cierta y el histograma es casi plano: cualquier valor $p$ entre 0 y 1 es igual de probable, y alrededor del 5 % de las pruebas cae por debajo de 0.05 por pura casualidad. Eso es lo que significa $\alpha = 0.05$. Al subir la diferencia, los valores $p$ se amontonan cerca de cero, y la proporción por debajo de 0.05 es la potencia. Con una diferencia de 4 puntos y 5 jarras por coagulante, ronda el 85 % calculado en la @sec-dce-repeticiones. Dos lecciones salen de aquí. Un valor $p$ aislado varía mucho de un experimento a otro, aun con la misma realidad. Y un $p$ grande es frecuente cuando el efecto existe pero el experimento es pequeño: basta poner 2 jarras por coagulante para verlo.
+
 ### Tamaño del efecto {#sec-dce-eta}
 
 El valor $p$ dice si la diferencia es creíble, pero no si es grande. Una medida sencilla del tamaño del efecto es la proporción de la variación total que explican los tratamientos:
@@ -620,13 +893,195 @@ $$ {#eq-dce-eta}
 
 En el ejemplo, $\eta^2 = 260/300 = 0.867$: el coagulante explica el 86.7 % de la variación de la remoción entre las 20 jarras. Es el mismo $R^2$ de la regresión (@sec-rls-ajuste) aplicado a un predictor categórico.
 
+El $\eta^2$ tiene un defecto: calculado con una muestra, sobrestima la proporción de variación que explicarían los tratamientos en la población, sobre todo con pocas repeticiones. Una versión corregida es omega cuadrado [@laneintroduction, cap. 19]:
+
+$$
+\omega^2 = \frac{SC_{\text{trat}} - (k - 1)\,CM_E}{SC_T + CM_E}
+$$ {#eq-dce-omega}
+
+En el ejemplo, $\omega^2 = (260 - 3 \times 2.5)/(300 + 2.5) = 252.5/302.5 = 0.835$, algo menor que $\eta^2$. Otra medida usada para planear experimentos es la $f$ de @cohen1988statistical, $f = \sqrt{\eta^2/(1 - \eta^2)}$, que compara la dispersión de las medias de los tratamientos con la dispersión dentro de ellos. Cohen propuso tomar $f = 0.10$, $0.25$ y $0.40$ como efectos pequeño, mediano y grande en estudios de ciencias del comportamiento. En el ejemplo, $f = \sqrt{0.867/0.133} = 2.55$, un efecto enorme para esa escala. En ingeniería conviene más juzgar el tamaño del efecto en las unidades de la respuesta que con esas etiquetas generales.
+
 ::: {.callout-tip title="En la práctica"}
 Junto al valor $p$ conviene reportar las medias de cada tratamiento con sus unidades. Para quien opera la planta, que el PAC remueva 10 puntos porcentuales más que el sulfato de aluminio dice más que "$p < 0.001$". Una diferencia puede ser estadísticamente significativa y no tener importancia para la operación (@sec-ph-practica), o al revés, si hay pocas repeticiones. La decisión final también pesa el costo de cada coagulante y el lodo que produce.
+:::
+
+### Cuántas repeticiones hacen falta {#sec-dce-repeticiones}
+
+::: {.pregunta}
+Si con cinco jarras por coagulante se detectó una diferencia, ¿habrían bastado tres?
+:::
+
+La potencia de la prueba $F$ es la probabilidad de rechazar $H_0$ cuando las medias de verdad difieren, la misma idea de la @sec-ph-potencia aplicada a varios grupos. Depende de cuatro cosas: el nivel $\alpha$, el número de tratamientos $k$, el número de repeticiones $n$ por tratamiento y el tamaño de las diferencias comparado con el ruido. Esta última cantidad se resume en el parámetro de no centralidad
+
+$$
+\lambda = \frac{n \sum_{j=1}^{k} (\mu_j - \bar{\mu})^2}{\sigma^2}
+$$ {#eq-dce-lambda}
+
+donde $\mu_j$ es la media verdadera del tratamiento $j$, $\bar{\mu}$ es el promedio de las $\mu_j$ y $\sigma^2$ es la varianza del error [@montgomery2017design, sec. 3.7]. Cuando $H_0$ es falsa, el estadístico sigue una distribución $F$ no central con ese $\lambda$, que está corrida a la derecha de la $F$ ordinaria, y la potencia es el área de esa distribución a la derecha del valor crítico. $\lambda$ crece con $n$: duplicar las repeticiones duplica $\lambda$.
+
+::: {.callout-note title="Ejemplo: número de jarras para una nueva prueba"}
+
+**Planteamiento.** La planta repetirá la prueba de jarras en la época seca con cuatro coagulantes. Para que valga la pena cambiar de coagulante, interesa detectar un patrón de medias como 82, 84, 84 y 86 %, en el que los extremos difieren 4 puntos porcentuales. Por la prueba anterior se espera una varianza del error de $\sigma^2 = 2.5$. Con $\alpha = 0.05$, ¿qué potencia tiene la prueba con 5 jarras por coagulante, y cuántas hacen falta para llegar a una potencia de 0.90?
+
+**Solución:**
+
+1. Media de las medias: $\bar{\mu} = (82 + 84 + 84 + 86)/4 = 84$ %, y $\sum (\mu_j - \bar{\mu})^2 = 4 + 0 + 0 + 4 = 8$.
+2. Parámetro de no centralidad con $n = 5$ (@eq-dce-lambda): $\lambda = 5 \times 8/2.5 = 16$.
+3. Grados de libertad: $k - 1 = 3$ y $N - k = 20 - 4 = 16$. Valor crítico: $F_{0.05;\,3,\,16} = 3.24$.
+4. Potencia: área de la $F$ no central con 3 y 16 grados de libertad y $\lambda = 16$ a la derecha de 3.24. Ese cálculo no se hace a mano: @montgomery2017design lo da en curvas de operación y R lo calcula con `pf()`. Resulta 0.856.
+5. Con $n = 6$, $\lambda = 6 \times 8/2.5 = 19.2$, el valor crítico baja a $F_{0.05;\,3,\,20} = 3.10$ y la potencia sube a 0.930. Con 5 jarras no se llega a 0.90 y con 6 sí: hacen falta 6 jarras por coagulante, 24 en total.
+
+**Pseudocódigo**
+
+1. Escribir las medias que interesa detectar, la varianza del error y $\alpha$.
+2. Para cada $n$ candidato, calcular $\lambda$, los grados de libertad y el valor crítico.
+3. Calcular la potencia con la distribución $F$ no central.
+4. Elegir el menor $n$ con potencia de al menos 0.90.
+5. Repetir con `power.anova.test()`.
+
+```{r}
+# 1) Supuestos del cálculo
+medias_det <- c(82, 84, 84, 86)
+sigma2 <- 2.5
+k <- length(medias_det)
+alfa <- 0.05
+
+# 2) y 3) Potencia para n = 2 a 10 jarras por coagulante
+n <- 2:10
+lambda <- n * sum((medias_det - mean(medias_det))^2) / sigma2
+f_crit <- qf(1 - alfa, k - 1, k * n - k)
+potencia <- pf(f_crit, k - 1, k * n - k, ncp = lambda, lower.tail = FALSE)
+
+# 4) Menor n con potencia de al menos 0.90
+data.frame(n, lambda, f_crit = round(f_crit, 3), potencia = round(potencia, 3))
+n[which(potencia >= 0.90)[1]]
+```
+
+`power.anova.test()` de `stats` hace la misma cuenta. Recibe la varianza de las medias (`between.var`, calculada con `var()`, que divide entre $k - 1$) y la varianza del error (`within.var`). Si se le da `n`, devuelve la potencia; si se le da `power`, devuelve el `n` necesario, que hay que redondear hacia arriba:
+
+```{r}
+# 5) Misma cuenta con power.anova.test()
+power.anova.test(groups = 4, n = 5, between.var = var(medias_det),
+                 within.var = sigma2, sig.level = 0.05)$power
+power.anova.test(groups = 4, between.var = var(medias_det),
+                 within.var = sigma2, power = 0.90)$n
+```
+
+```{r}
+#| label: fig-dce-potencia
+#| fig-cap: "Potencia según el número de jarras por coagulante."
+#| fig-alt: "Curva creciente de potencia que cruza 0.90 entre 5 y 6 jarras por coagulante"
+
+plot(n, potencia, type = "b", pch = 19, col = "#1C6BA0", ylim = c(0, 1),
+     xlab = "Jarras por coagulante (n)", ylab = "Potencia")
+abline(h = 0.90, lty = 2, col = "grey50")
+```
+
+**Interpretación.** Con 5 jarras por coagulante, la prueba detectaría ese patrón de diferencias el 86 % de las veces; una de cada siete pruebas lo pasaría por alto. Con 6 jarras la potencia llega a 0.93. Como cada jarra adicional cuesta poco comparada con el riesgo de no detectar un coagulante mejor, la recomendación es correr 6 por coagulante. Si el ruido de la época seca resultara mayor que $\sigma^2 = 2.5$, la potencia real sería menor, así que conviene usar un valor de $\sigma^2$ algo conservador.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+El cálculo de potencia se hace antes del experimento, con diferencias que importan para la decisión y un $\sigma^2$ tomado de ensayos previos o de la literatura. Calcular la potencia después, con las medias que salieron, no agrega información: si la prueba no rechazó, esa "potencia observada" siempre resulta baja. Si no hay ninguna estimación de $\sigma^2$, un ensayo piloto con pocas unidades es la forma más barata de obtenerla.
 :::
 
 ### Grupos de distinto tamaño {#sec-dce-desbalance}
 
 Las fórmulas de la @sec-dce-descomposicion y la @sec-dce-f sirven igual si los grupos tienen distinto número de observaciones: cada media pesa según su $n_j$. Un diseño con el mismo $n_j$ en todos los grupos se llama balanceado y tiene dos ventajas: la prueba $F$ es menos sensible a que las varianzas difieran un poco, y las comparaciones posteriores son más sencillas [@montgomery2017design, sec. 3.4]. Si una jarra se derrama antes de la lectura, el análisis sigue siendo válido con $n_j$ distintos, siempre que la pérdida no tenga relación con el tratamiento.
+
+### Varianzas distintas: ANOVA de Welch {#sec-dce-welch}
+
+Si las varianzas de los tratamientos son muy distintas y, además, los grupos tienen tamaños distintos, la prueba $F$ clásica deja de tener el nivel $\alpha$ que se eligió: rechaza de más si los grupos pequeños son los más dispersos y de menos en el caso contrario. Para ese caso, @welch1951comparison propuso una versión que no supone varianza común, la misma idea de la prueba $t$ de Welch para dos muestras (@sec-dos-t). Cada media pesa según la inversa de su varianza estimada, $w_j = n_j/s_j^2$, de modo que los grupos más precisos pesan más:
+
+$$
+F_W = \frac{\dfrac{1}{k - 1} \sum_{j} w_j (\bar{y}_j - \bar{y}_w)^2}{1 + \dfrac{2(k - 2)}{k^2 - 1}\,\Lambda}
+\qquad
+\Lambda = \sum_{j} \frac{(1 - w_j/W)^2}{n_j - 1}
+$$ {#eq-dce-welch}
+
+donde $W = \sum_j w_j$ y $\bar{y}_w = \sum_j w_j \bar{y}_j / W$ es la media ponderada. $F_W$ se compara con una distribución $F$ con $k - 1$ y $\nu = (k^2 - 1)/(3\Lambda)$ grados de libertad, que en general no es un entero.
+
+::: {.callout-note title="Ejemplo: ANOVA de Welch en la prueba de jarras"}
+
+**Planteamiento.** Repita el análisis de la prueba de jarras de la @sec-dce-ejemplo sin suponer que los cuatro coagulantes tienen la misma varianza. Use $\alpha = 0.05$.
+
+**Solución:**
+
+1. Varianzas de cada coagulante (@eq-dce-varianza-grupo, con las sumas del @tbl-dce-calculos): $s^2 = 10/4 = 2.5$; $12/4 = 3.0$; $6/4 = 1.5$ y $12/4 = 3.0$.
+2. Pesos $w_j = 5/s_j^2$: 2.000, 1.667, 3.333 y 1.667; $W = 8.667$.
+3. Media ponderada: $\bar{y}_w = (2 \times 79 + 1.667 \times 83 + 3.333 \times 89 + 1.667 \times 85)/8.667 = 84.77$ %.
+4. Numerador: $\left[2(79 - 84.77)^2 + 1.667(83 - 84.77)^2 + 3.333(89 - 84.77)^2 + 1.667(85 - 84.77)^2\right]/3 = 131.5/3 = 43.84$.
+5. $\Lambda = \left[(1 - 0.231)^2 + (1 - 0.192)^2 + (1 - 0.385)^2 + (1 - 0.192)^2\right]/4 = 2.275/4 = 0.569$.
+6. Denominador: $1 + (2 \times 2/15) \times 0.569 = 1.152$, y $F_W = 43.84/1.152 = 38.1$.
+7. Grados de libertad del denominador: $\nu = 15/(3 \times 0.569) = 8.79$. Con $F_{0.05;\,3,\,8.79} \approx 3.9$, se rechaza $H_0$.
+
+**Pseudocódigo**
+
+1. Calcular la media, la varianza y el tamaño de cada grupo.
+2. Calcular los pesos, la media ponderada y $\Lambda$.
+3. Calcular $F_W$, sus grados de libertad y el valor $p$.
+4. Repetir con `oneway.test()`.
+
+```{r}
+# 1) Resumen por coagulante
+jarras <- read.csv("datos/jarras_coagulantes_hipotetico.csv")
+media_j <- tapply(jarras$remocion_pct, jarras$coagulante, mean)
+var_j <- tapply(jarras$remocion_pct, jarras$coagulante, var)
+n_j <- tapply(jarras$remocion_pct, jarras$coagulante, length)
+k <- length(media_j)
+
+# 2) Pesos, media ponderada y Lambda
+w <- n_j / var_j
+media_w <- sum(w * media_j) / sum(w)
+lambda_w <- sum((1 - w / sum(w))^2 / (n_j - 1))
+
+# 3) Estadístico de Welch
+f_w <- (sum(w * (media_j - media_w)^2) / (k - 1)) /
+       (1 + 2 * (k - 2) / (k^2 - 1) * lambda_w)
+gl2 <- (k^2 - 1) / (3 * lambda_w)
+c(F = f_w, gl1 = k - 1, gl2 = gl2, p = 1 - pf(f_w, k - 1, gl2))
+```
+
+```{r}
+# 4) Misma prueba con oneway.test()
+oneway.test(remocion_pct ~ coagulante, data = jarras)              # Welch
+oneway.test(remocion_pct ~ coagulante, data = jarras, var.equal = TRUE)  # ANOVA clásico
+```
+
+Con `var.equal = TRUE`, `oneway.test()` da el mismo $F = 34.67$ de `aov()`.
+
+**Interpretación.** El ANOVA de Welch da $F_W = 38.1$ con 3 y 8.8 grados de libertad, y un valor $p < 0.001$: la conclusión no cambia. Aquí las varianzas difieren poco (de 1.5 a 3.0) y los grupos son del mismo tamaño, así que las dos pruebas coinciden. Cuando los grupos tienen tamaños distintos y no hay certeza de que las varianzas sean iguales, conviene correr las dos versiones y reportar la de Welch si difieren.
+
+:::
+
+### Variantes del ANOVA de un factor {#sec-dce-variantes}
+
+El ANOVA de este capítulo es el punto de partida de una familia de métodos. El @tbl-dce-variantes resume cuándo usar cada uno.
+
+```{r}
+#| label: tbl-dce-variantes
+#| tbl-cap: "Cuándo usar cada variante del ANOVA de un factor."
+#| echo: false
+
+variantes <- data.frame(
+  metodo = c("ANOVA clásico", "ANOVA de Welch", "Transformación de la respuesta",
+             "Kruskal-Wallis", "Diseño en bloques", "ANOVA factorial"),
+  cuando = c("Errores independientes, aproximadamente normales y con varianza común.",
+             "Varianzas distintas, sobre todo con grupos de distinto tamaño.",
+             "La dispersión crece con la media (concentraciones, caudales, conteos).",
+             "Datos muy asimétricos o con valores atípicos, o respuesta ordinal.",
+             "Hay una fuente de variación conocida (muestra de agua, día, lote).",
+             "Interesan dos o más factores y su interacción."),
+  r = c("aov(), anova(lm())", "oneway.test()", "aov(log(y) ~ ...)", "kruskal.test()",
+        "aov(y ~ trat + bloque)", "aov(y ~ A * B)"),
+  donde = c("Este capítulo", "Este capítulo", "Capítulo 29", "Capítulo 29",
+            "Capítulo 29", "Capítulo 30")
+)
+variantes$r <- paste0("<code>", variantes$r, "</code>")
+variantes %>%
+  kbl(col.names = c("Método", "Cuándo se usa", "En R", "Dónde se explica"), escape = FALSE, align = "llll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
 
 ## Supuestos del ANOVA {#sec-dce-supuestos}
 
@@ -638,6 +1093,27 @@ El valor $p$ del ANOVA es confiable si se cumplen los supuestos del modelo de la
 
 Los supuestos se refieren a los errores $\varepsilon_{ij}$, que se estiman con los residuos $e_{ij} = y_{ij} - \bar{y}_j$. La @sec-mc-supuestos muestra cómo revisarlos con gráficos y pruebas, y qué hacer si no se cumplen.
 
+El orden de importancia no es el de la lista. Una falta de independencia, por ejemplo jarras corridas en orden con agua que se asienta (@fig-dce-int-aleatorizacion), sesga el resultado y no tiene arreglo en el análisis. Una varianza distinta entre grupos se corrige con el ANOVA de Welch (@sec-dce-welch) o con una transformación. Una falta moderada de normalidad casi no cambia el valor $p$ cuando los grupos tienen el mismo tamaño y al menos cinco o seis observaciones, porque las medias tienden a la normalidad por el teorema del límite central (@sec-muestreo-tlc).
+
+## Cómo reportar un ANOVA {#sec-dce-reporte}
+
+Un informe técnico no copia la salida de R. Da los números que alguien necesita para entender y revisar la conclusión, en una o dos oraciones y un cuadro. Para la prueba de jarras, una redacción completa sería:
+
+> Las medias de remoción de turbiedad fueron 79 % con sulfato de aluminio, 83 % con sulfato férrico, 89 % con PAC y 85 % con cloruro férrico, con cinco jarras por coagulante. El ANOVA de un factor indicó diferencias entre coagulantes ($F_{3,\,16} = 34.67$, $p < 0.001$, $\eta^2 = 0.87$). La desviación estándar dentro de los grupos fue de 1.6 puntos porcentuales ($\sqrt{CM_E} = \sqrt{2.5}$).
+
+Ese párrafo contiene lo necesario: las medias en las unidades de la respuesta, el número de repeticiones, el estadístico con sus dos grados de libertad, el valor $p$, un tamaño del efecto y la magnitud del ruido. Le falta decir qué coagulantes difieren entre sí, que es el trabajo de las comparaciones múltiples del capítulo 29.
+
+::: {.callout-warning title="Cuidado"}
+Errores frecuentes al aplicar el ANOVA de un factor:
+
+- Contar alícuotas, lecturas repetidas o probetas de una misma bachada como repeticiones (@sec-dce-unidad).
+- Correr los tratamientos en orden en lugar de sortearlo (@sec-dce-aleatorizacion).
+- Concluir que "el PAC es el mejor" solo con el ANOVA, que dice que hay alguna diferencia, pero no cuál.
+- Escribir "se acepta $H_0$" cuando el valor $p$ es grande. Lo correcto es "no se rechaza $H_0$": con pocas repeticiones, una diferencia real puede pasar inadvertida (@sec-dce-repeticiones).
+- Reportar solo el valor $p$, sin las medias ni un tamaño del efecto.
+- Usar un ANOVA de un factor cuando las unidades vienen en grupos conocidos, como muestras de agua de distintos días, que piden un diseño en bloques (@sec-mc-bloques).
+:::
+
 ## Ejercicios propuestos
 
 1. Se comparan tres dosis de un aditivo reductor de agua: 0 %, 0.5 % y 1.0 % del peso del cemento. La resistencia a compresión a los 7 días (MPa) de cuatro cilindros por dosis fue: 0 %: 24, 26, 25, 23; 0.5 %: 28, 30, 29, 27; 1.0 %: 31, 32, 30, 33. Plantee las hipótesis, construya el cuadro ANOVA a mano y decida con $\alpha = 0.05$. Compruebe el resultado con `aov()`.
@@ -646,6 +1122,12 @@ Los supuestos se refieren a los errores $\varepsilon_{ij}$, que se estiman con l
 4. Escriba en R un sorteo con `set.seed()` y `sample()` para asignar tres tipos de mezcla asfáltica (A, B, C) a 12 tramos de prueba de una carretera, cuatro tramos por mezcla. Explique por qué asignar las mezclas por orden de los tramos (A en los primeros cuatro, B en los siguientes, C en los últimos) sería un mal diseño si los tramos van subiendo una pendiente.
 5. Repita la simulación de la @sec-dce-muchas-t con seis grupos de cinco observaciones. Compare la proporción de experimentos con alguna prueba $t$ significativa con el valor de la @eq-dce-error-familiar y explique por qué no coinciden.
 6. Con la @fig-dce-int-anova, busque una combinación de separación y dispersión que dé $F$ cercano al valor crítico. ¿Qué pasa con $F$ si se duplican al mismo tiempo la separación y la dispersión? Justifique con la @eq-dce-sctrat y la @eq-dce-sce.
+7. Clasifique cada estudio como experimento aleatorizado, cuasiexperimento u observacional, y diga qué variable de confusión podría explicar el resultado: (a) se comparan los asentamientos de edificios con pilotes y con losa de cimentación en una ciudad; (b) se reparten por sorteo tres tipos de señal de "ceda el paso" entre 30 intersecciones parecidas; (c) un municipio aplica un sello asfáltico en los caminos que más se quejan y compara su deterioro con el de los demás.
+8. Con la @fig-dce-int-aleatorizacion, repita 20 veces el experimento con cada tipo de asignación y anote la diferencia estimada. Calcule la media y la desviación estándar de las dos series. ¿Cuál asignación tiene sesgo y cuál tiene más variabilidad? ¿Por qué el sorteo no reduce la variabilidad que agrega la deriva?
+9. Se comparan cuatro métodos de medición del contenido de humedad de un suelo (horno, microondas, speedy y sonda) con muestras divididas de un mismo material. Con datos previos se espera $\sigma = 0.6$ puntos porcentuales y se quiere detectar un patrón de medias 14.0, 14.5, 14.5 y 15.0 %. Con `power.anova.test()`, calcule cuántas muestras por método hacen falta para una potencia de 0.80 y de 0.90, y explique por qué la segunda pide tantas más.
+10. En un ensayo de permeabilidad de tres mezclas de concreto permeable, dos probetas se dañaron y los grupos quedaron con 6, 4 y 5 probetas. Datos hipotéticos (mm/s): mezcla 1: 4.1, 4.6, 3.9, 4.4, 4.2, 4.0; mezcla 2: 6.8, 3.2, 8.1, 5.0; mezcla 3: 5.1, 5.4, 4.9, 5.3, 5.0. Compare el ANOVA clásico con el de Welch usando `oneway.test()`. ¿Por qué difieren tanto aquí y no en la prueba de jarras?
+11. Calcule $\eta^2$ y $\omega^2$ (@eq-dce-omega) para el ejercicio 1. Repita con solo dos cilindros por dosis (los dos primeros de cada grupo) y compare cuánto se separan las dos medidas en cada caso.
+12. Redacte el párrafo de resultados del ejercicio 1 con la estructura de la @sec-dce-reporte.
 
 ## Lecturas recomendadas
 
@@ -653,3 +1135,6 @@ Los supuestos se refieren a los errores $\varepsilon_{ij}$, que se estiman con l
 - @laneintroduction, capítulo 15: explicación sencilla del ANOVA de un factor, con ejercicios interactivos en su versión web.
 - @illowsky2018introductory, capítulo 13: introducción a la distribución $F$ y al ANOVA de un factor, con ejemplos resueltos paso a paso.
 - @fisher1935design: el libro que fundó el diseño de experimentos. Sus primeros capítulos se leen sin matemática avanzada.
+- @hurlbert1984pseudoreplication: el artículo que dio nombre a la pseudorreplicación, con ejemplos de campo que siguen siendo actuales.
+- @walpole2012probabilidad, capítulo 13: el ANOVA de un factor en español, con pruebas de igualdad de varianzas y ejercicios de ingeniería.
+- @welch1951comparison: la versión del ANOVA que no supone varianzas iguales.
