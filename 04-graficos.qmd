@@ -70,7 +70,7 @@ El eje de un gráfico de barras empieza siempre en cero. La longitud de la barra
 
 ```{r}
 #| label: fig-graf-barras-eje
-#| fig-cap: "Las mismas dos resistencias medias con el eje desde cero y con el eje recortado."
+#| fig-cap: "Eje desde cero y eje recortado."
 #| fig-alt: "A la izquierda dos barras de altura casi igual, 31 y 33 MPa, con el eje desde cero; a la derecha las mismas barras con el eje desde 30, donde una parece el triple de la otra"
 #| echo: false
 #| fig-height: 3.4
@@ -97,7 +97,7 @@ Además, cuando los nombres son largos o hay muchas categorías, las barras hori
 
 ```{r}
 #| label: fig-graf-barras-variantes
-#| fig-cap: "Cuatro formas de dibujar el inventario de puentes según material y estado (datos hipotéticos)."
+#| fig-cap: "Variantes del gráfico de barras."
 #| fig-alt: "Cuatro paneles: barras horizontales ordenadas por número de puentes, barras agrupadas por estado, barras apiladas y barras apiladas al 100 por ciento"
 #| echo: false
 #| fig-height: 6
@@ -161,7 +161,7 @@ La @fig-graf-hist-formas muestra las cuatro formas que más se ven en ingenierí
 
 ```{r}
 #| label: fig-graf-hist-formas
-#| fig-cap: "Cuatro formas de histograma con conjuntos de datos de R."
+#| fig-cap: "Formas frecuentes de un histograma."
 #| fig-alt: "Cuatro histogramas: uno simétrico en forma de campana, uno con cola larga a la derecha, uno con dos montañas separadas y uno plano"
 #| echo: false
 #| fig-height: 5.6
@@ -195,7 +195,7 @@ Con `freq = FALSE`, `hist()` dibuja la densidad en vez del conteo: el área de c
 
 ```{r}
 #| label: fig-graf-hist-densidad
-#| fig-cap: "Histograma de densidad del ozono diario con la curva de densidad superpuesta (conjunto airquality)."
+#| fig-cap: "Histograma de densidad del ozono."
 #| fig-alt: "Histograma con cola larga a la derecha y una curva suave naranja que sigue la forma de las barras"
 
 ozono <- na.omit(airquality$Ozone)
@@ -223,7 +223,7 @@ La @fig-graf-caja-partes señala cada pieza sobre los tiempos de recorrido de un
 
 ```{r}
 #| label: fig-graf-caja-partes
-#| fig-cap: "Partes de un diagrama de caja, con los tiempos de recorrido de un bus en 15 viajes (datos hipotéticos)."
+#| fig-cap: "Partes de un diagrama de caja."
 #| fig-alt: "Diagrama de caja horizontal con flechas que señalan el bigote inferior en 18.4, el primer cuartil en 20.45, la mediana en 21.5, el tercer cuartil en 23.15, el bigote superior en 25.0, la valla superior en 27.2 y un punto atípico en 34.6 minutos"
 #| echo: false
 #| fig-height: 3.4
@@ -280,7 +280,7 @@ Y no conviene en estos otros:
 
 ```{r}
 #| label: fig-graf-caja-bimodal
-#| fig-cap: "La misma resistencia de los 60 cilindros en un histograma y en un diagrama de caja."
+#| fig-cap: "Histograma y caja de los mismos datos."
 #| fig-alt: "A la izquierda, un histograma con dos grupos de barras separados; a la derecha, una sola caja ancha sin señal de los dos grupos"
 #| echo: false
 #| fig-height: 3.6
@@ -359,7 +359,7 @@ boxplot.stats(tiempo)$out
 
 ```{r}
 #| label: fig-graf-caja-tiempos
-#| fig-cap: "Tiempos de recorrido de un bus en 15 viajes (datos hipotéticos)."
+#| fig-cap: "Tiempos de recorrido de un bus."
 #| fig-alt: "Diagrama de caja horizontal entre 18 y 25 minutos con un punto aislado en 34.6 minutos"
 #| fig-height: 2.8
 
@@ -377,7 +377,7 @@ La caja básica tiene varias versiones. Cada una agrega algo que la caja sola es
 
 ```{r}
 #| label: fig-graf-caja-variantes
-#| fig-cap: "Seis variantes del diagrama de caja con la resistencia a 28 días por proyecto."
+#| fig-cap: "Variantes del diagrama de caja."
 #| fig-alt: "Seis paneles: cajas clásicas, cajas con muescas, cajas de ancho variable, cajas con los puntos encima, violines con una caja angosta dentro y cajas por proyecto y mezcla con dos colores"
 #| echo: false
 #| fig-height: 6.4
@@ -561,7 +561,7 @@ En el @fig-graf-caja-int se puede mover el último viaje del ejemplo con el desl
 </script>
 ```
 
-Diagrama de caja que se recalcula al cambiar los datos, el último valor o el factor de las vallas.
+Diagrama de caja interactivo.
 
 :::
 
@@ -571,7 +571,7 @@ El gráfico de dispersión dibuja un punto por cada par de valores de dos variab
 
 ```{r}
 #| label: fig-graf-dispersion-base
-#| fig-cap: "Ozono y temperatura máxima diarios en Nueva York, de mayo a setiembre de 1973 (conjunto airquality)."
+#| fig-cap: "Ozono y temperatura diarios."
 #| fig-alt: "Nube de puntos que sube de izquierda a derecha y se curva hacia arriba: con más de 80 grados Fahrenheit el ozono pasa a menudo de 75 ppb"
 
 plot(airquality$Temp, airquality$Ozone, pch = 19, col = "#1C6BA0",
@@ -591,7 +591,7 @@ La @fig-graf-dispersion-patrones muestra los patrones que se buscan al mirar un 
 
 ```{r}
 #| label: fig-graf-dispersion-patrones
-#| fig-cap: "Cuatro patrones de un gráfico de dispersión (datos simulados)."
+#| fig-cap: "Patrones de un gráfico de dispersión."
 #| fig-alt: "Cuatro nubes de puntos: una que sube en línea recta, una que baja, una redonda sin dirección y una en forma de curva"
 #| echo: false
 #| fig-height: 5.4

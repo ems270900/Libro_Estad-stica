@@ -1261,3 +1261,23 @@ body.quarto-dark .doc-simulado .doc-mensaje { color: #f0b46b; }
 .interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 20%, transparent); font-weight: 700; text-decoration: none; }
 body.quarto-dark .interactivo button.archivo { background: transparent; }
 body.quarto-dark .interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 25%, transparent); }
+
+/* Capítulo 5: partes de un bloque de código */
+.anatomia-bloque { text-align: left; max-width: 720px; margin: 0 auto; }
+.anatomia-bloque pre { font-size: 0.85rem; padding: 0.6rem; border-radius: 6px; background: #f6f8fa; white-space: pre-wrap; }
+.anatomia-bloque ol { font-size: 0.92rem; margin-top: 0.5rem; }
+.anatomia-bloque .ab-1 { color: #6c757d; font-weight: 700; }
+.anatomia-bloque .ab-2 { color: #a26800; font-weight: 700; }
+.anatomia-bloque .ab-3 { color: #0f5560; font-weight: 700; }
+.anatomia-bloque .ab-4 { color: #7b3fa0; font-weight: 700; }
+.anatomia-bloque .ab-5 { color: #b5361c; }
+.anatomia-bloque .ab-6 { color: #1b5e20; }
+body.quarto-dark .anatomia-bloque pre { background: #2b2e33; }
+body.quarto-dark .anatomia-bloque .ab-1 { color: #aab2bd; }
+body.quarto-dark .anatomia-bloque .ab-2 { color: #ffc357; }
+body.quarto-dark .anatomia-bloque .ab-3 { color: #7fd0da; }
+body.quarto-dark .anatomia-bloque .ab-4 { color: #d0a8f0; }
+body.quarto-dark .anatomia-bloque .ab-5 { color: #ff9e85; }
+body.quarto-dark .anatomia-bloque .ab-6 { color: #9ad89e; }
+.interactivo input[type=text] { padding: 0.15rem 0.35rem; }
+body.quarto-dark .interactivo input[type=text], body.quarto-dark .interactivo select { background: #2e3135; color: #e6e6e6; border: 1px solid #4d5055; }

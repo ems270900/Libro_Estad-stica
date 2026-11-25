@@ -82,41 +82,254 @@ Al compilar, R empieza desde cero, en una sesión vacía: no ve los objetos que 
 
 Mientras se escribe no hace falta compilar todo el documento cada vez. Cada bloque tiene a la derecha dos botones: el triángulo verde ejecuta ese bloque, y el triángulo gris con una raya ejecuta todos los bloques anteriores. El resultado aparece debajo del bloque, dentro del mismo editor. Ctrl + Enter ejecuta la línea donde está el cursor, igual que en un script, y Ctrl + Alt + R ejecuta todos los bloques. Lo usual es probar cada bloque así y compilar con Knit cuando una sección ya está lista.
 
-## El encabezado {#sec-rmd-encabezado}
+## El encabezado YAML {#sec-rmd-encabezado}
 
-El encabezado YAML define cómo se verá el documento completo. Cada línea tiene la forma `nombre: valor`, y la sangría importa: lo que está dentro de otra opción va dos espacios más a la derecha. Un encabezado más completo que el de la @fig-rmd-partes es el siguiente:
+El encabezado define cómo se verá el documento completo: el título, quién lo escribe, el formato de salida y detalles como el índice, la numeración de las secciones o el color del documento. Va al inicio del archivo, entre dos líneas de tres guiones, y se escribe en YAML, un formato de texto para guardar opciones que se lee casi como una lista [@xie2018rmarkdown].
 
+### Las reglas del YAML
+
+YAML tiene pocas reglas, pero se cumplen al pie de la letra:
+
+1. Cada línea tiene la forma `nombre: valor`, con un espacio después de los dos puntos.
+2. Lo que está dentro de otra opción va con sangría de dos espacios más. Se usan espacios, nunca la tecla Tab.
+3. Si el valor tiene dos puntos, comillas o un `#`, va entre comillas: `title: "Ensayo: resultados"`. Ante la duda, las comillas no estorban.
+4. Los valores lógicos se escriben `true` o `false`, en minúscula.
+5. Una lista de varios valores se escribe con un guion y un espacio al inicio de cada elemento, con la misma sangría.
+6. Lo que sigue a un `#` es un comentario y no se lee.
+
+La @fig-rmd-yaml-reglas compara un encabezado bien escrito con el mismo encabezado con tres errores típicos, marcados con números: (1) dos puntos dentro de un valor sin comillas, (2) elementos de una lista con sangrías distintas y (3) una opción sin sangría y sin espacio después de los dos puntos. Los nombres son ficticios.
+
+::: {#fig-rmd-yaml-reglas}
+
+:::: {.columns}
+
+::: {.column width="48%"}
 ```yaml
 ---
-title: "Resistencia a compresión del concreto"
-subtitle: "Informe de laboratorio"
-author: "Nombre de quien hace el informe"
-date: "25/11/2026"
+title: "Ensayo: resultados"
+author:
+  - "Ana Rojas"
+  - "Luis Mora"
 output:
   html_document:
     toc: true
     number_sections: true
 ---
 ```
-
-El @tbl-rmd-yaml explica las opciones más útiles. Con `toc: true` el documento muestra al inicio un índice con enlaces a cada sección, y con `number_sections: true` numera los títulos (1, 1.1, 1.2...).
-
-| Opción | Qué hace |
-|:--|:--|
-| `title`, `subtitle` | Título y subtítulo del documento |
-| `author` | Nombre de quien lo escribe |
-| `date` | Fecha; con `` "`r knitr::inline_expr("Sys.Date()")`" `` se pone sola la fecha del día en que se compila |
-| `output: html_document` | Documento HTML, que se abre en cualquier navegador |
-| `output: word_document` | Documento de Word (.docx) |
-| `toc: true` | Índice al inicio del documento |
-| `number_sections: true` | Títulos numerados |
-| `code_folding: hide` | En HTML, oculta el código detrás de un botón "Code" que el lector puede abrir |
-
-: Opciones frecuentes del encabezado de R Markdown. {#tbl-rmd-yaml}
-
-::: {.callout-warning title="Cuidado"}
-El encabezado es delicado con los espacios. Si `toc: true` no está alineado debajo de `html_document:` con dos espacios más, o si falta el espacio después de los dos puntos, la compilación se detiene con un mensaje que menciona YAML, por ejemplo `Error in yaml::yaml.load`. Ante ese error, lo primero es revisar la sangría y los dos puntos del encabezado.
 :::
+
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%"}
+```yaml
+---
+title: Ensayo: resultados    # (1)
+author:
+- "Ana Rojas"
+  - "Luis Mora"              # (2)
+output:
+  html_document:
+  toc:true                   # (3)
+---
+```
+:::
+
+::::
+
+Encabezado correcto (izquierda) y con errores (derecha).
+
+:::
+
+Cualquiera de esos errores detiene la compilación con un mensaje que menciona YAML, como `Error in yaml::yaml.load(...) : Scanner error`. Ante ese mensaje se revisa primero la sangría, después los dos puntos y por último las comillas.
+
+### Opciones generales
+
+Las primeras opciones del encabezado describen el documento y valen para cualquier formato de salida:
+
+| Opción | Qué hace | Ejemplo |
+|:--|:--|:--|
+| `title` | Título del documento | `title: "Tarea 3: estadística descriptiva"` |
+| `subtitle` | Subtítulo, debajo del título | `subtitle: "Curso de Probabilidad y Estadística"` |
+| `author` | Una persona, o una lista de varias con guiones | `author: "Nombre Apellido"` |
+| `date` | Fecha fija o calculada al compilar | `date: "25 de noviembre de 2026"` |
+| `abstract` | Resumen que aparece debajo del título | `abstract: "Se analizan 60 ensayos..."` |
+| `output` | Formato de salida y sus opciones | `output: html_document` |
+| `bibliography` | Archivo con las referencias (@sec-rmd-citas) | `bibliography: referencias.bib` |
+
+: Opciones generales del encabezado. {#tbl-rmd-yaml}
+
+La fecha puede ponerse sola. Con `` date: "`r knitr::inline_expr("Sys.Date()")`" `` aparece la fecha del día en que se compila, en formato año-mes-día (2026-11-25). Con `` date: "`r knitr::inline_expr('format(Sys.Date(), \"%d/%m/%Y\")')`" `` aparece como 25/11/2026. El nombre del mes, con `%B`, sale en el idioma de la computadora, así que en una computadora configurada en inglés dice "November".
+
+### Opciones del documento HTML
+
+Cuando el formato de salida tiene opciones, `output` deja de escribirse en una sola línea: debajo va el nombre del formato con dos puntos y, más adentro, sus opciones. El @tbl-rmd-html reúne las del formato HTML, que es el más usado para entregar tareas porque no necesita nada instalado [@xie2018rmarkdown].
+
+```yaml
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    code_folding: show
+    df_print: paged
+```
+
+| Opción | Valores | Qué hace |
+|:--|:--|:--|
+| `toc` | `true`, `false` | Agrega un índice (*table of contents*) con enlaces a cada título |
+| `toc_depth` | `1`, `2`, `3` (por defecto, 3) | Hasta qué nivel de título entra en el índice |
+| `toc_float` | `true`, `false` | El índice queda fijo a la izquierda y acompaña al lector al bajar. Necesita `toc: true` |
+| `number_sections` | `true`, `false` | Numera los títulos: 1, 1.1, 1.2, 2... |
+| `theme` | `default`, `cerulean`, `cosmo`, `flatly`, `journal`, `lumen`, `paper`, `readable`, `sandstone`, `simplex`, `spacelab`, `united`, `yeti`, `darkly` | Colores y tipo de letra del documento |
+| `highlight` | `default`, `tango`, `pygments`, `kate`, `monochrome`, `espresso`, `zenburn`, `haddock`, `breezedark`, `textmate` | Colores del código |
+| `code_folding` | `none`, `show`, `hide` | Agrega a cada bloque un botón para mostrar u ocultar el código. Con `hide` empieza oculto |
+| `code_download` | `true`, `false` | Agrega un botón para descargar el archivo `.Rmd` desde el HTML |
+| `df_print` | `default`, `kable`, `tibble`, `paged` | Cómo se imprimen los data frames. Con `paged`, en un cuadro con páginas |
+| `fig_width`, `fig_height` | Números, en pulgadas (por defecto, 7 y 5) | Tamaño de todas las figuras |
+| `fig_caption` | `true`, `false` | Muestra el pie de las figuras |
+| `self_contained` | `true`, `false` | Con `true` (por defecto) las imágenes van dentro del HTML y basta con enviar un archivo |
+
+: Opciones del formato `html_document`. {#tbl-rmd-html}
+
+Dos de estas opciones cambian mucho el aspecto de una tarea. Con `toc_float: true` el índice deja de estar arriba y pasa a una columna a la izquierda que siempre está a la vista, algo cómodo en documentos largos. Con `df_print: paged`, un data frame de 500 filas no llena diez pantallas: se ve en un cuadro con páginas de 10 filas, como los cuadros de datos de este libro.
+
+### Interactivo: armar un encabezado
+
+En el @fig-rmd-yaml-int se arma un encabezado marcando opciones. A la izquierda aparece el YAML que hay que copiar en el archivo, con la sangría correcta, y a la derecha una vista aproximada de cómo se verá el documento. Los colores de los temas son aproximados: el resultado exacto se ve al compilar.
+
+::: {#fig-rmd-yaml-int}
+
+```{=html}
+<div class="interactivo" id="int-yaml" style="max-width:760px;">
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
+    <label>Título <input type="text" class="y-titulo" value="Tarea 3: estadística descriptiva" style="flex:1 1 14rem;"></label>
+    <label>Autor <input type="text" class="y-autor" value="Nombre Apellido" style="flex:1 1 10rem;"></label>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem; margin-top:0.3rem;">
+    <label><input type="checkbox" class="y-fecha" checked> Fecha automática</label>
+    <label>Formato
+      <select class="y-formato"><option value="html_document">HTML</option><option value="word_document">Word</option><option value="pdf_document">PDF</option></select>
+    </label>
+    <label><input type="checkbox" class="y-toc" checked> toc</label>
+    <label><input type="checkbox" class="y-float"> toc_float</label>
+    <label><input type="checkbox" class="y-num" checked> number_sections</label>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem; margin-top:0.3rem;">
+    <label>theme
+      <select class="y-tema">
+        <option>default</option><option>cerulean</option><option>cosmo</option><option selected>flatly</option>
+        <option>journal</option><option>lumen</option><option>paper</option><option>readable</option>
+        <option>sandstone</option><option>simplex</option><option>spacelab</option><option>united</option>
+        <option>yeti</option><option>darkly</option>
+      </select>
+    </label>
+    <label>code_folding
+      <select class="y-fold"><option>none</option><option selected>show</option><option>hide</option></select>
+    </label>
+    <label>df_print
+      <select class="y-df"><option>default</option><option>kable</option><option selected>paged</option></select>
+    </label>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.8rem; margin-top:0.6rem; text-align:left;">
+    <pre class="y-salida" style="flex:1 1 15rem; margin:0; font-size:0.82rem;"></pre>
+    <div class="y-vista" style="flex:1.3 1 18rem; border:1px solid #c9ced6; border-radius:6px; padding:0.6rem; font-size:0.82rem; display:flex; gap:0.6rem; min-height:14rem;"></div>
+  </div>
+  <p class="resultado y-nota"></p>
+</div>
+<script>
+(function () {
+  const r = document.getElementById("int-yaml");
+  const q = s => r.querySelector(s);
+  const colores = { "default": "#337ab7", cerulean: "#2fa4e7", cosmo: "#2780e3", flatly: "#2c3e50",
+    journal: "#eb6864", lumen: "#158cba", paper: "#2196f3", readable: "#4582ec", sandstone: "#325d88",
+    simplex: "#d9230f", spacelab: "#446e9b", united: "#e95420", yeti: "#008cba", darkly: "#375a7f" };
+  function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function comillas(t) { return '"' + t.replace(/"/g, "'") + '"'; }
+  function actualizar() {
+    const fmt = q(".y-formato").value, html = fmt === "html_document";
+    const toc = q(".y-toc").checked, flo = q(".y-float").checked && toc && html, num = q(".y-num").checked;
+    const tema = q(".y-tema").value, fold = q(".y-fold").value, df = q(".y-df").value;
+    q(".y-float").disabled = !html || !toc;
+    q(".y-tema").disabled = q(".y-fold").disabled = !html;
+    const op = [];
+    if (toc) op.push("toc: true");
+    if (flo) op.push("toc_float: true");
+    if (num) op.push("number_sections: true");
+    if (html && tema !== "default") op.push("theme: " + tema);
+    if (html && fold !== "none") op.push("code_folding: " + fold);
+    if (df !== "default") op.push("df_print: " + df);
+    let y = "---\ntitle: " + comillas(q(".y-titulo").value) + "\nauthor: " + comillas(q(".y-autor").value) + "\n";
+    if (q(".y-fecha").checked) y += 'date: "' + String.fromCharCode(96) + 'r Sys.Date()' + String.fromCharCode(96) + '"\n';
+    y += op.length ? "output:\n  " + fmt + ":\n" + op.map(o => "    " + o).join("\n") + "\n" : "output: " + fmt + "\n";
+    y += "---";
+    q(".y-salida").textContent = y;
+    // Vista aproximada
+    const c = html ? colores[tema] : "#222222", oscuro = html && tema === "darkly";
+    const v = q(".y-vista");
+    v.style.background = oscuro ? "#222" : (fmt === "pdf_document" ? "#fdfdf8" : "#fff");
+    v.style.color = oscuro ? "#eee" : "#222";
+    v.style.fontFamily = fmt === "pdf_document" ? "Georgia, serif" : (fmt === "word_document" ? "Calibri, Arial, sans-serif" : "system-ui, sans-serif");
+    const n = (a) => num ? a + " " : "";
+    const indice = toc ? '<div style="' + (flo ? "flex:0 0 7.5rem; border-right:1px solid #ccc; padding-right:0.4rem;" : "border:1px solid #ccc; padding:0.2rem 0.4rem; margin:0.3rem 0;") +
+      '"><div style="color:' + c + '">' + n("1") + 'Datos</div><div style="color:' + c + '">' + n("2") + 'Resultados</div><div style="color:' + c + '; padding-left:0.6rem">' + n("2.1") + 'Medidas</div></div>' : "";
+    const boton = (html && fold !== "none") ? '<div style="text-align:right"><span style="border:1px solid ' + c + '; color:' + c + '; border-radius:3px; padding:0 0.3rem; font-size:0.72rem">' + (fold === "hide" ? "Show" : "Hide") + '</span></div>' : "";
+    const codigo = (html && fold === "hide") ? "" : '<pre style="margin:0.2rem 0; font-size:0.72rem; background:' + (oscuro ? "#303030" : "#f5f5f5") + '; color:inherit; padding:0.2rem">summary(datos)</pre>';
+    const datos = df === "paged" ? '<div style="font-size:0.7rem; border:1px solid #ccc; padding:0.2rem">Cuadro con páginas: 1 2 3 ... Siguiente</div>' :
+      (df === "kable" ? '<div style="font-size:0.7rem; border-top:2px solid; border-bottom:2px solid; padding:0.1rem">Cuadro con formato</div>' :
+      '<pre style="margin:0; font-size:0.7rem; color:inherit; background:none">##   x    y\n## 1 2.1  5.3</pre>');
+    const cuerpo = '<div style="flex:1; min-width:0">' +
+      '<div style="font-size:1.15rem; font-weight:600; color:' + (oscuro ? "#fff" : c) + '">' + esc(q(".y-titulo").value) + '</div>' +
+      '<div style="font-style:italic">' + esc(q(".y-autor").value) + (q(".y-fecha").checked ? " · 2026-11-25" : "") + '</div>' +
+      (flo ? "" : indice) +
+      '<div style="font-weight:600; margin-top:0.3rem; color:' + (oscuro ? "#fff" : c) + '">' + n("1") + 'Datos</div>' + boton + codigo + datos +
+      '<div style="font-weight:600; margin-top:0.3rem; color:' + (oscuro ? "#fff" : c) + '">' + n("2") + 'Resultados</div></div>';
+    v.innerHTML = (flo ? indice : "") + cuerpo;
+    q(".y-nota").textContent = html ? "" : "En Word y PDF no existen theme, toc_float ni code_folding: el encabezado no los incluye.";
+  }
+  r.querySelectorAll("input, select").forEach(e => e.addEventListener("input", actualizar));
+  r.querySelectorAll("input[type=checkbox], select").forEach(e => e.addEventListener("change", actualizar));
+  actualizar();
+})();
+</script>
+```
+
+Constructor de encabezados YAML.
+
+:::
+
+### Opciones de Word y PDF
+
+Los formatos de Word y PDF comparten algunas opciones con el HTML (`toc`, `toc_depth`, `number_sections`, `fig_width`, `fig_height`) y tienen otras propias:
+
+- `word_document`: con `reference_docx: plantilla.docx` el documento toma los estilos (tipo de letra, márgenes, colores de los títulos) de un archivo de Word que sirve de modelo. Se arma una vez, compilando cualquier documento a Word, cambiando sus estilos en Word y guardándolo con otro nombre. Las figuras salen por defecto de 5 × 4 pulgadas.
+- `pdf_document`: `latex_engine: xelatex` elige el programa que arma el PDF (xelatex maneja mejor las tildes y los tipos de letra del sistema), `keep_tex: true` guarda el archivo intermedio de LaTeX y `fig_caption: true` numera las figuras. Las figuras salen por defecto de 6.5 × 4.5 pulgadas.
+
+Un mismo archivo puede tener los tres formatos a la vez, uno debajo del otro dentro de `output`. El botón Knit usa el primero, y su flecha permite elegir los demás.
+
+### Un encabezado para entregar tareas
+
+Para una tarea, el encabezado siguiente sirve casi siempre. Tiene título, autor, fecha automática, índice fijo a la izquierda, secciones numeradas, código visible con botón para ocultarlo y data frames con páginas:
+
+```yaml
+---
+title: "Tarea 3: estadística descriptiva"
+subtitle: "Probabilidad y Estadística"
+author: "Nombre Apellido (carné B00000)"
+date: "`r knitr::inline_expr('format(Sys.Date(), \"%d/%m/%Y\")')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    code_folding: show
+    df_print: paged
+---
+```
 
 ## Texto con Markdown {#sec-rmd-markdown}
 
@@ -229,6 +442,47 @@ Un cuadro escrito en Markdown (izquierda) y su resultado (derecha). Los valores 
 
 No hace falta que las barras queden alineadas; se alinean en el ejemplo solo para que se lea mejor. Cuando el cuadro sale de los datos, como un resumen por proyecto, no se escribe a mano: se calcula con R y se muestra con `kable()`, como se explica en la @sec-rmd-cuadros.
 
+### Más elementos de Markdown
+
+El @tbl-rmd-markdown-mas reúne otros elementos que aparecen en informes y tareas. Los últimos tres son propios del formato HTML de R Markdown.
+
+| Lo que se escribe | Lo que se ve o lo que hace |
+|:--|:--|
+| `~~valor anterior~~` | ~~valor anterior~~ |
+| `Texto con nota.^[Ensayo según la norma.]` | Texto con nota.^[Ensayo según la norma del laboratorio.] |
+| `***` en una línea sola | Una línea horizontal que separa partes del documento |
+| Dos espacios al final de una línea, o `\` | Un salto de línea dentro del mismo párrafo |
+| `\*` | Un asterisco literal, \*, sin cursiva |
+| `<!-- revisar este dato -->` | Nada: es un comentario que no aparece en el documento |
+| `![Ensayo](img/foto.jpg){width=50%}` | La imagen al 50 % del ancho |
+| Lista con 4 espacios de sangría | Una lista dentro de otra lista |
+| Un bloque que abre con tres acentos graves y `r`, sin llaves | Código con colores que no se ejecuta |
+| `## Resultados {.tabset}` | Las secciones de nivel 3 que siguen se muestran como pestañas |
+| `## Datos {-}` | Un título sin número aunque el documento use `number_sections` |
+| `## Anexo {.unnumbered}` | Lo mismo, escrito de otra forma |
+
+: Más elementos de Markdown. {#tbl-rmd-markdown-mas}
+
+Las pestañas (`{.tabset}`) son muy útiles para mostrar resultados alternativos sin alargar el documento, como el mismo gráfico hecho con R base y con ggplot2. Todas las secciones de nivel 3 que siguen al título marcado se convierten en pestañas, hasta el siguiente título de nivel 2:
+
+````markdown
+## Gráfico de la resistencia {.tabset}
+
+### R base
+
+```{{r}}
+boxplot(resistencia_mpa ~ proyecto, data = e28)
+```
+
+### ggplot2
+
+```{{r}}
+ggplot(e28, aes(proyecto, resistencia_mpa)) + geom_boxplot()
+```
+
+## Conclusiones
+````
+
 ### Pruebe Markdown
 
 En el interactivo de la @fig-rmd-interactivo se puede practicar: lo que se escribe en el recuadro de la izquierda aparece con formato a la derecha. Reconoce los títulos, la cursiva, la negrita, el código y las listas. Pruebe a borrar una línea en blanco antes de la lista y vea qué pasa.
@@ -297,15 +551,96 @@ Vista previa de Markdown: el texto de la izquierda se muestra con formato a la d
 
 ## Bloques de código y sus opciones {#sec-rmd-bloques}
 
-Un bloque de código se inserta con el menú Code > Insert Chunk o con el atajo Ctrl + Alt + I. RStudio escribe las dos líneas de acentos graves y deja el cursor en medio. Dentro de las llaves, después de la `r`, se puede escribir un nombre para el bloque y, después de una coma, opciones que controlan qué se muestra en el documento final:
+Un bloque de código (en inglés, *chunk*) es la parte del documento donde vive el R. Se inserta con el menú Code > Insert Chunk, con el botón verde "+C" de la barra del editor o con el atajo Ctrl + Alt + I. RStudio escribe las líneas de apertura y de cierre y deja el cursor en medio.
 
+### Las partes de un bloque
+
+La @fig-rmd-partes-bloque señala las piezas de un bloque completo.
+
+::: {#fig-rmd-partes-bloque}
+
+```{=html}
+<div class="anatomia-bloque">
+<pre><span class="ab-1">```</span><span class="ab-2">{</span><span class="ab-3">r</span> <span class="ab-4">caudales-mes</span>, <span class="ab-5">echo = FALSE, fig.cap = "Caudal medio por mes."</span><span class="ab-2">}</span>
+<span class="ab-6">caudal &lt;- c(12.4, 15.1, 9.8, 22.6, 14.3)
+barplot(caudal, names.arg = c("Jun", "Jul", "Ago", "Set", "Oct"))</span>
+<span class="ab-1">```</span></pre>
+<ol>
+<li><span class="ab-1">Tres acentos graves</span> abren y cierran el bloque. Tienen que estar solos en su línea y al inicio de ella.</li>
+<li><span class="ab-2">Llaves</span>: todo lo que está dentro describe el bloque.</li>
+<li><span class="ab-3">El lenguaje</span>: <code>r</code>. R Markdown también acepta <code>python</code>, <code>sql</code> y otros.</li>
+<li><span class="ab-4">El nombre</span> (opcional), separado de <code>r</code> por un espacio. Sin espacios ni tildes, y distinto en cada bloque.</li>
+<li><span class="ab-5">Las opciones</span>, separadas por comas, con la forma <code>opción = valor</code>.</li>
+<li><span class="ab-6">El código</span>, que R ejecuta al compilar.</li>
+</ol>
+</div>
+```
+
+Partes de un bloque de código.
+
+:::
+
+El nombre no es obligatorio, pero ayuda mucho: cuando la compilación falla, el mensaje dice en qué bloque ocurrió (`Quitting from lines 40-45 (caudales-mes)`), y en RStudio el menú de la parte de abajo del editor permite saltar de un bloque a otro por su nombre. Dos bloques con el mismo nombre detienen la compilación con el error `Duplicate chunk label`.
+
+Las opciones también pueden escribirse en las primeras líneas del bloque, cada una en su propia línea que empieza con `#|`. Las dos formas siguientes hacen lo mismo. La segunda es más fácil de leer cuando hay muchas opciones y es la que usa Quarto (@sec-rmd-quarto), así que conviene acostumbrarse a ella. Dentro de las llaves los nombres llevan punto (`fig.cap`); en las líneas `#|` los valores siguen las reglas del YAML (`true` y `false` en minúscula).
+
+:::: {.columns}
+
+::: {.column width="48%"}
 ````markdown
-```{{r caja-proyectos, echo = FALSE, fig.cap = "Resistencia por proyecto."}}
-boxplot(resistencia_mpa ~ proyecto, data = ensayos)
+```{{r caudales-mes, echo = FALSE, fig.cap = "Caudal medio por mes."}}
+barplot(caudal)
 ```
 ````
+:::
 
-El nombre (`caja-proyectos`) es opcional, pero ayuda: si la compilación falla, el mensaje de error dice en qué bloque ocurrió. Dos bloques no pueden tener el mismo nombre. El @tbl-rmd-opciones reúne las opciones más usadas.
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%"}
+````markdown
+```{{r}}
+#| label: caudales-mes
+#| echo: false
+#| fig.cap: "Caudal medio por mes."
+barplot(caudal)
+```
+````
+:::
+
+::::
+
+### Todas las opciones de uso frecuente
+
+knitr, el paquete que ejecuta los bloques, tiene más de 50 opciones [@xie2018rmarkdown]. El @tbl-rmd-opciones-todas reúne las que se usan en la práctica, agrupadas por lo que controlan. La columna del medio dice el valor que tiene la opción si no se escribe.
+
+| Opción | Por defecto | Qué hace |
+|:--|:-:|:--|
+| **Código y resultados** | | |
+| `echo` | `TRUE` | Muestra el código en el documento |
+| `eval` | `TRUE` | Ejecuta el código. Con `FALSE` el código se muestra pero no corre |
+| `include` | `TRUE` | Con `FALSE` el bloque se ejecuta, pero no deja nada en el documento |
+| `results` | `"markup"` | `"hide"` oculta los resultados impresos; `"hold"` los junta todos al final del bloque; `"asis"` los pasa como texto de Markdown |
+| `collapse` | `FALSE` | Une el código y sus resultados en un solo recuadro |
+| `comment` | `"##"` | Texto al inicio de cada línea de resultado. Con `""` no se pone nada |
+| `message` | `TRUE` | Muestra los mensajes, como los que escriben algunos paquetes al cargarse |
+| `warning` | `TRUE` | Muestra las advertencias (*warnings*) |
+| `error` | `FALSE` | Con `FALSE` un error detiene la compilación; con `TRUE` el error se muestra y la compilación sigue |
+| **Figuras** | | |
+| `fig.width`, `fig.height` | 7 y 5 | Tamaño con que R dibuja la figura, en pulgadas |
+| `fig.asp` | — | Relación alto/ancho; con `fig.width = 6, fig.asp = 0.6` el alto es 3.6 |
+| `out.width` | — | Ancho con que la figura se muestra en la página, como `"70%"` |
+| `fig.align` | `"default"` | Alineación: `"left"`, `"center"` o `"right"` |
+| `fig.cap` | — | Pie de la figura |
+| `fig.show` | `"asis"` | `"hold"` pone todas las figuras del bloque al final; `"hide"` no las muestra |
+| `dpi` | — | Resolución de la imagen, en puntos por pulgada |
+| **Tiempo de compilación** | | |
+| `cache` | `FALSE` | Guarda el resultado del bloque y no lo vuelve a calcular mientras el código no cambie |
+| `dependson` | — | Nombre de otro bloque en caché del que depende este |
+
+: Opciones de los bloques de código. {#tbl-rmd-opciones-todas}
+
+El @tbl-rmd-opciones resume el efecto de las cinco opciones que más se combinan.
 
 | Opción | Muestra el código | Ejecuta el código | Muestra el resultado | Uso típico |
 |:--|:-:|:-:|:-:|:--|
@@ -316,63 +651,175 @@ El nombre (`caja-proyectos`) es opcional, pero ayuda: si la compilación falla, 
 | `message = FALSE` | Sí | Sí | Sí, sin mensajes | Ocultar los avisos que aparecen al cargar un paquete |
 | `warning = FALSE` | Sí | Sí | Sí, sin advertencias | Ocultar advertencias ya revisadas |
 
-: Opciones frecuentes de los bloques de código y su efecto. {#tbl-rmd-opciones}
+: Combinaciones frecuentes de opciones. {#tbl-rmd-opciones}
 
-Para los gráficos hay tres opciones más: `fig.cap` agrega el pie de la figura, `fig.width` y `fig.height` fijan el tamaño en pulgadas (por defecto 7 × 5), y `out.width = "70%"` fija el ancho con que se muestra en la página.
+::: {.callout-warning title="Cuidado"}
+`warning = FALSE` y `message = FALSE` no arreglan nada: solo esconden el aviso. Antes de ocultar una advertencia hay que leerla y entenderla. Una advertencia como `NAs introduced by coercion` dice que algunos datos no se pudieron leer como números, y si se oculta, los cálculos siguientes salen mal sin que nadie se entere.
+:::
 
-El interactivo de la @fig-rmd-opciones-int muestra cómo cambia el documento compilado al activar cada opción. El bloque carga el paquete dplyr, que al cargarse escribe un mensaje, y calcula una media.
+### Interactivo: cómo cambia el documento con cada opción
+
+El interactivo de la @fig-rmd-opciones-int simula la compilación de un bloque con caudales mensuales de un río (datos hipotéticos). El bloque carga dplyr, que escribe un mensaje al cargarse; calcula la media; saca la raíz cuadrada de un número negativo, que produce una advertencia, y calcula el máximo. Al marcar la casilla de la última fila se agrega una línea con un error: un objeto que no existe. Conviene probar `include` sin marcar con la línea del error activa: el bloque no muestra nada, pero el error igual detiene la compilación, porque el código sí se ejecuta.
 
 ::: {#fig-rmd-opciones-int}
 
 ```{=html}
-<div class="interactivo" id="int-opciones">
-  <div style="display:flex; flex-wrap:wrap; gap:0.4rem 1.2rem; margin-bottom:0.6rem;">
+<div class="interactivo" id="int-opciones" style="max-width:760px;">
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.1rem;">
     <label><input type="checkbox" data-op="echo" checked> echo</label>
     <label><input type="checkbox" data-op="eval" checked> eval</label>
     <label><input type="checkbox" data-op="include" checked> include</label>
     <label><input type="checkbox" data-op="message" checked> message</label>
+    <label><input type="checkbox" data-op="warning" checked> warning</label>
+    <label><input type="checkbox" data-op="error"> error</label>
+    <label><input type="checkbox" data-op="collapse"> collapse</label>
   </div>
-  <p class="resultado" style="font-family:monospace; font-size:0.85rem;"></p>
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.1rem; margin-top:0.3rem;">
+    <label>results <select data-op="results"><option>markup</option><option>hold</option><option>hide</option></select></label>
+    <label>comment <select data-op="comment"><option value="##">"##"</option><option value="">""</option></select></label>
+    <label><input type="checkbox" data-op="linea-error"> Agregar una línea con un error</label>
+  </div>
+  <p class="resultado op-cabeza" style="font-family:monospace; font-size:0.85rem;"></p>
   <div class="doc-simulado" aria-live="polite">
-    <p class="doc-texto">La resistencia media del lote es la siguiente:</p>
-    <pre class="doc-codigo">library(dplyr)
-resistencia &lt;- c(27.4, 29.1, 26.8, 30.2, 28.5)
-mean(resistencia)</pre>
-    <pre class="doc-mensaje">Attaching package: 'dplyr'</pre>
-    <pre class="doc-salida">[1] 28.4</pre>
-    <p class="doc-nada"><em>(El bloque no deja nada visible en el documento.)</em></p>
-    <p class="doc-texto">El siguiente párrafo del informe continúa aquí.</p>
+    <p class="doc-texto">El caudal medio de los cinco meses es el siguiente:</p>
+    <div class="op-bloque"></div>
+    <p class="doc-texto op-sigue">El siguiente párrafo del informe continúa aquí.</p>
   </div>
 </div>
 <script>
 (function () {
   var raiz = document.getElementById("int-opciones");
-  var cajas = raiz.querySelectorAll("input"), linea = raiz.querySelector(".resultado");
-  function op(n) { return raiz.querySelector('input[data-op="' + n + '"]').checked; }
-  function mostrar(sel, si) { raiz.querySelector(sel).style.display = si ? "" : "none"; }
+  var cab = raiz.querySelector(".op-cabeza"), bloque = raiz.querySelector(".op-bloque"), sigue = raiz.querySelector(".op-sigue");
+  function op(n) { var e = raiz.querySelector('[data-op="' + n + '"]'); return e.type === "checkbox" ? e.checked : e.value; }
+  function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  // Cada línea de código con lo que produce al ejecutarse
+  var lineas = [
+    { cod: "library(dplyr)", msg: "Attaching package: 'dplyr'" },
+    { cod: "caudal <- c(12.4, 15.1, 9.8, 22.6, 14.3)" },
+    { cod: "mean(caudal)", sal: "[1] 14.84" },
+    { cod: "sqrt(-1)", adv: "Warning in sqrt(-1): NaNs produced", sal: "[1] NaN" },
+    { cod: "max(caudal)", sal: "[1] 22.6" }
+  ];
   function actualizar() {
-    var echo = op("echo"), ev = op("eval"), inc = op("include"), msg = op("message");
+    var echo = op("echo"), ev = op("eval"), inc = op("include"), msg = op("message"), adv = op("warning");
+    var err = op("error"), col = op("collapse"), res = op("results"), com = op("comment"), conError = op("linea-error");
     var partes = [];
     if (!echo) partes.push("echo = FALSE");
     if (!ev) partes.push("eval = FALSE");
     if (!inc) partes.push("include = FALSE");
     if (!msg) partes.push("message = FALSE");
-    linea.textContent = "```{r" + (partes.length ? ", " + partes.join(", ") : "") + "}";
-    var codigo = inc && echo, mensaje = inc && ev && msg, salida = inc && ev;
-    mostrar(".doc-codigo", codigo); mostrar(".doc-mensaje", mensaje); mostrar(".doc-salida", salida);
-    mostrar(".doc-nada", !codigo && !mensaje && !salida);
+    if (!adv) partes.push("warning = FALSE");
+    if (err) partes.push("error = TRUE");
+    if (col) partes.push("collapse = TRUE");
+    if (res !== "markup") partes.push('results = "' + res + '"');
+    if (com === "") partes.push('comment = ""');
+    cab.textContent = "```{r" + (partes.length ? ", " + partes.join(", ") : "") + "}";
+    var ls = lineas.slice();
+    if (conError) ls.splice(3, 0, { cod: "media_caudal * 2", err: "Error: object 'media_caudal' not found" });
+    var pre = com === "" ? "" : com + " ";
+    var piezas = [], detenido = false, salidasHold = [];
+    for (var i = 0; i < ls.length; i++) {
+      var L = ls[i];
+      if (echo) piezas.push({ t: "codigo", x: L.cod });
+      if (!ev) continue;
+      if (L.msg && msg) piezas.push({ t: "mensaje", x: pre + L.msg });
+      if (L.adv && adv) piezas.push({ t: "mensaje", x: pre + L.adv });
+      if (L.err) {
+        if (err) { piezas.push({ t: "error", x: pre + L.err }); }
+        else { detenido = true; break; }
+      }
+      if (L.sal && res !== "hide") {
+        if (res === "hold") salidasHold.push(pre + L.sal); else piezas.push({ t: "salida", x: pre + L.sal });
+      }
+    }
+    salidasHold.forEach(function (s) { piezas.push({ t: "salida", x: s }); });
+    if (detenido) {
+      bloque.innerHTML = '<pre class="doc-mensaje" style="border-left:4px solid #D55E00">La compilación se detiene:\nError: object \'media_caudal\' not found\nQuitting from lines ... \nNo se genera ningún documento.</pre>';
+      sigue.style.display = "none";
+      return;
+    }
+    sigue.style.display = "";
+    if (!inc || piezas.length === 0) { bloque.innerHTML = '<p class="doc-nada"><em>(El bloque no deja nada visible en el documento.)</em></p>'; return; }
+    var html = "";
+    if (col) {
+      html = '<pre class="doc-codigo">' + piezas.map(function (p) { return esc(p.x); }).join("\n") + "</pre>";
+    } else {
+      var actual = null, buf = [];
+      function vaciar() { if (actual) html += '<pre class="' + (actual === "codigo" ? "doc-codigo" : (actual === "salida" ? "doc-salida" : "doc-mensaje")) + '">' + buf.map(esc).join("\n") + "</pre>"; buf = []; }
+      piezas.forEach(function (p) { var t = p.t === "error" ? "mensaje" : p.t; if (t !== actual) { vaciar(); actual = t; } buf.push(p.x); });
+      vaciar();
+    }
+    bloque.innerHTML = html;
   }
-  for (var i = 0; i < cajas.length; i++) cajas[i].addEventListener("change", actualizar);
+  raiz.querySelectorAll("input, select").forEach(function (e) { e.addEventListener("change", actualizar); });
   actualizar();
 })();
 </script>
 ```
 
-Efecto de las opciones `echo`, `eval`, `include` y `message` sobre lo que aparece en el documento compilado.
+Simulador de las opciones de un bloque.
 
 :::
 
-En un informe dirigido a alguien que no programa, lo usual es ocultar el código con `echo = FALSE` y dejar solo los resultados. En una tarea o en un documento de trabajo, en cambio, conviene mostrarlo para que se pueda revisar cómo se obtuvo cada número.
+En un informe dirigido a alguien que no programa, lo usual es ocultar el código con `echo = FALSE` y dejar solo los resultados. En una tarea, en cambio, conviene mostrarlo, porque quien corrige necesita ver cómo se obtuvo cada número.
+
+### Resultados como texto de Markdown
+
+Con `results = "asis"`, lo que R escribe con `cat()` no va en un recuadro de resultados: se pega en el documento como si fuera parte del texto, y por lo tanto se le aplica el formato de Markdown. Sirve para escribir con código frases o listas que dependen de los datos.
+
+:::: {.columns}
+
+::: {.column width="48%"}
+````markdown
+```{{r, echo = FALSE, results = "asis"}}
+caudal <- c(12.4, 15.1, 9.8, 22.6, 14.3)
+meses <- c("junio", "julio", "agosto",
+           "setiembre", "octubre")
+cat("El mes de mayor caudal fue **",
+    meses[which.max(caudal)], "**.", sep = "")
+```
+````
+:::
+
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%" .md-vista}
+El mes de mayor caudal fue **setiembre**.
+:::
+
+::::
+
+### El tamaño de las figuras
+
+Dos opciones parecidas controlan el tamaño de una figura, y confundirlas es un error frecuente. `fig.width` y `fig.height` fijan el tamaño del lienzo donde R dibuja, en pulgadas. `out.width` fija qué tan ancha se ve después la imagen en la página. Como el texto de un gráfico tiene siempre el mismo tamaño en el lienzo, un lienzo pequeño mostrado a todo el ancho tiene letras grandes, y un lienzo grande mostrado al mismo ancho tiene letras pequeñas. La @fig-rmd-tamano muestra el mismo gráfico con `fig.width = 4` y con `fig.width = 9`, los dos con `out.width = "100%"`.
+
+::: {#fig-rmd-tamano layout-ncol="2"}
+
+```{r}
+#| echo: false
+#| fig-width: 4
+#| fig-height: 2.8
+#| out-width: "100%"
+caudal <- c(12.4, 15.1, 9.8, 22.6, 14.3)
+barplot(caudal, names.arg = c("Jun", "Jul", "Ago", "Set", "Oct"), col = "#1C6BA0",
+        ylab = "Caudal (m³/s)", main = "fig.width = 4")
+```
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6.3
+#| out-width: "100%"
+barplot(caudal, names.arg = c("Jun", "Jul", "Ago", "Set", "Oct"), col = "#1C6BA0",
+        ylab = "Caudal (m³/s)", main = "fig.width = 9")
+```
+
+Efecto de `fig.width` con el mismo `out.width`.
+
+:::
+
+La regla práctica es dejar `fig.width` cerca de 6 o 7 y ajustar el tamaño en la página con `out.width`. Si las letras se ven muy pequeñas, se reduce `fig.width`; si se ven muy grandes, se aumenta.
 
 ### El bloque de preparación
 
@@ -420,39 +867,130 @@ El @tbl-rmd-numeros resume las funciones para presentar números en el texto.
 
 ### Figuras
 
-Cualquier gráfico que se dibuje en un bloque aparece en el documento. Con la opción `fig.cap` el gráfico lleva su pie, y con `out.width` se controla qué tan ancho se ve:
+Cualquier gráfico que se dibuje en un bloque aparece en el documento, debajo del código que lo produce. Las opciones del bloque controlan el resto: `fig.cap` agrega el pie, `out.width` decide qué tan ancho se ve y `fig.align` lo centra:
 
 ````markdown
-```{{r caja, echo = FALSE, fig.cap = "Resistencia a 28 días por proyecto.", out.width = "70%"}}
+```{{r caja, echo = FALSE, fig.cap = "Resistencia a 28 días por proyecto.", out.width = "70%", fig.align = "center"}}
 boxplot(resistencia_mpa ~ proyecto, data = e28,
         xlab = "Proyecto", ylab = "Resistencia (MPa)")
 ```
 ````
 
-Una imagen que no sale de R, como una foto del ensayo o un esquema, se inserta con la sintaxis de Markdown `![Pie de la imagen](carpeta/imagen.png)`, con la ruta relativa a la carpeta del archivo `.Rmd`.
+Para poner dos gráficos lado a lado se dibujan en el mismo bloque y se usan `fig.show = "hold"` y `out.width = "49%"`: cada figura ocupa la mitad del ancho y las dos quedan en la misma línea.
+
+Una imagen que no sale de R, como una foto del ensayo o un esquema, se inserta de dos formas. Con Markdown, `![Pie de la imagen](img/foto_ensayo.jpg){width=60%}`, donde la ruta es relativa a la carpeta del archivo `.Rmd` y el ancho va entre llaves. O con un bloque y `knitr::include_graphics("img/foto_ensayo.jpg")`, que tiene la ventaja de aceptar las mismas opciones de los gráficos (`fig.cap`, `out.width`, `fig.align`). Los nombres de las imágenes, igual que los de los archivos `.Rmd`, van sin espacios ni tildes.
 
 ### Cuadros con kable
 
-Un data frame impreso en la consola tiene un aspecto poco presentable. La función `kable()` del paquete knitr lo convierte en un cuadro con formato. Sus argumentos principales son `digits`, que fija los decimales; `col.names`, que cambia los encabezados para que lleven tildes y unidades; y `caption`, que agrega el título del cuadro.
+Un data frame impreso en la consola tiene un aspecto poco presentable. La función `kable()` del paquete knitr lo convierte en un cuadro con formato. Sus argumentos principales son:
+
+- `digits`: número de decimales.
+- `col.names`: nombres de las columnas, con tildes, espacios y unidades.
+- `align`: alineación de cada columna, con una letra por columna (`"l"` izquierda, `"c"` centro, `"r"` derecha).
+- `caption`: título del cuadro.
+- `format.args`: formato de los números, por ejemplo `list(big.mark = " ")` para separar los miles con un espacio.
+
+Los ejemplos de esta sección usan el conjunto `airquality`, que viene con R: mediciones diarias de ozono, temperatura y viento en Nueva York, de mayo a setiembre de 1973 [@rcoreteam2025r]. Primero se calcula un resumen por mes y se pasan la temperatura a grados Celsius y el viento a kilómetros por hora:
 
 ```{r}
+library(dplyr)
 library(knitr)
-ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
-e28 <- ensayos[ensayos$edad_dias == 28, ]
-resumen <- aggregate(resistencia_mpa ~ proyecto, data = e28, FUN = mean)
-resumen        # así se ve en la consola
+meses <- c("Mayo", "Junio", "Julio", "Agosto", "Setiembre")
+resumen_mes <- airquality %>%
+  group_by(Month) %>%
+  summarise(dias = n(),
+            ozono = mean(Ozone, na.rm = TRUE),
+            temp = mean((Temp - 32) * 5 / 9),
+            viento = mean(Wind * 1.609)) %>%
+  mutate(Month = meses[Month - 4])
+resumen_mes        # así se ve en la consola
 ```
 
 ```{r}
-kable(resumen, digits = 2, col.names = c("Proyecto", "Resistencia media (MPa)"))
+kable(resumen_mes, digits = 1, align = "lcccc",
+      col.names = c("Mes", "Días", "Ozono (ppb)", "Temperatura (°C)", "Viento (km/h)"))
 ```
 
-El paquete kableExtra, que se usa en todo este libro, agrega estilos a lo que produce `kable()`. Con `kable_styling(full_width = FALSE)` el cuadro ocupa solo el ancho que necesita, y con `bootstrap_options = "striped"` las filas se alternan en dos tonos, lo que facilita leer un cuadro largo:
+El resumen ya dice algo: julio y agosto tienen el doble de ozono que mayo, junto con las temperaturas más altas y los vientos más débiles, que no dispersan el contaminante.
+
+### Estilos con kableExtra
+
+El paquete kableExtra, que se usa en todo este libro, agrega estilos a lo que produce `kable()` o su versión abreviada, `kbl()` [@zhu2024kableextra]. Las funciones se encadenan con el pipe. La primera que se aplica casi siempre es `kable_styling()`, cuyos argumentos más útiles son:
+
+- `bootstrap_options`: uno o varios de `"striped"` (filas alternadas en gris), `"hover"` (la fila se resalta al pasar el ratón), `"condensed"` (filas más bajas), `"bordered"` (bordes en todas las celdas) y `"responsive"` (el cuadro se desplaza de lado en un teléfono en vez de salirse de la pantalla).
+- `full_width`: con `FALSE` el cuadro ocupa solo el ancho que necesita.
+- `position`: `"center"`, `"left"` o `"right"`.
+- `font_size`: tamaño de la letra, en puntos.
 
 ```{r}
 library(kableExtra)
-kable(resumen, digits = 2, col.names = c("Proyecto", "Resistencia media (MPa)")) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = "striped")
+nombres <- c("Mes", "Días", "Ozono (ppb)", "Temperatura (°C)", "Viento (km/h)")
+kbl(resumen_mes, digits = 1, col.names = nombres, align = "lcccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE)
+```
+
+Además de `kable_styling()`, kableExtra trae temas completos que cambian el aspecto con una sola función: `kable_classic()` (líneas solo arriba y abajo, como en un artículo), `kable_minimal()`, `kable_paper()` y `kable_material()`. El @tbl-rmd-kableextra resume las funciones para modificar partes del cuadro, que se agregan después del estilo.
+
+| Función | Qué hace | Ejemplo |
+|:--|:--|:--|
+| `column_spec()` | Da formato a una columna completa | `column_spec(1, bold = TRUE)` |
+| `row_spec()` | Da formato a una fila; la fila 0 es el encabezado | `row_spec(3, background = "#fde8c8")` |
+| `add_header_above()` | Agrega una fila de encabezado que agrupa columnas | `add_header_above(c(" " = 2, "Promedios" = 3))` |
+| `pack_rows()` | Agrupa filas bajo un subtítulo | `pack_rows("Edificio", 1, 2)` |
+| `footnote()` | Agrega una nota al pie del cuadro | `footnote(general = "Fuente: ...")` |
+| `scroll_box()` | Encierra un cuadro largo en una caja con barra de desplazamiento | `scroll_box(height = "300px")` |
+
+: Funciones de kableExtra para modificar un cuadro. {#tbl-rmd-kableextra}
+
+El cuadro siguiente usa varias de ellas a la vez: el tema clásico, el mes en negrita, la fila de mayor ozono resaltada, un encabezado que agrupa los promedios y una nota con la fuente.
+
+```{r}
+fila_max <- which.max(resumen_mes$ozono)
+kbl(resumen_mes, digits = 1, col.names = nombres, align = "lcccc") %>%
+  kable_classic(full_width = FALSE) %>%
+  column_spec(1, bold = TRUE) %>%
+  row_spec(fila_max, background = "#fde8c8") %>%
+  add_header_above(c(" " = 2, "Promedios mensuales" = 3)) %>%
+  footnote(general = "Conjunto airquality de R, Nueva York, 1973.",
+           general_title = "Fuente:")
+```
+
+El color de una celda también puede depender de su valor. Se pasa a `column_spec()` un vector de colores con un color por fila, calculado con `ifelse()`. En el cuadro siguiente, de los ensayos de concreto a 28 días, las filas se agrupan por proyecto con `pack_rows()` y la resistencia media se pinta de naranja cuando no alcanza la de diseño:
+
+```{r}
+ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
+por_grupo <- ensayos %>%
+  filter(edad_dias == 28) %>%
+  group_by(proyecto, mezcla) %>%
+  summarise(n = n(), media = mean(resistencia_mpa),
+            fc = first(fc_diseno_mpa), .groups = "drop")
+
+kbl(por_grupo[, -1], digits = 1, align = "cccc",
+    col.names = c("Mezcla", "Cilindros", "Media (MPa)", "f'c (MPa)")) %>%
+  kable_styling(full_width = FALSE) %>%
+  pack_rows(index = table(por_grupo$proyecto)) %>%
+  column_spec(3, color = ifelse(por_grupo$media < por_grupo$fc, "#D55E00", "inherit"),
+              bold = por_grupo$media < por_grupo$fc)
+```
+
+`pack_rows(index = table(...))` arma los grupos solo: `table()` cuenta cuántas filas tiene cada proyecto, y `pack_rows()` pone el nombre del proyecto encima de esas filas. Para eso las filas tienen que estar ordenadas por proyecto, como las deja `group_by()`.
+
+::: {.callout-tip title="En la práctica"}
+kableExtra está hecho para HTML y PDF. En un documento de Word, `kable()` funciona, pero la mayoría de los estilos de kableExtra se pierden. Para cuadros con formato en Word se usa el paquete flextable.
+:::
+
+### Cuadros largos e interactivos
+
+Un cuadro de 153 filas, como `airquality` completo, no se imprime entero en un informe. Hay tres salidas, según lo que se quiera:
+
+- Mostrar solo las primeras filas con `head(datos, 10)`, cuando basta con dar una idea de los datos.
+- Encerrar el cuadro en una caja con barra de desplazamiento, agregando `scroll_box(height = "300px")` al final de la cadena de kableExtra.
+- Usar un cuadro interactivo con páginas, búsqueda y orden por columnas. Se logra para todo el documento con `df_print: paged` en el encabezado (@tbl-rmd-html), o para un cuadro particular con `DT::datatable(datos)`, del paquete DT. Así se muestran los conjuntos de datos de este libro.
+
+```{r}
+DT::datatable(airquality, rownames = FALSE,
+              options = list(pageLength = 5, language = list(search = "Buscar:")))
 ```
 
 ### Ecuaciones
@@ -486,8 +1024,108 @@ El @tbl-rmd-latex muestra las piezas de LaTeX que aparecen con más frecuencia e
 
 : Notación de LaTeX de uso frecuente. {#tbl-rmd-latex}
 
+Varias ecuaciones alineadas en el signo igual se escriben dentro de `\begin{aligned}` y `\end{aligned}`, con `&` delante del signo que se alinea y `\\` al final de cada línea:
+
+:::: {.columns}
+
+::: {.column width="48%"}
+```markdown
+$$
+\begin{aligned}
+\bar{x} &= \frac{27.4 + 29.1 + 26.8}{3} \\
+         &= \frac{83.3}{3} = 27.77
+\end{aligned}
+$$
+```
+:::
+
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%" .md-vista}
+$$
+\begin{aligned}
+\bar{x} &= \frac{27.4 + 29.1 + 26.8}{3} \\
+         &= \frac{83.3}{3} = 27.77
+\end{aligned}
+$$
+:::
+
+::::
+
 ::: {.callout-tip title="En la práctica"}
 RStudio muestra una vista previa de la ecuación al pasar el cursor sobre ella en el editor, sin compilar. Si la vista previa no aparece o se ve rara, casi siempre falta cerrar una llave o un signo de dólar.
+:::
+
+## Referencias cruzadas y citas {#sec-rmd-citas}
+
+Un informe técnico nombra sus figuras y cuadros por número ("como se ve en la Figura 2") y cita sus fuentes. Escribir esos números a mano tiene el mismo problema que copiar resultados: si se agrega una figura al inicio, todos los números siguientes quedan mal. R Markdown puede numerar y citar solo.
+
+### Referencias cruzadas
+
+El formato `html_document` no numera figuras ni cuadros. Para eso se usa el formato `html_document2` del paquete bookdown, que se instala una vez con `install.packages("bookdown")` y se pide en el encabezado [@xie2016bookdown]:
+
+```yaml
+output:
+  bookdown::html_document2:
+    toc: true
+    number_sections: false
+```
+
+Con ese formato, cada figura, cuadro o ecuación con nombre recibe un número, y en el texto se llama con `\@ref(tipo:nombre)`. El @tbl-rmd-referencias muestra cómo se marca cada cosa y cómo se cita.
+
+| Qué se numera | Cómo se marca | Cómo se cita en el texto | Lo que se ve |
+|:--|:--|:--|:--|
+| Figura | Bloque con nombre `caja` y `fig.cap` | `la Figura \@ref(fig:caja)` | la Figura 1 |
+| Cuadro | Bloque con nombre `resumen` y `kable(..., caption = "...")` | `el Cuadro \@ref(tab:resumen)` | el Cuadro 1 |
+| Ecuación | `(\#eq:media)` al final de la ecuación, dentro de `$$` | `la ecuación \@ref(eq:media)` | la ecuación (1) |
+| Sección | `## Resultados {#resultados}` | `la sección \@ref(resultados)` | la sección 2 |
+
+: Referencias cruzadas con bookdown. {#tbl-rmd-referencias}
+
+Tres detalles evitan casi todos los problemas. La figura necesita `fig.cap`: sin pie, no se numera. El cuadro necesita `caption` dentro de `kable()`. Y los nombres de los bloques que se citan no pueden llevar guion bajo; se usan guiones (`caja-proyectos`, no `caja_proyectos`). Por defecto los pies dicen "Figure 1" y "Table 1", en inglés. Para que digan "Figura" y "Cuadro" se crea, en la misma carpeta del `.Rmd`, un archivo de texto llamado `_bookdown.yml` con este contenido:
+
+```yaml
+language:
+  label:
+    fig: "Figura "
+    tab: "Cuadro "
+    eq: "Ecuación "
+```
+
+### Citas y lista de referencias
+
+Las referencias se guardan en un archivo de texto con extensión `.bib`, en formato BibTeX. Cada referencia tiene una clave, que es el nombre con que se cita, y sus datos:
+
+```bibtex
+@book{xie2018rmarkdown,
+  author    = {Xie, Yihui and Allaire, J. J. and Grolemund, Garrett},
+  title     = {R Markdown: The Definitive Guide},
+  publisher = {Chapman and Hall/CRC},
+  year      = {2018}
+}
+```
+
+No hace falta escribir estas entradas a mano. Google Académico las da con el botón "Citar" y la opción BibTeX, y gestores de referencias como Zotero exportan una biblioteca completa a `.bib`. El archivo se indica en el encabezado, junto con el estilo de las citas, que se descarga como archivo `.csl` del repositorio de estilos de Zotero (el de la American Psychological Association se llama `apa.csl`):
+
+```yaml
+bibliography: referencias.bib
+csl: apa.csl
+```
+
+En el texto se cita con `@` y la clave. El @tbl-rmd-citas muestra las formas más usadas. Al compilar, cada cita se reemplaza por el autor y el año, y la lista completa de referencias se agrega al final del documento, así que conviene terminar el archivo con un título `# Referencias`.
+
+| Lo que se escribe | Lo que se ve |
+|:--|:--|
+| `Según @xie2018rmarkdown, ...` | Según @xie2018rmarkdown, ... |
+| `... del informe [@xie2018rmarkdown].` | ... del informe [@xie2018rmarkdown]. |
+| `[@xie2018rmarkdown, p. 45]` | [@xie2018rmarkdown, p. 45] |
+| `[@xie2018rmarkdown; @wickham2017r4ds]` | [@xie2018rmarkdown; @wickham2017r4ds] |
+
+: Formas de citar en R Markdown. {#tbl-rmd-citas}
+
+::: {.callout-tip title="En la práctica"}
+El editor visual de RStudio (el botón Visual en la esquina superior izquierda del editor) tiene el menú Insert > Citation, que busca la referencia por su DOI o por su título y la agrega sola al archivo `.bib`.
 :::
 
 ::: {.callout-note title="Ejemplo: informe del lote del edificio a 28 días"}
