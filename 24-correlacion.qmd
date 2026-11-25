@@ -74,7 +74,7 @@ El diagrama básico funciona bien con unas decenas de puntos que no se tapan ent
 
 ```{r}
 #| label: fig-cor-variantes
-#| fig-cap: "Cuatro variantes del diagrama de dispersión (datos hipotéticos, salvo el panel c, que usa las cuencas del capítulo 27)."
+#| fig-cap: "Variantes del diagrama de dispersión."
 #| fig-alt: "Cuatro paneles: una nube de dos mil puntos semitransparentes; conteos enteros separados con ruido horizontal; caudal contra área en ejes logarítmicos; una nube curva con una línea suavizada"
 #| fig-width: 8
 #| fig-height: 6.5
@@ -140,7 +140,7 @@ La @fig-cor-cuadrantes ayuda a verlo. Las dos líneas punteadas pasan por $\bar{
 
 ```{r}
 #| label: fig-cor-cuadrantes
-#| fig-cap: "Los cuatro cuadrantes que forman las medias y el signo de cada producto (datos hipotéticos)."
+#| fig-cap: "Cuadrantes y signo de cada producto."
 #| fig-alt: "Nube de puntos que sube, dividida por una línea vertical y una horizontal en las medias; los puntos de arriba a la derecha y abajo a la izquierda son azules y los otros naranjas"
 #| echo: false
 
@@ -214,7 +214,7 @@ La @fig-cor-galeria ayuda a calibrar el ojo. Cada panel tiene 80 puntos generado
 
 ```{r}
 #| label: fig-cor-galeria
-#| fig-cap: "Nubes de 80 puntos con distintas correlaciones de Pearson (datos simulados)."
+#| fig-cap: "Nubes de puntos con distintas correlaciones."
 #| fig-alt: "Ocho diagramas de dispersión ordenados de r igual a menos 0.95 hasta 0.95; las nubes van de una banda angosta que baja a una nube redonda y a una banda angosta que sube"
 #| fig-width: 8
 #| fig-height: 4.6
@@ -310,7 +310,7 @@ Antes de calcular un coeficiente conviene adivinarlo mirando el gráfico, porque
 </script>
 ```
 
-Nube de 50 puntos con una correlación al azar. Estime $r$ y compruebe.
+Adivine la correlación.
 
 :::
 
@@ -675,7 +675,7 @@ Con el control se cambia la correlación de la población que genera 60 puntos. 
 </script>
 ```
 
-Sesenta puntos generados con la correlación elegida. Mueva el control y active el dato atípico.
+Correlación y efecto de un atípico.
 
 :::
 
@@ -702,7 +702,7 @@ La @fig-cor-rangos muestra qué hace el paso a rangos. A la izquierda están los
 
 ```{r}
 #| label: fig-cor-rangos
-#| fig-cap: "Los mismos diez pares en sus valores originales (izquierda) y convertidos en rangos (derecha) (datos hipotéticos)."
+#| fig-cap: "Valores originales y rangos de los mismos datos."
 #| fig-alt: "A la izquierda, nueve puntos agrupados abajo y uno muy arriba a la derecha; a la derecha, diez puntos repartidos en una rejilla de 1 a 10 que suben casi en línea"
 #| fig-width: 8
 #| fig-height: 3.6
@@ -760,7 +760,7 @@ La @fig-cor-pares muestra el conteo con cinco puntos. Cada segmento une un par d
 
 ```{r}
 #| label: fig-cor-pares
-#| fig-cap: "Pares concordantes (azul, continuos) y discordantes (naranja, punteados) entre cinco observaciones (datos hipotéticos)."
+#| fig-cap: "Pares concordantes y discordantes."
 #| fig-alt: "Cinco puntos unidos todos con todos por diez segmentos; ocho segmentos suben y son azules; dos bajan y son naranjas punteados"
 #| echo: false
 
@@ -906,7 +906,7 @@ La @fig-cor-monotona muestra por qué conviene calcular más de uno. Los puntos 
 
 ```{r}
 #| label: fig-cor-monotona
-#| fig-cap: "Relación creciente pero no lineal y sus tres coeficientes (datos hipotéticos)."
+#| fig-cap: "Relación monótona no lineal y sus tres coeficientes."
 #| fig-alt: "Puntos que suben rápido al inicio y luego se aplanan, con los valores de Pearson, Spearman y Kendall anotados"
 #| echo: false
 
@@ -958,7 +958,7 @@ La @fig-cor-confusion simula el caso de la cuenca. Los deslizamientos y el cauda
 
 ```{r}
 #| label: fig-cor-confusion
-#| fig-cap: "Deslizamientos y caudal mensual de una cuenca, coloreados por la lluvia del mes (datos hipotéticos)."
+#| fig-cap: "Deslizamientos y caudal según la lluvia del mes."
 #| fig-alt: "Puntos que suben de izquierda a derecha; los de la izquierda son azules (poca lluvia) y los de la derecha amarillos (mucha lluvia)"
 #| echo: false
 
@@ -984,7 +984,7 @@ Una variable de confusión puede hacer algo peor que inflar una correlación: pu
 
 ```{r}
 #| label: fig-cor-simpson
-#| fig-cap: "Nitratos contra caudal en tres ríos: la tendencia dentro de cada río es negativa y la de los datos juntos es positiva (datos hipotéticos)."
+#| fig-cap: "Paradoja de Simpson en tres ríos."
 #| fig-alt: "Tres grupos de puntos de colores, cada uno con una recta que baja; una recta gris punteada que atraviesa los tres grupos sube"
 #| echo: false
 
@@ -1026,7 +1026,7 @@ Además de la confusión y la paradoja de Simpson, hay otras tres situaciones fr
 
 ```{r}
 #| label: fig-cor-anscombe
-#| fig-cap: "Los cuatro conjuntos de Anscombe y su recta de mínimos cuadrados. Fuente: datos de @anscombe1973graphs."
+#| fig-cap: "Cuarteto de Anscombe. Fuente: @anscombe1973graphs."
 #| fig-alt: "Cuatro diagramas de dispersión con la misma recta: uno lineal con ruido, uno en curva, uno lineal con un punto alto y uno con todos los puntos en una columna salvo uno"
 #| fig-width: 8
 #| fig-height: 5.5
@@ -1066,7 +1066,7 @@ No necesariamente. Una correlación alta dice que, cuando un equipo marca más, 
 
 ```{r}
 #| label: fig-cor-concordancia
-#| fig-cap: "Densidad seca medida con dos métodos en 25 puntos de un terraplén: correlación alta con un sesgo constante (datos hipotéticos)."
+#| fig-cap: "Dos métodos de densidad: correlación alta con sesgo."
 #| fig-alt: "Puntos alineados en una banda angosta que sube, todos por encima de la recta de igualdad gris punteada"
 #| echo: false
 
@@ -1093,7 +1093,7 @@ La @fig-cor-rango lo muestra con 60 puntos hipotéticos. Con todo el rango, la c
 
 ```{r}
 #| label: fig-cor-rango
-#| fig-cap: "Efecto de restringir el rango de X sobre la correlación (datos hipotéticos)."
+#| fig-cap: "Efecto del rango restringido."
 #| fig-alt: "Nube de puntos que sube; una franja vertical sombreada en el centro contiene puntos naranjas sin tendencia clara"
 #| echo: false
 
@@ -1159,7 +1159,6 @@ data.frame(
 6. Con `cilindros_concreto_hipoteticos.csv`, calcule las tres correlaciones entre la edad y la resistencia. Explique con un diagrama de dispersión por qué la de Spearman es mayor que la de Pearson.
 7. Un informe afirma que "las ciudades con más kilómetros de ciclovía tienen menos muertes por accidentes de tránsito, así que construir ciclovías salva vidas". Proponga dos variables de confusión que podrían explicar la correlación y un estudio que ayudaría a separar los efectos.
 8. Busque un conjunto de datos de ingeniería que conozca (por ejemplo, lluvia anual y caudal de varias estaciones) y diga qué coeficiente usaría y por qué, antes de calcularlo.
-
 9. Con las ocho muestras de `turbiedad_sst_hipotetica.csv`, calcule a mano el intervalo de confianza del 90 % para $\rho$ con la transformación de Fisher y compruébelo con `cor.test(x, y, conf.level = 0.90)`.
 10. En 30 puntos de un terraplén se midió la humedad con un horno (método de referencia) y con un medidor rápido, y se obtuvo $r = 0.97$. La diferencia media entre los dos fue de 1.8 puntos de humedad. Explique por qué el medidor rápido no se puede usar tal cual y qué haría para corregirlo.
 11. Para 12 edificios de una ciudad se registraron la altura (m) y el periodo fundamental de vibración medido (s). Proponga cómo se vería el diagrama de dispersión, qué coeficiente usaría y por qué, y qué variable de confusión (por ejemplo, el sistema estructural) convendría distinguir con color.

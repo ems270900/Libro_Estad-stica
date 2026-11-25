@@ -59,7 +59,7 @@ La @eq-rls-modelo tiene dos partes. La parte sistemática, $\beta_0 + \beta_1 x_
 
 ```{r}
 #| label: fig-rls-condicional
-#| fig-cap: "El modelo de regresión: para cada carga hay una distribución normal de deflexiones, centrada en la recta y con la misma dispersión (esquema hipotético)."
+#| fig-cap: "Distribución normal de Y para cada valor de x."
 #| fig-alt: "Recta que sube; sobre ella, en cuatro cargas, se dibujan curvas normales acostadas del mismo ancho, con algunos puntos alrededor de cada una"
 #| echo: false
 
@@ -238,7 +238,7 @@ Antes de hacer la cuenta, conviene probar a mano. Con los dos controles se mueve
 </script>
 ```
 
-Recta movible sobre los diez periodos y su suma de cuadrados de los residuos.
+Ajuste de una recta a ojo.
 
 :::
 
@@ -338,7 +338,7 @@ En la correlación da igual cuál variable va en cada eje. En la regresión no. 
 
 ```{r}
 #| label: fig-rls-direccion
-#| fig-cap: "Recta de Y sobre X (minimiza distancias verticales) y recta de X sobre Y (minimiza distancias horizontales) (datos hipotéticos)."
+#| fig-cap: "Recta de Y sobre X y de X sobre Y."
 #| fig-alt: "Nube de puntos con dos rectas que se cruzan en el centro; la azul es menos inclinada que la naranja punteada"
 #| echo: false
 
@@ -372,7 +372,7 @@ La @fig-rls-alternativas compara mínimos cuadrados con la recta de Theil y Sen 
 
 ```{r}
 #| label: fig-rls-alternativas
-#| fig-cap: "Recta de mínimos cuadrados y recta de Theil y Sen con un dato atípico (datos hipotéticos)."
+#| fig-cap: "Mínimos cuadrados y Theil-Sen con un atípico."
 #| fig-alt: "Nueve puntos alineados y uno muy abajo a la derecha; la recta azul de mínimos cuadrados se inclina hacia el atípico y la naranja de Theil y Sen sigue a los nueve puntos"
 #| echo: false
 
@@ -656,7 +656,7 @@ Cada vez que se repite un ensayo se obtiene otra muestra y, con ella, otra recta
 </script>
 ```
 
-Treinta rectas ajustadas a muestras simuladas (azul) y la recta verdadera (naranja). La franja indica el rango de cargas ensayado.
+Variación de la recta entre muestras.
 
 :::
 
@@ -796,6 +796,76 @@ data.frame(
 Dos detalles de la salida confunden al principio. El primero es el intercepto "no significativo" ($p = 0.137$): no quiere decir que haya que quitarlo, sino que estos datos no distinguen $\beta_0$ de cero. Si hay razones físicas para que la recta pase por el origen, se considera el modelo de la @sec-rls-origen; si no, se deja. El segundo es la notación científica: `1.08e-07` es $1.08 \times 10^{-7}$, un valor $p$ que se informa como $p < 0.001$.
 
 Las funciones para sacar cada número sin copiarlo de la pantalla son `coef()`, `confint()`, `sigma()` (el error estándar de la estimación), `summary(modelo)$r.squared`, `summary(modelo)$coefficients` (el cuadro de coeficientes como matriz) y `anova()`. Con ellas el informe se actualiza solo si cambian los datos (capítulo 5).
+
+## Qué dicen y qué no dicen los valores p de una regresión {#sec-rls-valor-p}
+
+La salida de `summary()` está llena de valores $p$, y es fácil leerlos mal. Esta sección los interpreta en el contexto de la regresión; la definición general del valor $p$ está en la @sec-ph-valor-p.
+
+### Qué es el valor p de un coeficiente
+
+El valor $p$ de la pendiente responde una pregunta muy precisa: si en la población no hubiera relación lineal ($\beta_1 = 0$) y se cumplieran los supuestos del modelo, ¿qué probabilidad habría de obtener, con otra muestra del mismo tamaño, un estadístico $t$ tan alejado de cero como el observado, o más? Un valor $p$ pequeño dice que los datos serían raros si $\beta_1$ fuera cero, y por eso se toma como evidencia contra esa hipótesis.
+
+En la recta de los SST contra la turbiedad (@sec-rls-summary), la pendiente tiene $t = 29.1$ y $p = 1.1 \times 10^{-7}$. Si la turbiedad no tuviera relación lineal con los sólidos, una pendiente estimada a 29 errores estándar de cero aparecería por azar en menos de una de cada millón de muestras. El intercepto, con $p = 0.137$, está a 1.7 errores estándar de cero: un valor que el azar produce con frecuencia, de modo que los datos no permiten saber si $\beta_0$ es cero o un poco mayor.
+
+### Lo que el valor p no dice
+
+La declaración de la American Statistical Association sobre los valores $p$ [@wasserstein2016asa] resume los errores de interpretación más comunes. Llevados a la regresión, son estos:
+
+1. **No es la probabilidad de que $\beta_1 = 0$.** El valor $p$ se calcula suponiendo que $H_0$ es cierta; no puede dar la probabilidad de que lo sea.
+2. **No mide el tamaño del efecto.** Una pendiente de 0.001 mm por vehículo puede tener $p < 0.001$ si hay miles de datos, y una pendiente grande puede tener $p = 0.20$ si hay cinco. La magnitud se lee en el coeficiente y en su intervalo.
+3. **No dice que el modelo sea correcto.** Un $p$ pequeño en una recta ajustada a datos curvos solo dice que la pendiente no es cero; los residuos (capítulo 27) dicen si la recta es la forma adecuada.
+4. **$p > 0.05$ no prueba que no haya relación.** Puede haber pocos datos, mucha dispersión o una relación curva. "No se encontró evidencia" no es lo mismo que "se demostró que no existe".
+5. **El umbral de 0.05 es una convención.** Un $p = 0.049$ y un $p = 0.051$ dicen prácticamente lo mismo sobre los datos. Por eso se informa el valor exacto, no solo "significativo" o "no significativo".
+
+La @fig-rls-significancia muestra los puntos 2 y 4 con dos conjuntos de datos simulados.
+
+```{r}
+#| label: fig-rls-significancia
+#| fig-cap: "Efecto pequeño con muchos datos y efecto grande con pocos datos."
+#| fig-alt: "A la izquierda, una nube de dos mil puntos casi sin tendencia con una recta casi horizontal; a la derecha, seis puntos con una recta muy inclinada"
+#| fig-width: 8
+#| fig-height: 3.8
+#| echo: false
+
+library(patchwork)
+set.seed(2503)
+x_g <- runif(2000, 0, 10); y_g <- 50 + 0.25 * x_g + rnorm(2000, 0, 7)
+x_p <- c(1, 3, 4, 6, 8, 9); y_p <- c(48, 61, 47, 58, 55, 66)
+m_g <- summary(lm(y_g ~ x_g)); m_p <- summary(lm(y_p ~ x_p))
+etiq <- function(m) sprintf("b1 = %.2f   p %s   R² = %.2f", m$coefficients[2, 1],
+                            ifelse(m$coefficients[2, 4] < 0.001, "< 0.001", sprintf("= %.3f", m$coefficients[2, 4])),
+                            m$r.squared)
+s1 <- ggplot(data.frame(x_g, y_g), aes(x_g, y_g)) + geom_point(color = azul, alpha = 0.15, size = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "#D55E00") +
+  labs(x = "X", y = "Y", subtitle = paste0("n = 2000\n", etiq(m_g))) + theme_minimal(base_size = 11)
+s2 <- ggplot(data.frame(x_p, y_p), aes(x_p, y_p)) + geom_point(color = azul, size = 2.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "#D55E00") +
+  labs(x = "X", y = "Y", subtitle = paste0("n = 6\n", etiq(m_p))) + theme_minimal(base_size = 11)
+s1 + s2
+```
+
+A la izquierda, la pendiente es "muy significativa", pero $X$ explica una parte mínima de la variación de $Y$: para predecir un valor individual, la recta casi no ayuda. A la derecha, la pendiente es casi cinco veces mayor y no alcanza el 5 %, porque seis puntos no bastan para distinguirla del azar. Ninguno de los dos valores $p$ dice cuál relación importa más en la práctica.
+
+### Tamaño del efecto en la regresión
+
+El tamaño del efecto responde "¿cuánto?", que es la pregunta que casi siempre interesa en ingeniería. En la regresión simple hay cuatro formas complementarias de darlo:
+
+- **La pendiente con su intervalo, en unidades prácticas.** "Por cada 10 NTU, los SST suben entre 15.7 y 18.6 mg/L" es el tamaño del efecto más útil, porque se compara directamente con lo que importa en el problema.
+- **El error estándar de la estimación, $s$.** Dice qué tan lejos de la recta suelen caer los datos, en las unidades de $Y$. Un modelo con $R^2 = 0.95$ puede ser inútil si $s$ es mayor que la tolerancia del diseño.
+- **El coeficiente de determinación, $R^2$**, la proporción de la variación explicada (@sec-rls-ajuste).
+- **La pendiente estandarizada**, $b_1^{*} = b_1\, s_x / s_y$: el cambio en desviaciones estándar de $Y$ por cada desviación estándar de $X$. En la regresión simple es igual a $r$; su utilidad aparece en la regresión múltiple (@sec-rlm-coeficientes).
+
+@cohen1988statistical propuso además el índice $f^2$, muy usado para planear tamaños de muestra:
+
+$$
+f^2 = \frac{R^2}{1 - R^2}
+$$ {#eq-rls-f2}
+
+donde $R^2$ es el coeficiente de determinación del modelo. Es la razón entre la variación explicada y la no explicada. Cohen sugirió tomar $f^2 = 0.02$, $0.15$ y $0.35$ como referencias de efectos pequeño, mediano y grande en las ciencias del comportamiento. En la recta de la turbiedad, $R^2 = 0.993$ y $f^2 = 0.993/0.007 = 142$: un efecto enorme, como se espera de una calibración. En el panel izquierdo de la @fig-rls-significancia, en cambio, $f^2$ es cercano a 0.02, un efecto pequeño aunque su valor $p$ sea minúsculo.
+
+::: {.callout-tip title="En la práctica"}
+Un informe de regresión completo da, para cada coeficiente, su valor con unidades, su intervalo de confianza y su valor $p$ exacto; para el modelo, $R^2$ (o $R^2_{\text{aj}}$), $s$ y el número de datos. Con eso quien lee puede juzgar a la vez si el efecto es real (valor $p$), si es grande (coeficiente y $R^2$) y si es útil para predecir ($s$ contra la tolerancia del problema). La @sec-ph-practica discute la diferencia entre significancia estadística y práctica en general.
+:::
 
 ## Estimación de la media y predicción de un valor nuevo {#sec-rls-prediccion}
 
@@ -967,7 +1037,7 @@ Con el control se elige la densidad $x_0$. El interactivo calcula $\hat{y}_0$ y 
 </script>
 ```
 
-Intervalos del 95 % para la media (azul) y para un periodo (gris) en la densidad elegida.
+Intervalos de confianza y de predicción.
 
 :::
 
@@ -979,7 +1049,7 @@ La @fig-rls-extrapolacion muestra un caso estructural. Una viga hipotética se e
 
 ```{r}
 #| label: fig-rls-extrapolacion
-#| fig-cap: "Recta ajustada en el rango elástico de una viga y su extrapolación (datos hipotéticos)."
+#| fig-cap: "Extrapolación fuera del rango elástico."
 #| fig-alt: "Seis puntos en línea recta hasta 60 kN; más allá, una curva que sube cada vez más rápido y una recta punteada que queda muy por debajo"
 #| echo: false
 
@@ -1100,7 +1170,7 @@ data.frame(
   error = c("Ajustar sin graficar", "Interpretar el intercepto fuera del rango", "Despejar <i>x</i> de la recta de <i>y</i> sobre <i>x</i>",
             "Usar el intervalo de confianza para un elemento individual", "Extrapolar", "Juzgar el modelo solo por <i>R</i><sup>2</sup>",
             "Leer la pendiente como efecto causal", "Comparar <i>R</i><sup>2</sup> de modelos con distinta respuesta o sin intercepto"),
-  consecuencia = c("Una recta sobre datos curvos o con atípicos", "Valores sin sentido físico (resistencia sin agua)",
+  consecuencia = c("Una recta sobre datos curvos o con atípicos", "Valores sin sentido físico",
                    "Predicciones sesgadas cuando <i>r</i> no es ±1", "Una incertidumbre mucho menor que la real",
                    "Predicciones sin respaldo en los datos", "Modelos mal especificados que parecen buenos",
                    "Conclusiones de diseño sin respaldo", "Comparaciones sin sentido"),
@@ -1125,11 +1195,10 @@ data.frame(
 8. Use el interactivo de la @fig-rls-interactivo-bandas para encontrar la densidad con la que el límite inferior del intervalo de predicción es 30 km/h. Compruebe el resultado con `predict()`.
 9. En el modelo de Greenshields, el flujo es $q = k\,v$ (veh/h/carril), con $k$ la densidad y $v$ la velocidad. Con la recta del ejemplo, escriba $q$ como función de $k$, encuentre la densidad que da el flujo máximo y calcule ese flujo, que es la capacidad que estima el modelo. ¿Está esa densidad dentro del rango de los datos?
 10. Diez probetas hipotéticas de una misma mezcla de concreto con relaciones agua/cemento de 0.40 a 0.70 dieron estas resistencias a 28 días (MPa): (0.40, 44.1), (0.45, 41.5), (0.48, 37.2), (0.50, 38.0), (0.55, 33.9), (0.58, 33.5), (0.60, 30.2), (0.65, 28.4), (0.68, 25.0) y (0.70, 26.1). Ajuste la recta a mano y con `lm()`, interprete la pendiente por cada 0.01 de relación y explique por qué aquí el intercepto no tiene sentido físico.
-
-9. Con las ocho muestras de `turbiedad_sst_hipotetica.csv`, ajuste a mano la recta de los SST contra la turbiedad y compruebe los coeficientes de la @sec-rls-summary. Estime los SST de una muestra con 20 NTU con su intervalo de predicción del 95 %.
-10. Con los mismos datos, ajuste la recta de la turbiedad contra los SST y despeje los SST. Compare esa recta con la del ejercicio 9 y explique por qué no coinciden.
-11. Con la parcela de `escorrentia_parcela_hipotetica.csv`, estime el caudal pico para un aguacero de 40 mm/h con la recta por el origen y con la recta con intercepto. ¿Cuánto difieren? ¿Cuál usaría para diseñar un tragante?
-12. Use el interactivo de la @fig-rls-interactivo-muestreo con $\sigma = 0.4$ mm. ¿Qué reduce más la variación de la pendiente: pasar de 8 a 32 ensayos con el rango de 20 a 60 kN, o mantener 8 ensayos y ampliar el rango de 5 a 75 kN? Compruebe con la @eq-rls-se-b1.
+11. Con las ocho muestras de `turbiedad_sst_hipotetica.csv`, ajuste a mano la recta de los SST contra la turbiedad y compruebe los coeficientes de la @sec-rls-summary. Estime los SST de una muestra con 20 NTU con su intervalo de predicción del 95 %.
+12. Con los mismos datos, ajuste la recta de la turbiedad contra los SST y despeje los SST. Compare esa recta con la del ejercicio 11 y explique por qué no coinciden.
+13. Con la parcela de `escorrentia_parcela_hipotetica.csv`, estime el caudal pico para un aguacero de 40 mm/h con la recta por el origen y con la recta con intercepto. ¿Cuánto difieren? ¿Cuál usaría para diseñar un tragante?
+14. Use el interactivo de la @fig-rls-interactivo-muestreo con $\sigma = 0.4$ mm. ¿Qué reduce más la variación de la pendiente: pasar de 8 a 32 ensayos con el rango de 20 a 60 kN, o mantener 8 ensayos y ampliar el rango de 5 a 75 kN? Compruebe con la @eq-rls-se-b1.
 
 ## Lecturas recomendadas
 
