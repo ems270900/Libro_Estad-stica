@@ -26,7 +26,7 @@ Los términos del diseño experimental de la @sec-dce-vocabulario siguen valiend
 
 ```{r}
 #| label: tbl-fac-vocabulario
-#| tbl-cap: "Términos propios del diseño factorial, con el ensayo de adherencia de pinturas como ejemplo."
+#| tbl-cap: "Términos del diseño factorial."
 #| echo: false
 
 library(kableExtra)
@@ -60,7 +60,7 @@ vocab_fac %>%
 
 La @fig-fac-int-ofat muestra el riesgo de variar un factor a la vez en un caso con interacción. Se busca la combinación de contenido de asfalto y temperatura de compactación que da la mayor estabilidad de una mezcla. Los nueve valores del cuadro son hipotéticos y están ocultos al principio, como lo estarían antes del ensayo. Con el procedimiento de un factor a la vez se fija la temperatura, se prueban los tres contenidos de asfalto y se elige el mejor. Luego se fija ese contenido y se prueban las otras dos temperaturas. Son cinco ensayos.
 
-Elija la temperatura con la que empieza el procedimiento y observe a qué combinación llega. Después active el factorial completo, que ensaya las nueve combinaciones.
+Elija la temperatura con la que empieza el procedimiento y observe a qué combinación llega. Después active el factorial completo, que ensaya las nueve combinaciones. El borde grueso marca la combinación que elige el procedimiento.
 
 ::: {#fig-fac-int-ofat}
 
@@ -126,7 +126,7 @@ Elija la temperatura con la que empieza el procedimiento y observe a qué combin
 </script>
 ```
 
-Procedimiento de un factor a la vez frente al factorial completo, con datos hipotéticos de estabilidad de una mezcla asfáltica. El borde grueso marca la combinación elegida por el procedimiento.
+Un factor a la vez frente al factorial completo.
 
 :::
 
@@ -157,7 +157,7 @@ Las definiciones se entienden mejor con números. El @tbl-fac-cuatro-medias tien
 
 ```{r}
 #| label: tbl-fac-cuatro-medias
-#| tbl-cap: "Espesor medio de película (µm) en las cuatro combinaciones de asfalto y fibra."
+#| tbl-cap: "Espesor medio de película (µm) por combinación."
 #| echo: false
 
 cuatro <- data.frame(b = c("Fibra baja", "Fibra alta", "Media de A"),
@@ -184,7 +184,7 @@ La @fig-fac-patrones reúne los cuatro patrones que más se ven en la práctica,
 
 ```{r}
 #| label: fig-fac-patrones
-#| fig-cap: "Cuatro patrones del gráfico de interacción con dos factores de dos niveles."
+#| fig-cap: "Patrones de interacción."
 #| fig-alt: "Cuatro paneles: líneas paralelas, líneas que se abren sin cruzarse, líneas que se cruzan y una X con efectos principales nulos"
 #| echo: false
 #| fig-height: 5.5
@@ -268,11 +268,11 @@ Pruebe con la @fig-fac-int-interaccion. Los controles fijan el efecto de A, el d
 </script>
 ```
 
-Gráfico de interacción de un diseño con dos factores de dos niveles. La media general es 50.
+Gráfico de interacción de un diseño 2 × 2.
 
 :::
 
-El texto del interactivo muestra la definición de la interacción en un diseño con dos niveles: es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo. La @sec-fac-2k desarrolla esa definición.
+La media general del interactivo es 50. Su texto muestra la definición de la interacción en un diseño con dos niveles: es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo. La @sec-fac-2k desarrolla esa definición.
 
 ::: {.callout-warning title="Cuidado"}
 Si hay interacción, el efecto principal de A es un promedio de efectos distintos y puede engañar. En el caso extremo, A sube la respuesta 10 unidades con B bajo y la baja 10 con B alto: el efecto principal de A es cero, aunque A importa mucho. Por eso la interacción se revisa primero, y si es significativa, se estudia el efecto de A dentro de cada nivel de B.
@@ -398,7 +398,7 @@ ver_datos("datos/adherencia_pintura_hipotetica.csv",
 
 ```{r}
 #| label: tbl-fac-medias
-#| tbl-cap: "Adherencia (puntos) por método y pintura: observaciones y media de cada combinación."
+#| tbl-cap: "Adherencia (puntos) por método y pintura."
 #| echo: false
 
 pintura <- read.csv("datos/adherencia_pintura_hipotetica.csv")
@@ -468,7 +468,7 @@ summary(modelo)
 
 ```{r}
 #| label: fig-fac-pintura
-#| fig-cap: "Gráfico de interacción: adherencia media por pintura y método de aplicación."
+#| fig-cap: "Interacción entre pintura y método."
 #| fig-alt: "Dos líneas que suben de P1 a P3; la de rociado se separa mucho de la de inmersión en P3"
 
 # 6) Gráfico de interacción con ggplot2
@@ -495,7 +495,7 @@ Cuando hay interacción, se compara un factor dentro de cada nivel del otro. En 
 
 ```{r}
 #| label: tbl-fac-simples
-#| tbl-cap: "Efectos simples del método de aplicación dentro de cada pintura (rociado menos inmersión)."
+#| tbl-cap: "Efectos simples del método en cada pintura."
 #| echo: false
 
 format_p <- function(p) ifelse(p < 0.001, "< 0.001", sprintf("%.3f", p))
@@ -515,11 +515,11 @@ Según el @tbl-fac-simples, solo con P3 el rociado mejora claramente la adherenc
 
 ### Gráfico de efectos principales {#sec-fac-efectos-principales}
 
-Junto al gráfico de interacción se suele dibujar el gráfico de efectos principales: un panel por factor, con la media marginal de cada nivel. La @fig-fac-principales lo muestra para el ensayo de pinturas. La pendiente de cada panel indica el tamaño del efecto principal: la pintura mueve la adherencia 13 puntos entre P1 y P3, y el método 5.3 puntos.
+Junto al gráfico de interacción se suele dibujar el gráfico de efectos principales: un panel por factor, con la media marginal de cada nivel. La @fig-fac-principales lo muestra para el ensayo de pinturas. La línea punteada es la media general, y la pendiente de cada panel indica el tamaño del efecto principal: la pintura mueve la adherencia 13 puntos entre P1 y P3, y el método 5.3 puntos.
 
 ```{r}
 #| label: fig-fac-principales
-#| fig-cap: "Gráfico de efectos principales del ensayo de pinturas. La línea punteada es la media general."
+#| fig-cap: "Efectos principales del ensayo de pinturas."
 #| fig-alt: "Dos paneles: la adherencia media sube de inmersión a rociado y de P1 a P3"
 #| echo: false
 #| fig-height: 3.6
@@ -545,7 +545,7 @@ Los supuestos del factorial son los del ANOVA de un factor (@sec-dce-supuestos):
 
 ```{r}
 #| label: fig-fac-residuos
-#| fig-cap: "Residuos del ensayo de pinturas: contra los valores ajustados (izquierda) y gráfico cuantil-cuantil normal (derecha)."
+#| fig-cap: "Residuos del ensayo de pinturas."
 #| fig-alt: "Residuos en tres niveles, menos 2, 0 y 2, iguales en las seis combinaciones; los puntos del gráfico cuantil-cuantil forman escalones"
 #| echo: false
 #| fig-height: 3.8
@@ -563,7 +563,7 @@ En la @fig-fac-residuos la dispersión es la misma en las seis combinaciones: en
 
 ### Cómo se reparte la variación {#sec-fac-reparto}
 
-La @fig-fac-int-reparto muestra un factorial $2 \times 2$ con cuatro repeticiones por celda. Los controles fijan el efecto de A, el de B, la interacción y la dispersión del ruido. A la izquierda están los 16 datos agrupados por combinación; a la derecha, las cuatro sumas de cuadrados, con el $F$ y el valor $p$ de cada efecto.
+La @fig-fac-int-reparto muestra un factorial $2 \times 2$ con cuatro repeticiones por celda. Los controles fijan el efecto de A, el de B, la interacción y la dispersión del ruido. A la izquierda están los 16 datos agrupados por combinación, con la media de cada una como línea corta; a la derecha, las cuatro sumas de cuadrados, con el $F$ y el valor $p$ de cada efecto.
 
 ::: {#fig-fac-int-reparto}
 
@@ -677,7 +677,7 @@ La @fig-fac-int-reparto muestra un factorial $2 \times 2$ con cuatro repeticione
 </script>
 ```
 
-Sumas de cuadrados de un factorial 2 × 2 con cuatro repeticiones por celda. Las líneas cortas son las medias de cada combinación.
+Reparto de la variación en un factorial 2 × 2.
 
 :::
 
@@ -714,7 +714,7 @@ El diseño $2^2$ también se dibuja como un cuadrado: cada esquina es una combin
 
 ```{r}
 #| label: fig-fac-cuadrado
-#| fig-cap: "Representación geométrica del diseño 2² con el espesor medio de película (µm) en cada esquina."
+#| fig-cap: "Diseño 2² como cuadrado."
 #| fig-alt: "Cuadrado con las combinaciones (1), a, b y ab en las esquinas y los valores 9, 15, 13 y 21"
 #| echo: false
 #| fig-height: 4
@@ -840,7 +840,7 @@ La @fig-fac-superficie dibuja el modelo con interacción como un mapa de curvas 
 
 ```{r}
 #| label: fig-fac-superficie
-#| fig-cap: "Espesor de película previsto (µm) por el modelo de la @eq-fac-regresion en el cuadrado del diseño."
+#| fig-cap: "Espesor previsto por el modelo codificado."
 #| fig-alt: "Mapa de curvas de nivel del espesor previsto; aumenta hacia la esquina de asfalto y fibra altos"
 #| echo: false
 #| fig-height: 4.2
@@ -881,7 +881,7 @@ d23 %>%
 
 #### El cubo del diseño 2^3^ {#sec-fac-cubo}
 
-Las ocho combinaciones de un $2^3$ son los vértices de un cubo, con un eje por factor. Cada efecto principal compara dos caras opuestas del cubo: el de A, la cara derecha contra la izquierda; el de C, la cara del fondo contra la del frente. Las interacciones comparan grupos de vértices que no forman caras, y por eso cuesta más verlas sin ayuda. En la @fig-fac-int-cubo se elige un efecto y se colorean los vértices según su signo en el @tbl-fac-signos-23. Los valores son los de la resistencia del ejemplo de mortero que sigue (MPa).
+Las ocho combinaciones de un $2^3$ son los vértices de un cubo, con un eje por factor. Cada efecto principal compara dos caras opuestas del cubo: el de A, la cara derecha contra la izquierda; el de C, la cara del fondo contra la del frente. Las interacciones comparan grupos de vértices que no forman caras, y por eso cuesta más verlas sin ayuda. En la @fig-fac-int-cubo se elige un efecto y se colorean los vértices según su signo en el @tbl-fac-signos-23. Los valores son los de la resistencia del ejemplo de mortero que sigue (MPa), y cada efecto es la diferencia entre la media de los vértices con signo + y la de los vértices con signo −.
 
 ::: {#fig-fac-int-cubo}
 
@@ -948,7 +948,7 @@ Las ocho combinaciones de un $2^3$ son los vértices de un cubo, con un eje por 
 </script>
 ```
 
-Cubo del diseño 2³ con la resistencia (MPa) de cada corrida. Cada efecto es la diferencia entre la media de los vértices con signo + y la de los vértices con signo −.
+Efectos en el cubo del diseño 2³.
 
 :::
 
@@ -1000,7 +1000,7 @@ round(efectos, 3)
 
 ```{r}
 #| label: fig-fac-efectos
-#| fig-cap: "Gráfico cuantil-cuantil normal de los efectos del diseño 2³ de mortero."
+#| fig-cap: "Gráfico normal de los efectos del mortero."
 #| fig-alt: "Siete puntos; AB, BC y ABC quedan alineados cerca de cero y A, B, C y AC se apartan"
 
 # 4) Gráfico de efectos
@@ -1037,7 +1037,7 @@ El gráfico de la @fig-fac-efectos tiene dos variantes que se encuentran en los 
 
 ```{r}
 #| label: fig-fac-seminormal
-#| fig-cap: "Gráfico seminormal de los efectos del diseño 2³ de mortero."
+#| fig-cap: "Gráfico seminormal de los efectos."
 #| fig-alt: "Siete puntos de valor absoluto del efecto; tres cerca del origen sobre una recta y cuatro muy por encima"
 #| echo: false
 #| fig-height: 4
@@ -1131,7 +1131,7 @@ anova(modelo_c)
 
 ```{r}
 #| label: fig-fac-curvatura
-#| fig-cap: "Estabilidad en los vértices del diseño 2² y en el punto central. Las líneas horizontales son las medias de cada grupo."
+#| fig-cap: "Estabilidad en los vértices y en el centro."
 #| fig-alt: "Cuatro puntos de los vértices entre 8.2 y 9.4 kN y cuatro puntos del centro entre 9.7 y 10.3 kN"
 
 marshall$grupo <- ifelse(centro, "Punto central", "Vértices del 2²")
@@ -1156,7 +1156,7 @@ La media fracción $2^{4-1}$ es la más sencilla. Se arma un $2^3$ completo con 
 
 ```{r}
 #| label: tbl-fac-fraccion
-#| tbl-cap: "Media fracción 2⁴⁻¹ con generador D = ABC."
+#| tbl-cap: "Media fracción 2⁴⁻¹ (D = ABC)."
 #| echo: false
 
 base <- expand.grid(A = c(-1, 1), B = c(-1, 1), C = c(-1, 1))
