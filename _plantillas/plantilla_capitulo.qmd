@@ -151,6 +151,41 @@ iter %>%
 
 :::
 
+## Cálculos lentos {#sec-tema-lentos}
+
+<!-- Para que la compilación sea rápida (ver README.md, "Compilación rápida"):
+     - Bloque que tarda más de unos segundos (simulación grande, figura pesada):
+       agregar `#| cache: true`.
+     - Resultado muy lento o que depende de una descarga: guardarlo en
+       resultados/ con R/resultado_guardado.R, como en este ejemplo.
+     El lector ve el código completo (bloque con eval: false); el libro lee el
+     resultado guardado (bloque oculto). Borrar esta sección si no se usa. -->
+
+```{r}
+#| eval: false
+set.seed(2026)
+medias <- replicate(100000, mean(rexp(30)))
+```
+
+```{r}
+#| echo: false
+source("R/resultado_guardado.R")
+medias <- resultado_guardado("cap00_medias_plantilla", {
+  set.seed(2026)
+  replicate(100000, mean(rexp(30)))
+})
+```
+
+```{r}
+#| label: fig-tema-medias
+#| fig-cap: "Distribución de 100 000 medias muestrales simuladas."
+#| fig-alt: "Histograma con forma de campana centrado en 1"
+#| cache: true
+#| echo: false
+hist(medias, breaks = 60, col = "#1C6BA0", border = "white", main = "",
+     xlab = "Media muestral", ylab = "Frecuencia")
+```
+
 ## Ejercicios propuestos
 
 1. Ejercicio con datos y unidades. Sin solucionario.

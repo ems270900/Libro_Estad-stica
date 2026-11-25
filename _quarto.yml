@@ -95,7 +95,12 @@ knitr:
     out.width: "70%"
     fig.align: "center"
 
+# Compilación rápida: con freeze: auto, `quarto render` solo vuelve a ejecutar el
+# código de los capítulos cuyo .qmd cambió; los demás usan los resultados
+# guardados en _freeze/ (que va en git). Compilar un solo capítulo
+# (`quarto render 03-tema.qmd`) siempre lo ejecuta de nuevo. Detalles en README.md.
 execute:
+  freeze: auto
   echo: true
   warning: false
   error: false

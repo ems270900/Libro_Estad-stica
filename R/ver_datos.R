@@ -18,6 +18,9 @@ ver_datos <- function(archivo, filas = 6, tabla = TRUE, nombres = NULL) {
     text = htmltools::HTML(paste0("&#11015; Descargar <code>", basename(archivo), "</code>")),
     class = "boton-datos"
   )
+  # Dentro de un callout, el enlace se mostraba como HTML escapado; como HTML
+  # crudo se imprime bien en cualquier lugar del capítulo.
+  boton <- htmltools::HTML(as.character(boton))
   if (!tabla) return(htmltools::div(class = "datos-ejemplo", boton))
 
   datos <- utils::read.csv(archivo, check.names = FALSE, fileEncoding = "UTF-8")
