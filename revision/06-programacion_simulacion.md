@@ -11,3 +11,8 @@ Fecha: 2026-11-25. Estado: borrador.
 
 - Agregado: Funciones que devuelven listas y validación con `stop()`; ciclo `while` con el ejemplo de los camiones (8 viajes); ciclo infinito; `sapply`; `runif`, `rnorm` y `replicate`; ejemplo de P(f < 28) con N(32, 3) (tabla 0.0918, `pnorm` 0.0912, simulación); interactivo de convergencia (`int-convergencia`); cómo encontrar errores; ejercicios 9 a 15.
 - Pendiente: revisión del autor.
+
+## Segunda ampliación (2026-11-25, rama `claude/parte-1-didactica`)
+
+- Agregado: Diagramas de flujo de `if`/`else if`/`else` y de `for`; interactivo para seguir un ciclo línea por línea (`int-paso`) con datos hipotéticos de lluvia. No se tocaron los recuadros que el hilo de diversificación va a reemplazar.
+- Pies de figura y títulos de cuadro acortados. Pendiente: revisión del autor.

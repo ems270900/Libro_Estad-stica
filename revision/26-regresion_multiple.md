@@ -8,3 +8,9 @@ Fecha: 2026-11-25. Estado: borrador.
 - Paquete nuevo: car, solo para comprobar el VIF.
 - Figuras propias: rectas del plano del relleno. Interactivo: dos rectas con y sin aditivo según el coeficiente de interacción (`#fig-rlm-interactivo`).
 - Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
+
+## Ampliación (2026-11-25)
+
+- Secciones nuevas: por qué no bastan varias regresiones simples, con fórmulas de dos predictores en sumas centradas; gráfico de regresión parcial (@fox2019companion cap. 8); tamaño del efecto de cada predictor (coeficientes estandarizados y $f^2$ parcial) y lectura de la $F$ global contra las $t$; codificación de tres categorías y por qué no se usan 1, 2, 3; interactivo de multicolinealidad con la nube de $(b_1, b_2)$ (`#fig-rlm-interactivo-vif`); AIC y BIC (@akaike1974new) y advertencia sobre la selección paso a paso; cuadro de errores comunes con la extrapolación oculta.
+- Ejemplo nuevo (transportes): ahuellamiento contra tránsito y espesor de carpeta, donde la pendiente simple del espesor es positiva y el coeficiente parcial negativo. Datos: `datos/ahuellamiento_tramos_hipotetico.csv`.
+- Se quitó el comentario de epígrafe pendiente. Ejercicios 9 a 12 nuevos.

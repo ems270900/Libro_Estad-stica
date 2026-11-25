@@ -28,3 +28,11 @@
 - Los cuatro ejemplos siguen la prueba de jarras del capítulo 28: Tukey entre coagulantes, contraste del sulfato de aluminio (el coagulante actual) contra los demás, revisión de supuestos y diseño en bloques con cinco muestras de agua cruda en lugar de cinco lotes de cemento. El interactivo de bloques usa las nuevas medias (79, 83, 89 y 85 %) y su eje va de 70 a 100 %.
 - Datos nuevos: `datos/jarras_muestras_hipotetico.csv` (reemplaza a `curado_lotes_hipotetico.csv`). HSD = 2.86, contraste L = −20 (t = −8.16), Shapiro p = 0.500, Levene p = 0.888, bloques F = 173.3 y Tukey con bloques: verificados con R.
 - Ejercicio 3: el contraste ahora compara coagulantes de aluminio contra los de hierro.
+
+## Ampliación (2026-11-25)
+
+- Secciones nuevas: comparaciones planeadas y a posteriori, cuadro de métodos (LSD, Tukey, Bonferroni, Holm, Dunnett, Scheffé), método de Holm (ejemplo a mano, `p.adjust()` y `pairwise.t.test()`), cómo se interpretan los valores p ajustados (cuadro de la misma pareja con cuatro métodos y cuatro situaciones confusas), η² parcial con bloques, variantes del diseño en bloques (Friedman, cuadrado latino, bloques incompletos y aleatorios), resumen "cuándo usar qué".
+- Interactivo nuevo: distancia mínima según el método, las repeticiones y CM_E (`int-mc-distancia`; multiplicadores calculados en R con `qt()` y `qtukey()`).
+- Cuatro ejercicios nuevos (pavimento permeable, formaletas con carpinteros como bloques, lectura del valor p ajustado).
+- Verificado con R: valores p sin ajuste, Holm, Bonferroni y Tukey de las seis parejas; Friedman χ² = 15, p = 0.002; η²p = 0.977.
+- Referencias nuevas: Holm (1979), Friedman (1937).

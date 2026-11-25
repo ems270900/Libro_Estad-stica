@@ -26,3 +26,12 @@
 ## Cambios (2026-11-25): ejemplos de otras ramas
 
 - Ejercicio 1: el factorial cemento × temperatura de curado pasa a inóculo × temperatura en reactores anaerobios (producción de metano, mL/d), con los mismos números. Los ejemplos resueltos no cambian.
+
+## Ampliación (2026-11-25)
+
+- Secciones nuevas: vocabulario del factorial, variar un factor a la vez (interactivo), cuántos ensayos ahorra un factorial, efectos con cuatro medias, patrones de interacción (figura de cuatro paneles), modelo como receta y grados de libertad, cuadrados medios esperados, cómo se leen los tres valores p, η² parcial de cada efecto, gráfico de efectos principales, revisión de supuestos, reparto de la variación (interactivo), factorial con r = 1, cuadrado del 2², modelo de regresión codificado y superficie, cubo del 2³ (interactivo), gráfico seminormal y método de Lenth, puntos centrales y curvatura (ejemplo nuevo de estabilidad de mezcla asfáltica), fraccionados y alias, cómo planear un factorial, errores frecuentes, resumen.
+- Datos nuevos: `datos/estabilidad_centro_hipotetica.csv` (hipotéticos).
+- Cinco ejercicios nuevos (hidráulica, gestión, geotecnia, transporte).
+- Verificado con R: curvatura SC = 2.88, F = 43.2, p = 0.007; Lenth PSE = 4.875, ME = 18.35; η²p de pinturas 0.915, 0.727 y 0.520.
+- Referencias nuevas: Box, Hunter y Hunter (2005); Lenth (1989).
+- Los valores del interactivo de un factor a la vez son hipotéticos y se eligieron para mostrar la interacción.

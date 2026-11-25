@@ -498,21 +498,8 @@ donde $1 \le k \le n - 1$. La razón se entiende sin álgebra [@blitzstein2019in
 #| fig-cap: "Triángulo de Pascal hasta n = 8."
 #| fig-alt: "Triángulo de números con unos en los bordes; en la fila 6 se resalta el 15 y en la fila 5 se resaltan el 5 y el 10 que están encima de él"
 #| echo: false
-#| fig-width: 7
-#| fig-height: 4.5
-#| out-width: "75%"
 
-pascal <- do.call(rbind, lapply(0:8, function(n)
-  data.frame(n = n, k = 0:n, valor = choose(n, 0:n))))
-pascal$x <- pascal$k - pascal$n / 2
-pascal$tono <- "normal"
-pascal$tono[pascal$n == 5 & pascal$k %in% c(1, 2)] <- "suma"
-pascal$tono[pascal$n == 6 & pascal$k == 2] <- "resultado"
-ggplot(pascal, aes(x, -n, label = valor, fill = tono)) +
-  geom_label(size = 4, label.size = 0.2) +
-  scale_fill_manual(values = c(normal = "white", suma = "#f6d79a", resultado = "#E69F00"), guide = "none") +
-  annotate("text", x = -5.3, y = -(0:8), label = paste0("n = ", 0:8), hjust = 0, size = 3.6, color = "grey35") +
-  theme_void()
+dg_pascal(8, suma = list(c(5, 1), c(5, 2)), resultado = c(6, 2))
 ```
 
 El triángulo también muestra dos propiedades que ya se vieron. Cada fila es simétrica, porque $C(n, k) = C(n, n - k)$. Además, cada fila suma $2^n$: por ejemplo, $1 + 4 + 6 + 4 + 1 = 16 = 2^4$. Esa suma cuenta todos los subconjuntos posibles de $n$ elementos, de cualquier tamaño, porque cada elemento puede quedar dentro o fuera (dos opciones por elemento, principio multiplicativo). Los números del triángulo vuelven a aparecer en el capítulo 14 como coeficientes de la distribución binomial.
@@ -587,30 +574,19 @@ La @fig-conteo-decision ordena las mismas preguntas como un diagrama de decisió
 #| fig-cap: "Diagrama de decisión para escoger la fórmula de conteo."
 #| fig-alt: "Diagrama de árbol. Arriba la pregunta importa el orden; si la respuesta es sí, se pregunta si se pueden repetir y se llega a permutación con repetición o a permutación; si es no, se llega a combinación con repetición o a combinación. Abajo una nota con los casos especiales"
 #| echo: false
-#| fig-width: 9
-#| fig-height: 5.2
-#| out-width: "90%"
 
-cajas <- data.frame(
-  x = c(5, 2.5, 7.5, 1.2, 3.8, 6.2, 8.8),
-  y = c(5, 3.4, 3.4, 1.6, 1.6, 1.6, 1.6),
-  et = c("¿Importa el orden?", "¿Se pueden repetir\nlos elementos?", "¿Se pueden repetir\nlos elementos?",
-         "Permutación\ncon repetición\nnᵏ", "Permutación\n\nn! / (n − k)!",
-         "Combinación\ncon repetición\nC(n + k − 1, k)", "Combinación\n\nC(n, k)"),
-  tipo = c("pregunta", "pregunta", "pregunta", "hoja", "hoja", "hoja", "hoja"))
-flechas <- data.frame(x = c(5, 5, 2.5, 2.5, 7.5, 7.5), y = c(5, 5, 3.4, 3.4, 3.4, 3.4),
-                      xend = c(2.5, 7.5, 1.2, 3.8, 6.2, 8.8), yend = c(3.4, 3.4, 1.6, 1.6, 1.6, 1.6),
-                      et = c("Sí", "No", "Sí", "No", "Sí", "No"))
-ggplot() +
-  geom_segment(data = flechas, aes(x, y, xend = xend, yend = yend), color = "grey40", linewidth = 0.7) +
-  geom_label(data = flechas, aes((x + xend) / 2, (y + yend) / 2, label = et), size = 5, label.size = 0, fill = "white") +
-  geom_label(data = cajas, aes(x, y, label = et, fill = tipo), size = 5, label.padding = unit(0.4, "lines")) +
-  scale_fill_manual(values = c(pregunta = "#e3eef6", hoja = "#fbe7c2"), guide = "none") +
-  annotate("text", x = 5, y = c(0.35, -0.05), size = 4.6, color = "grey25",
-           label = c("Casos especiales: elementos en círculo, (n − 1)!,",
-                     "y ordenar n elementos con grupos de elementos iguales, n! / (n₁! n₂! ⋯ nᵣ!)")) +
-  xlim(-0.2, 10.2) + ylim(-0.3, 5.5) +
-  theme_void()
+hoja <- function(nombre, detalle, formula) list(lineas = list(c(nombre, "t1"), c(detalle, "t2"), c(formula, "tv")), clase = "c3")
+pregunta <- function(txt, si, no) list(lineas = list(c(txt, "t1")), clase = "c1",
+                                       hijos = list(list(etiqueta = "Sí", nodo = si), list(etiqueta = "No", nodo = no)))
+dg_decision(
+  pregunta("¿Importa el orden?",
+           pregunta("¿Se pueden repetir?", hoja("Permutación", "con repetición", "nᵏ"),
+                    hoja("Permutación", "sin repetición", "n! / (n − k)!")),
+           pregunta("¿Se pueden repetir?", hoja("Combinación", "con repetición", "C(n + k − 1, k)"),
+                    hoja("Combinación", "sin repetición", "C(n, k)"))),
+  nota = c("Casos especiales: elementos en círculo, (n − 1)!, y ordenar n elementos",
+           "con grupos de elementos iguales, n! / (n₁! n₂! ⋯ nᵣ!)"),
+  titulo = "Diagrama de decisión para escoger la fórmula de conteo")
 ```
 
 

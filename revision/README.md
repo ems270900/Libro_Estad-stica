@@ -30,9 +30,9 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 25. Regresión lineal simple | Borrador | [25-regresion_simple.md](25-regresion_simple.md) | Parte VI; diversificación de ramas |
 | 26. Regresión lineal múltiple | Borrador | [26-regresion_multiple.md](26-regresion_multiple.md) | Parte VI |
 | 27. Supuestos, diagnóstico y medidas remediales | Borrador | [27-diagnostico_regresion.md](27-diagnostico_regresion.md) | Parte VI; diversificación de ramas |
-| 28. Principios del diseño experimental y ANOVA de un factor | Borrador | [28-anova_un_factor.md](28-anova_un_factor.md) | Parte VII; diversificación de ramas |
-| 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII; diversificación de ramas |
-| 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII; diversificación de ramas |
+| 28. Principios del diseño experimental y ANOVA de un factor | Borrador | [28-anova_un_factor.md](28-anova_un_factor.md) | Parte VII; diversificación de ramas; ampliación |
+| 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII; diversificación de ramas; ampliación |
+| 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII; diversificación de ramas; ampliación |
 | Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
 | 18. Estimación puntual | Borrador (ampliado 2026-11-25) | [18-estimacion_puntual.md](18-estimacion_puntual.md) | Parte V |
 | 19. Intervalos de confianza, de predicción y de tolerancia | Borrador (ampliado 2026-11-25) | [19-intervalos.md](19-intervalos.md) | Parte V; diversificación de ramas |

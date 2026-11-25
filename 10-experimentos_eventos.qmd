@@ -111,29 +111,10 @@ El espacio muestral no siempre es una lista corta. Según el experimento, puede 
 #| fig-cap: "Tres clases de espacio muestral."
 #| fig-alt: "Tres filas. Arriba, seis puntos numerados del 1 al 6. En medio, puntos numerados 0, 1, 2 hasta 8 seguidos de puntos suspensivos. Abajo, una recta que empieza en 0 mm con una flecha hacia la derecha y un tramo sombreado desde 50 mm"
 #| echo: false
-#| fig-width: 8
-#| fig-height: 3.6
 
 library(ggplot2)
-finito <- data.frame(x = seq(3.5, 8.5, by = 1), y = 3, et = 1:6)
-numerable <- data.frame(x = seq(3.5, 9.9, by = 0.8), y = 2, et = 0:8)
-ggplot() +
-  geom_point(data = finito, aes(x, y), size = 4, color = "#1C6BA0") +
-  geom_text(data = finito, aes(x, y + 0.28, label = et), size = 4.2) +
-  geom_point(data = numerable, aes(x, y), size = 4, color = "#1C6BA0") +
-  geom_text(data = numerable, aes(x, y + 0.28, label = et), size = 4.2) +
-  annotate("text", x = 10.6, y = 2, label = "…", size = 7) +
-  annotate("rect", xmin = 6.5, xmax = 11.1, ymin = 0.88, ymax = 1.12, fill = "#E69F00", alpha = 0.5) +
-  annotate("segment", x = 3.5, xend = 11.3, y = 1, yend = 1, linewidth = 1.1, color = "#1C6BA0",
-           arrow = arrow(length = unit(0.25, "cm"))) +
-  annotate("point", x = 3.5, y = 1, size = 3, color = "#1C6BA0") +
-  annotate("text", x = c(3.5, 6.5), y = 0.65, label = c("0 mm", "50 mm"), size = 4) +
-  annotate("text", x = 8.8, y = 1.35, label = "Evento: llueve más de 50 mm", size = 4) +
-  annotate("text", x = 0, y = c(3, 2, 1), hjust = 0, size = 4.2, fontface = "bold",
-           label = c("Finito\n(cara de un dado)", "Infinito numerable\n(vehículos por minuto)",
-                     "Continuo\n(lluvia de un día)")) +
-  xlim(0, 11.5) + ylim(0.4, 3.5) +
-  theme_void()
+source("R/diagramas.R")
+dg_espacios()
 ```
 
 La diferencia importa porque cambia la forma de asignar probabilidades. En un espacio finito se le da una probabilidad a cada resultado y, para un evento, se suman las de sus resultados. En uno continuo, la probabilidad de un valor exacto, como "llueven exactamente 50 mm, ni una milésima más ni una menos", es cero; lo que tiene probabilidad son los intervalos, como "llueven más de 50 mm". Los eventos de este capítulo se dibujan casi siempre con espacios finitos porque se ven mejor, pero las reglas valen igual para los continuos, que se tratan con detalle en los capítulos 13 y 15.
@@ -579,28 +560,9 @@ Con tres eventos, la @eq-eventos-union3 parece complicada, pero sigue la misma l
 #| fig-cap: "Probabilidad de cada región para tres motivos de incumplimiento."
 #| fig-alt: "Diagrama de Venn de tres círculos, A coliformes, B nitratos y C turbiedad, con la probabilidad de cada una de las siete regiones interiores y 0.80 fuera de los círculos"
 #| echo: false
-#| fig-width: 6
-#| fig-height: 5
-#| out-width: "60%"
 
-ang <- seq(0, 2 * pi, length.out = 200)
-centros <- data.frame(c = c("A", "B", "C"), x = c(-0.55, 0.55, 0), y = c(0.35, 0.35, -0.55))
-circ3 <- do.call(rbind, lapply(1:3, function(i)
-  data.frame(c = centros$c[i], x = centros$x[i] + cos(ang), y = centros$y[i] + sin(ang))))
-etiquetas <- data.frame(
-  x = c(-1.05, 1.05, 0, 0, -0.62, 0.62, 0, 1.75),
-  y = c(0.65, 0.65, -1.15, 0.85, -0.3, -0.3, 0.05, -1.65),
-  et = c("0.04", "0.03", "0.04", "0.03", "0.04", "0.01", "0.01", "0.80"))
-ggplot() +
-  geom_polygon(data = circ3, aes(x, y, group = c, fill = c), alpha = 0.25) +
-  geom_path(data = circ3, aes(x, y, group = c), color = "grey20", linewidth = 0.7) +
-  scale_fill_manual(values = c(A = "#1C6BA0", B = "#E69F00", C = "#009E73"), guide = "none") +
-  annotate("rect", xmin = -2.2, xmax = 2.2, ymin = -1.9, ymax = 1.75, fill = NA, color = "grey30") +
-  geom_text(data = etiquetas, aes(x, y, label = et), size = 4.5) +
-  annotate("text", x = c(-1.55, 1.55, 0), y = c(1.35, 1.35, -1.75), size = 4.2,
-           label = c("A: coliformes", "B: nitratos", "C: turbiedad")) +
-  coord_equal() +
-  theme_void()
+dg_venn3(nombres = c("A: coliformes", "B: nitratos", "C: turbiedad"),
+         valores = c("0.04", "0.03", "0.04", "0.03", "0.04", "0.01", "0.01", "0.80"))
 ```
 
 **Pseudocódigo**
