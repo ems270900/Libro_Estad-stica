@@ -13,7 +13,7 @@ library(ggplot2)
 library(kableExtra)
 ```
 
-Los ejemplos usan dos conjuntos de datos. El primero son doce cilindros de concreto hipotéticos, pocos a propósito para que todos los cálculos se puedan hacer con calculadora. El segundo es la serie de 65 lluvias máximas diarias anuales de los capítulos 7 y 8.
+Los ejemplos principales usan dos conjuntos de datos. El primero son doce cilindros de concreto hipotéticos, pocos a propósito para que todos los cálculos se puedan hacer con calculadora. El segundo es la serie de 65 lluvias máximas diarias anuales de los capítulos 7 y 8. Otros ejemplos usan las velocidades de 40 vehículos en un estudio de tránsito y los caudales máximos anuales del capítulo 8.
 
 ```{r}
 #| echo: false
@@ -50,6 +50,37 @@ $$ {#eq-med-media}
 donde $\bar{x}$ es la media muestral, $x_i$ es cada dato y $n$ es el número de datos. Si los datos son toda la población, la misma operación da la media poblacional $\mu$, y se divide entre $N$.
 
 La media es el punto de equilibrio de los datos. Si cada dato fuera una pesa colocada sobre una regla, la regla se equilibraría justo en $\bar{x}$. Por eso las distancias de los datos a la media, llamadas desviaciones $x_i - \bar{x}$, suman siempre cero: las positivas compensan a las negativas.
+
+La @fig-med-balanza muestra esa idea con el asentamiento de siete zapatas de un mismo edificio (datos hipotéticos): 12, 15, 16, 18, 21, 25 y 33 mm. La suma es 140 mm y la media, $140/7 = 20$ mm. Las desviaciones son $-8$, $-5$, $-4$, $-2$, $+1$, $+5$ y $+13$ mm: las negativas suman $-19$ y las positivas $+19$. La zapata de 33 mm, sola, pesa tanto como las tres más bajas juntas. En la balanza lo que cuenta es la distancia al punto de apoyo, igual que el momento de una fuerza respecto a un apoyo en estática.
+
+```{r}
+#| label: fig-med-balanza
+#| fig-cap: "La media como punto de equilibrio."
+#| fig-alt: "Una regla horizontal apoyada sobre un triángulo en 20 mm, con siete pesas en 12, 15, 16, 18, 21, 25 y 33 mm; flechas grises van de cada pesa a la media y muestran desviaciones negativas a la izquierda y positivas a la derecha que suman cero"
+#| fig-width: 9
+#| fig-height: 3.2
+#| out-width: "85%"
+#| echo: false
+
+asent <- c(12, 15, 16, 18, 21, 25, 33)
+media_a <- mean(asent)
+ggplot() +
+  annotate("segment", x = 8, xend = 36, y = 0, yend = 0, linewidth = 2, color = "grey40") +
+  annotate("polygon", x = c(media_a - 0.7, media_a + 0.7, media_a), y = c(-0.5, -0.5, -0.08), fill = "#E69F00") +
+  geom_point(aes(x = asent, y = 0.55), shape = 22, size = 7, fill = "#1C6BA0", color = "white") +
+  geom_text(aes(x = asent, y = 1.35, label = asent), size = 3.6) +
+  geom_segment(aes(x = asent, xend = media_a, y = -0.6 - 0.17 * seq_along(asent),
+                   yend = -0.6 - 0.17 * seq_along(asent)),
+               arrow = arrow(length = unit(0.12, "cm"), ends = "first"), color = "grey50") +
+  annotate("text", x = media_a, y = -2.15, label = "x̄ = 20 mm", size = 3.8, color = "#B07800") +
+  annotate("text", x = 13, y = -2.15, label = "desviaciones negativas: −19 mm", size = 3.4) +
+  annotate("text", x = 29.5, y = -2.15, label = "desviaciones positivas: +19 mm", size = 3.4) +
+  scale_x_continuous(breaks = seq(10, 35, by = 5)) +
+  coord_cartesian(ylim = c(-2.4, 1.7)) +
+  labs(x = "Asentamiento (mm)", y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank())
+```
 
 ### Media ponderada
 
@@ -185,6 +216,28 @@ exp(mean(log(factor_crec)))
 
 La media usa el valor de todos los datos, y por eso un solo dato muy grande o muy pequeño la mueve mucho. La mediana solo depende del orden, así que casi no cambia aunque el dato más grande se multiplique por diez. Se dice que la mediana es resistente a los valores atípicos y la media no [@helsel2020statistical]. En una distribución simétrica la media y la mediana casi coinciden. En una distribución con cola larga hacia la derecha, como la lluvia máxima, la media queda por encima de la mediana (75.72 contra 69.10 mm), porque los pocos años muy lluviosos la arrastran.
 
+La elección depende también de la pregunta. Si interesa un total, se usa la media: el volumen de agua que una planta trata en un mes es la media diaria por el número de días, y la mediana no sirve para ese cálculo. Si interesa el valor de un caso típico, la mediana suele describirlo mejor. El tiempo de viaje que una persona puede esperar en una ruta con atascos ocasionales está mejor representado por la mediana, porque unos pocos días de presa enorme inflan la media. El @tbl-med-centro-uso resume la decisión.
+
+```{r}
+#| label: tbl-med-centro-uso
+#| tbl-cap: "Medida de centro según los datos y la pregunta."
+#| echo: false
+
+data.frame(
+  caso = c("Datos simétricos, sin atípicos", "Datos asimétricos o con atípicos",
+           "Interesa un total (volumen, costo, carga)", "Variable ordinal",
+           "Variable nominal", "Factores de crecimiento", "Datos con distinto peso"),
+  medida = c("Media (y mediana como comprobación)", "Mediana", "Media", "Mediana o moda",
+             "Moda", "Media geométrica", "Media ponderada"),
+  ejemplo = c("Resistencia de cilindros de una mezcla", "Tiempo de viaje, caudales, concentraciones",
+              "Caudal medio para calcular un volumen anual", "Estado de mantenimiento de puentes",
+              "Material más común en un inventario", "Crecimiento anual del tránsito",
+              "Compactación de tramos de distinta longitud")
+) %>%
+  kbl(col.names = c("Caso", "Medida recomendada", "Ejemplo"), align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
 #### Interactivo: un dato que se aleja {#sec-med-interactivo-centro}
 
 En la @fig-med-interactivo-centro están los doce cilindros. Mueva el control para cambiar el valor del cilindro 8, el de menor resistencia (23.7 MPa), como si hubiera un error de transcripción o un cilindro mal ensayado. Observe cuánto se mueven la media y la mediana.
@@ -288,6 +341,153 @@ Si $L$ es menor que 1 se toma el menor dato, y si es mayor que $n$, el mayor.
 No hay una sola fórmula para los cuantiles. @hyndman1996sample describen nueve definiciones que usan distintos programas, y todas dan lo mismo con muchos datos, pero difieren con pocos. La @eq-med-posicion corresponde al tipo 6 de esa clasificación, que es la que usan muchos libros de texto y programas como Minitab. La función `quantile()` de R usa por omisión el tipo 7, cuya posición es $L = 1 + p\,(n - 1)$. Para que R dé lo mismo que el cálculo a mano de este libro se escribe `quantile(x, type = 6)`. Ninguna de las dos es un error, pero en un mismo informe se usa una sola y se dice cuál.
 :::
 
+::: {.callout-note title="Ejemplo: percentil 85 de la velocidad en un estudio de velocidad de punto"}
+
+**Planteamiento.** En un estudio de velocidad de punto se midió con radar la velocidad de 40 vehículos que circulaban libremente por un tramo recto de carretera (datos hipotéticos). Calcule los percentiles 15, 50 y 85 de la velocidad, y diga qué porcentaje de los vehículos circula por encima de 60 km/h. En ingeniería de tránsito, el percentil 85 se usa como referencia para fijar o revisar el límite de velocidad de un tramo <!-- CITA PENDIENTE: manual de ingeniería de tránsito que el autor prefiera (por ejemplo, el manual de estudios de tránsito del ITE o el MUTCD) -->.
+
+```{r}
+#| echo: false
+ver_datos("datos/velocidades_punto_hipoteticas.csv", nombres = c("Vehículo", "Velocidad (km/h)"))
+```
+
+**Solución:**
+
+1. Se ordenan las 40 velocidades (km/h): 42, 45, 46, 46, 46, 48, 51, 54, 54, 54, 55, 55, 55, 57, 57, 58, 58, 59, 60, 61, 61, 61, 61, 62, 62, 62, 62, 64, 64, 64, 65, 67, 69, 69, 69, 69, 71, 71, 75 y 77.
+2. Percentil 15 con la @eq-med-posicion: $L = 0.15 \times 41 = 6.15$. Los datos 6 y 7 son 48 y 51 km/h, así que con la @eq-med-interpolacion $P_{15} = 48 + 0.15\,(51 - 48) = 48.45$ km/h.
+3. Percentil 50 (mediana): $L = 0.50 \times 41 = 20.5$. Los datos 20 y 21 son 61 y 61 km/h, así que $P_{50} = 61$ km/h.
+4. Percentil 85: $L = 0.85 \times 41 = 34.85$. Los datos 34 y 35 son 69 y 69 km/h, así que $P_{85} = 69 + 0.85\,(69 - 69) = 69$ km/h.
+5. Por encima de 60 km/h hay 21 vehículos (del dato 20 en adelante), es decir $21/40 = 52.5$ %.
+
+**Pseudocódigo**
+
+1. Leer los datos y ordenarlos.
+2. Calcular la posición $L$ de cada percentil e interpolar.
+3. Comprobar con `quantile(..., type = 6)` y con dplyr.
+4. Contar los vehículos por encima de 60 km/h.
+5. Dibujar la curva de frecuencia acumulada con los percentiles marcados.
+
+```{r}
+# 1) Datos ordenados
+vel <- read.csv("datos/velocidades_punto_hipoteticas.csv")
+v <- sort(vel$velocidad_kmh)
+n <- length(v)
+
+# 2) Percentil por interpolación (tipo 6), escrito como una función
+percentil6 <- function(x_ordenado, p) {
+  L <- p * (length(x_ordenado) + 1)
+  j <- floor(L); d <- L - j
+  if (j < 1) return(x_ordenado[1])
+  if (j >= length(x_ordenado)) return(x_ordenado[length(x_ordenado)])
+  x_ordenado[j] + d * (x_ordenado[j + 1] - x_ordenado[j])
+}
+sapply(c(0.15, 0.50, 0.85), function(p) percentil6(v, p))
+
+# 3) Con la función de R
+quantile(vel$velocidad_kmh, probs = c(0.15, 0.50, 0.85), type = 6)
+
+# 3) Con dplyr
+library(dplyr)
+vel %>%
+  summarise(p15 = quantile(velocidad_kmh, 0.15, type = 6),
+            p50 = quantile(velocidad_kmh, 0.50, type = 6),
+            p85 = quantile(velocidad_kmh, 0.85, type = 6))
+
+# 4) Porcentaje de vehículos por encima de 60 km/h
+100 * mean(vel$velocidad_kmh > 60)
+```
+
+```{r}
+#| label: fig-med-velocidad-base
+#| fig-cap: "Frecuencia acumulada de la velocidad, con R base."
+#| fig-alt: "Curva escalonada de frecuencia acumulada de 40 velocidades entre 42 y 77 km/h, con líneas verticales en los percentiles 15, 50 y 85"
+#| fig-height: 3.8
+
+# 5) Curva de frecuencia acumulada con R base: ecdf() da la fracción de datos <= x
+plot(ecdf(vel$velocidad_kmh), main = "", col = "#1C6BA0",
+     xlab = "Velocidad (km/h)", ylab = "Fracción acumulada de vehículos")
+abline(v = c(48.45, 61, 69), lty = 2, col = "grey50")
+abline(h = c(0.15, 0.50, 0.85), lty = 3, col = "grey70")
+```
+
+```{r}
+#| label: fig-med-velocidad-gg
+#| fig-cap: "Frecuencia acumulada de la velocidad, con ggplot2."
+#| fig-alt: "La misma curva escalonada hecha con ggplot2, con los percentiles 15, 50 y 85 marcados y rotulados"
+#| fig-height: 3.8
+
+# 5) Con ggplot2: stat_ecdf() dibuja la misma curva
+library(ggplot2)
+percentiles <- data.frame(p = c(0.15, 0.50, 0.85), valor = c(48.45, 61, 69),
+                          etiqueta = c("P15 = 48.5", "P50 = 61", "P85 = 69"))
+ggplot(vel, aes(x = velocidad_kmh)) +
+  stat_ecdf(geom = "step", color = "#1C6BA0", linewidth = 0.9) +
+  geom_vline(data = percentiles, aes(xintercept = valor), linetype = "dashed", color = "grey50") +
+  geom_text(data = percentiles, aes(x = valor, y = p + 0.07, label = etiqueta), hjust = 1.05, size = 3.4) +
+  labs(x = "Velocidad (km/h)", y = "Fracción acumulada de vehículos") +
+  theme_minimal()
+```
+
+**Interpretación.** La mitad de los vehículos circula a 61 km/h o menos, y el 85 % a 69 km/h o menos. Si el límite del tramo fuera 60 km/h, poco más de la mitad de los conductores lo excedería. Sería una señal de que el límite no corresponde con la velocidad que el diseño de la vía invita a llevar, o de que hace falta control. El percentil 15 (48.5 km/h) describe a los conductores más lentos; una diferencia grande entre $P_{15}$ y $P_{85}$ indica velocidades muy dispersas, lo que se asocia con más adelantamientos y conflictos. `quantile()` sin `type = 6` daría $P_{85} = 69$ km/h y $P_{15} = 50.55$ km/h: igual en el percentil 85 y 2.1 km/h más en el 15, porque con pocos datos en la cola las dos definiciones interpolan entre posiciones distintas.
+
+:::
+
+#### Interactivo: cómo se interpola un percentil
+
+En la @fig-med-int-percentil están las 40 velocidades ordenadas, una por columna. Mueva el control para elegir el orden $p$ del percentil. El interactivo calcula la posición $L = p\,(n+1)$, marca los dos datos vecinos y muestra la interpolación.
+
+::: {#fig-med-int-percentil}
+
+```{=html}
+<div class="interactivo" id="int-percentil">
+  <label><span>Orden del percentil <i>p</i>:</span> <output>0.85</output>
+    <input type="range" min="0.02" max="0.98" step="0.01" value="0.85"></label>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Cuarenta barras de velocidades ordenadas con la posición del percentil marcada entre dos datos"></svg>
+</div>
+<script>
+(function () {
+  var v = [42,45,46,46,46,48,51,54,54,54,55,55,55,57,57,58,58,59,60,61,61,61,61,62,62,62,62,64,64,64,65,67,69,69,69,69,71,71,75,77];
+  var n = v.length, raiz = document.getElementById("int-percentil");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 260, ml = 44, mr = 10, mt = 14, mb = 36, y0 = 35, y1 = 80;
+  function sx(i) { return ml + (i - 0.5) / n * (w - ml - mr); }
+  function sy(y) { return h - mb - (y - y0) / (y1 - y0) * (h - mt - mb); }
+  function dibujar() {
+    var p = parseFloat(control.value); salida.textContent = p.toFixed(2);
+    var L = p * (n + 1), j = Math.floor(L), d = L - j, q;
+    if (j < 1) { q = v[0]; } else if (j >= n) { q = v[n - 1]; } else { q = v[j - 1] + d * (v[j] - v[j - 1]); }
+    var s = "", bw = (w - ml - mr) / n * 0.7;
+    for (var t = 40; t <= 80; t += 10) s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(t) + '" y2="' + sy(t) + '" stroke-opacity="0.2"/>' +
+      '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    for (var i = 1; i <= n; i++) {
+      var vecino = (i === j || i === j + 1);
+      s += '<rect x="' + (sx(i) - bw / 2).toFixed(1) + '" y="' + sy(v[i - 1]).toFixed(1) + '" width="' + bw.toFixed(1) +
+        '" height="' + (sy(y0) - sy(v[i - 1])).toFixed(1) + '" style="fill:' + (vecino ? '#E69F00' : 'var(--serie-1,#1C6BA0)') + '" fill-opacity="' + (vecino ? 1 : 0.45) + '"/>';
+    }
+    for (var k = 5; k <= 40; k += 5) s += '<text class="eje-texto" x="' + sx(k) + '" y="' + (h - mb + 15) + '" text-anchor="middle">' + k + '</text>';
+    var xL = sx(Math.min(Math.max(L, 1), n));
+    s += '<line x1="' + xL + '" x2="' + xL + '" y1="' + mt + '" y2="' + sy(y0) + '" stroke="#212529" stroke-dasharray="5 4" stroke-width="1.5"/>' +
+      '<line x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(q) + '" y2="' + sy(q) + '" stroke="#212529" stroke-dasharray="2 3"/>' +
+      '<circle cx="' + xL + '" cy="' + sy(q) + '" r="5" fill="#212529"/>' +
+      '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Posición en los datos ordenados</text>';
+    svg.innerHTML = s;
+    var detalle = (j < 1) ? "L < 1: se toma el menor dato." : (j >= n) ? "L ≥ n: se toma el mayor dato." :
+      "Datos " + j + " y " + (j + 1) + ": " + v[j - 1] + " y " + v[j] + " km/h.  P = " + v[j - 1] + " + " + d.toFixed(2) + " × (" + v[j] + " − " + v[j - 1] + ") = " + q.toFixed(2) + " km/h.";
+    texto.textContent = "L = " + p.toFixed(2) + " × 41 = " + L.toFixed(2) + ".  " + detalle;
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Interpolación de un percentil.
+
+:::
+
+Con $p = 0.85$ los dos vecinos valen lo mismo (69 km/h) y la interpolación no cambia nada. Con $p = 0.15$ los vecinos son 48 y 51 km/h y el percentil queda a 15 % del camino entre ellos. Un percentil cerca de los extremos ($p < 1/41$ o $p > 40/41$) no se puede interpolar: con 40 datos no tiene sentido hablar del percentil 99, porque solo hay un dato por encima del percentil 97.5. Para estimar percentiles extremos hace falta un modelo de distribución (Parte IV) o muchos más datos.
+
 ### Puntaje z
 
 Para saber qué tan lejos está un dato del centro, en unidades comparables entre variables distintas, se usa el puntaje $z$ o valor estandarizado:
@@ -342,6 +542,40 @@ $$ {#eq-med-desviacion}
 
 La desviación estándar se puede leer como la distancia típica de un dato a la media. En R, `var(x)` y `sd(x)` calculan la varianza y la desviación estándar muestrales, con $n - 1$.
 
+La palabra "cuadrado" se puede tomar al pie de la letra. En la @fig-med-cuadrados, cada desviación de los siete asentamientos de la @fig-med-balanza es el lado de un cuadrado. La varianza es, casi, el área promedio de esos cuadrados. La suma de las áreas es $64 + 25 + 16 + 4 + 1 + 25 + 169 = 304$ mm², y al dividir entre $n - 1 = 6$ se obtiene $s^2 = 50.67$ mm². La desviación estándar es el lado del cuadrado que tiene esa área promedio: $s = \sqrt{50.67} = 7.12$ mm.
+
+```{r}
+#| label: fig-med-cuadrados
+#| fig-cap: "La varianza como área promedio de cuadrados."
+#| fig-alt: "Siete puntos sobre un eje de asentamiento con una línea vertical en la media de 20 mm; sobre cada punto se dibuja un cuadrado cuyo lado es la distancia del punto a la media; el cuadrado de la zapata de 33 mm, con lado 13 mm, es mucho mayor que todos los demás juntos"
+#| fig-width: 9
+#| fig-height: 4.6
+#| out-width: "85%"
+#| echo: false
+
+dev_a <- asent - media_a
+cuadros <- data.frame(x = asent, d = dev_a)
+cuadros$xmin <- pmin(cuadros$x, media_a); cuadros$xmax <- pmax(cuadros$x, media_a)
+cuadros$ymin <- 0; cuadros$ymax <- abs(cuadros$d)
+ggplot(cuadros) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = d > 0),
+            alpha = 0.25, color = "grey40") +
+  geom_point(aes(x = x, y = 0), size = 3, color = "#1C6BA0") +
+  geom_vline(xintercept = media_a, color = "#E69F00", linewidth = 1) +
+  geom_text(aes(x = (xmin + xmax) / 2, y = ymax + 0.6, label = paste0(d^2, " mm²")), size = 3.2) +
+  scale_fill_manual(values = c(`TRUE` = "#1C6BA0", `FALSE` = "grey60"), guide = "none") +
+  annotate("text", x = media_a + 0.3, y = 14.3, label = "x̄ = 20 mm", hjust = 0, size = 3.6, color = "#B07800") +
+  coord_equal(xlim = c(8, 36), ylim = c(0, 15)) +
+  labs(x = "Asentamiento (mm)", y = "Lado del cuadrado = |desviación| (mm)") +
+  theme_minimal()
+```
+
+La figura muestra también por qué la desviación estándar es sensible a los valores alejados: la zapata de 33 mm aporta 169 de los 304 mm², más de la mitad de la suma, aunque es solo uno de siete datos. Al elevar al cuadrado, una desviación el doble de grande pesa cuatro veces más.
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+¿Por qué no promediar simplemente las distancias sin signo, $|x_i - \bar{x}|$? Esa medida existe y se llama desviación media absoluta. Para los siete asentamientos da $(8 + 5 + 4 + 2 + 1 + 5 + 13)/7 = 5.43$ mm. Se usa poco por dos razones. El valor absoluto es incómodo en el álgebra (no se puede derivar en cero), y la varianza tiene propiedades que la hacen la base de toda la inferencia, como que la varianza de una suma de variables independientes es la suma de sus varianzas (capítulo 13). Cuando se necesita una medida de dispersión resistente a los atípicos, en lugar de la desviación estándar se usa el RIC o la desviación absoluta mediana. Esta última es la mediana de las distancias de cada dato a la mediana, que en R se calcula con `mad(x, constant = 1)` [@helsel2020statistical]. Para los asentamientos, la mediana es 18 mm, las distancias son 6, 3, 2, 0, 3, 7 y 15 mm y su mediana es 3 mm.
+:::
+
 ### Coeficiente de variación
 
 Una desviación estándar de 3.7 MPa es grande para cilindros que promedian 31 MPa, pero sería pequeña para una variable que promedia 1000. Para comparar la variabilidad de variables con medias o unidades distintas se usa el coeficiente de variación, que expresa la desviación estándar como porcentaje de la media:
@@ -351,6 +585,110 @@ CV = \frac{s}{\bar{x}} \times 100\ \%
 $$ {#eq-med-cv}
 
 El $CV$ no tiene unidades. Solo tiene sentido para variables en escala de razón con media positiva: no se calcula para temperaturas en °C, por ejemplo.
+
+En hidrología, por ejemplo, el coeficiente de variación de los caudales máximos anuales dice qué tan irregular es un río. Con los datos de los capítulos 7 y 8, la lluvia máxima diaria tiene un $CV$ de 27.9 % y el caudal máximo anual uno bastante mayor, como se pide calcular en los ejercicios. En el control de calidad del concreto, la desviación estándar y el coeficiente de variación de los ensayos de una planta se usan para juzgar qué tan uniforme es su producción [@aci2011guide].
+
+### Regla empírica y desigualdad de Chebyshev {#sec-med-chebyshev}
+
+La desviación estándar se vuelve mucho más útil cuando se sabe qué fracción de los datos cae a una o dos desviaciones de la media. Hay dos respuestas, una para datos con forma de campana y otra que vale siempre.
+
+**Regla empírica.** Si el histograma tiene forma de campana, más o menos simétrica, cerca del 68 % de los datos queda en el intervalo $\bar{x} \pm s$, cerca del 95 % en $\bar{x} \pm 2s$ y casi todos (99.7 %) en $\bar{x} \pm 3s$ [@illowsky2013introductory]. Los porcentajes vienen de la distribución normal, que el capítulo 16 estudia con detalle, y la @fig-med-regla-empirica los muestra.
+
+```{r}
+#| label: fig-med-regla-empirica
+#| fig-cap: "Regla empírica."
+#| fig-alt: "Curva en forma de campana con tres bandas sombreadas centradas en la media: la más oscura entre menos una y más una desviación estándar con 68 %, la intermedia hasta dos desviaciones con 95 % y la más clara hasta tres desviaciones con 99.7 %"
+#| fig-width: 8
+#| fig-height: 3.6
+#| out-width: "80%"
+#| echo: false
+
+zz <- seq(-3.8, 3.8, by = 0.01)
+curva <- data.frame(z = zz, y = dnorm(zz))
+banda <- function(k) subset(curva, abs(z) <= k)
+ggplot(curva, aes(z, y)) +
+  geom_area(data = banda(3), fill = "#C6DBEF") +
+  geom_area(data = banda(2), fill = "#9ECAE1") +
+  geom_area(data = banda(1), fill = "#6BAED6") +
+  geom_line(color = "#1C6BA0", linewidth = 1) +
+  annotate("segment", x = -1, xend = 1, y = 0.27, yend = 0.27, arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = 0, y = 0.29, label = "68 %", size = 3.8) +
+  annotate("segment", x = -2, xend = 2, y = 0.09, yend = 0.09, arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = 0, y = 0.11, label = "95 %", size = 3.8) +
+  annotate("segment", x = -3, xend = 3, y = 0.025, yend = 0.025, arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = 2.75, y = 0.05, label = "99.7 %", size = 3.6) +
+  scale_x_continuous(breaks = -3:3, labels = c("x̄ − 3s", "x̄ − 2s", "x̄ − s", "x̄", "x̄ + s", "x̄ + 2s", "x̄ + 3s")) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank())
+```
+
+**Desigualdad de Chebyshev.** Si no se sabe nada de la forma, la desigualdad de Chebyshev da un mínimo garantizado. Para cualquier conjunto de datos y cualquier $k > 1$, al menos una fracción $1 - 1/k^2$ de los datos queda a menos de $k$ desviaciones estándar de la media [@walpole2012probabilidad; @wasserman2004all]:
+
+$$
+\text{fracción dentro de } \bar{x} \pm k\,s \ \ge \ 1 - \frac{1}{k^2}
+$$ {#eq-med-chebyshev}
+
+donde $k$ es el número de desviaciones estándar (adimensional). Con $k = 2$ queda al menos el 75 % de los datos, y con $k = 3$ al menos el 88.9 %. Son porcentajes más bajos que los de la regla empírica, porque deben valer hasta para las distribuciones más raras.
+
+Con la lluvia máxima diaria ($\bar{x} = 75.72$ mm, $s = 21.16$ mm), el intervalo $\bar{x} \pm s$ va de 54.56 a 96.88 mm y contiene 47 de los 65 años (72.3 %). El intervalo $\bar{x} \pm 2s$ va de 33.40 a 118.04 mm y contiene 63 años (96.9 %), y $\bar{x} \pm 3s$ contiene 64 años (98.5 %), todos menos el de 151.0 mm. Los porcentajes se parecen a los de la regla empírica aunque la serie es asimétrica, y todos superan el mínimo de Chebyshev.
+
+#### Interactivo: cuántos datos quedan cerca de la media
+
+En la @fig-med-int-chebyshev, los 65 años de lluvia máxima están dibujados como puntos. Mueva el control para cambiar $k$. La banda sombreada es $\bar{x} \pm k\,s$, y el texto compara el porcentaje real de datos dentro de la banda con el que predice la regla empírica (si los datos fueran normales) y con el mínimo de Chebyshev.
+
+::: {#fig-med-int-chebyshev}
+
+```{=html}
+<div class="interactivo" id="int-chebyshev">
+  <label><span>Número de desviaciones estándar <i>k</i>:</span> <output>2.0</output>
+    <input type="range" min="0.5" max="4" step="0.1" value="2"></label>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 190" role="img" aria-label="Puntos de la lluvia máxima diaria con una banda sombreada de la media más y menos k desviaciones estándar"></svg>
+</div>
+<script>
+(function () {
+  var datos = [60,70.6,47.4,51.4,105.1,109.3,67.3,86.2,60.2,64.2,54.8,56.6,90.5,112.3,64.5,82.1,65.5,87.4,66.4,73.5,65.7,74.8,76.2,119,56.3,86.5,82.6,77,87.6,75.9,83.8,89.2,57.5,74.1,57,102.3,58.4,73.6,62.6,111.1,89,61.5,107.5,63.6,50.4,52.3,61.1,66.6,113.2,68.7,67.7,74.7,116.6,52.8,151,80.2,67.7,69.1,65.7,62.6,44.8,98.1,46.3,57.8,86.4];
+  var n = datos.length, media = datos.reduce(function (a, b) { return a + b; }, 0) / n;
+  var s = Math.sqrt(datos.reduce(function (a, b) { return a + (b - media) * (b - media); }, 0) / (n - 1));
+  var raiz = document.getElementById("int-chebyshev");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, m = 30, x0 = -20, x1 = 170;
+  function sx(x) { return m + (x - x0) / (x1 - x0) * (w - 2 * m); }
+  // Función de distribución normal estándar (aproximación de Abramowitz y Stegun 26.2.17)
+  function fi(z) { var t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2);
+    var p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - p : p; }
+  var orden = datos.slice().sort(function (a, b) { return a - b; });
+  function dibujar() {
+    var k = parseFloat(control.value); salida.textContent = k.toFixed(1);
+    var a = media - k * s, b = media + k * s;
+    var dentro = datos.filter(function (v) { return v > a && v < b; }).length;
+    var g = '<rect x="' + sx(Math.max(a, x0)) + '" y="20" width="' + (sx(Math.min(b, x1)) - sx(Math.max(a, x0))) + '" height="100" fill="#E69F00" fill-opacity="0.18"/>';
+    var pila = {};
+    orden.forEach(function (v) { var c = Math.round(v / 3); pila[c] = (pila[c] || 0) + 1;
+      var fuera = (v <= a || v >= b);
+      g += '<circle cx="' + sx(v).toFixed(1) + '" cy="' + (112 - (pila[c] - 1) * 9) + '" r="4" style="fill:' + (fuera ? '#D55E00' : 'var(--serie-1,#1C6BA0)') + '"/>'; });
+    g += '<line x1="' + sx(media) + '" x2="' + sx(media) + '" y1="16" y2="124" stroke="#212529" stroke-width="1.5"/>' +
+      '<text class="eje-texto" x="' + sx(media) + '" y="12" text-anchor="middle">x̄</text>';
+    g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="130" y2="130"/>';
+    for (var t = -20; t <= 160; t += 20) g += '<text class="eje-texto" x="' + sx(t) + '" y="148" text-anchor="middle">' + t + '</text>';
+    g += '<text class="eje-texto" x="' + (w / 2) + '" y="172" text-anchor="middle">Precipitación máxima diaria (mm)</text>';
+    svg.innerHTML = g;
+    var cheb = k > 1 ? (100 * (1 - 1 / (k * k))).toFixed(1) + " %" : "no garantiza nada (k ≤ 1)";
+    texto.textContent = "Banda de " + a.toFixed(1) + " a " + b.toFixed(1) + " mm.  Datos dentro: " + dentro + " de " + n +
+      " (" + (100 * dentro / n).toFixed(1) + " %).  Regla empírica: " + (100 * (2 * fi(k) - 1)).toFixed(1) +
+      " %.  Mínimo de Chebyshev: " + cheb + ".";
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Fracción de las lluvias máximas dentro de $\bar{x} \pm k\,s$.
+
+:::
 
 ::: {.callout-note title="Ejemplo: resumen completo de la resistencia de doce cilindros"}
 
@@ -502,6 +840,36 @@ $$ {#eq-med-asimetria-ajustada}
 
 Con muchos datos, $g_1$ y $G_1$ casi coinciden. R base no trae una función para la asimetría. El paquete e1071 tiene `skewness()`, donde `type = 1` da $g_1$ y `type = 2` da $G_1$; se usa solo para comprobar el cálculo manual.
 
+Como guía práctica, un $|g_1|$ menor que 0.5 suele leerse como una distribución casi simétrica y uno mayor que 1 como claramente asimétrica. Son referencias, no reglas: con menos de unos 30 datos el coeficiente cambia mucho de una muestra a otra, y un solo valor extremo puede llevarlo de 0.3 a 1.5. Por eso siempre se acompaña de un histograma o de un diagrama de caja.
+
+### Por qué siempre hay que graficar
+
+Los números resumen, pero también esconden. @anscombe1973graphs construyó cuatro conjuntos de 11 pares de datos con la misma media de $x$ (9.0), la misma media de $y$ (7.5), las mismas desviaciones estándar (3.32 y 2.03) y la misma correlación entre $x$ y $y$ (0.82, una medida que se estudia en el capítulo 24). Un informe con solo esos números diría que los cuatro conjuntos son iguales. La @fig-med-anscombe muestra que no lo son. El primero es una nube alrededor de una recta, el segundo una curva, el tercero una recta perfecta con un dato que se escapa, y el cuarto tiene todos los puntos en el mismo $x$ menos uno. R trae estos datos con el nombre `anscombe`.
+
+```{r}
+#| label: fig-med-anscombe
+#| fig-cap: "El cuarteto de Anscombe. Fuente: datos de @anscombe1973graphs."
+#| fig-alt: "Cuatro diagramas de dispersión con la misma recta de tendencia; el primero es una nube alrededor de la recta, el segundo una curva en forma de arco, el tercero una recta casi perfecta con un punto muy alto, y el cuarto una columna de puntos en x igual a 8 y un solo punto alejado en x igual a 19"
+#| fig-width: 8
+#| fig-height: 5.6
+#| out-width: "75%"
+#| echo: false
+
+ans <- data.frame(
+  conjunto = rep(paste("Conjunto", 1:4), each = 11),
+  x = c(anscombe$x1, anscombe$x2, anscombe$x3, anscombe$x4),
+  y = c(anscombe$y1, anscombe$y2, anscombe$y3, anscombe$y4)
+)
+ggplot(ans, aes(x, y)) +
+  geom_abline(intercept = 3, slope = 0.5, color = "grey60", linetype = "dashed") +
+  geom_point(color = "#1C6BA0", size = 2.4) +
+  facet_wrap(~ conjunto, ncol = 2) +
+  labs(x = "x", y = "y") +
+  theme_minimal()
+```
+
+@matejka2017same llevaron la idea más lejos: generaron con una computadora conjuntos de datos con las mismas medias, desviaciones estándar y correlación que dibujan figuras tan distintas como una estrella, unas líneas paralelas o un dinosaurio. La lección para quien analiza datos de ingeniería es la misma: primero se grafica y después se resume, y nunca se reporta una media o una desviación estándar sin haber visto los datos.
+
 ## Valores atípicos y diagrama de caja {#sec-med-atipicos}
 
 Un valor atípico es un dato que queda muy lejos del resto. Puede ser un error (de medición, de transcripción, de unidades) o un dato real pero poco frecuente, como una crecida extraordinaria. Lo primero se corrige; lo segundo es información valiosa y no se borra. Antes de decidir, hay que identificarlo.
@@ -514,7 +882,11 @@ $$
 \text{Valla inferior} = Q_1 - 1.5\,\text{RIC}, \qquad \text{Valla superior} = Q_3 + 1.5\,\text{RIC}
 $$ {#eq-med-vallas}
 
-Con datos en forma de campana, este criterio marca muy pocos datos, menos de uno por cada cien. En distribuciones asimétricas, como las lluvias o los caudales máximos, marca más datos en la cola larga, y esos datos casi nunca son errores.
+Con datos en forma de campana, este criterio marca muy pocos datos, menos de uno por cada cien [@hoaglin1986performance]. En distribuciones asimétricas, como las lluvias o los caudales máximos, marca más datos en la cola larga, y esos datos casi nunca son errores.
+
+¿Por qué 1.5? @tukey1977exploratory lo eligió como un compromiso práctico y no como resultado de una fórmula: un factor menor marcaría como raros muchos datos normales, y uno mayor dejaría pasar errores evidentes. El mismo autor definió unas vallas externas a 3 RIC de los cuartiles. Un dato entre las vallas internas (1.5 RIC) y las externas (3 RIC) se llama atípico leve, y uno más allá de las externas, atípico extremo. Algunos programas dibujan los dos con símbolos distintos.
+
+La lógica del criterio se entiende con una analogía de obra. En una cuadrilla, la mitad central de los rendimientos diarios (el RIC) dice cuánto varía un día normal. Un día que se sale de ese rango en más de vez y media su ancho merece una pregunta (¿llovió?, ¿faltó material?), pero no por eso se borra de la bitácora.
 
 ### Construcción del diagrama de caja
 
@@ -525,7 +897,44 @@ El diagrama de caja (o de caja y bigotes), presentado en el capítulo 4, resume 
 3. Dos bigotes que salen de la caja hasta el dato más alejado que todavía está dentro de las vallas. Los bigotes no llegan hasta las vallas, sino hasta un dato real.
 4. Un punto por cada dato fuera de las vallas, que es un posible atípico.
 
-La caja muestra en un vistazo el centro (la mediana), la dispersión (el largo de la caja) y la asimetría. Si la mediana está cerca de un extremo de la caja, o si un bigote es mucho más largo que el otro, la distribución es asimétrica.
+La caja muestra en un vistazo el centro (la mediana), la dispersión (el largo de la caja) y la asimetría. Si la mediana está cerca de un extremo de la caja, o si un bigote es mucho más largo que el otro, la distribución es asimétrica. La @fig-med-caja-anatomia señala cada pieza sobre la caja de la lluvia máxima diaria que se calcula en el ejemplo siguiente.
+
+```{r}
+#| label: fig-med-caja-anatomia
+#| fig-cap: "Partes de un diagrama de caja."
+#| fig-alt: "Diagrama de caja horizontal de la lluvia máxima diaria con rótulos: bigote inferior en 44.8 mm, primer cuartil en 60.65 mm, mediana en 69.1 mm, tercer cuartil en 86.95 mm, bigote superior en 119.0 mm, valla superior punteada en 126.4 mm y un punto atípico en 151.0 mm; una llave sobre la caja indica el RIC de 26.3 mm que contiene el 50 % central de los datos; abajo, los 65 datos como puntos"
+#| fig-width: 9
+#| fig-height: 3.8
+#| out-width: "90%"
+#| echo: false
+
+set.seed(3)
+lluvia_c <- read.csv("datos/precipitacion_maxima_diaria.csv")$precipitacion_mm
+q1c <- 60.65; q2c <- 69.1; q3c <- 86.95; vic <- 21.2; vsc <- 126.4
+ggplot() +
+  annotate("rect", xmin = q1c, xmax = q3c, ymin = -0.35, ymax = 0.35, fill = "#C6DBEF", color = "#1C6BA0", linewidth = 0.8) +
+  annotate("segment", x = q2c, xend = q2c, y = -0.35, yend = 0.35, color = "#1C6BA0", linewidth = 1.6) +
+  annotate("segment", x = 44.8, xend = q1c, y = 0, yend = 0, color = "grey30") +
+  annotate("segment", x = q3c, xend = 119, y = 0, yend = 0, color = "grey30") +
+  annotate("segment", x = c(44.8, 119), xend = c(44.8, 119), y = -0.15, yend = 0.15, color = "grey30") +
+  annotate("point", x = 151, y = 0, size = 3, color = "#D55E00") +
+  annotate("segment", x = vsc, xend = vsc, y = -0.7, yend = 0.7, linetype = "dotted", color = "#D55E00") +
+  geom_point(aes(x = lluvia_c, y = -0.9 + runif(length(lluvia_c), -0.12, 0.12)), color = "grey50", size = 1.4) +
+  annotate("segment", x = q1c, xend = q3c, y = 0.55, yend = 0.55, arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = (q1c + q3c) / 2, y = 0.75, label = "RIC = 26.3 mm (50 % central)", size = 3.4) +
+  annotate("text", x = c(44.8, q1c, q2c, q3c, 119), y = c(-0.42, -0.5, -0.5, -0.5, -0.42),
+           label = c("bigote\n44.8", "Q1\n60.65", "mediana\n69.1", "Q3\n86.95", "bigote\n119.0"),
+           size = 3.1, lineheight = 0.85, vjust = 1) +
+  annotate("text", x = vsc, y = 0.95, label = "valla superior\nQ3 + 1.5 RIC = 126.4", size = 3.1, lineheight = 0.85, color = "#D55E00") +
+  annotate("text", x = 151, y = 0.3, label = "atípico\n151.0", size = 3.1, lineheight = 0.85, color = "#D55E00") +
+  annotate("text", x = 165, y = -0.9, label = "datos", size = 3.1, color = "grey40", hjust = 1) +
+  scale_x_continuous(breaks = seq(40, 160, by = 20), limits = c(38, 166)) +
+  scale_y_continuous(NULL, breaks = NULL, limits = c(-1.15, 1.15)) +
+  labs(x = "Precipitación máxima diaria (mm)") +
+  theme_minimal()
+```
+
+La valla no se dibuja en un diagrama de caja normal; aquí se agregó para mostrar de dónde sale el punto aislado. Debajo de la caja están los 65 datos: se ve que la caja deja dentro el grupo denso de años entre 60 y 87 mm, y que los bigotes alcanzan a todos los demás años salvo uno.
 
 ::: {.callout-note title="Ejemplo: diagrama de caja y asimetría de la lluvia máxima diaria"}
 
@@ -636,6 +1045,255 @@ ggplot(puentes, aes(x = reorder(material, longitud_m, FUN = median), y = longitu
 ```
 
 Sobre cada caja se dibujaron los datos individuales (los puntos), porque con grupos de 4 o 7 puentes la caja sola puede engañar: cinco números resumen muy poco cuando hay pocos datos. Con grupos pequeños conviene mostrar siempre los puntos.
+
+### Cuándo usar el diagrama de caja y cuándo no
+
+El diagrama de caja es el mejor gráfico para comparar la distribución de una variable cuantitativa entre varios grupos: diez cajas lado a lado se comparan de un vistazo, mientras que diez histogramas ocupan una página y se comparan mal. También es la forma más rápida de señalar posibles atípicos y de ver la asimetría. Conviene usarlo cuando:
+
+- Hay que comparar grupos: resistencias por planta, caudales por mes, tiempos de viaje por ruta, asentamientos por tipo de suelo.
+- Interesa un resumen resistente a los valores extremos, basado en la mediana y los cuartiles.
+- Hay que revisar datos antes de un análisis para encontrar errores de digitación o de unidades.
+
+No conviene, o necesita apoyo de otro gráfico, cuando:
+
+- Hay muy pocos datos (menos de unos 10 por grupo). Cinco números resumen casi nada y cada cuartil depende de uno o dos datos: es mejor dibujar los puntos.
+- La distribución tiene dos picos. La caja solo ve cuartiles, y una distribución bimodal puede dar una caja idéntica a la de una campana. La @fig-med-caja-bimodal lo muestra.
+- Interesa la media o la desviación estándar. La caja no las muestra; si son importantes, se agregan como un punto o se usa otro gráfico.
+- El público no está familiarizado con el gráfico. En un informe para una junta vecinal o un concejo municipal, un histograma o unos puntos se entienden mejor.
+
+```{r}
+#| label: fig-med-caja-bimodal
+#| fig-cap: "Dos distribuciones distintas con cajas parecidas (datos hipotéticos)."
+#| fig-alt: "Arriba, dos histogramas: uno en forma de campana y otro con dos picos separados; abajo, sus dos diagramas de caja, con cajas casi del mismo largo y la misma mediana"
+#| fig-width: 9
+#| fig-height: 4.6
+#| out-width: "85%"
+#| echo: false
+
+set.seed(5)
+unimodal <- rnorm(400, 60, 12)
+bimodal <- c(rnorm(200, 51, 3.5), rnorm(200, 69, 3.5))
+dos <- data.frame(valor = c(unimodal, bimodal),
+                  grupo = rep(c("Una campana", "Dos picos"), each = 400))
+dos$grupo <- factor(dos$grupo, levels = c("Una campana", "Dos picos"))
+h_dos <- ggplot(dos, aes(valor)) +
+  geom_histogram(binwidth = 3, fill = "#C6DBEF", color = "white") +
+  facet_wrap(~ grupo) +
+  labs(x = NULL, y = "Frecuencia") +
+  theme_minimal()
+c_dos <- ggplot(dos, aes(x = valor, y = grupo)) +
+  geom_boxplot(fill = "#C6DBEF", outlier.color = "#D55E00") +
+  labs(x = "Tiempo de viaje (min)", y = NULL) +
+  theme_minimal()
+library(patchwork)
+h_dos / c_dos + plot_layout(heights = c(1.4, 1))
+```
+
+En la @fig-med-caja-bimodal, los datos con dos picos podrían ser tiempos de viaje en una ruta que a veces encuentra un atasco y a veces no. Su caja tiene casi la misma mediana y el mismo largo que la de una campana. Solo el histograma revela que hay dos situaciones distintas, y que el valor "típico" de la mediana casi nunca ocurre.
+
+### Variantes del diagrama de caja
+
+Desde que Tukey lo propuso, el diagrama de caja ha tenido varias variantes para corregir sus limitaciones [@mcgill1978variations; @wickham2016ggplot2]. La @fig-med-caja-variantes muestra cuatro de ellas con los caudales máximos anuales del capítulo 8, separados en dos periodos: 1966–1992 y 1993–2018.
+
+```{r}
+#| label: fig-med-caja-variantes
+#| fig-cap: "Variantes del diagrama de caja."
+#| fig-alt: "Cuatro paneles con los caudales de 1966 a 1992 y de 1993 a 2018; caja clásica; caja con muesca, donde las muescas de los dos periodos se traslapan; violín con una caja angosta dentro, donde se ve que el segundo periodo tiene una cola larga hacia arriba; y caja con los datos individuales encima"
+#| fig-width: 9
+#| fig-height: 5.4
+#| out-width: "90%"
+#| echo: false
+
+set.seed(4)
+caudal <- read.csv("datos/caudal_maximo_anual.csv")
+caudal$periodo <- ifelse(caudal$anio <= 1992, "1966–1992", "1993–2018")
+base_c <- ggplot(caudal, aes(x = periodo, y = caudal_m3s)) +
+  labs(x = NULL, y = "Caudal máximo (m³/s)") + theme_minimal()
+v1 <- base_c + geom_boxplot(fill = "#C6DBEF") + labs(subtitle = "Clásica")
+v2 <- base_c + geom_boxplot(fill = "#C6DBEF", notch = TRUE) + labs(subtitle = "Con muesca")
+v3 <- base_c + geom_violin(fill = "#C6DBEF", color = "grey50") +
+  geom_boxplot(width = 0.12, fill = "white", outlier.shape = NA) + labs(subtitle = "Violín con caja")
+v4 <- base_c + geom_boxplot(fill = "#C6DBEF", outlier.shape = NA) +
+  geom_jitter(width = 0.1, height = 0, color = "#1C6BA0", alpha = 0.7) + labs(subtitle = "Caja con puntos")
+(v1 + v2) / (v3 + v4)
+```
+
+- **Caja con muesca.** La muesca es un estrechamiento alrededor de la mediana que va de $\tilde{x} - 1.58\,\text{RIC}/\sqrt{n}$ a $\tilde{x} + 1.58\,\text{RIC}/\sqrt{n}$, donde $\tilde{x}$ es la mediana. @mcgill1978variations la propusieron como comparación visual aproximada: si las muescas de dos grupos no se traslapan, hay evidencia de que sus medianas difieren. Si se traslapan, como en este caso, los datos no alcanzan para afirmarlo. En R se pide con `boxplot(..., notch = TRUE)` o `geom_boxplot(notch = TRUE)`. Con pocos datos, la muesca puede salirse de la caja y el gráfico se ve raro; es una señal de que la comparación no es confiable.
+- **Caja de ancho variable.** El ancho de cada caja es proporcional a $\sqrt{n}$ del grupo, para que se vea qué grupos tienen más datos [@mcgill1978variations]. En R, `varwidth = TRUE`.
+- **Violín.** @hintze1998violin combinaron la caja con una curva de densidad dibujada simétricamente a cada lado, que se ve como un violín. Muestra la forma completa, incluidos los dos picos que la caja sola esconde. En ggplot2 se hace con `geom_violin()`, y en R base hace falta un paquete adicional.
+- **Caja con puntos.** Se dibujan los datos encima de la caja, con un pequeño desplazamiento horizontal al azar (`geom_jitter()`) para que no se tapen. Es la mejor opción con pocos datos, porque no esconde nada. En R base se logra con `stripchart(..., add = TRUE, vertical = TRUE, method = "jitter")`.
+
+::: {.callout-note title="Ejemplo: comparar dos periodos de caudales con cajas con muesca"}
+
+**Planteamiento.** El capítulo 8 mostró que los caudales máximos anuales de una estación parecen más altos desde los años noventa. Compare los periodos 1966–1992 ($n = 27$) y 1993–2018 ($n = 26$) con sus cuartiles, sus vallas y un diagrama de caja con muesca. ¿Hay atípicos en algún periodo? ¿Las muescas sugieren que las medianas difieren?
+
+```{r}
+#| echo: false
+ver_datos("datos/caudal_maximo_anual.csv", nombres = c("Año", "Caudal máximo (m³/s)"), tabla = FALSE)
+```
+
+**Solución:**
+
+1. Datos ordenados de 1966–1992 (m³/s): 99, 115, 121, 232, 248, 260, 312, 315, 365, 395, 455, 465, 545, 570, 590, 655, 670, 675, 680, 700, 716, 770, 853, 921, 926, 976 y 1020.
+2. Cuartiles del primer periodo con la @eq-med-posicion: para $Q_1$, $L = 0.25 \times 28 = 7$, entero, así que $Q_1 = 312$; para la mediana, $L = 14$ y $\tilde{x} = 570$; para $Q_3$, $L = 21$ y $Q_3 = 716$ m³/s. RIC $= 716 - 312 = 404$ m³/s.
+3. Datos ordenados de 1993–2018: 128, 165, 187, 191, 255, 377, 512, 520, 582, 600, 645, 655, 672, 700, 710, 731, 744, 809, 915, 950, 1126, 1284, 1359, 1394, 1407 y 1496.
+4. Cuartiles del segundo periodo: $Q_1$ con $L = 0.25 \times 27 = 6.75$: $377 + 0.75\,(512 - 377) = 478.25$; mediana con $L = 13.5$: $(672 + 700)/2 = 686$; $Q_3$ con $L = 20.25$: $950 + 0.25\,(1126 - 950) = 994$ m³/s. RIC $= 994 - 478.25 = 515.75$ m³/s.
+5. Vallas con la @eq-med-vallas. Primer periodo: $312 - 1.5 \times 404 = -294$ y $716 + 1.5 \times 404 = 1322$ m³/s. Segundo periodo: $478.25 - 773.63 = -295.38$ y $994 + 773.63 = 1767.63$ m³/s. Ningún caudal queda fuera, así que no hay atípicos. Las vallas inferiores son negativas, lo que solo indica que en una variable positiva y asimétrica la valla de abajo no puede marcar nada.
+6. Muescas: primer periodo $570 \pm 1.58 \times 404/\sqrt{27} = 570 \pm 122.8$, de 447.2 a 692.8 m³/s; segundo periodo $686 \pm 1.58 \times 515.75/\sqrt{26} = 686 \pm 159.8$, de 526.2 a 845.8 m³/s. Los intervalos se traslapan entre 526.2 y 692.8 m³/s.
+
+**Pseudocódigo**
+
+1. Leer los datos y crear la variable del periodo.
+2. Calcular cuartiles, RIC, vallas y muescas por periodo con R base.
+3. Repetir el resumen con dplyr.
+4. Dibujar las cajas con muesca con R base y con ggplot2.
+
+```{r}
+# 1) Datos y periodo
+caudal <- read.csv("datos/caudal_maximo_anual.csv")
+caudal$periodo <- ifelse(caudal$anio <= 1992, "1966–1992", "1993–2018")
+
+# 2) Resumen por periodo con R base: tapply() aplica una función a cada grupo
+resumen_periodo <- function(x) {
+  q <- quantile(x, c(0.25, 0.50, 0.75), type = 6)
+  ric <- q[3] - q[1]
+  c(n = length(x), Q1 = q[[1]], mediana = q[[2]], Q3 = q[[3]], RIC = ric[[1]],
+    valla_inf = q[[1]] - 1.5 * ric[[1]], valla_sup = q[[3]] + 1.5 * ric[[1]],
+    muesca_inf = q[[2]] - 1.58 * ric[[1]] / sqrt(length(x)),
+    muesca_sup = q[[2]] + 1.58 * ric[[1]] / sqrt(length(x)))
+}
+round(do.call(rbind, tapply(caudal$caudal_m3s, caudal$periodo, resumen_periodo)), 1)
+
+# 3) Lo mismo con dplyr
+library(dplyr)
+caudal %>%
+  group_by(periodo) %>%
+  summarise(n = n(),
+            mediana = median(caudal_m3s),
+            q1 = quantile(caudal_m3s, 0.25, type = 6),
+            q3 = quantile(caudal_m3s, 0.75, type = 6),
+            ric = q3 - q1,
+            atipicos = sum(caudal_m3s < q1 - 1.5 * ric | caudal_m3s > q3 + 1.5 * ric))
+```
+
+```{r}
+#| label: fig-med-muesca-base
+#| fig-cap: "Cajas con muesca por periodo, con R base."
+#| fig-alt: "Dos diagramas de caja verticales con muesca, uno por periodo; la caja del segundo periodo está más arriba y es más alta, y las muescas de los dos se traslapan"
+#| fig-height: 4
+
+# 4) Cajas con muesca y puntos encima con R base
+boxplot(caudal_m3s ~ periodo, data = caudal, notch = TRUE, col = "#C6DBEF",
+        xlab = "Periodo", ylab = "Caudal máximo (m³/s)")
+stripchart(caudal_m3s ~ periodo, data = caudal, vertical = TRUE, method = "jitter",
+           add = TRUE, pch = 19, col = "#1C6BA0")
+```
+
+```{r}
+#| label: fig-med-muesca-gg
+#| fig-cap: "Cajas con muesca por periodo, con ggplot2."
+#| fig-alt: "Las mismas dos cajas con muesca hechas con ggplot2, con los datos individuales como puntos y la media de cada periodo como un rombo anaranjado"
+#| fig-height: 4
+
+# 4) Con ggplot2; stat_summary() agrega la media como un rombo
+library(ggplot2)
+ggplot(caudal, aes(x = periodo, y = caudal_m3s)) +
+  geom_boxplot(notch = TRUE, fill = "#C6DBEF", outlier.shape = NA) +
+  geom_jitter(width = 0.1, height = 0, color = "#1C6BA0", alpha = 0.7) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3.5, fill = "#E69F00") +
+  labs(x = "Periodo", y = "Caudal máximo (m³/s)") +
+  theme_minimal()
+```
+
+**Interpretación.** En el segundo periodo la mediana sube de 570 a 686 m³/s y la caja se alarga hacia arriba: el RIC crece de 404 a 516 m³/s y el cuartil superior pasa de 716 a 994 m³/s. Los años de crecidas grandes se volvieron más frecuentes. Sin embargo, las muescas se traslapan, así que con 26 y 27 años no se puede afirmar con el diagrama que la mediana cambió; la Parte V presenta las pruebas que responden esa pregunta con un nivel de confianza explícito. Ningún caudal se marca como atípico, ni siquiera los 1496 m³/s de 2017, porque el segundo periodo es tan disperso que sus vallas quedan muy altas. R base calcula la caja con las bisagras de `fivenum()`, por eso sus muescas (450.0 a 690.0 y 550.3 a 821.7 m³/s) difieren un poco del cálculo a mano.
+
+:::
+
+### Interactivo: arme su propio diagrama de caja {#sec-med-int-caja}
+
+En la @fig-med-int-caja están los tiempos de viaje en bus, en minutos, de 20 días por una misma ruta (datos hipotéticos). Agregue días con el control y el botón, por ejemplo un día con un atasco de 95 minutos, y observe cómo cambian la caja, los bigotes y las vallas. Puede cambiar el factor de las vallas entre 1.5 (vallas internas) y 3 (externas), y mostrar u ocultar los datos individuales.
+
+::: {#fig-med-int-caja}
+
+```{=html}
+<div class="interactivo" id="int-caja">
+  <label><span>Tiempo del día que se agrega (min):</span> <output>95</output>
+    <input type="range" min="10" max="120" step="1" value="95"></label>
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 0.6rem; align-items:center;">
+    <button type="button" class="agregar">Agregar día</button>
+    <button type="button" class="quitar">Quitar el último</button>
+    <button type="button" class="restaurar">Volver a los 20 días</button>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
+    <label><input type="radio" name="int-caja-f" value="1.5" checked> Vallas a 1.5 RIC</label>
+    <label><input type="radio" name="int-caja-f" value="3"> Vallas a 3 RIC</label>
+    <label><input type="checkbox" class="puntos" checked> Mostrar los datos</label>
+  </div>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 200" role="img" aria-label="Diagrama de caja horizontal de los tiempos de viaje con las vallas punteadas y los atípicos en rojo"></svg>
+</div>
+<script>
+(function () {
+  var base = [34, 36, 37, 38, 38, 39, 40, 40, 41, 42, 42, 43, 44, 45, 46, 47, 49, 51, 53, 58];
+  var datos = base.slice();
+  var raiz = document.getElementById("int-caja");
+  var control = raiz.querySelector("input[type=range]"), salida = raiz.querySelector("output");
+  var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var chk = raiz.querySelector(".puntos"), radios = raiz.querySelectorAll("input[type=radio]");
+  var w = 640, m = 30, x0 = 0, x1 = 130;
+  function sx(x) { return m + (x - x0) / (x1 - x0) * (w - 2 * m); }
+  function cuantil6(s, p) { var n = s.length, L = p * (n + 1); if (L <= 1) return s[0]; if (L >= n) return s[n - 1];
+    var j = Math.floor(L), d = L - j; return s[j - 1] + d * (s[j] - s[j - 1]); }
+  function factor() { for (var i = 0; i < radios.length; i++) if (radios[i].checked) return parseFloat(radios[i].value); }
+  function dibujar() {
+    salida.textContent = control.value;
+    var s = datos.slice().sort(function (a, b) { return a - b; }), n = s.length, k = factor();
+    var q1 = cuantil6(s, 0.25), q2 = cuantil6(s, 0.5), q3 = cuantil6(s, 0.75), ric = q3 - q1;
+    var vi = q1 - k * ric, vs = q3 + k * ric;
+    var bi = s.filter(function (v) { return v >= vi; })[0], bs = s.filter(function (v) { return v <= vs; }).pop();
+    var atip = s.filter(function (v) { return v < vi || v > vs; });
+    var media = s.reduce(function (a, b) { return a + b; }, 0) / n;
+    var g = "";
+    [vi, vs].forEach(function (v) { if (v > x0 && v < x1) g += '<line x1="' + sx(v) + '" x2="' + sx(v) + '" y1="20" y2="110" stroke="#D55E00" stroke-dasharray="3 3"/>' +
+      '<text class="eje-texto" x="' + sx(v) + '" y="15" text-anchor="middle">valla</text>'; });
+    g += '<line x1="' + sx(bi) + '" x2="' + sx(q1) + '" y1="65" y2="65" stroke="#6c757d" stroke-width="1.5"/>' +
+      '<line x1="' + sx(q3) + '" x2="' + sx(bs) + '" y1="65" y2="65" stroke="#6c757d" stroke-width="1.5"/>' +
+      '<line x1="' + sx(bi) + '" x2="' + sx(bi) + '" y1="55" y2="75" stroke="#6c757d" stroke-width="1.5"/>' +
+      '<line x1="' + sx(bs) + '" x2="' + sx(bs) + '" y1="55" y2="75" stroke="#6c757d" stroke-width="1.5"/>' +
+      '<rect x="' + sx(q1) + '" y="42" width="' + Math.max(sx(q3) - sx(q1), 1) + '" height="46" fill="#C6DBEF" style="stroke:var(--serie-1,#1C6BA0)" stroke-width="1.5"/>' +
+      '<line x1="' + sx(q2) + '" x2="' + sx(q2) + '" y1="42" y2="88" style="stroke:var(--serie-1,#1C6BA0)" stroke-width="3"/>' +
+      '<path d="M' + (sx(media) - 6) + ',65 L' + sx(media) + ',59 L' + (sx(media) + 6) + ',65 L' + sx(media) + ',71 Z" fill="#E69F00"/>';
+    atip.forEach(function (v) { g += '<circle cx="' + sx(v) + '" cy="65" r="5" fill="#D55E00"/>'; });
+    if (chk.checked) {
+      var cuenta = {};
+      s.forEach(function (v) { cuenta[v] = (cuenta[v] || 0) + 1;
+        g += '<circle cx="' + sx(v) + '" cy="' + (128 - (cuenta[v] - 1) * 7) + '" r="3" fill="#6c757d" fill-opacity="0.7"/>'; });
+    }
+    g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="140" y2="140"/>';
+    for (var t = 0; t <= 130; t += 10) g += '<line class="eje" x1="' + sx(t) + '" x2="' + sx(t) + '" y1="140" y2="145"/>' +
+      '<text class="eje-texto" x="' + sx(t) + '" y="160" text-anchor="middle">' + t + '</text>';
+    g += '<text class="eje-texto" x="' + (w / 2) + '" y="182" text-anchor="middle">Tiempo de viaje (min)   ◆ media</text>';
+    svg.innerHTML = g;
+    texto.textContent = "n = " + n + " · Q1 = " + q1.toFixed(2) + " · mediana = " + q2.toFixed(2) + " · Q3 = " + q3.toFixed(2) +
+      " · RIC = " + ric.toFixed(2) + " · media = " + media.toFixed(2) + " · vallas: [" + vi.toFixed(1) + ", " + vs.toFixed(1) + "] · atípicos: " +
+      (atip.length ? atip.join(", ") : "ninguno");
+  }
+  raiz.querySelector(".agregar").addEventListener("click", function () { datos.push(parseFloat(control.value)); dibujar(); });
+  raiz.querySelector(".quitar").addEventListener("click", function () { if (datos.length > 4) datos.pop(); dibujar(); });
+  raiz.querySelector(".restaurar").addEventListener("click", function () { datos = base.slice(); dibujar(); });
+  control.addEventListener("input", function () { salida.textContent = control.value; });
+  chk.addEventListener("change", dibujar);
+  for (var i = 0; i < radios.length; i++) radios[i].addEventListener("change", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Diagrama de caja interactivo.
+
+:::
+
+Con los 20 días originales, la mediana es 42 min y el día de 58 min queda justo dentro de la valla superior a 1.5 RIC (59.5 min). Al agregar un día de atasco de 95 min, la mediana sigue en 42 min, la media sube de 43.15 a 45.62 min y el nuevo día aparece como atípico. Con vallas a 3 RIC sigue marcado (la valla externa queda en 76.5 min), así que es un atípico extremo. Si se agregan cuatro o cinco días de atasco, la caja se estira y las vallas se alejan, y algunos de esos días dejan de verse atípicos. El criterio de Tukey funciona bien para encontrar datos aislados, pero no para detectar un grupo de valores altos que se repite: para eso sirven el histograma y el conocimiento del fenómeno.
 
 ## Calculadora de medidas descriptivas {#sec-med-calculadora}
 
@@ -756,6 +1414,42 @@ data.frame(
 
 Las medidas se reportan en pares que van juntos: la media con la desviación estándar, o la mediana con el RIC. Mezclar una media con un RIC no es un error, pero dificulta la lectura.
 
+### Las mismas medidas en una hoja de cálculo
+
+Muchos informes de ingeniería se preparan en Excel, y conviene saber qué función corresponde a cada fórmula del capítulo, porque algunas tienen dos versiones. El @tbl-med-excel da los nombres de las funciones en la versión en español.
+
+```{r}
+#| label: tbl-med-excel
+#| tbl-cap: "Funciones equivalentes en R y en Excel."
+#| echo: false
+
+data.frame(
+  medida = c("Media", "Mediana", "Moda", "Media geométrica", "Cuartil (tipo 6, este libro)",
+             "Cuartil (tipo 7, R por omisión)", "Percentil (tipo 6)", "Varianza muestral",
+             "Desviación estándar muestral", "Varianza poblacional", "Desviación estándar poblacional",
+             "Asimetría corregida G1"),
+  r = c("mean(x)", "median(x)", "table(x)", "exp(mean(log(x)))", "quantile(x, 0.25, type = 6)",
+        "quantile(x, 0.25)", "quantile(x, p, type = 6)", "var(x)", "sd(x)", "var(x) * (n - 1) / n",
+        "sqrt(var(x) * (n - 1) / n)", "e1071::skewness(x, type = 2)"),
+  excel = c("PROMEDIO", "MEDIANA", "MODA.UNO", "MEDIA.GEOM", "CUARTIL.EXC", "CUARTIL.INC",
+            "PERCENTIL.EXC", "VAR.S", "DESVEST.M", "VAR.P", "DESVEST.P", "COEFICIENTE.ASIMETRIA")
+) %>%
+  kbl(col.names = c("Medida", "R", "Excel (español)"), align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  column_spec(2:3, monospace = TRUE)
+```
+
+::: {.callout-warning title="Cuidado"}
+Errores frecuentes al calcular y reportar medidas descriptivas:
+
+1. **Usar la fórmula poblacional con una muestra.** `DESVEST.P` o dividir entre $n$ subestima la dispersión; con una muestra se usa $n - 1$ (`sd()` en R, `DESVEST.M` en Excel).
+2. **Reportar demasiados decimales.** Una resistencia media de 30.958333 MPa sugiere una precisión que el ensayo no tiene. Las medidas se dan con una o dos cifras más que los datos.
+3. **Promediar promedios de grupos de distinto tamaño.** El promedio de las medias de tres lotes con 3, 9 y 12 cilindros no es la media de los 24 cilindros: hace falta la media ponderada.
+4. **Dar solo la media de datos asimétricos.** Con caudales, tiempos de viaje o concentraciones, la media sola exagera el valor típico; se agrega la mediana.
+5. **Borrar un atípico sin investigarlo.** Un dato marcado por las vallas se verifica en el registro original; si es real, se conserva.
+6. **Mezclar definiciones de cuantiles.** Cuartiles calculados con `CUARTIL.INC` en un cuadro y con `CUARTIL.EXC` en otro dan resultados que no coinciden con pocos datos.
+:::
+
 ## Ejercicios propuestos
 
 1. Para los datos 5, 2, 9, 8, 1, 7, 9, 9, 8, 9, 7, 6, 4, 5, 9, 4, 1, 3, 3, 3, 5, 6, 2, 1, 4, 6, 6, 8, 3, 6, calcule a mano la media, la varianza, la desviación estándar, la moda, el rango, la mediana, los cuartiles (con la @eq-med-posicion), el RIC y las vallas de Tukey. ¿Hay valores atípicos? Compruebe sus resultados con R y con la calculadora de la @fig-med-calculadora.
@@ -767,6 +1461,12 @@ Las medidas se reportan en pares que van juntos: la media con la desviación est
 7. Con el inventario de puentes, calcule por material (con `group_by()` y `summarise()`) la media, la mediana y la desviación estándar de la longitud. ¿En qué material difieren más la media y la mediana? Relaciónelo con la @fig-med-cajas-material.
 8. En el interactivo de la @fig-med-interactivo-centro, busque el valor del cilindro 8 para el que la media se hace igual a 32 MPa. Compruebe el resultado despejando $x_8$ de la @eq-med-media. ¿Cuánto vale la mediana en ese caso?
 9. Demuestre, con la definición de la media, que la suma de las desviaciones $\sum (x_i - \bar{x})$ es siempre cero. Compruébelo en R con los datos de los cilindros.
+10. Con las 40 velocidades de punto, calcule a mano y con R el percentil 10, el percentil 90 y el rango intercuartílico. ¿Qué porcentaje de los vehículos excedería un límite de 65 km/h?
+11. Calcule para las 40 velocidades la fracción de datos dentro de $\bar{x} \pm s$, $\bar{x} \pm 2s$ y $\bar{x} \pm 3s$. Compárelas con la regla empírica y con el mínimo de Chebyshev de la @eq-med-chebyshev.
+12. Las concentraciones de sólidos suspendidos (mg/L) en 15 muestras de un efluente fueron 22, 25, 19, 31, 27, 24, 88, 26, 23, 29, 21, 28, 25, 30 y 24 (datos hipotéticos). Calcule la media, la mediana, la desviación estándar y la desviación absoluta mediana con `mad(x, constant = 1)`. Repita sin el dato de 88 mg/L. ¿Qué medidas cambiaron más?
+13. Dibuje con ggplot2 los caudales máximos por periodo con las cuatro variantes de la @fig-med-caja-variantes y además con `varwidth = TRUE`. ¿Qué variante elegiría para un informe técnico y por qué?
+14. En el interactivo de la @fig-med-int-caja, agregue días de 70 min uno por uno. ¿Con cuántos días de 70 min deja ese valor de aparecer como atípico con vallas a 1.5 RIC? Explique por qué.
+15. Use R para calcular la media, la desviación estándar y la mediana de $y$ en cada conjunto del cuarteto de Anscombe (`anscombe`). ¿Qué medida sí distingue un poco a los cuatro conjuntos?
 
 ## Lecturas recomendadas
 
@@ -775,3 +1475,6 @@ Las medidas se reportan en pares que van juntos: la media con la desviación est
 - @hyndman1996sample: las nueve definiciones de cuantiles y por qué los programas dan resultados distintos con pocos datos.
 - @lanesfintroduction, capítulo 3: medidas de tendencia central y de variabilidad, con simulaciones que muestran el efecto de cambiar un dato.
 - @ayala2026estadistica, capítulo 2: estadística descriptiva con R, en español y con datos ambientales.
+- @mcgill1978variations: el artículo que propuso las cajas con muesca y de ancho variable, corto y muy claro.
+- @hintze1998violin: el diagrama de violín explicado por sus autores, con la comparación frente al diagrama de caja.
+- @anscombe1973graphs: el artículo del cuarteto, de cuatro páginas, sobre por qué los gráficos son parte del cálculo.
