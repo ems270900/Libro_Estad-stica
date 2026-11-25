@@ -714,9 +714,9 @@ El @tbl-ph-conclusiones muestra conclusiones bien y mal escritas para los ejempl
 
 | Mal escrita | Bien escrita |
 |:--|:--|
-| "Se acepta $H_0$." | "Con 5 % de significancia, no hay evidencia suficiente para afirmar que el tipo de falla depende de la planta ($p = 0.092$)." |
+| "Se acepta $H_0$." | "Con 5 % de significancia, no hay evidencia suficiente para afirmar que el mecanismo de falla depende del material del talud ($p = 0.092$)." |
 | "Se rechaza $H_0$." | "Con 5 % de significancia, hay evidencia de que el esfuerzo de fluencia medio es distinto de 300 MPa ($t = -3.45$, $p = 0.007$); está entre 1.3 y 6.0 MPa por debajo del objetivo." |
-| "Los bloques cumplen." | "Con 10 bloques no hay evidencia de que más del 20 % tenga defectos ($p = 0.12$), pero la muestra tampoco demuestra que se cumpla: la proporción podría estar entre 0.15 y 1." |
+| "El efluente cumple." | "Con 10 muestras no hay evidencia de que más del 20 % supere el límite ($p = 0.12$), pero tampoco se demuestra que se cumpla: la proporción podría estar entre 0.15 y 1." |
 | "Hay 99 % de probabilidad de que el ruido supere el límite." | "Hay evidencia, justa, de que el ruido medio supera los 65 dB(A) ($p = 0.048$); el límite inferior de confianza del 95 % es 65.01 dB(A)." |
 | "La diferencia es significativa, así que el aditivo es muy bueno." | "El aditivo aumentó la resistencia media en 2.8 MPa (IC del 95 %: 1.1 a 4.4 MPa; $p = 0.001$). Si ese aumento compensa su costo es una decisión económica." |
 | "$p = 0.000$." | "$p < 0.001$." Un valor $p$ nunca es exactamente cero. |
@@ -975,7 +975,7 @@ La @fig-ph-int-efecto-n fija un tamaño del efecto y deja cambiar el número de 
     g += '<line class="guia" x1="' + m + '" x2="' + (w - m) + '" y1="' + syp(0.05) + '" y2="' + syp(0.05) + '"/>' +
       '<path class="curva" d="' + curva + '"/>' +
       '<circle class="punto-b" r="6" cx="' + sxn(Math.log10(n)) + '" cy="' + syp(p0) + '"/>' +
-      '<text class="eje-texto" x="' + (w - m) + '" y="196" text-anchor="end">n</text>';
+      '<text class="eje-texto" x="' + (w - m) + '" y="172" text-anchor="end">n</text>';
     g += '<text class="eje-texto" x="' + m + '" y="232">Intervalo de confianza del 95 % para el efecto d</text>' +
       '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="290" y2="290"/>';
     [-1, -0.5, 0, 0.5, 1, 1.5, 2].forEach(function (k) { g += '<text class="eje-texto" x="' + sxd(k) + '" y="306" text-anchor="middle">' + k + '</text>'; });
@@ -1005,6 +1005,77 @@ Un informe técnico completo incluye la estimación con su intervalo, el tamaño
 > El esfuerzo de fluencia medio de las diez varillas fue de 296.35 MPa ($s = 3.34$ MPa), 3.65 MPa por debajo del objetivo de 300 MPa (IC del 95 % para la diferencia: 1.3 a 6.0 MPa; $d = -1.09$). La diferencia es estadísticamente significativa, $t(9) = -3.45$, $p = 0.007$. Una caída de esa magnitud reduce el margen sobre el esfuerzo de fluencia nominal, por lo que se recomienda revisar el proceso.
 
 Esa redacción permite que otra persona juzgue el resultado aunque use otro $\alpha$, y que lo compare con otros estudios.
+
+## Guía para escoger la prueba o el intervalo {#sec-ph-guia}
+
+::: {.pregunta}
+¿Cómo se sabe si toca $z$, $t$, $\chi^2$ o $F$?
+:::
+
+La distribución del estadístico no se escoge por gusto: la dictan el parámetro, lo que se sabe de la población y la forma en que se tomaron los datos. Las distribuciones de la parte anterior describen los datos (la guía para escogerlas está en la @sec-disc-elegir y en la @sec-cont-elegir); las de esta parte describen estadísticos, como se vio en el capítulo de distribuciones muestrales. La @fig-ph-guia resume la elección para todos los métodos de los capítulos 19 a 23, y el @tbl-ph-guia da la función de R y el capítulo de cada uno.
+
+```{r}
+#| label: fig-ph-guia
+#| fig-cap: "Cómo escoger la prueba o el intervalo."
+#| fig-alt: "Árbol de decisión que parte del tipo de dato. Medición: una muestra, dos muestras o la variabilidad, con ramas para sigma conocida o no, pareadas o independientes y varianzas iguales o no. Conteo de sí o no: una o dos proporciones. Conteos en categorías: chi-cuadrado de bondad de ajuste o de independencia."
+#| fig-width: 11
+#| fig-height: 6.5
+#| out-width: "100%"
+#| echo: false
+
+nodos_g <- tibble(
+  id = 1:19,
+  x = c(0,  -4, 1.7, 5.0,   -6, -3.55, -1.3,   -7.05, -5.65, -4.2, -2.75,   0.9, 2.5,   0.9, 2.5,   4.25, 5.85,   4.25, 5.85),
+  y = c(7,   5.6, 5.6, 5.6,  4.2, 4.2, 4.2,   2.6, 2.6, 2.6, 2.6,      4.2, 4.2,   2.6, 2.6,   4.2, 4.2,   2.6, 2.6),
+  texto = c("¿Qué tipo de dato?",
+            "Medición continua", "Conteo de sí/no", "Conteos en\nvarias categorías",
+            "Una muestra", "Dos muestras", "Variabilidad",
+            "σ conocida:\nz", "σ estimada:\nt",
+            "Pareadas:\nt de las d", "Independientes:\nt de Welch",
+            "Una\nproporción", "Dos\nproporciones",
+            "z (grande) o\nbinomial (pequeña)", "z o χ² con\n1 g. l.",
+            "Una variable", "Dos variables",
+            "χ² de bondad\nde ajuste", "χ² de\nindependencia"),
+  tipo = c("p", "p", "p", "p", "p", "p", "p", "r", "r", "r", "r", "p", "p", "r", "r", "p", "p", "r", "r")
+)
+extra <- tibble(x = -1.3, y = 2.6, texto = "Una: χ²\nDos: F", tipo = "r")
+aristas_g <- tibble(de = c(1, 1, 1, 2, 2, 2, 5, 5, 6, 6, 3, 3, 12, 13, 4, 4, 16, 17),
+                    a  = c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)) %>%
+  mutate(x = nodos_g$x[de], y = nodos_g$y[de] - 0.32, xend = nodos_g$x[a], yend = nodos_g$y[a] + 0.38)
+aristas_g <- bind_rows(aristas_g, tibble(x = -1.3, y = 4.2 - 0.32, xend = -1.3, yend = 2.6 + 0.38))
+ggplot() +
+  geom_segment(data = aristas_g, aes(x, y, xend = xend, yend = yend),
+               arrow = arrow(length = unit(0.13, "cm")), colour = "grey55") +
+  geom_label(data = bind_rows(nodos_g[, c("x", "y", "texto", "tipo")], extra), aes(x, y, label = texto, fill = tipo),
+             size = 3.2, lineheight = 0.92, label.padding = unit(0.3, "lines")) +
+  scale_fill_manual(values = c(p = "#e3eef7", r = "#fdf0d5"), guide = "none") +
+  annotate("text", x = -4.5, y = 1.6, size = 3.3, colour = "grey30",
+           label = "Con t: revisar normalidad (Q-Q).\nSi falla con n pequeño: transformar o Wilcoxon.") +
+  coord_cartesian(xlim = c(-7.8, 6.7), ylim = c(1.2, 7.4)) +
+  theme_void()
+```
+
+| Pregunta | Datos y condición | Estadístico | Intervalo en R | Prueba en R | Cap. |
+|:--|:--|:-:|:--|:--|:-:|
+| ¿Cuánto vale la media? | $\sigma$ conocida | $z$ | Fórmula con `qnorm()` | Fórmula con `pnorm()` | 19, 21 |
+| ¿Cuánto vale la media? | $\sigma$ desconocida | $t$, $n-1$ g. l. | `t.test(x)` | `t.test(x, mu = )` | 19, 21 |
+| ¿Cuánto vale la proporción? | $np_0 \ge 5$ y $n(1-p_0) \ge 5$ | $z$ | `prop.test(x, n, correct = FALSE)` | `prop.test(x, n, p = )` | 19, 21 |
+| ¿Cuánto vale la proporción? | Muestra pequeña | Binomial | `binom.test(x, n)` | `binom.test(x, n, p = )` | 19, 21 |
+| ¿Cuánto varía? | Población normal | $\chi^2$, $n-1$ g. l. | Fórmula con `qchisq()` | Fórmula con `pchisq()` | 19, 21 |
+| ¿Difieren dos medias? | Independientes | $t$ de Welch | `t.test(x1, x2)` | `t.test(x1, x2)` | 22 |
+| ¿Difieren dos medias? | Pareadas | $t$, $n-1$ g. l. | `t.test(x1, x2, paired = TRUE)` | ídem | 22 |
+| ¿Difieren dos variabilidades? | Poblaciones normales | $F$ | `var.test(x1, x2)` | ídem | 22 |
+| ¿Difieren dos proporciones? | Muestras grandes | $z$ o $\chi^2$ | `prop.test(c(x1, x2), c(n1, n2))` | ídem | 22, 23 |
+| ¿Siguen los datos una distribución? | Esperados $\ge 5$ | $\chi^2$, $k-1-m$ g. l. | | `chisq.test(o, p = )` | 23 |
+| ¿Están relacionadas dos variables categóricas? | Esperados $\ge 5$ | $\chi^2$, $(r-1)(c-1)$ g. l. | | `chisq.test(cuadro)` | 23 |
+| ¿Dónde caerá la próxima observación? | Población normal | $t$, $n-1$ g. l. | Fórmula (@eq-ic-prediccion) | | 19 |
+| ¿Dónde cae el 90 % de la población? | Población normal | Factor $k$ | `tolerance::normtol.int()` | | 19 |
+
+: Métodos de la Parte V y sus funciones de R. {#tbl-ph-guia}
+
+::: {.callout-tip title="En la práctica"}
+Ante un problema nuevo, conviene hacerse las preguntas en este orden: ¿el dato es una medición, un sí/no o una categoría? ¿Hay uno o dos grupos? Si hay dos, ¿cada dato de un grupo tiene pareja en el otro? ¿Se pregunta por el centro (media, proporción) o por la dispersión (varianza)? ¿Se conoce $\sigma$ de verdad o se estima con $s$? Con esas cinco respuestas el método queda determinado. Las dudas más comunes son confundir pareadas con independientes y usar $z$ cuando $\sigma$ se estimó.
+:::
 
 ## Errores comunes {#sec-ph-errores-comunes}
 
