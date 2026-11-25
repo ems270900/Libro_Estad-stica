@@ -519,7 +519,7 @@ predict(modelo, nuevo, interval = "prediction")
 
 ### Tamaño del efecto de cada predictor
 
-Los valores $p$ de los coeficientes dicen qué predictores aportan, pero no cuál aporta más. Para comparar, hay dos herramientas.
+Los valores $p$ de los coeficientes dicen qué predictores aportan, pero no cuál aporta más. Para compararlos se usan dos medidas.
 
 **Coeficientes estandarizados.** Los coeficientes de la relación agua/cemento (MPa por unidad de relación) y de la edad (MPa por día) no se pueden comparar porque tienen unidades distintas. Si antes de ajustar se estandarizan la respuesta y los predictores numéricos (se les resta la media y se dividen entre la desviación estándar, con `scale()`), cada coeficiente pasa a ser el cambio en desviaciones estándar de $Y$ por cada desviación estándar del predictor. Con los cilindros resulta $-0.66$ para la relación agua/cemento y $0.69$ para la edad: en el rango ensayado, los dos tienen un efecto de tamaño parecido y signo contrario.
 

@@ -760,7 +760,7 @@ El @tbl-rls-summary explica cada parte de la salida, de arriba hacia abajo.
 
 ```{r}
 #| label: tbl-rls-summary
-#| tbl-cap: "Partes de la salida de summary() de un modelo lineal y su significado."
+#| tbl-cap: "Partes de la salida de summary()."
 #| echo: false
 
 data.frame(
