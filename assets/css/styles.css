@@ -1034,3 +1034,15 @@ body.quarto-dark .interactivo .eje-texto { fill: #c3c7cf; }
 .interactivo button:hover, .interactivo button:focus-visible { background: #15557f; }
 .interactivo .resultado { margin: 0.4rem 0 0.2rem; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
 body.quarto-dark .interactivo button { background: #2f7fb8; }
+
+/* Portada con título largo (tres líneas): el bloque del título ocupa el ancho
+   libre de la banda y, si con el autor al lado no cabe, el autor baja a la
+   línea siguiente en vez de partir el título (pantallas de portátil). */
+.portada-banda { flex-wrap: wrap; row-gap: 0.8rem; }
+.portada-banda-texto { flex: 1 1 24rem; min-width: 0; }
+.portada-banda-autor { margin-left: auto; }
+.portada-titulo.portada-titulo-largo { font-size: clamp(1.7rem, 2.5vw, 2.6rem); }
+@media (max-width: 900px) {
+  .portada-banda-texto { flex: 0 0 auto; }
+  .portada-banda-autor { margin-left: 0; }
+}

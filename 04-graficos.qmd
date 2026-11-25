@@ -1,0 +1,338 @@
+---
+title: "Gráficos en R"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"El mayor valor de una imagen es cuando nos obliga a notar lo que nunca esperábamos ver."\
+— *John W. Tukey [-@tukey1977exploratory, p. vi]. Traducción propia.*
+:::
+
+Un cuadro con 60 resistencias de cilindros no dice mucho a simple vista. Un gráfico de esos mismos datos muestra en un segundo si los valores se agrupan, si hay dos grupos distintos, si algún dato está muy lejos del resto o si un proyecto rinde más que otro. Por eso el primer paso de cualquier análisis, antes de calcular promedios o hacer pruebas, es graficar. Este capítulo explica qué gráfico conviene según el tipo de variable, cómo hacerlo con las funciones básicas de R y cómo hacerlo con el paquete ggplot2, que es el que se usa en el resto del libro.
+
+```{r}
+#| echo: false
+ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
+transito <- read.csv("datos/transito_horario_hipotetico.csv")
+```
+
+## Qué gráfico usar {#sec-graf-elegir}
+
+La elección del gráfico depende del tipo de variable y de la pregunta [@wilke2019fundamentals]. El @tbl-graf-elegir resume los casos que se usan en este libro.
+
+```{r}
+#| label: tbl-graf-elegir
+#| tbl-cap: "Gráfico recomendado según el tipo de variable."
+#| echo: false
+
+library(kableExtra)
+data.frame(
+  variables = c("Una categórica", "Una numérica", "Una numérica según una categórica",
+                "Dos numéricas", "Una numérica en el tiempo"),
+  pregunta = c("¿Cuántos hay de cada categoría?", "¿Cómo se distribuyen los valores?",
+               "¿Cambian los valores entre grupos?", "¿Se relacionan las dos variables?",
+               "¿Cómo cambia la variable con el tiempo?"),
+  grafico = c("Barras", "Histograma, caja", "Cajas, puntos por grupo", "Dispersión", "Líneas"),
+  ejemplo = c("Cilindros por proyecto", "Resistencia de los cilindros",
+              "Resistencia por proyecto", "Asentamiento y resistencia", "Vehículos por hora")
+) %>%
+  kbl(col.names = c("Variables", "Pregunta", "Gráfico", "Ejemplo"), align = "llll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+El gráfico circular (de pastel) se usa poco en este libro: el ojo compara mal los ángulos, y casi siempre un gráfico de barras muestra lo mismo con más claridad [@wilke2019fundamentals].
+
+## Gráficos con R base {#sec-graf-base}
+
+R trae funciones para hacer gráficos sin instalar nada. Son rápidas para mirar los datos mientras se trabaja. Las principales son `barplot()`, `hist()`, `boxplot()` y `plot()`. Todas aceptan los argumentos `main` (título), `xlab` y `ylab` (nombres de los ejes) y `col` (color).
+
+### Barras
+
+`barplot()` recibe los conteos de cada categoría, que se obtienen con `table()`:
+
+```{r}
+#| label: fig-graf-barras-base
+#| fig-cap: "Número de cilindros por proyecto, con `barplot()`."
+#| fig-alt: "Gráfico de barras con tres barras de igual altura, una por proyecto"
+
+conteo <- table(ensayos$proyecto)
+barplot(conteo, col = "#1C6BA0",
+        xlab = "Proyecto", ylab = "Número de cilindros")
+```
+
+### Histograma
+
+Un histograma divide el rango de los datos en intervalos, llamados clases, y dibuja una barra por clase con altura igual al número de datos que caen en ella. Muestra la forma de la distribución: dónde se concentran los datos y qué tan dispersos están.
+
+```{r}
+#| label: fig-graf-hist-base
+#| fig-cap: "Histograma de la resistencia de los 60 cilindros, con `hist()`."
+#| fig-alt: "Histograma con dos grupos de barras, uno alrededor de 20 MPa y otro alrededor de 35 MPa"
+
+hist(ensayos$resistencia_mpa, col = "#1C6BA0", border = "white",
+     main = "", xlab = "Resistencia a compresión (MPa)", ylab = "Frecuencia")
+```
+
+El histograma de la @fig-graf-hist-base tiene dos grupos de barras. No es un error: el archivo mezcla cilindros ensayados a 7 y a 28 días, y el concreto gana resistencia con la edad. Es el tipo de cosa que un gráfico deja ver y un promedio esconde.
+
+### Caja
+
+El diagrama de caja (o de caja y bigotes) resume una variable numérica en cinco valores: la caja va del primer al tercer cuartil, la línea gruesa es la mediana y los bigotes llegan hasta los datos más alejados que no son atípicos. Los puntos sueltos son posibles valores atípicos. La @sec-graf-ggplot vuelve a este gráfico, y el capítulo 9 explica cómo se calculan sus partes. Con la fórmula `y ~ grupo`, `boxplot()` dibuja una caja por grupo:
+
+```{r}
+#| label: fig-graf-caja-base
+#| fig-cap: "Resistencia a 28 días por proyecto, con `boxplot()`."
+#| fig-alt: "Tres diagramas de caja; el del puente está más arriba que los del pavimento y el edificio"
+
+e28 <- ensayos[ensayos$edad_dias == 28, ]
+boxplot(resistencia_mpa ~ proyecto, data = e28, col = "#cfe0ee",
+        xlab = "Proyecto", ylab = "Resistencia a 28 días (MPa)")
+```
+
+### Dispersión y líneas
+
+`plot(x, y)` dibuja un punto por cada par de valores. Con `type = "l"` une los puntos con líneas, que es lo indicado cuando el eje horizontal es el tiempo:
+
+```{r}
+#| label: fig-graf-lineas-base
+#| fig-cap: "Vehículos por hora en un día laboral, con `plot()`."
+#| fig-alt: "Línea con picos a las 7, a las 13 y a las 17 horas"
+
+lab <- transito[transito$dia == "Laboral", ]
+plot(lab$hora, lab$vehiculos, type = "o", pch = 19, col = "#1C6BA0",
+     xlab = "Hora del día", ylab = "Vehículos por hora")
+```
+
+## Gráficos con ggplot2 {#sec-graf-ggplot}
+
+El paquete ggplot2 construye los gráficos por capas, a partir de una idea llamada gramática de gráficos [@wickham2016ggplot2]. Todo gráfico se describe con tres piezas:
+
+1. **Los datos**: el data frame con las variables.
+2. **La estética** (`aes()`): qué variable va en el eje $x$, cuál en el eje $y$, cuál define el color o el grupo.
+3. **La geometría** (`geom_...()`): con qué se dibujan los datos, sean barras, puntos, líneas o cajas.
+
+Las capas se suman con el signo `+`. La primera línea dice qué datos y qué estética se usan; las siguientes agregan geometrías, nombres de ejes y el estilo:
+
+```{r}
+#| label: fig-graf-hist-gg
+#| fig-cap: "Histograma de la resistencia por edad del ensayo, con ggplot2."
+#| fig-alt: "Histograma con las barras de 7 días a la izquierda en un color y las de 28 días a la derecha en otro"
+
+library(ggplot2)
+
+ggplot(ensayos, aes(x = resistencia_mpa, fill = factor(edad_dias))) +
+  geom_histogram(binwidth = 2, color = "white", position = "identity", alpha = 0.8) +
+  labs(x = "Resistencia a compresión (MPa)", y = "Frecuencia",
+       fill = "Edad (días)") +
+  theme_minimal()
+```
+
+Con `fill = factor(edad_dias)` cada edad tiene su color, y los dos grupos que en la @fig-graf-hist-base parecían una curva rara se separan. La función `factor()` le dice a ggplot2 que la edad es una categoría y no un número continuo.
+
+::: {.callout-warning title="Cuidado"}
+En ggplot2 las capas se unen con `+` al final de cada línea, no con el pipe `%>%`. Si el `+` se pone al inicio de la línea siguiente, R cree que la instrucción terminó y la capa nueva da error.
+:::
+
+### Las geometrías más usadas
+
+Cambiando solo la geometría, los mismos datos dan otro gráfico. La @fig-graf-geoms muestra cuatro de ellas.
+
+```{r}
+#| label: fig-graf-geoms
+#| fig-cap: "Cuatro geometrías de ggplot2 con los datos de ensayos y de tránsito."
+#| fig-alt: "Cuatro paneles: barras por proyecto, cajas de resistencia por proyecto, dispersión de asentamiento contra resistencia y líneas de vehículos por hora"
+#| fig-width: 9
+#| fig-height: 6.5
+#| out-width: "85%"
+#| echo: false
+
+library(patchwork)
+tema <- theme_minimal(base_size = 11)
+g1 <- ggplot(ensayos, aes(proyecto)) + geom_bar(fill = "#1C6BA0") +
+  labs(title = "geom_bar()", x = "Proyecto", y = "Cilindros") + tema
+g2 <- ggplot(e28, aes(proyecto, resistencia_mpa)) + geom_boxplot(fill = "#cfe0ee") +
+  labs(title = "geom_boxplot()", x = "Proyecto", y = "Resistencia a 28 días (MPa)") + tema
+g3 <- ggplot(e28, aes(asentamiento_mm, resistencia_mpa)) + geom_point(color = "#1C6BA0", size = 2) +
+  labs(title = "geom_point()", x = "Asentamiento (mm)", y = "Resistencia (MPa)") + tema
+g4 <- ggplot(transito, aes(hora, vehiculos, color = dia)) + geom_line(linewidth = 0.9) +
+  labs(title = "geom_line()", x = "Hora", y = "Vehículos por hora", color = NULL) + tema +
+  theme(legend.position = "bottom")
+(g1 | g2) / (g3 | g4)
+```
+
+El código de cada panel es corto. Por ejemplo, las cajas y las líneas:
+
+```{r}
+#| eval: false
+ggplot(e28, aes(x = proyecto, y = resistencia_mpa)) +
+  geom_boxplot(fill = "#cfe0ee") +
+  labs(x = "Proyecto", y = "Resistencia a 28 días (MPa)")
+
+ggplot(transito, aes(x = hora, y = vehiculos, color = dia)) +
+  geom_line(linewidth = 0.9) +
+  labs(x = "Hora", y = "Vehículos por hora", color = NULL)
+```
+
+### Paneles y estilo
+
+Con `facet_wrap()` se hace un panel por cada valor de una variable categórica, con los mismos ejes, lo que facilita comparar:
+
+```{r}
+#| label: fig-graf-facetas
+#| fig-cap: "Resistencia por mezcla y edad, un panel por proyecto."
+#| fig-alt: "Tres paneles de puntos, uno por proyecto, con la resistencia de cada mezcla a 7 y 28 días"
+#| fig-width: 9
+#| fig-height: 3.5
+#| out-width: "85%"
+
+ggplot(ensayos, aes(x = factor(edad_dias), y = resistencia_mpa, color = mezcla)) +
+  geom_point(position = position_jitter(width = 0.1, seed = 1), size = 2) +
+  facet_wrap(~ proyecto) +
+  labs(x = "Edad del ensayo (días)", y = "Resistencia (MPa)", color = "Mezcla") +
+  theme_minimal()
+```
+
+Los gráficos de este libro siguen unas pocas reglas, que sirven también para los informes de laboratorio y de proyecto:
+
+- Los ejes llevan el nombre de la magnitud y su unidad entre paréntesis: "Resistencia (MPa)".
+- No se pone título dentro del gráfico cuando el documento ya tiene la leyenda de la figura.
+- Se usa un color para una sola serie y una paleta distinguible para varias, evitando el rojo contra el verde, que muchas personas no distinguen.
+- El fondo se deja limpio (`theme_minimal()`), sin cuadrículas gruesas ni efectos tridimensionales.
+
+### Guardar un gráfico
+
+`ggsave()` guarda el último gráfico en un archivo. La extensión define el formato, y `width`, `height` y `dpi` el tamaño y la resolución:
+
+```{r}
+#| eval: false
+ggsave("resistencia_por_proyecto.png", width = 16, height = 10, units = "cm", dpi = 300)
+```
+
+Con R base se abre un archivo con `png()`, se hace el gráfico y se cierra con `dev.off()`. También se puede usar el botón Export de la pestaña Plots de RStudio.
+
+## Interactivo: el número de clases de un histograma {#sec-graf-interactivo}
+
+La forma de un histograma depende del ancho de las clases. Con clases muy anchas los datos se aplastan en dos o tres barras; con clases muy angostas el gráfico se llena de huecos. Mueva el control de la @fig-graf-interactivo para ver cómo cambia el histograma de las 60 resistencias, y fíjese en qué ancho empiezan a verse los dos grupos de edades.
+
+::: {#fig-graf-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-histograma">
+  <label><span>Ancho de clase (MPa):</span> <output>2.0</output>
+    <input type="range" min="0.5" max="12" step="0.5" value="2"></label>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Histograma de la resistencia que cambia con el ancho de clase"></svg>
+</div>
+<script>
+(function () {
+  var datos = [22.7,37.7,28,36.3,18.7,37.8,23.4,39.4,23.7,37.2,22.6,37.1,23.8,40.2,26.9,37.1,25.6,39.6,27.6,39,19.8,27.6,19.3,30.9,18.1,30.1,17.4,28.3,16.9,31.3,23.1,32.3,24.3,31.1,17.2,33.4,19.4,33.2,19,32.8,25.4,32.7,21.3,36,19.2,31.2,18,31.7,22.3,35.8,22.3,33.2,19.7,33.7,20.3,37.2,22.5,34.3,24.3,39.7];
+  var raiz = document.getElementById("int-histograma");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output"), svg = raiz.querySelector("svg");
+  var w = 640, h = 280, ml = 44, mr = 16, mt = 14, mb = 40, x0 = 14, x1 = 44;
+  function sx(x) { return ml + (x - x0) / (x1 - x0) * (w - ml - mr); }
+  function dibujar() {
+    var a = parseFloat(control.value); salida.textContent = a.toFixed(1);
+    var inicio = Math.floor(16 / a) * a, cuentas = [], k;
+    for (k = 0; inicio + k * a < 41; k++) cuentas.push(0);
+    datos.forEach(function (v) { var i = Math.floor((v - inicio) / a); if (i >= 0 && i < cuentas.length) cuentas[i]++; });
+    var ymax = Math.max.apply(null, cuentas), paso = ymax > 20 ? 10 : (ymax > 8 ? 5 : 2), ytop = Math.ceil(ymax / paso) * paso;
+    function sy(y) { return h - mb - y / ytop * (h - mt - mb); }
+    var s = "";
+    for (var y = 0; y <= ytop; y += paso) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" style="stroke-opacity:0.25"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(y) + 4) + '" text-anchor="end">' + y + '</text>';
+    }
+    cuentas.forEach(function (c, i) {
+      var a0 = sx(inicio + i * a), a1 = sx(inicio + (i + 1) * a);
+      if (c > 0) s += '<rect x="' + (a0 + 0.5) + '" y="' + sy(c) + '" width="' + Math.max(a1 - a0 - 1, 0.5) + '" height="' + (sy(0) - sy(c)) + '" style="fill:#1C6BA0"/>';
+    });
+    for (var t = 15; t <= 45; t += 5) {
+      s += '<text class="eje-texto" x="' + sx(t) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + t + '</text>';
+    }
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Resistencia a compresión (MPa)</text>' +
+         '<text class="eje-texto" x="12" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((mt + h - mb) / 2) + ')">Frecuencia</text>';
+    svg.innerHTML = s;
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Histograma de las 60 resistencias de cilindros según el ancho de clase elegido.
+
+:::
+
+::: {.callout-note title="Ejemplo: histograma de la resistencia a 28 días"}
+
+**Planteamiento.** Con las 30 resistencias a 28 días del archivo de ensayos (hipotéticos), construya la tabla de frecuencias con clases de 2 MPa desde 26 MPa y dibuje el histograma con R base y con ggplot2. Cada clase incluye su límite inferior y excluye el superior; por ejemplo, la clase [30, 32) va de 30 MPa hasta antes de 32 MPa.
+
+**Solución:**
+
+1. Se ordenan los 30 datos: 27.6, 28.3, 30.1, 30.9, 31.1, 31.2, 31.3, 31.7, 32.3, 32.7, 32.8, 33.2, 33.2, 33.4, 33.7, 34.3, 35.8, 36.0, 36.3, 37.1, 37.1, 37.2, 37.2, 37.7, 37.8, 39.0, 39.4, 39.6, 39.7 y 40.2 MPa.
+2. Se cuentan los datos de cada clase:
+
+| Clase (MPa) | [26, 28) | [28, 30) | [30, 32) | [32, 34) | [34, 36) | [36, 38) | [38, 40) | [40, 42) |
+|:--|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Frecuencia | 1 | 1 | 6 | 7 | 2 | 8 | 4 | 1 |
+
+3. La suma de las frecuencias es 30, igual al número de datos, lo que confirma que ningún dato quedó fuera ni se contó dos veces.
+4. Se dibuja una barra por clase con la altura de su frecuencia.
+
+**Pseudocódigo**
+
+1. Filtrar los ensayos a 28 días.
+2. Definir los límites de las clases, de 26 a 42 MPa cada 2 MPa.
+3. Contar los datos de cada clase con `cut()` y `table()`.
+4. Dibujar el histograma con los mismos límites en R base y en ggplot2.
+
+```{r}
+#| label: fig-graf-ejemplo
+#| fig-cap: "Histograma de la resistencia a 28 días con clases de 2 MPa."
+#| fig-alt: "Histograma con ocho barras entre 26 y 42 MPa; las más altas están entre 30 y 34 y entre 36 y 38 MPa"
+
+# 1) Resistencias a 28 días
+ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
+r28 <- ensayos$resistencia_mpa[ensayos$edad_dias == 28]
+
+# 2) Límites de las clases
+limites <- seq(26, 42, by = 2)
+
+# 3) Tabla de frecuencias (right = FALSE: [a, b))
+table(cut(r28, breaks = limites, right = FALSE))
+
+# 4) Histograma en R base (el de ggplot2 va en el bloque siguiente)
+hist(r28, breaks = limites, right = FALSE, col = "#1C6BA0", border = "white",
+     main = "", xlab = "Resistencia a 28 días (MPa)", ylab = "Frecuencia")
+```
+
+```{r}
+#| eval: false
+# 4) Histograma con ggplot2
+library(ggplot2)
+ggplot(data.frame(r28), aes(x = r28)) +
+  geom_histogram(breaks = limites, closed = "left", fill = "#1C6BA0", color = "white") +
+  labs(x = "Resistencia a 28 días (MPa)", y = "Frecuencia") +
+  theme_minimal()
+```
+
+**Interpretación.** A los 28 días casi todos los cilindros superan los 28 MPa, pero el histograma tiene dos zonas altas, una entre 30 y 34 MPa y otra entre 36 y 38 MPa. La razón es que los tres proyectos tienen resistencias de diseño distintas (28, 30 y 35 MPa): un mismo histograma está mezclando tres concretos. Antes de resumir datos conviene preguntarse si vienen de una misma población.
+
+:::
+
+## Ejercicios propuestos
+
+1. Haga un gráfico de barras del número de cilindros por tipo de mezcla, con R base y con ggplot2.
+2. Con los datos de tránsito, dibuje con ggplot2 una línea por tipo de día. ¿A qué hora ocurre la punta de la tarde en cada uno?
+3. Dibuje un diagrama de caja del asentamiento por proyecto. ¿Qué proyecto tiene el asentamiento más bajo? ¿Por qué cree que es así en un pavimento?
+4. Haga un diagrama de dispersión de asentamiento contra resistencia a 28 días, coloreado por proyecto. ¿Se ve alguna relación entre las dos variables dentro de cada proyecto?
+5. Repita el histograma del ejemplo con clases de 4 MPa. ¿Se siguen viendo las dos zonas altas?
+6. En el interactivo de la @fig-graf-interactivo, ¿con qué ancho de clase se pierden los dos grupos de edades? ¿Qué ancho le parece el más adecuado para estos datos y por qué?
+7. Guarde el gráfico del ejercicio 4 en un archivo PNG de 16 cm por 10 cm con `ggsave()`.
+
+## Lecturas recomendadas
+
+- @chang2018graphics: recetas para casi cualquier gráfico con ggplot2, organizadas por tipo de problema.
+- @wilke2019fundamentals: cómo elegir el gráfico, los colores y las escalas para que un gráfico se entienda; no tiene código, pero vale la pena leerlo completo.
+- @healy2018dataviz, capítulos 1 a 3: una introducción a ggplot2 que explica el porqué de cada decisión de diseño.
