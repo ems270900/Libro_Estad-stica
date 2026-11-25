@@ -7,7 +7,7 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | Capítulo | Estado | Registro | Pull requests |
 |:--|:--|:--|:--|
 | Plantilla del repositorio | Lista | — | (este PR) |
-| Portada, prefacio e introducción | Por escribir | — | — |
+| Portada, prefacio, introducción y palabras finales | Borrador | — | Prefacio, introducción y palabras finales |
 | 1. R y RStudio | Borrador | [01-r_rstudio.md](01-r_rstudio.md) | Parte I |
 | 2. Objetos, tipos de datos y operadores | Borrador | [02-objetos_operadores.md](02-objetos_operadores.md) | Parte I |
 | 3. Datos y data frames | Borrador | [03-datos_dataframes.md](03-datos_dataframes.md) | Parte I |

@@ -6,15 +6,79 @@ suppress-bibliography: true
 
 # Introducción {.unnumbered}
 
-<!-- POR ESCRIBIR. Secciones previstas, como en el libro de hidrología:
-     qué es la estadística aplicada a la ingeniería, para quién es este libro
-     (conocimientos previos), cómo está organizado, cómo leer los ejemplos
-     (Solución: a mano, pseudocódigo y R), cómo instalar R y los paquetes. -->
+Casi toda decisión de ingeniería civil se toma con datos que varían. Un lote de cilindros de concreto da resistencias que se separan unos cuantos megapascales entre sí, las varillas de una misma colada no fluyen al mismo esfuerzo y el tránsito de una carretera cambia de una hora a otra. Quien diseña no puede esperar a tener todos los datos posibles: ensaya una muestra y con ella decide si el concreto cumple, si un aditivo mejora la mezcla o cuántos vehículos pesados hay que prever. La probabilidad y la estadística son el lenguaje con que se hacen esas decisiones y se dice cuánto se puede confiar en ellas.
+
+Este libro reúne ese lenguaje en el orden en que se aprende. Empieza por R, el programa que se usa en todo el texto. Sigue con la forma de resumir y graficar datos, con las reglas de la probabilidad y con los modelos que describen una variable aleatoria. Termina con los métodos para sacar conclusiones de una muestra: intervalos de confianza, pruebas de hipótesis, regresión y diseño de experimentos. Los ejemplos vienen de laboratorios de materiales, de obras viales, de inspección de estructuras y de hidrología, que es donde la persona que estudia ingeniería civil se los va a encontrar.
 
 ## Para quién es este libro {.unnumbered}
 
+El libro se escribió para estudiantes de ingeniería civil que aprenden estadística y R por primera vez. No se supone experiencia previa en ninguno de los dos. Basta con el álgebra del colegio y con nociones de cálculo diferencial e integral, que aparecen en los capítulos de variables aleatorias continuas; cuando se usa una integral, el resultado también se obtiene con R, de modo que nadie se queda atascado por una antiderivada.
+
+También sirve como referencia para quien ya trabaja. Un profesional que necesita repasar cómo se compara la resistencia de dos mezclas, qué supuestos tiene una regresión o cómo se lee una tabla de ANOVA puede ir directo al capítulo. No hace falta leer los anteriores: basta con seguir las referencias cruzadas cuando le falte un concepto.
+
 ## Cómo está organizado {.unnumbered}
 
-## Cómo usar los ejemplos {.unnumbered}
+Los 30 capítulos se agrupan en siete partes, más tres apéndices:
 
-## Instalación de R y de los paquetes {.unnumbered}
+1. **Primeros pasos con R y RStudio.** Instalación, la pantalla de RStudio, objetos y operadores, data frames con base R y con `dplyr`, gráficos con base R y con `ggplot2`, documentos reproducibles con R Markdown, y funciones, ciclos y simulación (capítulos 1 a 6).
+2. **Estadística descriptiva.** Para qué sirve la estadística en la ingeniería civil, poblaciones y muestras, cuadros de frecuencias, histogramas y diagramas de caja, y medidas de tendencia central, de posición y de variabilidad (capítulos 7 a 9).
+3. **Probabilidad.** Experimentos, eventos y axiomas, técnicas de conteo, probabilidad condicional, independencia y teorema de Bayes (capítulos 10 a 12).
+4. **Variables aleatorias y distribuciones.** Variables discretas y continuas, las distribuciones más usadas (binomial, Poisson, exponencial, normal y otras), y el muestreo y el teorema del límite central (capítulos 13 a 17).
+5. **Inferencia estadística.** Estimación puntual, intervalos de confianza, de predicción y de tolerancia, fundamentos de las pruebas de hipótesis, pruebas para una y para dos poblaciones, y pruebas chi-cuadrado (capítulos 18 a 23).
+6. **Correlación y regresión.** Asociación y correlación, regresión lineal simple y múltiple, y revisión de supuestos y medidas remediales (capítulos 24 a 27).
+7. **Diseño de experimentos.** Principios del diseño experimental, análisis de varianza de un factor, comparaciones múltiples, diseño en bloques y diseños factoriales (capítulos 28 a 30).
+
+El apéndice A tiene las tablas de las distribuciones normal estándar, $t$, chi-cuadrado, $F$, binomial y del rango estudentizado de Tukey, junto con una calculadora que da los valores que no aparecen en ellas. El apéndice B lista las funciones de R que se usan en el libro, con el capítulo donde se explica cada una. El apéndice C es un glosario español-inglés, útil porque casi toda la documentación de R y muchos artículos técnicos están en inglés.
+
+La parte de R va primero a propósito. Así, cuando aparece la primera prueba de hipótesis, el código ya es conocido y la atención se queda en el método. Quien ya maneja R puede saltarse la primera parte y volver a ella solo para consultar algo puntual. Las partes 2 a 5 se leen mejor en orden, porque cada una usa lo anterior: las pruebas de hipótesis no se entienden sin las distribuciones muestrales, y estas no se entienden sin la distribución normal. Las partes 6 y 7 dependen sobre todo de la 5.
+
+## Cómo leer los ejemplos {.unnumbered}
+
+Cada ejemplo resuelto va dentro de un recuadro y sigue el mismo orden:
+
+1. El planteamiento, con los datos, lo que se pide y las unidades.
+2. La solución a mano, paso a paso, como se haría con calculadora. En el texto aparece con el rótulo "Solución:".
+3. El pseudocódigo, que resume el método en pasos numerados que se pueden programar en cualquier lenguaje.
+4. El código R, listo para copiar y ejecutar. Primero va la versión con la fórmula escrita en base R y después la función del paquete (`t.test()`, `lm()`, `aov()`), para comprobar que dan lo mismo.
+5. El resultado y su interpretación para el diseño o el análisis.
+
+La solución a mano y el código llegan al mismo número. La primera sirve para entender el método y para el examen, donde no siempre hay computadora. El segundo sirve para aplicarlo a cien o a mil datos sin errores de transcripción. Conviene hacer las dos al menos una vez: si los resultados no coinciden, la búsqueda del error enseña más que el ejemplo.
+
+Para usar el código basta con pasar el cursor por encima del bloque y presionar el botón de copiar que aparece en la esquina. Cada ejemplo carga los paquetes que necesita y crea o lee sus propios datos, de modo que corre por separado en una sesión limpia de R. Los comentarios del código están numerados igual que los pasos del pseudocódigo, para seguir uno con el otro.
+
+Además de los ejemplos, el texto usa tres tipos de recuadro. "En la práctica" reúne criterios de uso, normas y valores típicos en ingeniería. "Cuidado" señala errores comunes y límites de un método. "Para profundizar" trae demostraciones y temas que se pueden saltar en una primera lectura; viene cerrado y se abre con un clic.
+
+## Datos descargables {.unnumbered}
+
+Cuando un ejemplo usa un archivo de datos, el libro muestra una vista paginada del cuadro y un botón para descargar el archivo CSV. El archivo va guardado dentro de la propia página, así que el botón funciona aunque no haya conexión a internet. Para repetir el ejemplo, el archivo se guarda en la subcarpeta `datos/` del proyecto de RStudio, como explica el capítulo 1, y el código lo lee con esa ruta.
+
+Los datos tienen dos orígenes, y el planteamiento de cada ejemplo dice cuál. La mayoría son hipotéticos: se construyeron para ilustrar un método, con valores realistas para la ingeniería civil, y llevan "hipotético" en el nombre del archivo. No deben usarse para diseñar. Unos pocos son registros reales de lluvia y de caudal tomados del material del curso; se publican anonimizados, sin el nombre de la estación ni de la institución que los midió.
+
+## Interactivos {.unnumbered}
+
+Casi todos los capítulos traen al menos un interactivo: un gráfico con deslizadores o casillas donde se cambian los parámetros y el resultado se actualiza al instante. Con ellos se ve cómo se ensancha un intervalo de confianza cuando baja el tamaño de la muestra, cómo se mueve la curva normal al cambiar la media o qué le pasa a la recta de regresión cuando aparece un dato atípico. Están escritos para funcionar dentro del libro, sin internet y sin instalar nada. El texto que los acompaña propone qué valores probar; vale la pena hacerlo antes de seguir leyendo, porque muchas propiedades que en el papel cuestan se entienden en dos movimientos del deslizador.
+
+## Ejercicios {.unnumbered}
+
+Cada capítulo cierra con ejercicios propuestos. No traen solución publicada: se resuelven con los métodos y los ejemplos del capítulo, primero a mano y después con R, y la comparación entre los dos resultados es la mejor forma de saber si quedaron bien.
+
+## Convenciones {.unnumbered}
+
+- El separador decimal es el punto (0.75), igual que en R. Los miles se separan con un espacio a partir de 10 000.
+- Los cuadros se llaman cuadros, no tablas, salvo las tablas estadísticas del apéndice A.
+- Los valores críticos $z_\alpha$, $t_{\alpha,\nu}$, $\chi^2_{\alpha,\nu}$ y $F_{\alpha,\nu_1,\nu_2}$ dejan un área $\alpha$ a la derecha, en el texto y en las tablas.
+- Las ecuaciones, las figuras y los cuadros se numeran por capítulo, y las referencias cruzadas son enlaces: un clic sobre "Ecuación 16.2" lleva a la ecuación.
+- El código usa el operador `%>%` para encadenar pasos, que se explica desde cero en el capítulo 3.
+
+## Programas y paquetes {.unnumbered}
+
+Los ejemplos usan [R](https://www.r-project.org/), un lenguaje libre para análisis de datos, y [RStudio](https://posit.co/download/rstudio-desktop/), el programa donde se escribe y se ejecuta el código. Los dos son gratuitos, y el capítulo 1 explica cómo instalarlos paso a paso. Las capturas de pantalla del libro se tomaron con R 4.6 y RStudio 2026.11; con versiones cercanas todo se ve casi igual.
+
+Casi todos los ejemplos usan `tidyverse` para manejar y graficar datos y `kableExtra` para los cuadros. Algunos capítulos usan además otros paquetes, y el texto dice para qué sirve cada uno: `patchwork` para poner gráficos lado a lado, `readxl` para leer archivos de Excel, `e1071` para comprobar el coeficiente de asimetría, `tolerance` para los intervalos de tolerancia, `car` y `lmtest` para el diagnóstico de la regresión, y `MASS`, que ya viene con R. Todos se instalan una sola vez, con internet, con esta instrucción:
+
+```r
+install.packages(c("tidyverse", "kableExtra", "rmarkdown", "patchwork",
+                   "readxl", "e1071", "tolerance", "car", "lmtest"))
+```
+
+Después, en cada sesión, se carga con `library()` solo el paquete que se va a usar. La diferencia entre instalar y cargar se explica en el capítulo 1, y es la causa de uno de los errores más comunes al empezar: "there is no package called…" casi siempre quiere decir que el paquete nunca se instaló.
