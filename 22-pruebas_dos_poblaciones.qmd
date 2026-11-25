@@ -453,7 +453,7 @@ La @fig-dos-calculadora hace las dos versiones de la prueba $t$ para muestras in
 </script>
 ```
 
-Prueba $t$ de Welch y con varianzas iguales a partir de resúmenes. Viene cargada con el ejemplo del aditivo. Pruebe con $s_1 = 5$, $n_1 = 5$ y $s_2 = 1$, $n_2 = 30$.
+Calculadora de la prueba $t$ para dos medias.
 
 :::
 

@@ -31,7 +31,7 @@ No todos los supuestos pesan igual. El @tbl-diag-supuestos resume qué pasa cuan
 
 ```{r}
 #| label: tbl-diag-supuestos
-#| tbl-cap: "Consecuencias de la falla de cada supuesto y cómo se revisa."
+#| tbl-cap: "Supuestos de la regresión y su revisión."
 #| echo: false
 
 data.frame(
@@ -111,7 +111,7 @@ La función `plot()` aplicada a un modelo de `lm()` dibuja cuatro gráficos de d
 
 ```{r}
 #| label: fig-diag-plot-base
-#| fig-cap: "Gráficos de diagnóstico de `plot()` para el modelo de velocidad y densidad."
+#| fig-cap: "Gráficos de diagnóstico de `plot()`."
 #| fig-alt: "Cuatro gráficos de diagnóstico con pocos puntos y sin patrones claros"
 #| fig-width: 8
 #| fig-height: 7
@@ -165,7 +165,7 @@ summary(con_log)$coefficients
 
 ```{r}
 #| label: fig-diag-cilindros
-#| fig-cap: "Residuos contra la edad con la edad en escala lineal (izquierda) y logarítmica (derecha)."
+#| fig-cap: "Residuos contra la edad en dos escalas."
 #| fig-alt: "A la izquierda, los residuos de 7 días están arriba de cero y los de 3 días abajo; a la derecha, los tres grupos están centrados en cero"
 #| fig-width: 8
 #| fig-height: 3.8
@@ -240,7 +240,7 @@ La @fig-diag-tres-casos muestra los tres casos. Un atípico en el centro de los 
 
 ```{r}
 #| label: fig-diag-tres-casos
-#| fig-cap: "Valor atípico, punto de alto apalancamiento y punto influyente. La línea gris punteada es la recta sin el punto naranja (datos hipotéticos)."
+#| fig-cap: "Atípico, apalancamiento e influencia."
 #| fig-alt: "Tres paneles con doce puntos en línea y un punto naranja: en el primero está muy arriba en el centro, en el segundo muy a la derecha sobre la línea, en el tercero muy a la derecha y arriba, y la recta se inclina hacia él"
 #| fig-width: 9
 #| fig-height: 3.6
@@ -300,7 +300,7 @@ donde $r_i$ es el residuo estandarizado (@eq-diag-estandarizado), $h_{ii}$ el ap
 
 ```{r}
 #| label: tbl-diag-influencia
-#| tbl-cap: "Apalancamiento, residuos estandarizados y distancia de Cook de los diez periodos."
+#| tbl-cap: "Diagnóstico de los diez periodos."
 #| echo: false
 
 data.frame(i = 1:10, x = sprintf("%d", tramo$densidad_veh_km), e = sprintf("%.3f", residuals(mod_tramo)),
@@ -411,7 +411,7 @@ Con los dos controles se mueve un periodo adicional (en naranja) que se agrega a
 </script>
 ```
 
-Un periodo adicional movible y su efecto sobre la recta. El límite de apalancamiento es 2(2)/11 = 0.36.
+Efecto de un periodo adicional sobre la recta.
 
 :::
 
@@ -541,7 +541,7 @@ exp(predict(loglog, nueva, interval = "prediction"))
 
 ```{r}
 #| label: fig-diag-cuencas
-#| fig-cap: "Residuos contra valores ajustados del modelo lineal (izquierda) y del modelo log-log (derecha)."
+#| fig-cap: "Residuos del modelo lineal y del log-log."
 #| fig-alt: "A la izquierda, los residuos se abren como un embudo hacia la derecha; a la derecha, forman una banda pareja alrededor de cero"
 #| fig-width: 8
 #| fig-height: 3.8

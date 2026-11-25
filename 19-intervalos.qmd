@@ -105,7 +105,7 @@ La @fig-ic-interactivo lo muestra con una simulación. Cada línea horizontal es
 </script>
 ```
 
-Cincuenta intervalos de confianza para $\mu$, cada uno con una muestra distinta. Los de color naranja no contienen a $\mu = 30$ MPa (línea discontinua).
+Cincuenta intervalos de confianza para $\mu$.
 
 :::
 
@@ -194,7 +194,7 @@ donde $s$ es la desviación estándar muestral y $t_{\alpha/2,\,n-1}$ es el valo
 
 ```{r}
 #| label: fig-ic-t-normal
-#| fig-cap: "Densidad normal estándar y densidades t con 3 y 9 grados de libertad."
+#| fig-cap: "Normal estándar y t de Student."
 #| fig-alt: "Tres curvas en forma de campana; las t son más bajas en el centro y más altas en las colas que la normal."
 #| echo: false
 
@@ -327,7 +327,7 @@ exacto <- binom.test(x, n, conf.level = 0.95)$conf.int
 
 ```{r}
 #| label: tbl-ic-proporcion
-#| tbl-cap: "Tres intervalos del 95 % para la proporción de cilindros que no cumplen."
+#| tbl-cap: "Tres intervalos para una proporción."
 #| echo: false
 
 tibble(
@@ -363,7 +363,7 @@ La distribución $\chi^2$ no es simétrica, como se ve en la @fig-ic-chi, y por 
 
 ```{r}
 #| label: fig-ic-chi
-#| fig-cap: "Distribución chi-cuadrado con 24 grados de libertad y los valores críticos para 95 %."
+#| fig-cap: "Chi-cuadrado con 24 grados de libertad."
 #| fig-alt: "Curva asimétrica a la derecha con un área sombreada de 0.025 en cada cola, en 12.40 y 39.36."
 #| echo: false
 
@@ -526,7 +526,7 @@ El paquete `tolerance` se agrega en este capítulo porque R base no calcula fact
 
 ```{r}
 #| label: fig-ic-tres
-#| fig-cap: "Intervalos de confianza, de predicción y de tolerancia al 95 % para el lote de concreto."
+#| fig-cap: "Intervalos de confianza, de predicción y de tolerancia."
 #| fig-alt: "Puntos de los 25 cilindros y tres barras horizontales; la de confianza es corta y las de predicción y tolerancia cubren casi todos los puntos."
 #| echo: false
 
@@ -651,7 +651,7 @@ Con la @fig-ic-tamano se repite el cálculo para otros valores.
 </script>
 ```
 
-Calculadora del tamaño de muestra para estimar una media con la @eq-ic-n-media. Duplicar la precisión (reducir $E$ a la mitad) cuadruplica $n$.
+Calculadora del tamaño de muestra.
 
 :::
 
