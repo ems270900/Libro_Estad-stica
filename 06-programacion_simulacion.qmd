@@ -1,0 +1,341 @@
+---
+title: "Programar sin miedo: funciones, condiciones, ciclos y simulación"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+Hasta ahora cada cálculo se escribió una sola vez: una media, un histograma, un cuadro. En la práctica los mismos cálculos se repiten muchas veces. La resistencia de un cilindro se calcula igual para cada uno de los cien cilindros de una obra; la decisión de si un resultado cumple o no se toma igual para todos. Programar consiste en escribir esas instrucciones una vez y dejar que R las repita. Este capítulo presenta los cuatro recursos que bastan para eso: las funciones propias, las condiciones, los ciclos y la simulación con números aleatorios. La última es la más importante para el resto del libro, porque con ella se comprueban en la computadora los resultados de probabilidad que en las partes III a V se deducen con fórmulas [@grolemund2014hopr].
+
+```{r}
+#| echo: false
+ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
+```
+
+## Funciones propias {#sec-prog-funciones}
+
+Ya se han usado muchas funciones de R, como `mean()`, `sum()` o `read.csv()`. Una función propia se crea con `function()`, se guarda con un nombre como cualquier objeto y se usa igual que las de R. Tiene tres partes: los argumentos, que son los datos que recibe; el cuerpo, entre llaves, con los cálculos; y el resultado, que es lo que devuelve con `return()`.
+
+```{r}
+#| eval: false
+nombre <- function(argumento1, argumento2) {
+  resultado <- ...          # cálculos con los argumentos
+  return(resultado)
+}
+```
+
+Como primer caso, la resistencia a compresión de un cilindro es la carga máxima dividida entre el área de la sección:
+
+$$
+f = \frac{P}{A} = \frac{P}{\pi D^2 / 4}
+$$ {#eq-prog-resistencia}
+
+donde $P$ es la carga de falla y $D$ es el diámetro del cilindro. Si $P$ está en newtons y $D$ en milímetros, $f$ queda en N/mm², que es lo mismo que MPa. La función recibe la carga en kilonewtons, que es como la reporta la prensa, y la convierte a newtons:
+
+```{r}
+resistencia_cilindro <- function(carga_kn, diametro_mm = 150) {
+  area_mm2 <- pi * diametro_mm^2 / 4     # área de la sección (mm²)
+  f_mpa <- carga_kn * 1000 / area_mm2    # kN a N, y N/mm² = MPa
+  return(f_mpa)
+}
+```
+
+Al ejecutar ese bloque no aparece ningún resultado: R solo guarda la función, que se ve en el panel de entorno. Para usarla se llama con sus argumentos:
+
+```{r}
+resistencia_cilindro(600)
+resistencia_cilindro(carga_kn = 280, diametro_mm = 100)
+```
+
+El argumento `diametro_mm = 150` tiene un valor por omisión: si no se escribe, la función usa 150 mm, el diámetro más común de los cilindros de ensayo. Como los cálculos dentro de la función son vectorizados (@sec-obj-vectores), también acepta un vector de cargas y devuelve un vector de resistencias:
+
+```{r}
+cargas <- c(600, 545, 512, 590)
+round(resistencia_cilindro(cargas), 2)
+```
+
+::: {.callout-tip title="En la práctica"}
+Una función conviene cuando el mismo cálculo se copia y pega más de dos veces. Además del ahorro, evita errores: si la fórmula tiene un problema, se corrige en un solo lugar. Los nombres de las funciones deben decir lo que hacen, de preferencia con un verbo o un sustantivo, y los argumentos deben llevar las unidades en el nombre, como `carga_kn`.
+:::
+
+## Condiciones {#sec-prog-condiciones}
+
+Muchas decisiones de ingeniería son de la forma "si pasa esto, haga aquello; si no, haga lo otro". En R se escriben con `if` y `else`:
+
+```{r}
+f <- 26.8      # resistencia obtenida (MPa)
+fc <- 28       # resistencia de diseño (MPa)
+
+if (f >= fc) {
+  "Cumple"
+} else {
+  "No cumple"
+}
+```
+
+La condición entre paréntesis tiene que dar un solo `TRUE` o `FALSE`. Si se le da un vector, R devuelve un error, porque no sabe cuál de todos los valores usar. Para evaluar una condición sobre un vector completo se usa `ifelse()`, que revisa elemento por elemento:
+
+```{r}
+resistencias <- c(27.4, 29.1, 26.8, 30.2, 28.5)
+ifelse(resistencias >= 28, "Cumple", "No cumple")
+```
+
+Cuando hay más de dos casos se encadenan varios `else if`. La siguiente función clasifica un resultado según su relación con la resistencia de diseño; los límites son solo un ejemplo para practicar, no un criterio de una norma de construcción:
+
+```{r}
+clasificar <- function(f, fc) {
+  if (f < 0.9 * fc) {
+    "Muy bajo"
+  } else if (f < fc) {
+    "Bajo"
+  } else {
+    "Cumple"
+  }
+}
+clasificar(24.5, 28)
+clasificar(26.8, 28)
+clasificar(30.2, 28)
+```
+
+R revisa las condiciones en orden y se detiene en la primera que es verdadera. Por eso la segunda condición no necesita decir `f >= 0.9 * fc`: si R llegó hasta ahí, ya sabe que la primera fue falsa.
+
+## Ciclos {#sec-prog-ciclos}
+
+Un ciclo `for` repite un bloque de instrucciones una vez por cada elemento de un vector. Se lee "para cada `i` en ..., haga ...":
+
+```{r}
+for (i in 1:3) {
+  print(i^2)
+}
+```
+
+En la primera vuelta `i` vale 1, en la segunda 2 y en la tercera 3. El uso más frecuente de un ciclo es llenar un vector de resultados que se crea vacío antes de empezar. Para recorrer las posiciones de un vector se usa `seq_along(x)`, que da `1, 2, ..., length(x)`.
+
+::: {.callout-note title="Ejemplo: media acumulada de un lote"}
+
+**Planteamiento.** Los cinco primeros cilindros de un lote dieron 27.4, 29.1, 26.8, 30.2 y 28.5 MPa. Calcule la media acumulada, es decir, la media de los dos primeros, de los tres primeros, y así hasta los cinco, primero a mano y luego con un ciclo `for` en R.
+
+**Solución:**
+
+En cada paso se suma el nuevo dato a la suma anterior y se divide entre el número de datos acumulados. El @tbl-prog-iteraciones muestra las cinco vueltas.
+
+| Vuelta $i$ | Dato $x_i$ (MPa) | Suma acumulada (MPa) | Media acumulada (MPa) |
+|:-:|:-:|:-:|:-:|
+| 1 | 27.4 | 27.4 | 27.4 / 1 = 27.40 |
+| 2 | 29.1 | 27.4 + 29.1 = 56.5 | 56.5 / 2 = 28.25 |
+| 3 | 26.8 | 56.5 + 26.8 = 83.3 | 83.3 / 3 = 27.77 |
+| 4 | 30.2 | 83.3 + 30.2 = 113.5 | 113.5 / 4 = 28.38 |
+| 5 | 28.5 | 113.5 + 28.5 = 142.0 | 142.0 / 5 = 28.40 |
+
+: Cálculo de la media acumulada vuelta por vuelta. {#tbl-prog-iteraciones}
+
+La media del lote completo es 28.40 MPa. Con un dato la media es poco confiable; a medida que se suman datos cambia cada vez menos.
+
+**Pseudocódigo**
+
+1. Guardar los datos en un vector `x`.
+2. Crear un vector vacío `media_acum` del mismo largo que `x`, y una suma que empieza en 0.
+3. Para cada posición `i` de `x`: sumar `x[i]` a la suma y guardar `suma / i` en `media_acum[i]`.
+4. Mostrar `media_acum` y comparar con la solución a mano.
+5. Comprobar con funciones de R base, sin ciclo.
+
+```{r}
+# 1) Datos
+x <- c(27.4, 29.1, 26.8, 30.2, 28.5)
+
+# 2) Vector de resultados vacío y suma inicial
+media_acum <- numeric(length(x))
+suma <- 0
+
+# 3) Ciclo: una vuelta por dato
+for (i in seq_along(x)) {
+  suma <- suma + x[i]
+  media_acum[i] <- suma / i
+}
+
+# 4) Resultado
+round(media_acum, 2)
+
+# 5) Comprobación sin ciclo
+round(cumsum(x) / seq_along(x), 2)
+```
+
+**Interpretación.** El ciclo reproduce los cinco valores de la solución a mano. La versión sin ciclo, con `cumsum()`, da lo mismo en una sola línea: en R muchas tareas que en otros lenguajes requieren un ciclo se resuelven con operaciones vectorizadas, que son más cortas y más rápidas. El ciclo sigue siendo útil cuando cada vuelta depende del resultado de la anterior, como ocurre en las simulaciones.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Para entender qué hace un ciclo, conviene seguirlo con lápiz y papel, como en el cuadro del ejemplo: anotar en cada vuelta el valor de `i` y de cada objeto. Si el resultado de R no coincide con el de la tabla, el error está en la vuelta donde los dos empiezan a diferir.
+:::
+
+## Simulación con números aleatorios {#sec-prog-simulacion}
+
+Simular es imitar con la computadora un proceso que tiene azar, como lanzar una moneda, elegir un cilindro al azar de un lote o sortear la llegada de vehículos a una intersección. Si el proceso se repite muchas veces, la proporción de veces que ocurre algo se acerca a su probabilidad. Esa idea, que se formaliza en el capítulo 10, sirve para comprobar cualquier cálculo de probabilidad aunque todavía no se conozca la fórmula.
+
+### Muestrear con sample()
+
+La función `sample()` elige elementos al azar de un vector. Sus argumentos principales son el vector de donde se elige, el tamaño de la muestra y `replace`, que indica si un elemento puede salir más de una vez:
+
+```{r}
+sample(1:6, size = 1)                    # lanzar un dado
+sample(c("cara", "cruz"), size = 10, replace = TRUE)   # diez lanzamientos de moneda
+sample(ensayos$muestra, size = 3)        # tres cilindros al azar, sin repetir
+```
+
+Con `replace = FALSE`, que es el valor por omisión, cada elemento sale a lo sumo una vez, como cuando se sacan cilindros de un lote para ensayarlos. Con `replace = TRUE` los elementos pueden repetirse, como en los lanzamientos de un dado, donde el 6 puede salir varias veces seguidas. Con el argumento `prob` se dan probabilidades distintas a cada elemento; por ejemplo, `sample(c("defectuoso", "bueno"), 20, replace = TRUE, prob = c(0.05, 0.95))` simula 20 piezas de una línea de producción donde el 5 % sale defectuoso.
+
+### Resultados repetibles con set.seed()
+
+Si se ejecutan dos veces las líneas anteriores, los resultados cambian, porque cada vez R genera números al azar nuevos. Eso es correcto, pero causa un problema en un informe: el texto describe unos resultados y, al volver a compilar, aparecen otros. La solución es fijar la semilla del generador con `set.seed()` antes de simular:
+
+```{r}
+set.seed(2026)
+sample(1:6, size = 5, replace = TRUE)
+
+set.seed(2026)
+sample(1:6, size = 5, replace = TRUE)
+```
+
+Con la misma semilla, R produce la misma secuencia de números. La semilla puede ser cualquier número entero; lo importante es escribirla en el código para que otra persona obtenga los mismos resultados. Una forma de imaginarlo: la semilla es como el número de página de un libro enorme lleno de números al azar; con la misma página, siempre se leen los mismos números.
+
+::: {.callout-warning title="Cuidado"}
+Si los números que obtiene no son iguales a los del libro aunque use la misma semilla, revise la versión de R: las versiones anteriores a la 3.6.0 generan otros números con la misma semilla. Con una versión reciente (@sec-r-instalacion) los resultados coinciden.
+:::
+
+::: {.callout-note title="Ejemplo: probabilidad de que dos dados sumen 7"}
+
+**Planteamiento.** Se lanzan dos dados. Calcule a mano la probabilidad de que la suma sea 7 y compruébela con una simulación de 10 000 lanzamientos en R.
+
+**Solución:**
+
+1. Cada dado tiene 6 caras, así que hay $6 \times 6 = 36$ resultados posibles, todos con la misma probabilidad.
+2. Los resultados que suman 7 son (1, 6), (2, 5), (3, 4), (4, 3), (5, 2) y (6, 1): son 6.
+3. La probabilidad es el número de casos favorables entre el número de casos posibles:
+
+$$
+P(\text{suma} = 7) = \frac{6}{36} = \frac{1}{6} \approx 0.1667
+$$
+
+**Pseudocódigo**
+
+1. Fijar la semilla.
+2. Simular 10 000 lanzamientos del primer dado y 10 000 del segundo con `sample(1:6, 10000, replace = TRUE)`.
+3. Sumar los dos vectores, posición por posición.
+4. Calcular la proporción de sumas iguales a 7 con `mean(suma == 7)`.
+5. Comparar con 1/6.
+
+```{r}
+# 1) Semilla
+set.seed(2026)
+
+# 2) Lanzamientos
+n <- 10000
+dado1 <- sample(1:6, size = n, replace = TRUE)
+dado2 <- sample(1:6, size = n, replace = TRUE)
+
+# 3) Suma de cada lanzamiento
+suma <- dado1 + dado2
+
+# 4) Proporción de sumas iguales a 7
+p_simulada <- mean(suma == 7)
+p_simulada
+
+# 5) Valor teórico
+1 / 6
+```
+
+La función `mean()` aplicada a un vector lógico da la proporción de `TRUE`, porque R cuenta cada `TRUE` como 1 y cada `FALSE` como 0 (@sec-obj-tipos). La @fig-prog-dados compara las frecuencias relativas de todas las sumas con sus probabilidades teóricas.
+
+```{r}
+#| label: fig-prog-dados
+#| fig-cap: "Frecuencia relativa simulada y probabilidad teórica de la suma de dos dados."
+#| fig-alt: "Barras de frecuencia relativa de las sumas de 2 a 12 con forma de triángulo y máximo en 7; los puntos de la probabilidad teórica caen casi sobre la punta de cada barra"
+#| fig-width: 7
+#| fig-height: 4
+#| out-width: "80%"
+frec <- table(suma) / n                       # frecuencia relativa simulada
+teorica <- c(1:6, 5:1) / 36                   # probabilidad teórica de 2 a 12
+barras <- barplot(frec, col = "#1C6BA0", border = "white", ylim = c(0, 0.2),
+                  xlab = "Suma de los dos dados", ylab = "Frecuencia relativa")
+points(barras, teorica, pch = 19, col = "#C0392B")
+legend("topright", legend = c("Simulación", "Teoría"), pch = c(15, 19),
+       col = c("#1C6BA0", "#C0392B"), bty = "n")
+```
+
+**Interpretación.** La simulación dio una proporción de `r p_simulada`, muy cerca del valor teórico de 0.1667; la diferencia se debe al azar y se reduce si se aumenta el número de lanzamientos. La forma triangular de la @fig-prog-dados también coincide con la teoría: hay una sola manera de sumar 2 o 12, y seis maneras de sumar 7. Este es el método que se usará en el resto del libro para comprobar resultados de probabilidad: primero la fórmula, después la simulación.
+
+:::
+
+### Interactivo: simular los dos dados
+
+El interactivo de la @fig-prog-interactivo repite la simulación del ejemplo con el número de lanzamientos que se elija. Cada vez que se presiona el botón se hace una simulación nueva, sin semilla, así que los resultados cambian; con pocos lanzamientos las barras se alejan bastante de los puntos teóricos y con muchos casi los tocan.
+
+::: {#fig-prog-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-dados">
+  <label><span>Número de lanzamientos:</span> <output>100</output>
+    <input type="range" min="1" max="4" step="0.05" value="2"></label>
+  <button type="button">Lanzar de nuevo</button>
+  <p class="resultado" aria-live="polite"></p>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Barras de frecuencia relativa de la suma de dos dados comparadas con la probabilidad teórica"></svg>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-dados");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var boton = raiz.querySelector("button"), texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
+  var w = 640, h = 280, ml = 50, mr = 16, mt = 14, mb = 40, ytop = 0.3;
+  function n() { return Math.round(Math.pow(10, parseFloat(control.value))); }
+  function sy(y) { return h - mb - Math.min(y, ytop) / ytop * (h - mt - mb); }
+  function dibujar() {
+    var lanz = n(), cuentas = [], k, s = "";
+    salida.textContent = String(lanz).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    for (k = 0; k < 11; k++) cuentas.push(0);
+    for (k = 0; k < lanz; k++) {
+      var d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6);
+      cuentas[d1 + d2 - 2]++;
+    }
+    var ancho = (w - ml - mr) / 11;
+    for (var y = 0; y <= ytop + 1e-9; y += 0.05) {
+      s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(y) + '" y2="' + sy(y) + '" style="stroke-opacity:0.25"/>' +
+           '<text class="eje-texto" x="' + (ml - 6) + '" y="' + (sy(y) + 4) + '" text-anchor="end">' + y.toFixed(2) + '</text>';
+    }
+    cuentas.forEach(function (c, i) {
+      var fr = c / lanz, x = ml + i * ancho, teo = (6 - Math.abs(i - 5)) / 36;
+      s += '<rect x="' + (x + 4) + '" y="' + sy(fr) + '" width="' + (ancho - 8) + '" height="' + (sy(0) - sy(fr)) + '" style="fill:#1C6BA0"/>' +
+           '<circle cx="' + (x + ancho / 2) + '" cy="' + sy(teo) + '" r="4.5" style="fill:#C0392B"/>' +
+           '<text class="eje-texto" x="' + (x + ancho / 2) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + (i + 2) + '</text>';
+    });
+    s += '<line class="eje" x1="' + ml + '" x2="' + (w - mr) + '" y1="' + sy(0) + '" y2="' + sy(0) + '"/>' +
+         '<text class="eje-texto" x="' + ((ml + w - mr) / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Suma de los dos dados (barras: simulación; puntos: teoría)</text>' +
+         '<text class="eje-texto" x="12" y="' + ((mt + h - mb) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((mt + h - mb) / 2) + ')">Frecuencia relativa</text>';
+    svg.innerHTML = s;
+    texto.textContent = "Proporción de sumas iguales a 7: " + (cuentas[5] / lanz).toFixed(4) + " (teórica: 0.1667)";
+  }
+  control.addEventListener("input", dibujar);
+  boton.addEventListener("click", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Simulación de la suma de dos dados con el número de lanzamientos elegido.
+
+:::
+
+## Ejercicios propuestos
+
+1. Escriba una función `area_rectangular(b, h)` que devuelva el área de una sección rectangular en cm². Úsela para una columna de 30 cm × 45 cm y compruebe el resultado a mano.
+2. Modifique `resistencia_cilindro()` para que devuelva el resultado redondeado a un decimal. Calcule la resistencia de un cilindro de 100 mm de diámetro que falló con 245 kN, primero a mano con la @eq-prog-resistencia y luego con la función.
+3. Con los datos de ensayos, agregue al data frame una columna `estado` que diga "Cumple" o "No cumple" según si la resistencia a 28 días alcanza la resistencia de diseño. ¿Cuántos cilindros no cumplen?
+4. Escriba un ciclo `for` que recorra los tres proyectos (`unique(ensayos$proyecto)`) e imprima la resistencia media a 28 días de cada uno. Compruebe los resultados con `aggregate()`.
+5. Simule 1000 lanzamientos de una moneda con `set.seed(1)` y calcule la proporción de caras. Repita con 10, 100 y 100 000 lanzamientos. ¿Qué ocurre con la proporción a medida que crece el número de lanzamientos?
+6. Calcule a mano la probabilidad de que la suma de dos dados sea mayor que 9 y compruébela con una simulación de 10 000 lanzamientos.
+7. Un lote tiene 10 cilindros, de los cuales 1 no cumple. Si se eligen 3 cilindros al azar sin reemplazo, ¿con qué frecuencia aparece el que no cumple en la muestra? Estímela con 5000 simulaciones usando `sample()` y un ciclo. En el capítulo 11 se verá cómo calcular este valor exacto.
+8. En el interactivo de la @fig-prog-interactivo, presione varias veces el botón con 10 lanzamientos y luego con 10 000. Describa con sus palabras la diferencia entre los dos casos.
+
+## Lecturas recomendadas
+
+- @grolemund2014hopr: enseña a programar en R a partir de proyectos de juegos de azar, como lanzar dados o una máquina tragamonedas; los capítulos 1 a 3 son un buen complemento de este.
+- @wickham2017r4ds, capítulos sobre funciones e iteración: cuándo conviene escribir una función y cómo evitar los ciclos con funciones de R.
+- @long2019cookbook, capítulos sobre probabilidad y programación: recetas cortas para simular y para escribir funciones.
