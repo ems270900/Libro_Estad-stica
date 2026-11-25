@@ -4,14 +4,20 @@ bibliography: references.bib
 suppress-bibliography: true
 ---
 
-Un informe de laboratorio hecho de la forma tradicional tiene tres piezas separadas: una hoja de cálculo con los datos, un programa o una calculadora para los resultados y un procesador de texto donde se copian los números y se pegan los gráficos. Si aparece un dato corregido, hay que repetir los cálculos, volver a copiar cada número y volver a pegar cada gráfico, y es fácil que alguno quede desactualizado. R Markdown junta las tres piezas en un solo archivo: el texto, el código y los resultados viven juntos, y el documento se vuelve a generar completo con un clic. A esa propiedad se le llama reproducibilidad: cualquier persona con el archivo y los datos obtiene el mismo informe. Este capítulo explica cómo se arma un documento de R Markdown, cómo se compila a HTML y cómo se incluyen cuadros, ecuaciones y resultados dentro del texto [@xie2018rmarkdown].
+Un informe de laboratorio hecho de la forma tradicional tiene tres piezas separadas: una hoja de cálculo con los datos, una calculadora o un programa para los resultados y un procesador de texto donde se copian los números y se pegan los gráficos. Si aparece un dato corregido, hay que repetir los cálculos, volver a copiar cada número y volver a pegar cada gráfico, y es fácil que alguno quede desactualizado. R Markdown junta las tres piezas en un solo archivo: el texto, el código y los resultados viven juntos, y el documento se vuelve a generar completo con un clic. A esa propiedad se le llama reproducibilidad: cualquier persona con el archivo y los datos obtiene el mismo informe [@xie2018rmarkdown].
+
+::: {.pregunta}
+¿Qué pasa con un informe de veinte páginas si el laboratorio avisa que el cilindro M22 se registró mal?
+:::
+
+Con un informe hecho a mano, hay que buscar cada número que dependía de ese dato. Con R Markdown, se corrige el archivo de datos, se presiona un botón y el informe completo se actualiza: el texto, los cuadros y los gráficos.
 
 ## Qué es un documento de R Markdown {#sec-rmd-que-es}
 
 Un archivo de R Markdown tiene extensión `.Rmd` y es un archivo de texto con tres tipos de contenido:
 
 - Encabezado: unas pocas líneas entre dos filas de tres guiones (`---`) con el título, el autor, la fecha y el formato de salida. Se escribe en un formato llamado YAML.
-- Texto: los párrafos del informe, escritos en Markdown, que es una forma sencilla de dar formato con símbolos (por ejemplo, un `#` al inicio de una línea indica un título).
+- Texto: los párrafos del informe, escritos en Markdown, que es una forma sencilla de dar formato con símbolos. Por ejemplo, un `#` al inicio de una línea indica un título.
 - Bloques de código: trozos de R entre tres acentos graves (```` ``` ````). Al compilar el documento, R ejecuta cada bloque y coloca el resultado, sea un número, un cuadro o un gráfico, justo debajo del código.
 
 La @fig-rmd-partes muestra un archivo mínimo con las tres partes.
@@ -39,7 +45,7 @@ Archivo mínimo de R Markdown: encabezado, texto y un bloque de código.
 
 :::
 
-El proceso que convierte ese archivo en un documento terminado se llama compilación, y en RStudio se hace con el botón Knit ("tejer"), porque el resultado entreteje el texto con el código y sus resultados. Al presionarlo, RStudio hace dos cosas seguidas: primero ejecuta el código de cada bloque y luego arma el documento final con el texto y los resultados. Todo lo necesario viene con RStudio y con el paquete rmarkdown; no hay que instalar nada más.
+El proceso que convierte ese archivo en un documento terminado se llama compilación. En RStudio se hace con el botón Knit ("tejer"), porque el resultado entreteje el texto con el código y sus resultados. Al presionarlo, RStudio hace dos cosas seguidas: primero ejecuta el código de cada bloque y luego arma el documento final con el texto y los resultados. Todo lo necesario viene con RStudio y con el paquete rmarkdown; no hay que instalar nada más.
 
 ## Crear y compilar un documento {#sec-rmd-crear}
 
@@ -56,48 +62,176 @@ Si se olvida este paso, RStudio muestra un aviso amarillo en la parte de arriba 
 
 ### Paso 2: crear el archivo
 
-Se usa el menú File > New File > R Markdown. Se abre la ventana de la @fig-rmd-nuevo, donde se escribe el título y el autor y se elige HTML como formato de salida. Al presionar OK, RStudio crea un archivo de ejemplo que ya tiene las tres partes; conviene compilarlo una vez tal como está para comprobar que todo funciona y luego borrar el contenido de ejemplo y escribir el propio.
+Se usa el menú File > New File > R Markdown. Se abre la ventana de la @fig-rmd-nuevo, donde se escribe el título y el autor y se elige HTML como formato de salida. Al presionar OK, RStudio crea un archivo de ejemplo que ya tiene las tres partes. Conviene compilarlo una vez tal como está para comprobar que todo funciona; luego se borra el contenido de ejemplo, desde la primera línea después del encabezado, y se escribe el propio.
 
-![Ventana para crear un documento de R Markdown. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_nuevo_rmd.png){#fig-rmd-nuevo fig-alt="Ventana New R Markdown de RStudio con los campos Title y Author y la opción HTML seleccionada como formato de salida" width="85%"}
+![Ventana para crear un documento de R Markdown. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_nuevo_rmd.png){#fig-rmd-nuevo fig-alt="Ventana New R Markdown de RStudio con los campos Title y Author y la opción HTML seleccionada como formato de salida" width="70%"}
 
 ### Paso 3: guardar y compilar
 
-Antes de compilar se guarda el archivo (Ctrl + S) dentro de la carpeta del proyecto, junto a la carpeta de datos. Luego se presiona el botón Knit de la barra del editor, o el atajo Ctrl + Shift + K. RStudio ejecuta todos los bloques en orden, genera un archivo `.html` con el mismo nombre en la misma carpeta y lo muestra en una ventana aparte o en el panel Viewer, según la configuración (@fig-rmd-knit).
+Antes de compilar se guarda el archivo (Ctrl + S) dentro de la carpeta del proyecto, junto a la carpeta de datos. El nombre del archivo no debe tener espacios ni tildes: `informe_cilindros.Rmd` funciona en cualquier computadora, `Informe de cilindros.Rmd` a veces no. Luego se presiona el botón Knit de la barra del editor, o el atajo Ctrl + Shift + K. RStudio ejecuta todos los bloques en orden, genera un archivo `.html` con el mismo nombre en la misma carpeta y lo muestra en una ventana aparte o en el panel Viewer, según la configuración (@fig-rmd-knit).
 
 ![Archivo de R Markdown y el documento compilado en el panel Viewer. Fuente: captura de RStudio (Posit).](assets/img/cap05/rstudio_knit.png){#fig-rmd-knit fig-alt="RStudio con el archivo informe_cilindros.Rmd abierto en el editor, el botón Knit en la barra del editor y, en el panel Viewer de la derecha, el documento HTML compilado" width="85%"}
+
+El archivo `.html` que se genera es un documento terminado: se puede abrir con doble clic en cualquier navegador, enviar por correo o subir a una plataforma de cursos, y quien lo recibe no necesita tener R.
 
 ::: {.callout-warning title="Cuidado"}
 Al compilar, R empieza desde cero, en una sesión vacía: no ve los objetos que se crearon en la consola. Si un bloque usa un objeto o un paquete que solo se cargó en la consola, la compilación se detiene con un error como `object 'ensayos' not found`. Todo lo que el documento necesita, incluidos `library()` y la lectura de los datos, tiene que estar escrito en sus propios bloques. Esa exigencia es justamente lo que garantiza que el informe se pueda reproducir.
 :::
 
-Mientras se escribe no hace falta compilar todo el documento cada vez. Cada bloque tiene a la derecha un botón con un triángulo verde que lo ejecuta en la consola, y Ctrl + Enter ejecuta la línea donde está el cursor, igual que en un script.
+### Trabajar sin compilar a cada rato
+
+Mientras se escribe no hace falta compilar todo el documento cada vez. Cada bloque tiene a la derecha dos botones: el triángulo verde ejecuta ese bloque, y el triángulo gris con una raya ejecuta todos los bloques anteriores. El resultado aparece debajo del bloque, dentro del mismo editor. Ctrl + Enter ejecuta la línea donde está el cursor, igual que en un script, y Ctrl + Alt + R ejecuta todos los bloques. Lo usual es probar cada bloque así y compilar con Knit cuando una sección ya está lista.
+
+## El encabezado {#sec-rmd-encabezado}
+
+El encabezado YAML define cómo se verá el documento completo. Cada línea tiene la forma `nombre: valor`, y la sangría importa: lo que está dentro de otra opción va dos espacios más a la derecha. Un encabezado más completo que el de la @fig-rmd-partes es el siguiente:
+
+```yaml
+---
+title: "Resistencia a compresión del concreto"
+subtitle: "Informe de laboratorio"
+author: "Nombre de quien hace el informe"
+date: "25/11/2026"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
+```
+
+El @tbl-rmd-yaml explica las opciones más útiles. Con `toc: true` el documento muestra al inicio un índice con enlaces a cada sección, y con `number_sections: true` numera los títulos (1, 1.1, 1.2...).
+
+| Opción | Qué hace |
+|:--|:--|
+| `title`, `subtitle` | Título y subtítulo del documento |
+| `author` | Nombre de quien lo escribe |
+| `date` | Fecha; con `` "`r knitr::inline_expr("Sys.Date()")`" `` se pone sola la fecha del día en que se compila |
+| `output: html_document` | Documento HTML, que se abre en cualquier navegador |
+| `output: word_document` | Documento de Word (.docx) |
+| `toc: true` | Índice al inicio del documento |
+| `number_sections: true` | Títulos numerados |
+| `code_folding: hide` | En HTML, oculta el código detrás de un botón "Code" que el lector puede abrir |
+
+: Opciones frecuentes del encabezado de R Markdown. {#tbl-rmd-yaml}
+
+::: {.callout-warning title="Cuidado"}
+El encabezado es delicado con los espacios. Si `toc: true` no está alineado debajo de `html_document:` con dos espacios más, o si falta el espacio después de los dos puntos, la compilación se detiene con un mensaje que menciona YAML, por ejemplo `Error in yaml::yaml.load`. Ante ese error, lo primero es revisar la sangría y los dos puntos del encabezado.
+:::
 
 ## Texto con Markdown {#sec-rmd-markdown}
 
-Markdown usa unos pocos símbolos para dar formato. El @tbl-rmd-markdown resume los que se usan en un informe técnico.
+Markdown usa unos pocos símbolos para dar formato. El @tbl-rmd-markdown muestra, en la columna de la izquierda, lo que se escribe en el archivo `.Rmd` y, en la de la derecha, lo que se ve en el documento compilado.
 
-```{r}
-#| label: tbl-rmd-markdown
-#| tbl-cap: "Formato básico de Markdown."
-#| echo: false
-library(kableExtra)
-data.frame(
-  Escritura = c("`# Título`", "`## Subtítulo`", "`*cursiva*`", "`**negrita**`",
-                "`- elemento`", "`1. elemento`", "`` `codigo` ``",
-                "`[texto](https://ejemplo.org)`", "`![pie](figura.png)`",
-                "Línea en blanco"),
-  Resultado = c("Título de primer nivel", "Título de segundo nivel", "*cursiva*",
-                "**negrita**", "Elemento de una lista con viñetas",
-                "Elemento de una lista numerada", "`codigo` en letra de máquina",
-                "Enlace a una página", "Imagen con su pie", "Separa dos párrafos")
-) %>%
-  kbl(escape = FALSE) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+| Lo que se escribe | Lo que se ve |
+|:--|:--|
+| `# Resultados` | [Resultados]{.md-h1} |
+| `## Resistencia a 28 días` | [Resistencia a 28 días]{.md-h2} |
+| `El concreto es *frágil* a tracción.` | El concreto es *frágil* a tracción. |
+| `La media fue **31.1 MPa**.` | La media fue **31.1 MPa**. |
+| `Se usó la función` `` `mean()` `` | Se usó la función `mean()` |
+| `Se vaciaron 2.5 m^3^ de concreto.` | Se vaciaron 2.5 m^3^ de concreto. |
+| `H~2~O` | H~2~O |
+| `[Página de R](https://www.r-project.org)` | [Página de R](https://www.r-project.org) |
+| `> Nota del laboratorio.` | [Nota del laboratorio.]{.md-cita} |
+
+: Lo que se escribe en Markdown y lo que se ve al compilar. {#tbl-rmd-markdown}
+
+Las listas y los párrafos se entienden mejor con un ejemplo de varias líneas. A la izquierda de la @fig-rmd-listas está el texto como se escribe y a la derecha, como se ve.
+
+::: {#fig-rmd-listas}
+
+:::: {.columns}
+
+::: {.column width="48%"}
+
+```markdown
+Pasos del ensayo:
+
+1. Medir el diámetro.
+2. Colocar el cilindro.
+3. Aplicar la carga.
+
+Equipo necesario:
+
+- Prensa hidráulica
+- Calibrador
+- Almohadillas
 ```
 
-Dos detalles causan la mayoría de los problemas al empezar. El primero es que un párrafo nuevo necesita una línea en blanco antes; un simple salto de línea se une al párrafo anterior. El segundo es que las listas y los títulos también necesitan una línea en blanco antes, o no se reconocen.
+:::
 
-En el interactivo de la @fig-rmd-interactivo se puede probar la sintaxis: lo que se escribe en el recuadro de la izquierda aparece con formato a la derecha. Reconoce los títulos, la cursiva, la negrita, el código y las listas del @tbl-rmd-markdown.
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%" .md-vista}
+
+Pasos del ensayo:
+
+1. Medir el diámetro.
+2. Colocar el cilindro.
+3. Aplicar la carga.
+
+Equipo necesario:
+
+- Prensa hidráulica
+- Calibrador
+- Almohadillas
+
+:::
+
+::::
+
+Una lista numerada y una lista con viñetas en Markdown (izquierda) y su resultado (derecha).
+
+:::
+
+Dos detalles causan la mayoría de los problemas al empezar:
+
+1. Un párrafo nuevo necesita una línea en blanco antes. Un simple salto de línea, sin línea en blanco, une las dos líneas en un mismo párrafo.
+2. Las listas y los títulos también necesitan una línea en blanco antes, y un espacio después del símbolo: `# Título` es un título, `#Título` no.
+
+### Cuadros escritos a mano
+
+Un cuadro pequeño, que no viene de los datos, se puede escribir directamente en Markdown. Las columnas se separan con barras verticales (`|`) y la segunda línea, con guiones, separa el encabezado del cuerpo. Los dos puntos en esa línea indican la alineación: `:--` a la izquierda, `:-:` al centro y `--:` a la derecha.
+
+::: {#fig-rmd-cuadro-md}
+
+:::: {.columns}
+
+::: {.column width="48%"}
+
+```markdown
+| Edad (días) | f'c (MPa) |
+|:-----------:|----------:|
+|      7      |    19.6   |
+|     28      |    28.0   |
+```
+
+:::
+
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%" .md-vista}
+
+| Edad (días) | f'c (MPa) |
+|:-----------:|----------:|
+|      7      |    19.6   |
+|     28      |    28.0   |
+
+:::
+
+::::
+
+Un cuadro escrito en Markdown (izquierda) y su resultado (derecha). Los valores son hipotéticos.
+
+:::
+
+No hace falta que las barras queden alineadas; se alinean en el ejemplo solo para que se lea mejor. Cuando el cuadro sale de los datos, como un resumen por proyecto, no se escribe a mano: se calcula con R y se muestra con `kable()`, como se explica en la @sec-rmd-cuadros.
+
+### Pruebe Markdown
+
+En el interactivo de la @fig-rmd-interactivo se puede practicar: lo que se escribe en el recuadro de la izquierda aparece con formato a la derecha. Reconoce los títulos, la cursiva, la negrita, el código y las listas. Pruebe a borrar una línea en blanco antes de la lista y vea qué pasa.
 
 ::: {#fig-rmd-interactivo}
 
@@ -163,37 +297,96 @@ Vista previa de Markdown: el texto de la izquierda se muestra con formato a la d
 
 ## Bloques de código y sus opciones {#sec-rmd-bloques}
 
-Un bloque de código se inserta con el menú Code > Insert Chunk o con el atajo Ctrl + Alt + I. Dentro de las llaves, después de la `r`, se pueden escribir opciones separadas por comas que controlan qué se muestra en el documento final:
+Un bloque de código se inserta con el menú Code > Insert Chunk o con el atajo Ctrl + Alt + I. RStudio escribe las dos líneas de acentos graves y deja el cursor en medio. Dentro de las llaves, después de la `r`, se puede escribir un nombre para el bloque y, después de una coma, opciones que controlan qué se muestra en el documento final:
 
 ````markdown
-```{{r, echo = FALSE, fig.cap = "Resistencia por proyecto."}}
+```{{r caja-proyectos, echo = FALSE, fig.cap = "Resistencia por proyecto."}}
 boxplot(resistencia_mpa ~ proyecto, data = ensayos)
 ```
 ````
 
-El @tbl-rmd-opciones reúne las opciones más usadas.
+El nombre (`caja-proyectos`) es opcional, pero ayuda: si la compilación falla, el mensaje de error dice en qué bloque ocurrió. Dos bloques no pueden tener el mismo nombre. El @tbl-rmd-opciones reúne las opciones más usadas.
 
-```{r}
-#| label: tbl-rmd-opciones
-#| tbl-cap: "Opciones frecuentes de los bloques de código."
-#| echo: false
-data.frame(
-  Opcion = c("`echo = FALSE`", "`eval = FALSE`", "`include = FALSE`",
-             "`message = FALSE`", "`warning = FALSE`",
-             "`fig.cap = \"...\"`", "`fig.width = 6, fig.height = 4`"),
-  Efecto = c("Ejecuta el código y muestra el resultado, pero oculta el código",
-             "Muestra el código sin ejecutarlo",
-             "Ejecuta el código sin mostrar ni el código ni el resultado",
-             "Oculta los mensajes, como los que aparecen al cargar un paquete",
-             "Oculta las advertencias",
-             "Agrega un pie al gráfico",
-             "Fija el ancho y el alto del gráfico, en pulgadas")
-) %>%
-  kbl(col.names = c("Opción", "Efecto"), escape = FALSE) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+| Opción | Muestra el código | Ejecuta el código | Muestra el resultado | Uso típico |
+|:--|:-:|:-:|:-:|:--|
+| (ninguna) | Sí | Sí | Sí | Tareas y documentos de trabajo |
+| `echo = FALSE` | No | Sí | Sí | Gráficos y cuadros de un informe |
+| `eval = FALSE` | Sí | No | No | Mostrar un código que no se quiere correr, como `install.packages()` |
+| `include = FALSE` | No | Sí | No | Cargar paquetes y leer datos al inicio |
+| `message = FALSE` | Sí | Sí | Sí, sin mensajes | Ocultar los avisos que aparecen al cargar un paquete |
+| `warning = FALSE` | Sí | Sí | Sí, sin advertencias | Ocultar advertencias ya revisadas |
+
+: Opciones frecuentes de los bloques de código y su efecto. {#tbl-rmd-opciones}
+
+Para los gráficos hay tres opciones más: `fig.cap` agrega el pie de la figura, `fig.width` y `fig.height` fijan el tamaño en pulgadas (por defecto 7 × 5), y `out.width = "70%"` fija el ancho con que se muestra en la página.
+
+El interactivo de la @fig-rmd-opciones-int muestra cómo cambia el documento compilado al activar cada opción. El bloque carga el paquete dplyr, que al cargarse escribe un mensaje, y calcula una media.
+
+::: {#fig-rmd-opciones-int}
+
+```{=html}
+<div class="interactivo" id="int-opciones">
+  <div style="display:flex; flex-wrap:wrap; gap:0.4rem 1.2rem; margin-bottom:0.6rem;">
+    <label><input type="checkbox" data-op="echo" checked> echo</label>
+    <label><input type="checkbox" data-op="eval" checked> eval</label>
+    <label><input type="checkbox" data-op="include" checked> include</label>
+    <label><input type="checkbox" data-op="message" checked> message</label>
+  </div>
+  <p class="resultado" style="font-family:monospace; font-size:0.85rem;"></p>
+  <div class="doc-simulado" aria-live="polite">
+    <p class="doc-texto">La resistencia media del lote es la siguiente:</p>
+    <pre class="doc-codigo">library(dplyr)
+resistencia &lt;- c(27.4, 29.1, 26.8, 30.2, 28.5)
+mean(resistencia)</pre>
+    <pre class="doc-mensaje">Attaching package: 'dplyr'</pre>
+    <pre class="doc-salida">[1] 28.4</pre>
+    <p class="doc-nada"><em>(El bloque no deja nada visible en el documento.)</em></p>
+    <p class="doc-texto">El siguiente párrafo del informe continúa aquí.</p>
+  </div>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-opciones");
+  var cajas = raiz.querySelectorAll("input"), linea = raiz.querySelector(".resultado");
+  function op(n) { return raiz.querySelector('input[data-op="' + n + '"]').checked; }
+  function mostrar(sel, si) { raiz.querySelector(sel).style.display = si ? "" : "none"; }
+  function actualizar() {
+    var echo = op("echo"), ev = op("eval"), inc = op("include"), msg = op("message");
+    var partes = [];
+    if (!echo) partes.push("echo = FALSE");
+    if (!ev) partes.push("eval = FALSE");
+    if (!inc) partes.push("include = FALSE");
+    if (!msg) partes.push("message = FALSE");
+    linea.textContent = "```{r" + (partes.length ? ", " + partes.join(", ") : "") + "}";
+    var codigo = inc && echo, mensaje = inc && ev && msg, salida = inc && ev;
+    mostrar(".doc-codigo", codigo); mostrar(".doc-mensaje", mensaje); mostrar(".doc-salida", salida);
+    mostrar(".doc-nada", !codigo && !mensaje && !salida);
+  }
+  for (var i = 0; i < cajas.length; i++) cajas[i].addEventListener("change", actualizar);
+  actualizar();
+})();
+</script>
 ```
 
-En un informe dirigido a alguien que no programa, lo usual es ocultar el código con `echo = FALSE` y dejar solo los resultados. En una tarea o en un documento de trabajo, en cambio, conviene mostrarlo para que se pueda revisar cómo se obtuvo cada número. El primer bloque de un documento suele ser uno con `include = FALSE` que carga los paquetes y lee los datos.
+Efecto de las opciones `echo`, `eval`, `include` y `message` sobre lo que aparece en el documento compilado.
+
+:::
+
+En un informe dirigido a alguien que no programa, lo usual es ocultar el código con `echo = FALSE` y dejar solo los resultados. En una tarea o en un documento de trabajo, en cambio, conviene mostrarlo para que se pueda revisar cómo se obtuvo cada número.
+
+### El bloque de preparación
+
+El primer bloque de un documento suele llamarse `setup` y llevar `include = FALSE`. En él se cargan los paquetes, se leen los datos y se fijan las opciones que valen para todos los bloques con `knitr::opts_chunk$set()`. Así, en vez de escribir `echo = FALSE` en cada bloque de un informe, se escribe una sola vez:
+
+````markdown
+```{{r setup, include = FALSE}}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(knitr)
+ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
+```
+````
+
+Un bloque particular puede cambiar la opción general: si el informe oculta todo el código pero en un anexo se quiere mostrar un cálculo, ese bloque lleva `echo = TRUE`.
 
 ## Resultados dentro del texto {#sec-rmd-en-linea}
 
@@ -205,23 +398,66 @@ La resistencia media del lote fue de `r knitr::inline_expr("round(mean(r28), 1)"
 
 Al compilar, R reemplaza esa expresión por su valor, y el lector ve "La resistencia media del lote fue de 31.1 MPa". Si se corrige un dato y se vuelve a compilar, el número del texto cambia solo. Así se evita el error más común de los informes copiados a mano: un texto que dice una cifra y un cuadro que dice otra.
 
-## Cuadros y ecuaciones {#sec-rmd-cuadros}
+Los números del texto conviene redondearlos, porque R escribe todos los decimales que tiene: `mean(r28)` podría dar 31.09667 cuando lo que interesa es 31.1. Hay un detalle más: R no escribe los ceros finales, así que `round(31.10, 2)` se muestra como 31.1. Si se quieren siempre dos decimales, se usa `format()` con el argumento `nsmall`, que fija el número mínimo de decimales:
+
+```{r}
+round(31.10, 2)
+format(round(31.10, 2), nsmall = 2)
+```
+
+El @tbl-rmd-numeros resume las funciones para presentar números en el texto.
+
+| Escritura en el texto | Resultado | Para qué |
+|:--|:--|:--|
+| `` `r knitr::inline_expr("round(31.0967, 1)")` `` | 31.1 | Redondear a un decimal |
+| `` `r knitr::inline_expr("format(round(31.1, 2), nsmall = 2)")` `` | 31.10 | Mostrar siempre dos decimales |
+| `` `r knitr::inline_expr("round(100 * 9 / 10)")` `` % | 90 % | Porcentajes |
+| `` `r knitr::inline_expr("format(25000, big.mark = ' ')")` `` | 25 000 | Separar los miles con un espacio |
+
+: Funciones para presentar números calculados dentro del texto. {#tbl-rmd-numeros}
+
+## Figuras, cuadros y ecuaciones {#sec-rmd-cuadros}
+
+### Figuras
+
+Cualquier gráfico que se dibuje en un bloque aparece en el documento. Con la opción `fig.cap` el gráfico lleva su pie, y con `out.width` se controla qué tan ancho se ve:
+
+````markdown
+```{{r caja, echo = FALSE, fig.cap = "Resistencia a 28 días por proyecto.", out.width = "70%"}}
+boxplot(resistencia_mpa ~ proyecto, data = e28,
+        xlab = "Proyecto", ylab = "Resistencia (MPa)")
+```
+````
+
+Una imagen que no sale de R, como una foto del ensayo o un esquema, se inserta con la sintaxis de Markdown `![Pie de la imagen](carpeta/imagen.png)`, con la ruta relativa a la carpeta del archivo `.Rmd`.
 
 ### Cuadros con kable
 
-Un data frame impreso en la consola tiene un aspecto poco presentable. La función `kable()` del paquete knitr lo convierte en un cuadro con formato; el argumento `digits` fija los decimales y `col.names` cambia los encabezados. El paquete kableExtra, que se usa en este libro, agrega estilos con `kable_styling()`.
+Un data frame impreso en la consola tiene un aspecto poco presentable. La función `kable()` del paquete knitr lo convierte en un cuadro con formato. Sus argumentos principales son `digits`, que fija los decimales; `col.names`, que cambia los encabezados para que lleven tildes y unidades; y `caption`, que agrega el título del cuadro.
 
 ```{r}
 library(knitr)
 ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
 e28 <- ensayos[ensayos$edad_dias == 28, ]
 resumen <- aggregate(resistencia_mpa ~ proyecto, data = e28, FUN = mean)
+resumen        # así se ve en la consola
+```
+
+```{r}
 kable(resumen, digits = 2, col.names = c("Proyecto", "Resistencia media (MPa)"))
+```
+
+El paquete kableExtra, que se usa en todo este libro, agrega estilos a lo que produce `kable()`. Con `kable_styling(full_width = FALSE)` el cuadro ocupa solo el ancho que necesita, y con `bootstrap_options = "striped"` las filas se alternan en dos tonos, lo que facilita leer un cuadro largo:
+
+```{r}
+library(kableExtra)
+kable(resumen, digits = 2, col.names = c("Proyecto", "Resistencia media (MPa)")) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = "striped")
 ```
 
 ### Ecuaciones
 
-Las ecuaciones se escriben con la notación de LaTeX, que es el estándar para escribir matemáticas en computadora. Entre signos de dólar sencillos, `$...$`, la ecuación queda dentro del párrafo; entre signos dobles, `$$...$$`, queda centrada en su propia línea. Por ejemplo, la media de $n$ datos se escribe así:
+Las ecuaciones se escriben con la notación de LaTeX, que es la forma estándar de escribir matemáticas en computadora. Entre signos de dólar sencillos, `$...$`, la ecuación queda dentro del párrafo. Entre signos dobles, `$$...$$`, queda centrada en su propia línea. Por ejemplo, la media de $n$ datos se escribe así:
 
 ```markdown
 $$\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$$
@@ -233,21 +469,26 @@ $$
 \bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i
 $$
 
-El @tbl-rmd-latex muestra las piezas de LaTeX que aparecen con más frecuencia en este libro.
+El @tbl-rmd-latex muestra las piezas de LaTeX que aparecen con más frecuencia en este libro. Con ellas se puede escribir casi cualquier fórmula de estadística.
 
-```{r}
-#| label: tbl-rmd-latex
-#| tbl-cap: "Notación de LaTeX de uso frecuente."
-#| echo: false
-data.frame(
-  Escritura = c("`x_i`", "`x^2`", "`\\frac{a}{b}`", "`\\sqrt{x}`", "`\\bar{x}`",
-                "`\\sum_{i=1}^{n}`", "`\\mu, \\sigma, \\alpha`", "`\\leq, \\geq, \\neq`"),
-  Resultado = c("$x_i$", "$x^2$", "$\\frac{a}{b}$", "$\\sqrt{x}$", "$\\bar{x}$",
-                "$\\sum_{i=1}^{n}$", "$\\mu, \\sigma, \\alpha$", "$\\leq, \\geq, \\neq$")
-) %>%
-  kbl(escape = FALSE) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
-```
+| Lo que se escribe | Lo que se ve | Significado |
+|:--|:-:|:--|
+| `x_i` | $x_i$ | Subíndice |
+| `x^2` | $x^2$ | Exponente |
+| `x_{28}`, `x^{n-1}` | $x_{28}$, $x^{n-1}$ | Subíndice o exponente de más de un carácter, entre llaves |
+| `\frac{a}{b}` | $\frac{a}{b}$ | Fracción |
+| `\sqrt{x}` | $\sqrt{x}$ | Raíz cuadrada |
+| `\bar{x}`, `\hat{p}` | $\bar{x}$, $\hat{p}$ | Media muestral, estimador |
+| `\sum_{i=1}^{n} x_i` | $\sum_{i=1}^{n} x_i$ | Sumatoria |
+| `\mu`, `\sigma`, `\alpha` | $\mu$, $\sigma$, $\alpha$ | Letras griegas |
+| `\leq`, `\geq`, `\neq` | $\leq$, $\geq$, $\neq$ | Menor o igual, mayor o igual, distinto |
+| `\pm`, `\times` | $\pm$, $\times$ | Más o menos, multiplicación |
+
+: Notación de LaTeX de uso frecuente. {#tbl-rmd-latex}
+
+::: {.callout-tip title="En la práctica"}
+RStudio muestra una vista previa de la ecuación al pasar el cursor sobre ella en el editor, sin compilar. Si la vista previa no aparece o se ve rara, casi siempre falta cerrar una llave o un signo de dólar.
+:::
 
 ::: {.callout-note title="Ejemplo: informe del lote del edificio a 28 días"}
 
@@ -265,9 +506,9 @@ Antes de escribir el documento se hacen los cálculos a mano, para saber qué de
 **Pseudocódigo**
 
 1. Escribir el encabezado con título, autor y formato HTML.
-2. En un bloque oculto, cargar knitr, leer los datos y filtrar el edificio a 28 días.
+2. En el bloque `setup`, cargar knitr, leer los datos y filtrar el edificio a 28 días.
 3. Escribir el párrafo de resultados con la media y el número de cilindros que cumplen calculados en línea.
-4. Agregar un bloque con el cuadro de medias por mezcla y su pie.
+4. Agregar un bloque con el cuadro de medias por mezcla.
 5. Compilar con Knit y comparar los números con los del cálculo a mano.
 
 El archivo completo es el siguiente:
@@ -279,7 +520,7 @@ author: "Laboratorio de Materiales"
 output: html_document
 ---
 
-```{{r, include = FALSE}}
+```{{r setup, include = FALSE}}
 library(knitr)
 ensayos <- read.csv("datos/ensayos_concreto_hipoteticos.csv")
 edif <- ensayos[ensayos$proyecto == "Edificio" & ensayos$edad_dias == 28, ]
@@ -288,11 +529,11 @@ edif <- ensayos[ensayos$proyecto == "Edificio" & ensayos$edad_dias == 28, ]
 ## Resultados
 
 Se ensayaron `r knitr::inline_expr("nrow(edif)")` cilindros a 28 días. La resistencia
-media fue de `r knitr::inline_expr("round(mean(edif$resistencia_mpa), 2)")` MPa y
-`r knitr::inline_expr("sum(edif$resistencia_mpa >= 28)")` cilindros alcanzaron la
+media fue de `r knitr::inline_expr("format(round(mean(edif$resistencia_mpa), 2), nsmall = 2)")` MPa
+y `r knitr::inline_expr("sum(edif$resistencia_mpa >= 28)")` cilindros alcanzaron la
 resistencia de diseño de 28 MPa.
 
-```{{r, echo = FALSE}}
+```{{r cuadro, echo = FALSE}}
 por_mezcla <- aggregate(resistencia_mpa ~ mezcla, data = edif, FUN = mean)
 kable(por_mezcla, digits = 2, col.names = c("Mezcla", "Media (MPa)"),
       caption = "Resistencia media por mezcla.")
@@ -306,7 +547,9 @@ Al compilarlo, el párrafo y el cuadro se ven así:
 edif <- ensayos[ensayos$proyecto == "Edificio" & ensayos$edad_dias == 28, ]
 ```
 
-> Se ensayaron `r nrow(edif)` cilindros a 28 días. La resistencia media fue de `r round(mean(edif$resistencia_mpa), 2)` MPa y `r sum(edif$resistencia_mpa >= 28)` cilindros alcanzaron la resistencia de diseño de 28 MPa.
+::: {.md-vista}
+
+Se ensayaron `r nrow(edif)` cilindros a 28 días. La resistencia media fue de `r format(round(mean(edif$resistencia_mpa), 2), nsmall = 2)` MPa y `r sum(edif$resistencia_mpa >= 28)` cilindros alcanzaron la resistencia de diseño de 28 MPa.
 
 ```{r}
 #| echo: false
@@ -314,8 +557,62 @@ por_mezcla <- aggregate(resistencia_mpa ~ mezcla, data = edif, FUN = mean)
 kable(por_mezcla, digits = 2, col.names = c("Mezcla", "Media (MPa)"))
 ```
 
-**Interpretación.** Los números del documento coinciden con el cálculo a mano: 10 cilindros, media de 31.1 MPa (R no escribe el cero final), 9 que cumplen y medias de 29.64 y 32.56 MPa por mezcla. Si mañana se corrige el resultado del cilindro M22, basta con cambiar el archivo de datos y presionar Knit para que el texto y el cuadro se actualicen a la vez.
+:::
 
+**Interpretación.** Los números del documento coinciden con el cálculo a mano: 10 cilindros, media de 31.10 MPa, 9 que cumplen y medias de 29.64 y 32.56 MPa por mezcla. Si mañana se corrige el resultado del cilindro M22, basta con cambiar el archivo de datos y presionar Knit para que el texto y el cuadro se actualicen a la vez.
+
+:::
+
+## Una plantilla de informe de laboratorio {#sec-rmd-plantilla}
+
+Para no empezar cada informe desde cero, conviene tener una plantilla. El archivo `informe_laboratorio.Rmd`, que se descarga con el botón siguiente, tiene todo lo visto en este capítulo: encabezado con índice y secciones numeradas, bloque `setup`, un cuadro con los datos, números calculados en el texto, una figura con su pie y un cuadro resumen.
+
+```{r}
+#| echo: false
+htmltools::div(
+  class = "datos-ejemplo",
+  htmltools::HTML(as.character(xfun::embed_file(
+    "assets/archivos/informe_laboratorio.Rmd",
+    text = htmltools::HTML("&#11015; Descargar <code>informe_laboratorio.Rmd</code>"),
+    class = "boton-datos"
+  )))
+)
+```
+
+Para usarla:
+
+1. Cree un proyecto de RStudio (@sec-r-proyectos) con una carpeta `datos`.
+2. Guarde en `datos` el archivo `ensayos_concreto_hipoteticos.csv`, que se descarga en el @sec-datos-leer.
+3. Guarde `informe_laboratorio.Rmd` en la carpeta principal del proyecto y ábralo en RStudio.
+4. Presione Knit. Debe aparecer un informe con tres secciones, un cuadro, una figura y un cuadro resumen.
+5. Cambie el título, el autor y el texto de la conclusión, y adapte los bloques a sus propios datos.
+
+## Otros formatos de salida {#sec-rmd-formatos}
+
+El mismo archivo `.Rmd` se puede compilar a otros formatos. El botón Knit tiene una flecha a la derecha que despliega las opciones Knit to HTML, Knit to PDF y Knit to Word, y al elegir una RStudio agrega el formato al encabezado.
+
+- Word (`output: word_document`): útil cuando el informe se debe entregar en .docx o lo van a corregir otras personas con control de cambios. Necesita tener instalado Word o LibreOffice para abrir el resultado. Los gráficos y cuadros se convierten bien; los estilos se ajustan después en Word.
+- PDF (`output: pdf_document`): necesita una instalación de LaTeX. La más sencilla se instala desde R con `install.packages("tinytex")` y luego `tinytex::install_tinytex()`, que descarga unos 250 MB.
+- HTML (`output: html_document`): es el formato recomendado para empezar, porque no necesita nada adicional y admite cuadros paginados e interactivos. Es el formato de este libro.
+
+## Errores frecuentes al compilar {#sec-rmd-errores}
+
+Cuando la compilación falla, RStudio muestra el error en la pestaña Render, junto a la consola, e indica la línea y el nombre del bloque donde ocurrió. El @tbl-rmd-errores reúne los errores más comunes de quienes empiezan.
+
+| Mensaje (en parte) | Causa más probable | Solución |
+|:--|:--|:--|
+| `object 'ensayos' not found` | El objeto se creó en la consola pero no en el documento | Crear el objeto en un bloque del documento, antes de usarlo |
+| `could not find function "kable"` | Falta cargar el paquete | Agregar `library(knitr)` en el bloque `setup` |
+| `cannot open file 'datos/...': No such file or directory` | La ruta está mal o el archivo no está en esa carpeta | Revisar que el `.Rmd` y la carpeta `datos` estén en el mismo proyecto |
+| `Duplicate chunk label 'setup'` | Dos bloques tienen el mismo nombre | Cambiar el nombre de uno de los bloques |
+| `Error in yaml::yaml.load` o `Scanner error` | Un problema de sangría o de dos puntos en el encabezado | Revisar los espacios del encabezado (@sec-rmd-encabezado) |
+| El documento muestra el código como texto | Un bloque no se cerró con sus tres acentos graves | Agregar la línea ```` ``` ```` al final del bloque |
+| `there is no package called 'rmarkdown'` | El paquete no está instalado | `install.packages("rmarkdown")` |
+
+: Errores frecuentes al compilar un documento de R Markdown. {#tbl-rmd-errores}
+
+::: {.callout-tip title="En la práctica"}
+Si un documento largo no compila y el error no es claro, se ejecutan los bloques uno por uno desde el inicio con el botón del triángulo verde, después de reiniciar R (Session > Restart R). El primer bloque que falla es el que tiene el problema. Se reinicia R antes porque así queda en la misma situación que al compilar, sin los objetos de la consola.
 :::
 
 ## Quarto {#sec-rmd-quarto}
@@ -324,17 +621,21 @@ Quarto es el sucesor de R Markdown, desarrollado por la misma empresa que hace R
 
 - Se crea con File > New File > Quarto Document y se compila con el botón Render en lugar de Knit.
 - En el encabezado, el formato se escribe `format: html` en lugar de `output: html_document`.
-- Las opciones de un bloque se escriben, de preferencia, dentro del bloque en líneas que empiezan con `#|`, por ejemplo `#| echo: false`.
+- Las opciones de un bloque se escriben, de preferencia, dentro del bloque, en líneas que empiezan con `#|`, por ejemplo `#| echo: false`.
+- Las figuras, los cuadros y las ecuaciones se pueden numerar y citar en el texto, como en este libro ("la @fig-rmd-knit"), sin paquetes adicionales.
 
 ````markdown
 ```{{r}}
+#| label: fig-caja
 #| echo: false
 #| fig-cap: "Resistencia por proyecto."
 boxplot(resistencia_mpa ~ proyecto, data = ensayos)
 ```
+
+Como se ve en la @fig-caja, el puente tiene la resistencia más alta.
 ````
 
-Casi todo lo que se escribe en un archivo `.Rmd` funciona sin cambios en un `.qmd`. Para las tareas y los informes de este libro sirve cualquiera de los dos; R Markdown tiene la ventaja de que hay más ejemplos y ayuda en internet, y Quarto, la de ser el formato que se seguirá desarrollando.
+Casi todo lo que se escribe en un archivo `.Rmd` funciona sin cambios en un `.qmd`. Para las tareas y los informes de este libro sirve cualquiera de los dos. R Markdown tiene la ventaja de que hay más ejemplos y ayuda en internet; Quarto, la de ser el formato que se seguirá desarrollando.
 
 ::: {.callout-tip title="En la práctica"}
 Un buen hábito es crear un proyecto de RStudio por cada informe o tarea (@sec-r-proyectos), con una carpeta `datos` para los archivos de entrada y el `.Rmd` en la carpeta principal. Así la ruta `datos/archivo.csv` funciona en cualquier computadora, y para entregar el trabajo basta con comprimir la carpeta del proyecto.
@@ -342,13 +643,16 @@ Un buen hábito es crear un proyecto de RStudio por cada informe o tarea (@sec-r
 
 ## Ejercicios propuestos
 
-1. Cree un documento de R Markdown nuevo, compílelo sin cambios y localice en la carpeta el archivo HTML que se generó.
-2. Escriba un documento con un título, dos subtítulos, una lista numerada de tres pasos y una palabra en negrita. Compílelo y compruebe que cada elemento se ve como espera.
-3. Agregue un bloque que lea los datos de ensayos y dibuje un histograma de la resistencia. Compile el documento una vez con `echo = TRUE` y otra con `echo = FALSE`, y compare los resultados.
-4. Escriba un párrafo que diga cuántos cilindros del puente se ensayaron a 28 días y cuál fue su resistencia media, con los números calculados en línea.
-5. Haga un cuadro con `kable()` que muestre, para cada proyecto, la resistencia media a 7 días y a 28 días, con un decimal.
-6. Escriba en LaTeX la fórmula del área de un círculo, $A = \pi D^2 / 4$, primero dentro de un párrafo y luego centrada en su propia línea.
-7. Borre a propósito la línea que lee los datos del documento del ejemplo y compílelo. Lea el mensaje de error y explique por qué el documento no se compila aunque el objeto exista en la consola.
+1. Cree un documento de R Markdown nuevo, compílelo sin cambios y localice en la carpeta el archivo HTML que se generó. Ábralo con doble clic fuera de RStudio.
+2. Escriba un documento con un título, dos subtítulos, una lista numerada de tres pasos, una palabra en cursiva y un enlace a la página de R. Compílelo y compruebe que cada elemento se ve como en el @tbl-rmd-markdown.
+3. Agregue al encabezado `toc: true` y `number_sections: true`. ¿Qué cambia en el documento?
+4. Agregue un bloque que lea los datos de ensayos y dibuje un histograma de la resistencia. Compile el documento una vez sin opciones, otra con `echo = FALSE` y otra con `include = FALSE`, y describa la diferencia.
+5. Escriba un párrafo que diga cuántos cilindros del puente se ensayaron a 28 días y cuál fue su resistencia media con dos decimales, con los números calculados en línea.
+6. Haga un cuadro con `kable()` que muestre, para cada proyecto, la resistencia media a 7 días y a 28 días, con un decimal y encabezados con tildes y unidades.
+7. Escriba en LaTeX la fórmula del área de un círculo, $A = \pi D^2 / 4$, primero dentro de un párrafo y luego centrada en su propia línea. Escriba también la fórmula de la varianza muestral, $s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2$.
+8. Descargue la plantilla de la @sec-rmd-plantilla, compílela y cámbiela para que el informe sea del proyecto Puente, con resistencia de diseño de 35 MPa.
+9. Borre a propósito la línea que lee los datos de la plantilla y compílela. Lea el mensaje de error y busque en el @tbl-rmd-errores su causa y su solución.
+10. Compile la plantilla a Word con la flecha del botón Knit. ¿Qué elementos se conservan y cuáles cambian?
 
 ## Lecturas recomendadas
 

@@ -30,7 +30,7 @@ $$
 |\bar{y}_j - \bar{y}_{j'}| > HSD \quad\Rightarrow\quad \mu_j \neq \mu_{j'}
 $$ {#eq-mc-regla-tukey}
 
-La distribución del rango estudentizado describe la diferencia entre la media mayor y la menor de $k$ medias, dividida entre su error estándar. Como toma en cuenta cuántas medias se comparan, el valor crítico crece con $k$ y protege a la familia completa. Sus valores están en tablas, y en R se obtienen con `qtukey(1 - alpha, nmeans = k, df = gl_E)` [@laneintroduction, cap. 12].
+La distribución del rango estudentizado describe la diferencia entre la media mayor y la menor de $k$ medias, dividida entre su error estándar. Como toma en cuenta cuántas medias se comparan, el valor crítico crece con $k$ y protege a la familia completa. Sus valores están en la @sec-apa-q, y en R se obtienen con `qtukey(1 - alpha, nmeans = k, df = gl_E)` [@laneintroduction, cap. 12].
 
 Si los grupos tienen tamaños distintos, se usa la versión de Tukey-Kramer [@kramer1956extension], que cambia la raíz de la @eq-mc-hsd por
 
@@ -54,7 +54,7 @@ ver_datos("datos/curado_concreto_hipotetico.csv",
 **Solución:**
 
 1. Del ANOVA: $CM_E = 2.50$, $gl_E = 16$, $k = 4$ y $n = 5$. Las medias son agua 29, membrana 33, vapor 39 y aditivo 35 MPa.
-2. De la tabla del rango estudentizado, $q_{0.05;\,4,\,16} = 4.05$.
+2. De la tabla del rango estudentizado (@tbl-apa-q05), con 4 medias y 16 grados de libertad del error, $q_{0.05;\,4,\,16} = 4.05$.
 3. Distancia mínima (@eq-mc-hsd): $HSD = 4.05\sqrt{2.50/5} = 4.05 \times 0.707 = 2.86$ MPa.
 4. Se calcula la diferencia absoluta de cada pareja y se compara con 2.86 MPa (@tbl-mc-tukey-mano). Todas la superan, salvo aditivo contra membrana, con 2 MPa.
 5. Resumen con letras: se ordenan las medias de mayor a menor y se asigna la misma letra a las que no difieren. Vapor (39) recibe la letra a; aditivo (35) y membrana (33) comparten la b; agua (29) recibe la c.
@@ -264,7 +264,7 @@ Por ejemplo, el primer cilindro curado con agua dio 28 MPa y la media del agua e
 
 ### Gráficos de residuos
 
-La revisión empieza con dos gráficos. El de residuos contra valores ajustados muestra si la dispersión es parecida en todos los grupos. El gráfico cuantil-cuantil normal, visto en la Parte IV, muestra si los residuos siguen una normal: si es así, los puntos quedan cerca de la recta. El @tbl-mc-patrones resume qué buscar.
+La revisión empieza con dos gráficos. El de residuos contra valores ajustados muestra si la dispersión es parecida en todos los grupos. El gráfico cuantil-cuantil normal (@sec-normal-datos) muestra si los residuos siguen una normal: si es así, los puntos quedan cerca de la recta. El @tbl-mc-patrones resume qué buscar.
 
 ```{r}
 #| label: tbl-mc-patrones
@@ -500,7 +500,7 @@ summary(modelo_bl)
 summary(aov(resistencia_mpa ~ metodo, data = lotes))
 ```
 
-Sin los lotes, su variación pasa al error: $SC_E$ sube de 6 a 46, $CM_E$ de 0.50 a 2.88 y $F$ baja de 173.3 a 30.1. Con estos datos la conclusión sobre los métodos no cambia, porque las diferencias son grandes, pero las comparaciones posteriores sí ganan precisión. La distancia de Tukey con bloques es $q_{0.05;\,4,\,12}\sqrt{CM_E/b} = 4.20\sqrt{0.50/5} = 1.33$ MPa, contra 2.86 MPa en el diseño sin bloques de la @sec-mc-tukey:
+Sin los lotes, su variación pasa al error: $SC_E$ sube de 6 a 46, $CM_E$ de 0.50 a 2.88 y $F$ baja de 173.3 a 30.1. Con estos datos la conclusión sobre los métodos no cambia, porque las diferencias son grandes, pero las comparaciones posteriores sí ganan precisión. La distancia de Tukey con bloques, con $q_{0.05;\,4,\,12}$ de la @tbl-apa-q05, es $q_{0.05;\,4,\,12}\sqrt{CM_E/b} = 4.20\sqrt{0.50/5} = 1.33$ MPa, contra 2.86 MPa en el diseño sin bloques de la @sec-mc-tukey:
 
 ```{r}
 # Tukey solo para el factor de interés
@@ -640,7 +640,7 @@ En un diseño en bloques con una observación por combinación no se puede estim
 ## Ejercicios propuestos
 
 1. Con los datos del ejercicio 1 del capítulo anterior (tres dosis de aditivo reductor de agua), aplique el método de Tukey a mano y con `TukeyHSD()`. Resuma el resultado con letras y explique qué dosis recomendaría.
-2. En un ANOVA de un factor con $k = 5$ tratamientos, $n = 6$ observaciones por tratamiento y $CM_E = 4.8$ kN², calcule la distancia de Tukey con `qtukey()` y la diferencia mínima de Bonferroni para las 10 parejas. ¿Cuál es menor? ¿Cuál sería menor si solo interesaran dos comparaciones planeadas?
+2. En un ANOVA de un factor con $k = 5$ tratamientos, $n = 6$ observaciones por tratamiento y $CM_E = 4.8$ kN², calcule la distancia de Tukey con la @tbl-apa-q05 y con `qtukey()` y la diferencia mínima de Bonferroni para las 10 parejas. ¿Cuál es menor? ¿Cuál sería menor si solo interesaran dos comparaciones planeadas?
 3. Para el ensayo de curado, plantee el contraste que compara los dos métodos que agregan humedad (agua y vapor) contra los dos que la retienen (membrana y aditivo). Calcule $L$, su estadístico $t$ y su suma de cuadrados, y compruebe el resultado con `lm()` y una matriz de contrastes.
 4. Se miden las deflexiones (mm) de vigas de cuatro proveedores de madera y se observa que los residuos forman un embudo: la dispersión crece con la deflexión media. Explique qué transformación probaría primero, cómo comprobaría si funcionó y cómo reportaría las medias después de transformar.
 5. Un laboratorio compara tres métodos de compactación de muestras de suelo (Proctor estándar, Proctor modificado y vibratorio) y la densidad seca (kg/m³) depende del operador. Cada uno de cuatro operadores compacta una muestra con cada método. Escriba el modelo, el cuadro ANOVA en forma general con sus grados de libertad y el código de R que usaría. ¿Por qué el operador es un bloque y no un segundo factor de interés?

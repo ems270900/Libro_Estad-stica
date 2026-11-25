@@ -1241,3 +1241,22 @@ body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-title
 body.quarto-dark #quarto-sidebar .sidebar-item-container a.active .chapter-number { color: var(--acento) !important; }
 /* Portada del libro web: sin índice a la derecha (solo tendría el título) */
 body:has(.portada) #quarto-margin-sidebar { display: none !important; }
+
+/* Capítulo 5: resultados de Markdown dentro de cuadros y vistas de un documento compilado */
+.md-h1 { font-size: 1.35em; font-weight: 600; }
+.md-h2 { font-size: 1.15em; font-weight: 600; }
+.md-cita { display: inline-block; padding-left: 0.6em; border-left: 3px solid #adb5bd; color: #6c757d; }
+.md-vista { text-align: left; padding: 0.2rem 0.9rem; border: 1px dashed #adb5bd; border-radius: 4px; }
+.doc-simulado { text-align: left; padding: 0.4rem 0.9rem; border: 1px dashed #adb5bd; border-radius: 4px; background: #fff; }
+.doc-simulado pre { margin: 0.4rem 0; padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 4px; background: #f3f5f7; white-space: pre-wrap; }
+.doc-simulado .doc-mensaje { color: #b35c00; }
+body.quarto-dark .doc-simulado { background: transparent; }
+body.quarto-dark .doc-simulado pre { background: #2e3135; }
+body.quarto-dark .doc-simulado .doc-mensaje { color: #f0b46b; }
+
+/* Capítulo 1: archivos del interactivo de rutas, como enlaces y no como botones grandes */
+.interactivo button.archivo { margin: 0; padding: 0 0.25rem; color: inherit; background: transparent; border-radius: 3px; font: inherit; text-decoration: underline dotted; }
+.interactivo button.archivo:hover, .interactivo button.archivo:focus-visible { background: color-mix(in srgb, var(--acento-2) 12%, transparent); }
+.interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 20%, transparent); font-weight: 700; text-decoration: none; }
+body.quarto-dark .interactivo button.archivo { background: transparent; }
+body.quarto-dark .interactivo button.archivo.elegido { background: color-mix(in srgb, var(--acento-2) 25%, transparent); }
