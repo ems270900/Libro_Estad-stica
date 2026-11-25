@@ -374,10 +374,39 @@ libro_un_archivo <- function(preparar = TRUE, limpiar = FALSE) {
   destino <- file.path(SALIDAS_DIR, NOMBRE_HTML)
   html_pub <- file.path(PUB_DIR, sub("\\.qmd$", ".html", qmd))
   letras_apendices(html_pub, length(cfg$book$appendices))
+  png_incrustados_a_webp(html_pub)
   file.copy(html_pub, destino, overwrite = TRUE)
   message(sprintf("Listo: %s (%.1f MB). Ábralo con doble clic.",
                   destino, file.size(destino) / 1024^2))
   invisible(destino)
+}
+
+# Los gráficos de R quedan incrustados en el HTML como PNG. Se pasan a WebP sin
+# pérdida (se ven idénticos) y el HTML pesa unos 9 MB menos, lo que permite
+# copiarlo a la PC del autor (límite de 25 MB). Un PNG que no se pueda leer o
+# que no se achique se deja como estaba.
+png_incrustados_a_webp <- function(html) {
+  texto <- readChar(html, file.size(html), useBytes = TRUE)
+  patron <- "data:image/png;base64,[A-Za-z0-9+/=]+"
+  pos <- gregexpr(patron, texto, useBytes = TRUE)[[1]]
+  if (pos[1] < 0) return(invisible(0))
+  trozos <- regmatches(texto, list(pos))[[1]]
+  nuevos <- vapply(trozos, function(t) {
+    crudo <- tryCatch(jsonlite::base64_dec(sub("^data:image/png;base64,", "", t)),
+                      error = function(e) NULL)
+    if (is.null(crudo)) return(t)
+    webp <- tryCatch({
+      img <- magick::image_read(crudo)
+      magick::image_write(img, format = "webp", defines = c("webp:lossless" = "true"))
+    }, error = function(e) NULL)
+    if (is.null(webp) || length(webp) >= length(crudo)) return(t)
+    paste0("data:image/webp;base64,", jsonlite::base64_enc(webp))
+  }, character(1), USE.NAMES = FALSE)
+  regmatches(texto, list(pos)) <- list(nuevos)
+  writeBin(charToRaw(texto), html)
+  message(sprintf("Gráficos PNG pasados a WebP sin pérdida: %d de %d",
+                  sum(nuevos != trozos), length(trozos)))
+  invisible(sum(nuevos != trozos))
 }
 
 libro_todo <- function() {
