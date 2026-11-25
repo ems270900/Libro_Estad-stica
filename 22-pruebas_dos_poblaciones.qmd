@@ -1,5 +1,486 @@
 ---
-title: "Pendiente"
+title: "Pruebas para dos poblaciones"
+bibliography: references.bib
+suppress-bibliography: true
 ---
 
-Pendiente.
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+```
+
+¿Un aditivo aumenta la resistencia del concreto? ¿Bajó la rugosidad de una carretera después del mantenimiento? ¿Una planta produce más bloques defectuosos que otra? Muchas preguntas de ingeniería no comparan una muestra con un valor fijo, sino dos grupos entre sí. La lógica es la del capítulo anterior, con una diferencia: ahora el parámetro de interés es una diferencia ($\mu_1 - \mu_2$, $p_1 - p_2$) o un cociente ($\sigma_1^2/\sigma_2^2$). Lo primero que hay que decidir es si las dos muestras son independientes o pareadas, porque de eso depende la prueba [@montgomery2018applied; @walpole2012probabilidad].
+
+## Muestras independientes y muestras pareadas {#sec-dos-diseno}
+
+::: {.pregunta}
+Si se mide la rugosidad de diez tramos antes y después de repararlos, ¿son veinte datos independientes?
+:::
+
+No. Las muestras son independientes cuando los elementos de un grupo no tienen relación con los del otro: doce cilindros sin aditivo y diez con aditivo, de bachadas distintas. Las muestras son pareadas cuando cada dato de un grupo tiene una pareja natural en el otro: el mismo tramo antes y después, la misma probeta medida con dos equipos, el mismo sitio en dos fechas.
+
+La distinción importa porque en las muestras pareadas cada pareja comparte muchas cosas (el tránsito del tramo, el tipo de suelo, la geometría) que se cancelan al restar. Analizar datos pareados como si fueran independientes desperdicia esa ventaja y suele llevar a no detectar diferencias reales, como se verá en la @sec-dos-pareadas. El @tbl-dos-eleccion resume las pruebas del capítulo.
+
+| Parámetro | Diseño y condición | Estadístico | En R |
+|:--|:--|:-:|:--|
+| $\mu_1 - \mu_2$ | Independientes, $\sigma_1$ y $\sigma_2$ conocidas | $z$ | Fórmula con `pnorm()` |
+| $\mu_1 - \mu_2$ | Independientes, varianzas desconocidas (Welch) | $t$ con $\nu$ aproximado | `t.test()` |
+| $\mu_1 - \mu_2$ | Independientes, varianzas iguales | $t$ con $n_1 + n_2 - 2$ g. l. | `t.test(..., var.equal = TRUE)` |
+| $\mu_D$ | Pareadas | $t$ con $n - 1$ g. l. | `t.test(..., paired = TRUE)` |
+| $\sigma_1^2/\sigma_2^2$ | Independientes, poblaciones normales | $F$ con $n_1 - 1$ y $n_2 - 1$ g. l. | `var.test()` |
+| $p_1 - p_2$ | Independientes, muestras grandes | $z$ | `prop.test()` |
+
+: Pruebas de hipótesis para dos poblaciones. {#tbl-dos-eleccion}
+
+## Diferencia de medias con varianzas conocidas {#sec-dos-z}
+
+Si las dos poblaciones son normales, o las muestras son grandes, y se conocen $\sigma_1$ y $\sigma_2$, la diferencia $\bar{X}_1 - \bar{X}_2$ tiene distribución normal con varianza $\sigma_1^2/n_1 + \sigma_2^2/n_2$. Para $H_0: \mu_1 - \mu_2 = \Delta_0$ el estadístico es
+
+$$
+z = \frac{(\bar{x}_1 - \bar{x}_2) - \Delta_0}{\sqrt{\dfrac{\sigma_1^2}{n_1} + \dfrac{\sigma_2^2}{n_2}}}
+$$ {#eq-dos-z}
+
+donde $\bar{x}_1$ y $\bar{x}_2$ son las medias muestrales, $\sigma_1^2$ y $\sigma_2^2$ las varianzas conocidas, $n_1$ y $n_2$ los tamaños de muestra y $\Delta_0$ la diferencia de la hipótesis nula, casi siempre 0 [@montgomery2018applied]. Las varianzas se suman, aunque las medias se resten, porque las dos medias aportan incertidumbre.
+
+::: {.callout-note title="Ejemplo: dos concretos premezclados con historial conocido"}
+
+**Planteamiento.** Una constructora compara dos concretos premezclados. Por su historial, el tipo A tiene $\sigma_1 = 4$ MPa y el tipo B, $\sigma_2 = 5$ MPa. Una muestra de 30 cilindros del tipo A dio $\bar{x}_1 = 28.0$ MPa y una de 35 cilindros del tipo B, $\bar{x}_2 = 25.8$ MPa. Con $\alpha = 0.05$, ¿hay evidencia de que el tipo A es más resistente?
+
+**Solución:**
+
+1. Hipótesis: $H_0: \mu_1 - \mu_2 \le 0$ y $H_1: \mu_1 - \mu_2 > 0$. Unilateral derecha.
+2. Error estándar: $\sqrt{4^2/30 + 5^2/35} = \sqrt{0.5333 + 0.7143} = \sqrt{1.2476} = 1.117$ MPa.
+3. Estadístico: $z = (28.0 - 25.8)/1.117 = 2.2/1.117 = 1.970$.
+4. Decisión: $z_{0.05} = 1.645$. Como $1.970 > 1.645$, se rechaza $H_0$. El valor $p$ es $P(Z \ge 1.970) = 0.024$.
+5. Conclusión: con 5 % de significancia, hay evidencia de que el concreto tipo A tiene mayor resistencia media.
+
+**Pseudocódigo**
+
+1. Guardar medias, desviaciones conocidas y tamaños.
+2. Calcular el error estándar de la diferencia y el estadístico con la @eq-dos-z.
+3. Calcular el valor $p$ en la cola derecha y decidir.
+
+```{r}
+# 1) Datos
+media1 <- 28.0; sigma1 <- 4; n1 <- 30    # tipo A
+media2 <- 25.8; sigma2 <- 5; n2 <- 35    # tipo B
+
+# 2) Error estándar y estadístico
+ee <- sqrt(sigma1^2 / n1 + sigma2^2 / n2)
+z <- (media1 - media2 - 0) / ee
+
+# 3) Valor p, cola derecha
+p_valor <- 1 - pnorm(z)
+c(ee = ee, z = z, p = p_valor)
+```
+
+**Interpretación.** El tipo A es en promedio 2.2 MPa más resistente y la diferencia es significativa al 5 %, aunque no al 1 %. Para escoger proveedor habría que considerar también el costo y la variabilidad: el tipo B, además de una media menor, tiene mayor dispersión.
+
+:::
+
+## Diferencia de medias con varianzas desconocidas {#sec-dos-t}
+
+Lo habitual es no conocer las varianzas y estimarlas con $s_1^2$ y $s_2^2$. Hay dos versiones de la prueba $t$, según se suponga o no que las dos poblaciones tienen la misma varianza.
+
+### Prueba de Welch
+
+Si no se supone nada sobre las varianzas, se usa el estadístico de Welch [-@welch1947generalization]:
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \Delta_0}{\sqrt{\dfrac{s_1^2}{n_1} + \dfrac{s_2^2}{n_2}}}
+$$ {#eq-dos-welch}
+
+que bajo $H_0$ sigue aproximadamente una distribución $t$ con grados de libertad
+
+$$
+\nu = \frac{\left(\dfrac{s_1^2}{n_1} + \dfrac{s_2^2}{n_2}\right)^2}{\dfrac{(s_1^2/n_1)^2}{n_1 - 1} + \dfrac{(s_2^2/n_2)^2}{n_2 - 1}}
+$$ {#eq-dos-nu}
+
+donde $s_1^2$ y $s_2^2$ son las varianzas muestrales. La @eq-dos-nu, de Satterthwaite [-@satterthwaite1946approximate], casi nunca da un entero. Con tablas se redondea hacia abajo; R usa el valor con decimales.
+
+### Prueba con varianzas iguales
+
+Si se puede suponer que $\sigma_1^2 = \sigma_2^2$, las dos varianzas muestrales se combinan en una sola estimación, la varianza combinada:
+
+$$
+s_p^2 = \frac{(n_1 - 1)\,s_1^2 + (n_2 - 1)\,s_2^2}{n_1 + n_2 - 2}
+$$ {#eq-dos-sp}
+
+y el estadístico es
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \Delta_0}{s_p\sqrt{\dfrac{1}{n_1} + \dfrac{1}{n_2}}}
+$$ {#eq-dos-t-combinada}
+
+con $n_1 + n_2 - 2$ grados de libertad [@montgomery2018applied].
+
+::: {.callout-tip title="En la práctica"}
+Se recomienda usar la prueba de Welch por omisión, y por eso es la que hace `t.test()` si no se le indica otra cosa. Cuando las varianzas son iguales, Welch pierde muy poca potencia frente a la prueba combinada; cuando son distintas, y sobre todo si los tamaños de muestra también lo son, la prueba combinada puede dar valores $p$ muy engañosos. Hacer primero una prueba $F$ para decidir cuál de las dos usar no se recomienda, porque la prueba $F$ es poco confiable si los datos no son normales.
+:::
+
+::: {.callout-note title="Ejemplo: efecto de un aditivo en la resistencia del concreto"}
+
+**Planteamiento.** Para evaluar un aditivo se ensayaron 12 cilindros hipotéticos de una mezcla sin aditivo y 10 de la misma mezcla con aditivo, de bachadas distintas. Con $\alpha = 0.05$, ¿hay evidencia de que el aditivo aumenta la resistencia media?
+
+```{r}
+#| echo: false
+ver_datos("datos/concreto_aditivo_hipotetico.csv",
+          nombres = c("Mezcla", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+Se llama grupo 1 a la mezcla con aditivo y grupo 2 a la mezcla sin aditivo.
+
+1. Hipótesis: $H_0: \mu_1 - \mu_2 \le 0$ y $H_1: \mu_1 - \mu_2 > 0$.
+2. Estadísticos: con aditivo, $n_1 = 10$, $\bar{x}_1 = 332.2/10 = 33.22$ MPa y $s_1^2 = 3.726$ MPa². Sin aditivo, $n_2 = 12$, $\bar{x}_2 = 365.5/12 = 30.46$ MPa y $s_2^2 = 2.601$ MPa².
+3. Welch: $s_1^2/n_1 = 0.3726$ y $s_2^2/n_2 = 0.2167$. El error estándar es $\sqrt{0.3726 + 0.2167} = 0.7677$ MPa y
+   $t = (33.22 - 30.46)/0.7677 = 3.597$.
+4. Grados de libertad con la @eq-dos-nu: $\nu = 0.5893^2/(0.3726^2/9 + 0.2167^2/11) = 0.3473/(0.01543 + 0.00427) = 17.63$. Con tablas se usa $\nu = 17$, y $t_{0.05,\,17} = 1.740$.
+5. Decisión: como $3.597 > 1.740$, se rechaza $H_0$. El valor $p$ es 0.0011.
+6. Con varianzas iguales: $s_p^2 = (9 \times 3.726 + 11 \times 2.601)/20 = 3.107$ MPa², $s_p = 1.763$ MPa, y
+   $t = 2.762/(1.763\sqrt{1/10 + 1/12}) = 2.762/0.7548 = 3.659$, con 20 grados de libertad y $p = 0.0008$. La conclusión es la misma.
+
+**Pseudocódigo**
+
+1. Leer los datos y separar los dos grupos.
+2. Calcular $n$, media y varianza de cada grupo.
+3. Calcular el estadístico de Welch y sus grados de libertad con las ecuaciones @eq-dos-welch y @eq-dos-nu.
+4. Calcular la varianza combinada y el estadístico de la @eq-dos-t-combinada.
+5. Calcular los valores $p$ y comprobar con `t.test()`.
+6. Graficar los dos grupos.
+
+```{r}
+# 1) Datos
+concreto <- read.csv("datos/concreto_aditivo_hipotetico.csv")
+con <- concreto$resistencia_mpa[concreto$mezcla == "Con aditivo"]
+sin <- concreto$resistencia_mpa[concreto$mezcla == "Sin aditivo"]
+
+# 2) Resumen de cada grupo
+n1 <- length(con); n2 <- length(sin)
+v1 <- var(con);    v2 <- var(sin)
+dif <- mean(con) - mean(sin)
+
+# 3) Welch
+ee_w <- sqrt(v1 / n1 + v2 / n2)
+t_w <- dif / ee_w
+nu <- (v1 / n1 + v2 / n2)^2 / ((v1 / n1)^2 / (n1 - 1) + (v2 / n2)^2 / (n2 - 1))
+
+# 4) Varianzas iguales
+sp2 <- ((n1 - 1) * v1 + (n2 - 1) * v2) / (n1 + n2 - 2)
+t_c <- dif / sqrt(sp2 * (1 / n1 + 1 / n2))
+
+# 5) Valores p (cola derecha) y comprobación
+c(dif = dif, t_welch = t_w, gl_welch = nu, p_welch = 1 - pt(t_w, nu),
+  t_comb = t_c, p_comb = 1 - pt(t_c, n1 + n2 - 2))
+
+t.test(con, sin, alternative = "greater")                    # Welch
+t.test(con, sin, alternative = "greater", var.equal = TRUE)  # varianzas iguales
+
+# La misma prueba de Welch con una fórmula: resistencia según mezcla.
+# R ordena los grupos alfabéticamente: "Con aditivo" queda primero.
+t.test(resistencia_mpa ~ mezcla, data = concreto, alternative = "greater")
+```
+
+```{r}
+#| label: fig-dos-aditivo
+#| fig-cap: "Resistencia de los cilindros con y sin aditivo."
+#| fig-alt: "Dos diagramas de caja con los puntos de cada cilindro; el grupo con aditivo está más arriba."
+#| echo: false
+
+ggplot(concreto, aes(mezcla, resistencia_mpa)) +
+  geom_boxplot(width = 0.45, outlier.shape = NA, fill = "#1C6BA0", alpha = 0.15) +
+  geom_jitter(width = 0.08, size = 2.2, colour = "#1C6BA0") +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3.5, fill = "#E69F00") +
+  labs(x = NULL, y = "Resistencia a compresión (MPa)") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** El aditivo aumentó la resistencia media en 2.8 MPa, y la diferencia es significativa aun con $\alpha = 0.01$. La @fig-dos-aditivo muestra que los dos grupos se traslapan poco. El intervalo bilateral del 95 % de Welch para la diferencia va de 1.1 a 4.4 MPa: para decidir si vale la pena pagar el aditivo, ese es el rango de ganancia que se puede esperar.
+
+:::
+
+## Cociente de varianzas {#sec-dos-f}
+
+Para comparar la variabilidad de dos poblaciones normales se usa el cociente de las varianzas muestrales:
+
+$$
+F = \frac{s_1^2}{s_2^2}
+$$ {#eq-dos-f}
+
+que, si $H_0: \sigma_1^2 = \sigma_2^2$ es cierta, sigue una distribución $F$ con $n_1 - 1$ grados de libertad en el numerador y $n_2 - 1$ en el denominador [@montgomery2018applied]. Si las varianzas son iguales, $F$ ronda 1. Para la prueba bilateral se rechaza si $F > F_{\alpha/2,\,n_1-1,\,n_2-1}$ o si $F < F_{1-\alpha/2,\,n_1-1,\,n_2-1}$. El valor crítico inferior se obtiene de las tablas con la relación $F_{1-a,\,\nu_1,\,\nu_2} = 1/F_{a,\,\nu_2,\,\nu_1}$, porque las tablas solo traen la cola derecha.
+
+::: {.callout-note title="Ejemplo: variabilidad del concreto con y sin aditivo"}
+
+**Planteamiento.** Con los datos del ejemplo anterior, pruebe con $\alpha = 0.05$ si el aditivo cambia la variabilidad de la resistencia.
+
+**Solución:**
+
+1. Hipótesis: $H_0: \sigma_1^2 = \sigma_2^2$ y $H_1: \sigma_1^2 \neq \sigma_2^2$.
+2. Estadístico: $F = 3.726/2.601 = 1.433$, con 9 y 11 grados de libertad.
+3. Valores críticos: $F_{0.025,\,9,\,11} = 3.588$ y $F_{0.975,\,9,\,11} = 1/F_{0.025,\,11,\,9} = 0.256$.
+4. Decisión: como $0.256 < 1.433 < 3.588$, no se rechaza $H_0$. El valor $p$ es 0.565.
+5. Conclusión: no hay evidencia de que el aditivo cambie la variabilidad de la resistencia.
+
+**Pseudocódigo**
+
+1. Calcular las dos varianzas y su cociente.
+2. Calcular los valores críticos con `qf()` y el valor $p$ bilateral con `pf()`.
+3. Comprobar con `var.test()`.
+
+```{r}
+# 1) Estadístico F (usa con y sin del ejemplo anterior)
+F_obs <- var(con) / var(sin)
+
+# 2) Valores críticos y valor p bilateral
+gl1 <- length(con) - 1; gl2 <- length(sin) - 1
+criticos <- c(qf(0.025, gl1, gl2), qf(0.975, gl1, gl2))
+p_valor <- 2 * min(pf(F_obs, gl1, gl2), 1 - pf(F_obs, gl1, gl2))
+c(F = F_obs, inferior = criticos[1], superior = criticos[2], p = p_valor)
+
+# 3) Con la función de R
+var.test(con, sin)
+```
+
+**Interpretación.** La desviación estándar es de 1.9 MPa con aditivo y de 1.6 MPa sin él. La diferencia cabe dentro de lo esperable por azar con muestras de este tamaño: el intervalo del 95 % para el cociente de varianzas va de 0.40 a 5.6, muy ancho. Para detectar cambios moderados en la variabilidad harían falta muestras mucho más grandes.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+La prueba $F$ es muy sensible a la falta de normalidad. Con datos de colas pesadas rechaza $H_0$ con mucha más frecuencia que el $\alpha$ nominal. Si los datos no parecen normales, existen alternativas menos sensibles, como la prueba de Levene, que se usa en la parte de diseño de experimentos.
+:::
+
+## Muestras pareadas {#sec-dos-pareadas}
+
+Con muestras pareadas se calcula la diferencia de cada pareja, $d_i = x_{1i} - x_{2i}$, y el problema se convierte en una prueba $t$ para una sola media, la de las diferencias $\mu_D$:
+
+$$
+t = \frac{\bar{d} - \Delta_0}{s_d/\sqrt{n}}
+$$ {#eq-dos-pareada}
+
+donde $\bar{d}$ y $s_d$ son la media y la desviación estándar de las $n$ diferencias, y el estadístico tiene $n - 1$ grados de libertad [@montgomery2018applied]. La prueba supone que las diferencias son aproximadamente normales; los datos originales no necesitan serlo.
+
+::: {.callout-note title="Ejemplo: rugosidad de tramos antes y después del mantenimiento"}
+
+**Planteamiento.** Se midió el índice de regularidad internacional (IRI, m/km) en diez tramos hipotéticos de carretera antes y después de un mantenimiento. Un IRI menor indica una superficie más regular. Con $\alpha = 0.05$, ¿hay evidencia de que el mantenimiento redujo el IRI medio?
+
+```{r}
+#| echo: false
+ver_datos("datos/iri_mantenimiento_hipotetico.csv",
+          nombres = c("Tramo", "IRI antes (m/km)", "IRI después (m/km)"))
+```
+
+**Solución:**
+
+1. Diferencias: $d_i = \text{antes} - \text{después}$. Un $d_i$ positivo indica mejora. Las diez diferencias son −0.05, 0.61, 0.38, 0.52, 0.57, 0.31, −0.02, 0.55, 0.97 y 0.50 m/km.
+2. Hipótesis: $H_0: \mu_D \le 0$ y $H_1: \mu_D > 0$.
+3. Estadísticos: $\sum d_i = 4.34$, así que $\bar{d} = 0.434$ m/km. La suma de cuadrados de las diferencias respecto de su media es 0.8206, de modo que $s_d = \sqrt{0.8206/9} = 0.3020$ m/km.
+4. Estadístico: $t = 0.434/(0.3020/\sqrt{10}) = 0.434/0.0955 = 4.545$, con 9 grados de libertad.
+5. Decisión: $t_{0.05,\,9} = 1.833$. Como $4.545 > 1.833$, se rechaza $H_0$. El valor $p$ es 0.0007.
+6. Conclusión: con 5 % de significancia, hay evidencia de que el mantenimiento redujo el IRI medio.
+
+**Pseudocódigo**
+
+1. Leer los datos y calcular las diferencias antes − después.
+2. Calcular $\bar{d}$, $s_d$ y el estadístico de la @eq-dos-pareada.
+3. Calcular el valor $p$ en la cola derecha.
+4. Comprobar con `t.test(..., paired = TRUE)`.
+5. Para comparar, analizar los mismos datos como si fueran independientes.
+
+```{r}
+# 1) Datos y diferencias
+iri <- read.csv("datos/iri_mantenimiento_hipotetico.csv")
+d <- iri$iri_antes - iri$iri_despues
+
+# 2) Estadístico t de las diferencias
+n <- length(d)
+t_obs <- mean(d) / (sd(d) / sqrt(n))
+
+# 3) Valor p, cola derecha
+c(media_d = mean(d), s_d = sd(d), t = t_obs, p = 1 - pt(t_obs, df = n - 1))
+
+# 4) Con la función de R: prueba pareada, o prueba de una media sobre d
+t.test(iri$iri_antes, iri$iri_despues, paired = TRUE, alternative = "greater")
+t.test(d, mu = 0, alternative = "greater")$p.value
+
+# 5) Análisis incorrecto, como si las muestras fueran independientes
+t.test(iri$iri_antes, iri$iri_despues, alternative = "greater")$p.value
+```
+
+```{r}
+#| label: fig-dos-iri
+#| fig-cap: "IRI de cada tramo antes y después del mantenimiento."
+#| fig-alt: "Diez pares de puntos unidos por líneas; en ocho tramos la línea baja de antes a después."
+#| echo: false
+
+iri %>%
+  pivot_longer(c(iri_antes, iri_despues), names_to = "momento", values_to = "valor") %>%
+  mutate(momento = factor(momento, levels = c("iri_antes", "iri_despues"), labels = c("Antes", "Después"))) %>%
+  ggplot(aes(momento, valor, group = tramo)) +
+  geom_line(colour = "grey60") +
+  geom_point(colour = "#1C6BA0", size = 2.5) +
+  labs(x = NULL, y = "IRI (m/km)") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** El mantenimiento redujo el IRI en 0.43 m/km en promedio, y la @fig-dos-iri muestra que la mejora aparece en ocho de los diez tramos. El paso 5 del código ilustra por qué importa el diseño: si los mismos datos se analizan como muestras independientes, el valor $p$ sube a 0.063 y no se rechazaría $H_0$. La razón es que los tramos difieren mucho entre sí (de 2.6 a 4.1 m/km antes del mantenimiento), y esa variación entre tramos tapa el efecto cuando no se trabaja con las diferencias.
+
+:::
+
+## Diferencia de proporciones {#sec-dos-proporciones}
+
+Para comparar dos proporciones con muestras independientes grandes, bajo $H_0: p_1 = p_2$ se combinan los éxitos de las dos muestras en una proporción común $\hat{p} = (x_1 + x_2)/(n_1 + n_2)$, y el estadístico es
+
+$$
+z = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}\,(1-\hat{p})\left(\dfrac{1}{n_1} + \dfrac{1}{n_2}\right)}}
+$$ {#eq-dos-proporciones}
+
+donde $\hat{p}_1 = x_1/n_1$ y $\hat{p}_2 = x_2/n_2$ son las proporciones de cada muestra [@montgomery2018applied]. La aproximación es aceptable si cada muestra tiene al menos cinco éxitos y cinco fracasos. Como en una proporción, `prop.test()` reporta $\chi^2 = z^2$.
+
+::: {.callout-note title="Ejemplo: bloques defectuosos de dos plantas"}
+
+**Planteamiento.** En una inspección se revisaron 150 bloques de la planta 1, de los cuales 21 tenían defectos, y 160 de la planta 2, con 9 defectuosos. Con $\alpha = 0.05$, ¿hay evidencia de que las proporciones de defectuosos son distintas?
+
+**Solución:**
+
+1. Hipótesis: $H_0: p_1 = p_2$ y $H_1: p_1 \neq p_2$.
+2. Proporciones: $\hat{p}_1 = 21/150 = 0.1400$, $\hat{p}_2 = 9/160 = 0.0563$ y la combinada $\hat{p} = 30/310 = 0.0968$.
+3. Error estándar: $\sqrt{0.0968 \times 0.9032 \times (1/150 + 1/160)} = 0.0336$.
+4. Estadístico: $z = (0.1400 - 0.0563)/0.0336 = 2.492$.
+5. Decisión: $z_{0.025} = 1.960$. Como $2.492 > 1.960$, se rechaza $H_0$. El valor $p$ es $2\,P(Z \ge 2.492) = 0.013$.
+6. Conclusión: con 5 % de significancia, las proporciones de bloques defectuosos de las dos plantas son distintas.
+
+**Pseudocódigo**
+
+1. Guardar éxitos y tamaños de cada muestra.
+2. Calcular las proporciones y la combinada.
+3. Calcular el estadístico de la @eq-dos-proporciones y el valor $p$ bilateral.
+4. Comprobar con `prop.test()` sin corrección.
+
+```{r}
+# 1) Datos
+x <- c(21, 9)
+n <- c(150, 160)
+
+# 2) Proporciones
+p_i <- x / n
+p_comb <- sum(x) / sum(n)
+
+# 3) Estadístico y valor p bilateral
+z <- (p_i[1] - p_i[2]) / sqrt(p_comb * (1 - p_comb) * (1 / n[1] + 1 / n[2]))
+c(p1 = p_i[1], p2 = p_i[2], z = z, p = 2 * (1 - pnorm(abs(z))))
+
+# 4) Con la función de R
+prop.test(x, n, correct = FALSE)
+```
+
+**Interpretación.** La planta 1 produjo 14 % de bloques defectuosos y la planta 2, 5.6 %. La diferencia es significativa, y el intervalo del 95 % que da `prop.test()` indica que la planta 1 tiene entre 1.8 y 15.0 puntos porcentuales más de defectos. Para un comprador, la planta 2 es la opción más segura, o se le puede exigir a la planta 1 una inspección más estricta.
+
+:::
+
+## Calculadora para dos medias {#sec-dos-calculadora}
+
+La @fig-dos-calculadora hace las dos versiones de la prueba $t$ para muestras independientes a partir de los resúmenes de cada grupo. Sirve para ver cuándo las dos versiones dan resultados parecidos y cuándo no.
+
+::: {#fig-dos-calculadora}
+
+```{=html}
+<div class="interactivo" id="int-dos-medias">
+  <table class="entrada">
+    <tr><th></th><th>Grupo 1</th><th>Grupo 2</th></tr>
+    <tr><td><i>x̄</i></td><td><input type="number" step="any" value="33.22" data-ctrl="m1"></td><td><input type="number" step="any" value="30.458" data-ctrl="m2"></td></tr>
+    <tr><td><i>s</i></td><td><input type="number" step="any" min="0" value="1.930" data-ctrl="s1"></td><td><input type="number" step="any" min="0" value="1.613" data-ctrl="s2"></td></tr>
+    <tr><td><i>n</i></td><td><input type="number" step="1" min="2" value="10" data-ctrl="n1"></td><td><input type="number" step="1" min="2" value="12" data-ctrl="n2"></td></tr>
+  </table>
+  <label><span>Hipótesis alternativa:</span>
+    <select data-ctrl="alt">
+      <option value="dos">μ₁ ≠ μ₂ (bilateral)</option>
+      <option value="mayor" selected>μ₁ &gt; μ₂ (derecha)</option>
+      <option value="menor">μ₁ &lt; μ₂ (izquierda)</option>
+    </select></label>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-dos-medias"), texto = raiz.querySelector(".resultado");
+  var c = {}; raiz.querySelectorAll("[data-ctrl]").forEach(function (el) { c[el.dataset.ctrl] = el; });
+  function lgamma(x) {
+    var g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, tmp = x + 5.5; tmp -= (x + 0.5) * Math.log(tmp); var ser = 1.000000000190015;
+    for (var j = 0; j < 6; j++) ser += g[j] / ++y;
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+  }
+  function betacf(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, cc = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d; var h = d;
+    for (var m = 1; m <= 200; m++) {
+      var m2 = 2 * m, aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; cc = 1 + aa / cc; if (Math.abs(cc) < 1e-30) cc = 1e-30; d = 1 / d; h *= d * cc;
+      aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30; cc = 1 + aa / cc; if (Math.abs(cc) < 1e-30) cc = 1e-30; d = 1 / d;
+      var del = d * cc; h *= del; if (Math.abs(del - 1) < 3e-14) break;
+    }
+    return h;
+  }
+  function ibeta(a, b, x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
+  }
+  function pt(t, v) { var cola = 0.5 * ibeta(v / 2, 0.5, v / (v + t * t)); return t >= 0 ? 1 - cola : cola; }
+  function valorp(t, v) {
+    if (c.alt.value === "dos") return 2 * (1 - pt(Math.abs(t), v));
+    return c.alt.value === "mayor" ? 1 - pt(t, v) : pt(t, v);
+  }
+  function f(p) { return p < 0.0001 ? "< 0.0001" : p.toFixed(4); }
+  function calcular() {
+    var m1 = parseFloat(c.m1.value), m2 = parseFloat(c.m2.value), s1 = parseFloat(c.s1.value), s2 = parseFloat(c.s2.value),
+        n1 = parseInt(c.n1.value, 10), n2 = parseInt(c.n2.value, 10);
+    if (!(s1 > 0 && s2 > 0 && n1 >= 2 && n2 >= 2) || isNaN(m1) || isNaN(m2)) { texto.textContent = "Revise los valores: s positiva y n al menos 2 en cada grupo."; return; }
+    var a = s1 * s1 / n1, b = s2 * s2 / n2, tw = (m1 - m2) / Math.sqrt(a + b);
+    var nu = (a + b) * (a + b) / (a * a / (n1 - 1) + b * b / (n2 - 1));
+    var sp2 = ((n1 - 1) * s1 * s1 + (n2 - 1) * s2 * s2) / (n1 + n2 - 2), tc = (m1 - m2) / Math.sqrt(sp2 * (1 / n1 + 1 / n2));
+    texto.innerHTML = "Welch: <i>t</i> = " + tw.toFixed(3) + ", <i>ν</i> = " + nu.toFixed(2) + ", valor <i>p</i> = <b>" + f(valorp(tw, nu)) + "</b><br>" +
+      "Varianzas iguales: <i>s</i><sub><i>p</i></sub> = " + Math.sqrt(sp2).toFixed(3) + ", <i>t</i> = " + tc.toFixed(3) + ", " + (n1 + n2 - 2) +
+      " g. l., valor <i>p</i> = <b>" + f(valorp(tc, n1 + n2 - 2)) + "</b>";
+  }
+  Object.keys(c).forEach(function (k) { c[k].addEventListener("input", calcular); });
+  calcular();
+})();
+</script>
+```
+
+Prueba $t$ de Welch y con varianzas iguales a partir de resúmenes. Viene cargada con el ejemplo del aditivo. Pruebe con $s_1 = 5$, $n_1 = 5$ y $s_2 = 1$, $n_2 = 30$.
+
+:::
+
+Con los valores sugeridos en la leyenda, el grupo pequeño es el más variable, y la prueba con varianzas iguales da un valor $p$ mucho menor que la de Welch. En ese caso la de varianzas iguales es la que se equivoca: subestima el error estándar porque le da demasiado peso a la varianza pequeña del grupo grande.
+
+## Tamaño de muestra para comparar dos medias {#sec-dos-tamano}
+
+Para detectar una diferencia $\delta$ entre dos medias con potencia $1 - \beta$, cuando las dos poblaciones tienen la misma desviación estándar $\sigma$ y se toman $n$ datos en cada grupo, la aproximación normal da
+
+$$
+n = 2\left(\frac{(z_{\alpha/2} + z_{\beta})\,\sigma}{\delta}\right)^2
+$$ {#eq-dos-n}
+
+datos por grupo [@montgomery2018applied]. Es el doble que para una sola media (@eq-ph-n-potencia), porque ahora hay dos medias estimadas con error. Por ejemplo, para detectar una diferencia de 2 MPa en concretos con $\sigma = 2$ MPa, con $\alpha = 0.05$ y potencia de 0.80, $n = 2((1.960 + 0.842)(2)/2)^2 = 15.7$, es decir, 16 cilindros por mezcla. `power.t.test(delta = 2, sd = 2, power = 0.80)`, que usa la distribución $t$, pide 17.
+
+## Ejercicios propuestos
+
+1. Dos laboratorios midieron la concentración de un aditivo químico en mezclas asfálticas. Laboratorio 1: $\bar{x}_1 = 7.1$ %, $\sigma_1 = 0.4$ %, $n_1 = 25$. Laboratorio 2: $\bar{x}_2 = 6.9$ %, $\sigma_2 = 0.3$ %, $n_2 = 20$. Con $\alpha = 0.05$, ¿hay diferencia entre los laboratorios? Suponga desviaciones conocidas.
+2. Dos métodos para medir la resistencia del acero dieron: método A, $n_1 = 15$, $\bar{x}_1 = 510$ MPa, $s_1 = 12$ MPa; método B, $n_2 = 12$, $\bar{x}_2 = 500$ MPa, $s_2 = 15$ MPa. Haga a mano la prueba de Welch con $\alpha = 0.05$, calculando los grados de libertad con la @eq-dos-nu. Compruebe con la calculadora de la @fig-dos-calculadora.
+3. Ocho probetas de suelo se ensayaron con dos equipos de corte directo. Los ángulos de fricción (°) fueron: equipo 1: 31.2, 29.8, 33.5, 30.1, 32.4, 28.9, 31.7, 30.6; equipo 2: 30.5, 29.9, 32.1, 29.0, 31.8, 28.1, 31.0, 30.2. ¿Hay diferencia entre los equipos? Decida si las muestras son pareadas o independientes y justifique.
+4. Con los datos de `datos/concreto_aditivo_hipotetico.csv`, construya un intervalo del 99 % para la diferencia de medias con `t.test()`. ¿Contiene el cero? ¿Qué relación tiene eso con la prueba bilateral al 1 %?
+5. En dos carreteras se registró si los vehículos excedían el límite de velocidad: en la ruta A, 84 de 300; en la ruta B, 57 de 280. ¿Hay evidencia de que la proporción de vehículos que exceden el límite es mayor en la ruta A?
+6. Simule en R 2000 pares de muestras con $n_1 = 5$, $\sigma_1 = 5$ y $n_2 = 30$, $\sigma_2 = 1$, ambas con media 0. Aplique a cada par la prueba con varianzas iguales y la de Welch con $\alpha = 0.05$. ¿Qué fracción rechaza cada una? ¿Cuál respeta el 5 % de error tipo I?
+
+## Lecturas recomendadas
+
+- @montgomery2018applied, capítulo 10: inferencia para dos muestras, incluidas la prueba de Welch, la prueba pareada, la prueba $F$ y el tamaño de muestra.
+- @walpole2012probabilidad, capítulo 10: pruebas para dos medias, dos proporciones y dos varianzas, en español.
+- @helsel2020statistical, capítulos 5 y 6: comparación de dos grupos independientes y pareados con datos ambientales.
+- @illowsky2018introductory, capítulo 10: pruebas con dos muestras, con muchos ejercicios.
