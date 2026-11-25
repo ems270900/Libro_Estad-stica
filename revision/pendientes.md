@@ -33,7 +33,7 @@
 ## Parte VII (diseño de experimentos)
 
 - Revisión del autor de los capítulos 28 a 30.
-- Los capítulos remiten a las Partes IV a VI (distribución F, prueba t, regresión): agregar referencias cruzadas `@sec-` cuando esos capítulos existan. El capítulo 29 puede remitir a la tabla del rango estudentizado del Apéndice A (`@tbl-apa-q05` y `@tbl-apa-q01`).
+
 ## Parte IV (variables aleatorias y distribuciones)
 
 - Revisión del autor de los capítulos 13 a 17.
