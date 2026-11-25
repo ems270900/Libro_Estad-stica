@@ -12,3 +12,11 @@ Fecha: 2026-11-25. Estado: borrador.
 - Cambio respecto del material del curso: las varillas se presentan con esfuerzo de fluencia (objetivo 300 MPa) en lugar de resistencia a la tracción, que en acero de refuerzo es bastante mayor.
 - Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
 - Diversificación de ramas (2026-11-25): la media con σ conocida pasa a la DBO₅ del efluente de una planta de tratamiento (mismos números, en mg/L); la proporción, a vehículos que exceden el límite en una zona escolar (10 de 85); la varianza, al grado de compactación de una base granular con `compactacion_campo_hipotetica.csv` nuevo (s² = 1.457 %², σ entre 0.94 y 1.68 %); el tamaño de muestra, a medidores de agua y viviendas con fugas (23, 385 y 114). El ejemplo de los tres intervalos conserva el lote de cilindros.
+
+## Ampliación didáctica (2026-11-25)
+
+- Secciones nuevas: anatomía de un intervalo (analogía de la herradura), cobertura real de Wald y Wilson con la regla del tres, intervalo para la media de una exponencial (bombas, χ² con 2n g. l. y comprobación por simulación), cotas unilaterales (asentamiento de un terraplén), errores comunes con cuadro.
+- Interactivos nuevos: cobertura exacta de Wald y Wilson; tres intervalos (confianza, predicción y tolerancia) según n.
+- Dos filas nuevas en el cuadro resumen. Ejercicios 8 a 11.
+- Fuente nueva: Hanley y Lippman-Hand (1983). Pendiente: cita de libro para el intervalo exponencial (comentario CITA PENDIENTE).
+- Leyendas cortas, títulos sin la forma "De X a Y", ejemplos nuevos fuera del concreto.

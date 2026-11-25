@@ -74,7 +74,7 @@ La forma de $H_1$ se decide con la pregunta de ingeniería, antes de ver los dat
 
 Plantear bien las hipótesis es la parte más difícil de una prueba, y la más importante: si las hipótesis están mal, todos los cálculos que siguen responden otra pregunta. La buena noticia es que se puede hacer con un procedimiento fijo, que se repite igual en todos los capítulos de esta parte.
 
-### Cinco preguntas para pasar del enunciado a las hipótesis
+### Cinco preguntas para plantear las hipótesis
 
 1. **¿De qué parámetro se habla?** Una media $\mu$ si el dato es una medición (espesor, caudal, resistencia); una proporción $p$ si el dato es sí o no (cumple o no cumple, defectuoso o no); una varianza $\sigma^2$ si la pregunta es por la uniformidad; una diferencia $\mu_1 - \mu_2$ o $p_1 - p_2$ si se comparan dos grupos.
 2. **¿Cuál es el valor de referencia?** Es el número que aparece en el enunciado: la especificación, la norma, el valor nominal, el valor histórico. Se escribe $\mu_0$, $p_0$ o $\sigma_0^2$. Si se comparan dos grupos, casi siempre es 0.
@@ -533,45 +533,24 @@ Todas las pruebas de los capítulos siguientes siguen los mismos pasos:
 
 Los pasos 1 y 6 son los que más cuestan; se explican en detalle en la @sec-ph-plantear y en la @sec-ph-redactar. Los ejemplos de los capítulos 21 a 23 siguen siempre estos seis pasos.
 
-La @fig-ph-diagrama resume el procedimiento como un diagrama de decisión. Los dos caminos del paso 5 llevan siempre a la misma conclusión.
+La @fig-ph-diagrama resume el procedimiento. En el paso 5 hay dos caminos, comparar el estadístico con el valor crítico o el valor $p$ con $\alpha$, y los dos llevan siempre a la misma decisión.
 
 ```{r}
 #| label: fig-ph-diagrama
 #| fig-cap: "Pasos de una prueba de hipótesis."
-#| fig-alt: "Diagrama de flujo vertical: plantear hipótesis, fijar alfa, escoger estadístico y revisar supuestos, calcular, y luego dos ramas, una que compara con el valor crítico y otra que compara el valor p con alfa, que terminan en rechazar o no rechazar H0 y en la conclusión en el lenguaje del problema."
-#| fig-width: 7
-#| fig-height: 7.5
-#| out-width: "85%"
+#| fig-alt: "Seis cajas numeradas unidas por flechas en dos filas: plantear H0 y H1, fijar alfa, escoger el estadístico y revisar supuestos, calcular, decidir con el valor crítico o con el valor p, y concluir en el lenguaje del problema con unidades e intervalo."
 #| echo: false
 
-cajas <- tibble(
-  x = c(0, 0, 0, 0, -1.6, 1.6, -1.6, 1.6, 0),
-  y = c(9, 7.8, 6.6, 5.4, 4.1, 4.1, 2.6, 2.6, 1.2),
-  texto = c("1. Plantear H₀ y H₁ con la pregunta de ingeniería",
-            "2. Fijar α antes de ver los datos",
-            "3. Escoger el estadístico y revisar supuestos",
-            "4. Calcular el estadístico con los datos",
-            "5a. ¿El estadístico cae en\nla región de rechazo?",
-            "5b. ¿El valor p es\nmenor o igual que α?",
-            "Sí: se rechaza H₀",
-            "No: no se rechaza H₀",
-            "6. Conclusión en el lenguaje del problema,\ncon la estimación y su intervalo"),
-  tipo = c(rep("paso", 4), "decision", "decision", "si", "no", "paso")
-)
-flechas <- tibble(
-  x = c(0, 0, 0, 0, 0, -1.6, -1.6, 1.6, 1.6, -1.6, 1.6),
-  y = c(8.7, 7.5, 6.3, 5.1, 5.1, 3.7, 3.7, 3.7, 3.7, 2.3, 2.3),
-  xend = c(0, 0, 0, -1.6, 1.6, -1.6, 1.6, 1.6, -1.6, -0.3, 0.3),
-  yend = c(8.1, 6.9, 5.7, 4.5, 4.5, 2.9, 2.9, 2.9, 2.9, 1.55, 1.55)
-)
-ggplot() +
-  geom_segment(data = flechas, aes(x, y, xend = xend, yend = yend),
-               arrow = arrow(length = unit(0.18, "cm")), colour = "grey45") +
-  geom_label(data = cajas, aes(x, y, label = texto, fill = tipo), size = 4.6,
-             label.padding = unit(0.45, "lines"), label.r = unit(0.2, "lines"), lineheight = 0.95) +
-  scale_fill_manual(values = c(paso = "#e3eef7", decision = "#fdf0d5", si = "#f6d3c4", no = "#dcefe4"), guide = "none") +
-  coord_cartesian(xlim = c(-3, 3), ylim = c(0.6, 9.5)) +
-  theme_void()
+source("R/diagramas.R")
+dg_flujo(
+  list(list(c("Plantear", "t1"), c("H₀ y H₁", "t1"), c("con la pregunta", "t2")),
+       list(c("Fijar α", "t1"), c("antes de", "t2"), c("ver los datos", "t2")),
+       list(c("Escoger el", "t1"), c("estadístico", "t1"), c("y revisar supuestos", "t2")),
+       list(c("Calcular", "t1"), c("el estadístico", "t1"), c("con los datos", "t2")),
+       list(c("Decidir", "t1"), c("valor crítico o", "t2"), c("valor p frente a α", "t2")),
+       list(c("Concluir", "t1"), c("en el lenguaje", "t2"), c("del problema", "t2"))),
+  notas = c("", "", "", "", "rechazar o no", "con unidades e IC"),
+  por_fila = 3, titulo = "Pasos de una prueba de hipótesis")
 ```
 
 ::: {.callout-note title="Ejemplo: control del esfuerzo de fluencia de varillas de acero"}
@@ -1017,42 +996,27 @@ La distribución del estadístico no se escoge por gusto: la dictan el parámetr
 ```{r}
 #| label: fig-ph-guia
 #| fig-cap: "Cómo escoger la prueba o el intervalo."
-#| fig-alt: "Árbol de decisión que parte del tipo de dato. Medición: una muestra, dos muestras o la variabilidad, con ramas para sigma conocida o no, pareadas o independientes y varianzas iguales o no. Conteo de sí o no: una o dos proporciones. Conteos en categorías: chi-cuadrado de bondad de ajuste o de independencia."
-#| fig-width: 11
-#| fig-height: 6.5
-#| out-width: "100%"
+#| fig-alt: "Tres árboles, uno por tipo de dato. Medición continua: una muestra (z si sigma es conocida, t si se estima), dos muestras (t de las diferencias si son pareadas, Welch si son independientes) o variabilidad (chi-cuadrado para una, F para dos). Conteo de sí o no: una proporción (z o binomial) o dos proporciones (z o chi-cuadrado con 1 g. l.). Conteos en categorías: chi-cuadrado de bondad de ajuste o de independencia."
 #| echo: false
 
-nodos_g <- tibble(
-  id = 1:19,
-  x = c(0,  -4, 1.7, 5.0,   -6, -3.55, -1.3,   -7.05, -5.65, -4.2, -2.75,   0.9, 2.5,   0.9, 2.5,   4.25, 5.85,   4.25, 5.85),
-  y = c(7,   5.6, 5.6, 5.6,  4.2, 4.2, 4.2,   2.6, 2.6, 2.6, 2.6,      4.2, 4.2,   2.6, 2.6,   4.2, 4.2,   2.6, 2.6),
-  texto = c("¿Qué tipo de dato?",
-            "Medición continua", "Conteo de sí/no", "Conteos en\nvarias categorías",
-            "Una muestra", "Dos muestras", "Variabilidad",
-            "σ conocida:\nz", "σ estimada:\nt",
-            "Pareadas:\nt de las d", "Independientes:\nt de Welch",
-            "Una\nproporción", "Dos\nproporciones",
-            "z (grande) o\nbinomial (pequeña)", "z o χ² con\n1 g. l.",
-            "Una variable", "Dos variables",
-            "χ² de bondad\nde ajuste", "χ² de\nindependencia"),
-  tipo = c("p", "p", "p", "p", "p", "p", "p", "r", "r", "r", "r", "p", "p", "r", "r", "p", "p", "r", "r")
-)
-extra <- tibble(x = -1.3, y = 2.6, texto = "Una: χ²\nDos: F", tipo = "r")
-aristas_g <- tibble(de = c(1, 1, 1, 2, 2, 2, 5, 5, 6, 6, 3, 3, 12, 13, 4, 4, 16, 17),
-                    a  = c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)) %>%
-  mutate(x = nodos_g$x[de], y = nodos_g$y[de] - 0.32, xend = nodos_g$x[a], yend = nodos_g$y[a] + 0.38)
-aristas_g <- bind_rows(aristas_g, tibble(x = -1.3, y = 4.2 - 0.32, xend = -1.3, yend = 2.6 + 0.38))
-ggplot() +
-  geom_segment(data = aristas_g, aes(x, y, xend = xend, yend = yend),
-               arrow = arrow(length = unit(0.13, "cm")), colour = "grey55") +
-  geom_label(data = bind_rows(nodos_g[, c("x", "y", "texto", "tipo")], extra), aes(x, y, label = texto, fill = tipo),
-             size = 3.2, lineheight = 0.92, label.padding = unit(0.3, "lines")) +
-  scale_fill_manual(values = c(p = "#e3eef7", r = "#fdf0d5"), guide = "none") +
-  annotate("text", x = -4.5, y = 1.6, size = 3.3, colour = "grey30",
-           label = "Con t: revisar normalidad (Q-Q).\nSi falla con n pequeño: transformar o Wilcoxon.") +
-  coord_cartesian(xlim = c(-7.8, 6.7), ylim = c(1.2, 7.4)) +
-  theme_void()
+source("R/diagramas.R")
+h <- function(...) lapply(list(...), function(t) c(t, "t2"))
+r <- function(pregunta, ...) list(caja = list(c(pregunta, "t1")), hojas = list(h(...)))
+knitr::asis_output(paste(
+  dg_jerarquia(list(c("Medición continua", "t0")),
+               list(r("Una muestra", "σ conocida: z", "σ estimada: t"),
+                    r("Dos muestras", "pareadas: t de d", "independientes:", "t de Welch"),
+                    r("Variabilidad", "una: χ²", "dos: F")),
+               titulo = "Pruebas para una medición continua"),
+  dg_jerarquia(list(c("Conteo de sí/no", "t0")),
+               list(r("Una proporción", "grande: z", "pequeña: binomial"),
+                    r("Dos proporciones", "z o χ²", "con 1 g. l.")),
+               titulo = "Pruebas para un conteo de sí o no"),
+  dg_jerarquia(list(c("Conteos en categorías", "t0")),
+               list(r("Una variable", "χ² de bondad", "de ajuste"),
+                    r("Dos variables", "χ² de", "independencia")),
+               titulo = "Pruebas para conteos en categorías"),
+  sep = "\n"))
 ```
 
 | Pregunta | Datos y condición | Estadístico | Intervalo en R | Prueba en R | Cap. |
@@ -1074,7 +1038,7 @@ ggplot() +
 : Métodos de la Parte V y sus funciones de R. {#tbl-ph-guia}
 
 ::: {.callout-tip title="En la práctica"}
-Ante un problema nuevo, conviene hacerse las preguntas en este orden: ¿el dato es una medición, un sí/no o una categoría? ¿Hay uno o dos grupos? Si hay dos, ¿cada dato de un grupo tiene pareja en el otro? ¿Se pregunta por el centro (media, proporción) o por la dispersión (varianza)? ¿Se conoce $\sigma$ de verdad o se estima con $s$? Con esas cinco respuestas el método queda determinado. Las dudas más comunes son confundir pareadas con independientes y usar $z$ cuando $\sigma$ se estimó.
+Ante un problema nuevo, conviene hacerse las preguntas en este orden: ¿el dato es una medición, un sí/no o una categoría? ¿Hay uno o dos grupos? Si hay dos, ¿cada dato de un grupo tiene pareja en el otro? ¿Se pregunta por el centro (media, proporción) o por la dispersión (varianza)? ¿Se conoce $\sigma$ de verdad o se estima con $s$? Con esas cinco respuestas el método queda determinado. Las dudas más comunes son confundir pareadas con independientes y usar $z$ cuando $\sigma$ se estimó. Si el método usa $t$, falta revisar la normalidad con un gráfico Q-Q; si falla con una muestra pequeña, se transforman los datos o se usa la prueba de Wilcoxon (@sec-una-no-normal).
 :::
 
 ## Errores comunes {#sec-ph-errores-comunes}

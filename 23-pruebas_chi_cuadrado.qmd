@@ -36,7 +36,7 @@ Si $H_0$ es cierta y los conteos esperados no son muy pequeños, el estadístico
 La aproximación $\chi^2$ necesita conteos esperados suficientemente grandes. La regla habitual, de Cochran [-@cochran1954some], es que ningún $E_i$ sea menor que 1 y que no más del 20 % de ellos sea menor que 5. Si no se cumple, se agrupan categorías vecinas o, en cuadros de 2 × 2, se usa la prueba exacta de Fisher. La regla se aplica a los esperados, no a los observados: un conteo observado de 0 no es un problema si su esperado es 6.
 :::
 
-### De dónde sale la distribución chi-cuadrado
+### Origen de la distribución chi-cuadrado
 
 ::: {.pregunta}
 Si los accidentes de verdad se repartieran por igual, ¿qué valores de $\chi^2$ saldrían?

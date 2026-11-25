@@ -34,9 +34,9 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII; diversificación de ramas |
 | 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII; diversificación de ramas |
 | Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
-| 18. Estimación puntual | Borrador | [18-estimacion_puntual.md](18-estimacion_puntual.md) | Parte V |
-| 19. Intervalos de confianza, de predicción y de tolerancia | Borrador | [19-intervalos.md](19-intervalos.md) | Parte V; diversificación de ramas |
-| 20. Pruebas de hipótesis: fundamentos | Borrador | [20-pruebas_fundamentos.md](20-pruebas_fundamentos.md) | Parte V |
-| 21. Pruebas para una población | Borrador | [21-pruebas_una_poblacion.md](21-pruebas_una_poblacion.md) | Parte V; diversificación de ramas |
-| 22. Pruebas para dos poblaciones | Borrador | [22-pruebas_dos_poblaciones.md](22-pruebas_dos_poblaciones.md) | Parte V; diversificación de ramas |
-| 23. Pruebas chi-cuadrado | Borrador | [23-pruebas_chi_cuadrado.md](23-pruebas_chi_cuadrado.md) | Parte V; diversificación de ramas |
+| 18. Estimación puntual | Borrador (ampliado 2026-11-25) | [18-estimacion_puntual.md](18-estimacion_puntual.md) | Parte V |
+| 19. Intervalos de confianza, de predicción y de tolerancia | Borrador (ampliado 2026-11-25) | [19-intervalos.md](19-intervalos.md) | Parte V; diversificación de ramas |
+| 20. Pruebas de hipótesis: fundamentos | Borrador (ampliado 2026-11-25) | [20-pruebas_fundamentos.md](20-pruebas_fundamentos.md) | Parte V |
+| 21. Pruebas para una población | Borrador (ampliado 2026-11-25) | [21-pruebas_una_poblacion.md](21-pruebas_una_poblacion.md) | Parte V; diversificación de ramas |
+| 22. Pruebas para dos poblaciones | Borrador (ampliado 2026-11-25) | [22-pruebas_dos_poblaciones.md](22-pruebas_dos_poblaciones.md) | Parte V; diversificación de ramas |
+| 23. Pruebas chi-cuadrado | Borrador (ampliado 2026-11-25) | [23-pruebas_chi_cuadrado.md](23-pruebas_chi_cuadrado.md) | Parte V; diversificación de ramas |

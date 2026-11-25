@@ -34,34 +34,19 @@ La @fig-una-diagrama ordena la elección como una serie de preguntas. La primera
 #| label: fig-una-diagrama
 #| fig-cap: "Cómo escoger una prueba para una población."
 #| fig-alt: "Árbol de decisión. Si el dato es una medición y se pregunta por la media, se usa z si sigma es conocida y t si no; si se pregunta por la variabilidad, chi-cuadrado. Si el dato es un conteo de éxitos, se usa z para la proporción si np0 y n(1-p0) son al menos 5, y la binomial exacta si no."
-#| fig-width: 8
-#| fig-height: 5.5
-#| out-width: "90%"
 #| echo: false
 
-nodos <- tibble(
-  x = c(0, -2.2, 2.2, -3.3, -1.1, -3.3, -1.1, 1.3, 3.1, 1.3, 3.1, -1.1),
-  y = c(5, 3.8, 3.8, 2.6, 2.6, 1.2, 1.2, 2.6, 2.6, 1.2, 1.2, 0),
-  texto = c("¿Qué tipo de dato?", "Medición continua", "Conteo de éxitos (sí/no)",
-            "¿Media?", "¿Variabilidad?", "σ conocida → z\nσ desconocida → t", "χ² para la varianza\n(población normal)",
-            "np₀ ≥ 5 y\nn(1 − p₀) ≥ 5", "Alguna < 5", "z para la proporción\nprop.test()", "Binomial exacta\nbinom.test()",
-            "Revisar normalidad\ncon un gráfico Q-Q"),
-  tipo = c("pregunta", "pregunta", "pregunta", "pregunta", "pregunta", "prueba", "prueba",
-           "pregunta", "pregunta", "prueba", "prueba", "nota")
-)
-aristas <- tibble(
-  de = c(1, 1, 2, 2, 4, 5, 3, 3, 8, 9, 6, 7),
-  a  = c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12)
-) %>%
-  mutate(x = nodos$x[de], y = nodos$y[de] - 0.25, xend = nodos$x[a], yend = nodos$y[a] + 0.3)
-ggplot() +
-  geom_segment(data = aristas, aes(x, y, xend = xend, yend = yend),
-               arrow = arrow(length = unit(0.15, "cm")), colour = "grey50") +
-  geom_label(data = nodos, aes(x, y, label = texto, fill = tipo), size = 4.2, lineheight = 0.95,
-             label.padding = unit(0.35, "lines")) +
-  scale_fill_manual(values = c(pregunta = "#e3eef7", prueba = "#fdf0d5", nota = "#eeeeee"), guide = "none") +
-  coord_cartesian(xlim = c(-4.3, 4.1), ylim = c(-0.4, 5.4)) +
-  theme_void()
+source("R/diagramas.R")
+dg_jerarquia(
+  raiz = list(c("¿Qué tipo de dato?", "t0")),
+  ramas = list(
+    list(caja = list(c("Medición continua", "t1")),
+         hojas = list(list(c("¿Media?", "t1"), c("σ conocida: z", "t2"), c("σ desconocida: t", "t2"), c("revisar Q-Q", "te")),
+                      list(c("¿Variabilidad?", "t1"), c("χ² para la varianza", "t2"), c("población normal", "t2"), c("revisar Q-Q", "te")))),
+    list(caja = list(c("Conteo de éxitos", "t1"), c("(sí/no)", "t2")),
+         hojas = list(list(c("np₀ ≥ 5 y n(1 − p₀) ≥ 5", "t1"), c("z para la proporción", "t2"), c("prop.test()", "t2")),
+                      list(c("Alguna < 5", "t1"), c("binomial exacta", "t2"), c("binom.test()", "t2"))))),
+  titulo = "Cómo escoger una prueba para una población", tam = 15)
 ```
 
 ::: {.callout-warning title="Cuidado"}
@@ -98,7 +83,7 @@ La @fig-una-z-dato-prueba muestra las dos escalas con los mismos 0.25 kg de dife
 
 ```{r}
 #| label: fig-una-z-dato-prueba
-#| fig-cap: "La misma diferencia de 0.25 kg vista para un saco y para la media de 40 sacos."
+#| fig-cap: "Puntaje z de un saco y estadístico z de la media."
 #| fig-alt: "Dos curvas normales centradas en 50 kg. Arriba, la de los sacos individuales es ancha y el valor 49.75 queda cerca del centro, con z igual a menos 0.31. Abajo, la de las medias de 40 sacos es angosta y 49.75 queda en la cola izquierda, con z igual a menos 1.98."
 #| fig-height: 5
 #| echo: false

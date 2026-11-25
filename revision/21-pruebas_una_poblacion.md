@@ -10,3 +10,11 @@ Fecha: 2026-11-25. Estado: borrador.
 - Fuentes: Montgomery y Runger (2014), Walpole et al. (2012), Student (1908), Shapiro y Wilk (1965), Helsel et al. (2020).
 - Corrección respecto del material del curso: el ejemplo del pH concluía al revés de lo que dice su decisión; aquí se reemplazó por el espesor de carpeta.
 - Diversificación de ramas (2026-11-25): la prueba binomial exacta pasa a muestras de un efluente sobre el límite de coliformes (4 de 10, p₀ = 0.20; mismos números).
+
+## Ampliación didáctica (2026-11-25)
+
+- Secciones nuevas: puntaje z de un dato contra estadístico z de una prueba (signo y escala, con advertencia), formas del gráfico Q-Q, ejemplo bilateral del coeficiente de descarga de un vertedero, tamaño de efecto (d y h de Cohen), datos no normales con la prueba de Wilcoxon, errores comunes.
+- Interactivos nuevos: lectura del gráfico Q-Q; prueba binomial exacta.
+- Diagrama de elección con `R/diagramas.R`. Ejercicios 7 a 10.
+- Fuentes nuevas: Wilcoxon (1945); Helsel et al. (2020).
+- Leyendas cortas, títulos sin la forma "De X a Y", ejemplos nuevos fuera del concreto.

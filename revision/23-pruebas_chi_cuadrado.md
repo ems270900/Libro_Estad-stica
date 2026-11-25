@@ -10,3 +10,9 @@ Fecha: 2026-11-25. Estado: borrador.
 - Fuentes: Pearson (1900), Cochran (1954), Yates (1934), Montgomery y Runger (2014), Walpole et al. (2012), Illowsky y Dean (2018).
 - Sin epígrafe: el libro no los lleva (decisión del autor, 2026-11-25).
 - Diversificación de ramas (2026-11-25): la prueba de independencia pasa al mecanismo de falla de 180 deslizamientos según el material del talud, con `deslizamientos_material_hipotetico.csv` (mismos conteos, χ² = 7.997, p = 0.092); se borró `tipo_falla_cilindros_hipotetico.csv`. El cuadro de 2 × 2 usa ahora los trabajadores de las dos obras del capítulo 22. Se ajustaron la calculadora y los ejercicios 3, 5 y 6. Se conservan las etiquetas `tbl-chi-contingencia` y `fig-chi-fallas`.
+
+## Ampliación didáctica (2026-11-25)
+
+- Secciones nuevas: origen de la distribución chi-cuadrado (simulación interactiva), bondad de ajuste a la normal con clases equiprobables (velocidades en una ruta rural, datos hipotéticos nuevos), residuos estandarizados, V de Cramér, errores comunes.
+- Datos nuevos: `datos/velocidades_ruta_rural_hipoteticas.csv`. Ejercicios 7 a 10.
+- Leyendas cortas, títulos sin la forma "De X a Y", ejemplos nuevos fuera del concreto.

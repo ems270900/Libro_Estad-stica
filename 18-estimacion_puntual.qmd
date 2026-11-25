@@ -687,7 +687,7 @@ Un método más antiguo y más sencillo es el de los momentos: se igualan la med
 Cuando dos métodos de estimación dan valores distintos para el mismo parámetro, los resultados no se promedian. Cada método tiene sus propiedades; para muestras de tamaño moderado se prefiere el de máxima verosimilitud.
 :::
 
-### Dos parámetros a la vez: lluvias máximas y la distribución de Gumbel {#sec-est-gumbel}
+### Lluvias máximas y la distribución de Gumbel {#sec-est-gumbel}
 
 Los dos métodos se aplican igual cuando la distribución tiene dos parámetros, solo que hay que igualar dos momentos o maximizar respecto de dos parámetros. Un caso muy común en hidrología es la distribución de Gumbel, o de valores extremos tipo I, que se usa para las lluvias y los caudales máximos anuales [@gumbel1958statistics; @chow1988applied]. Su función de distribución acumulada es
 
