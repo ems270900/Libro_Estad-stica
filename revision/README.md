@@ -8,7 +8,7 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 |:--|:--|:--|:--|
 | Plantilla del repositorio | Lista | — | (este PR) |
 | Estética de la interfaz (paleta petróleo y ámbar, favicon ∮, tabla de contenidos web como hidrología, botón de inicio, autor y correo en la portada) | Lista | — | rama claude/project-thread-f8e1p8 |
-| Portada, prefacio, introducción y palabras finales | Borrador | — | Prefacio, introducción y palabras finales; imagen de portada generada por código |
+| Portada, prefacio, introducción y palabras finales | Borrador | — | Prefacio, introducción y palabras finales; imagen de portada generada por código; diagramas con estilo común |
 | 1. R y RStudio | Borrador | [01-r_rstudio.md](01-r_rstudio.md) | Parte I; ampliación |
 | 2. Objetos, tipos de datos y operadores | Borrador | [02-objetos_operadores.md](02-objetos_operadores.md) | Parte I; ampliación |
 | 3. Datos y data frames | Borrador | [03-datos_dataframes.md](03-datos_dataframes.md) | Parte I; ampliación |
@@ -19,12 +19,12 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 8. Presentación de datos: cuadros y gráficos | Borrador | [08-presentacion_datos.md](08-presentacion_datos.md) | Parte II; ampliación |
 | 9. Medidas de tendencia central, posición y variabilidad | Borrador | [09-medidas_descriptivas.md](09-medidas_descriptivas.md) | Parte II; ampliación |
 | 10. Experimentos, eventos y axiomas de la probabilidad | Borrador (ampliado 2026-11-25) | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
-| 11. Técnicas de conteo | Borrador (ampliado 2026-11-25) | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
-| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador (ampliado 2026-11-25) | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| 11. Técnicas de conteo | Borrador (ampliado 2026-11-25) | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III; diversificación de ramas |
+| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador (ampliado 2026-11-25) | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III; diversificación de ramas |
 | 13. Variables aleatorias | Borrador | [13-variables_aleatorias.md](13-variables_aleatorias.md) | Parte IV |
-| 14. Distribuciones discretas | Borrador | [14-distribuciones_discretas.md](14-distribuciones_discretas.md) | Parte IV |
+| 14. Distribuciones discretas | Borrador | [14-distribuciones_discretas.md](14-distribuciones_discretas.md) | Parte IV; diversificación de ramas |
 | 15. Distribuciones continuas | Borrador | [15-distribuciones_continuas.md](15-distribuciones_continuas.md) | Parte IV |
-| 16. La distribución normal y sus aproximaciones | Borrador | [16-distribucion_normal.md](16-distribucion_normal.md) | Parte IV |
+| 16. La distribución normal y sus aproximaciones | Borrador | [16-distribucion_normal.md](16-distribucion_normal.md) | Parte IV; diversificación de ramas |
 | 17. Muestreo, distribuciones muestrales y teorema del límite central | Borrador | [17-distribuciones_muestrales.md](17-distribuciones_muestrales.md) | Parte IV |
 | 24. Asociación y correlación | Borrador | [24-correlacion.md](24-correlacion.md) | Parte VI; diversificación de ramas |
 | 25. Regresión lineal simple | Borrador | [25-regresion_simple.md](25-regresion_simple.md) | Parte VI; diversificación de ramas |

@@ -23,7 +23,7 @@ Por definir. El orden oficial de los capítulos está en `_quarto.yml`.
 | `_quarto.yml` | Configuración del libro: capítulos, formato y numeración. |
 | `assets/` | Imágenes (`img/`), estilos (`css/`), estilo de citas (`csl/`) y scripts de la página (`js/`). |
 | `datos/` | Archivos de datos de los ejemplos, descritos en [`datos/LEEME.md`](datos/LEEME.md). |
-| `R/` | Funciones de R que usan los capítulos: vista paginada y descarga de los datos (`ver_datos.R`) y resultados lentos guardados en disco (`resultado_guardado.R`). |
+| `R/` | Funciones de R que usan los capítulos: vista paginada y descarga de los datos (`ver_datos.R`), resultados lentos guardados en disco (`resultado_guardado.R`) y diagramas con estilo común en SVG, con modo oscuro (`diagramas.R`). |
 | `resultados/` | Resultados de cálculos lentos en `.rds`, descritos en [`resultados/LEEME.md`](resultados/LEEME.md). |
 | `_freeze/` | Resultados congelados de cada capítulo (los crea Quarto; van en git). |
 | `herramientas/` | Scripts de apoyo: `publicar.R` (libro en un solo archivo HTML), `revisar_estilo.sh` (revisión de estilo), `partir_html.py` y `portada.js` con `portada_png.js` (generan la imagen de portada: `node herramientas/portada.js E2 petroleo_ambar portada.svg` y luego `node herramientas/portada_png.js portada.svg assets/img/portada.png`). |

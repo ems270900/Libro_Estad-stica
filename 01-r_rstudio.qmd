@@ -56,7 +56,24 @@ RStudio se organiza en cuatro paneles (@fig-r-paneles). Al abrirlo por primera v
 
 Las capturas de este libro se tomaron con la versión de RStudio que funciona en el navegador. La de escritorio que se instala en el paso 2 es igual, salvo por dos detalles de la esquina superior derecha: no muestra el nombre de usuario (en las capturas, "estudiante") ni el botón para cerrar la sesión.
 
-![Los cuatro paneles de RStudio.](assets/img/cap01/paneles_rstudio.png){#fig-r-paneles fig-alt="Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha" width="80%"}
+```{r}
+#| label: fig-r-paneles
+#| fig-cap: "Los cuatro paneles de RStudio."
+#| fig-alt: "Esquema de la ventana de RStudio dividida en cuatro paneles: editor arriba a la izquierda, consola abajo a la izquierda, entorno arriba a la derecha y archivos, gráficos y ayuda abajo a la derecha"
+#| echo: false
+source("R/diagramas.R")
+dg_paneles(list(
+  list(titulo = "Editor de código (script)",
+       detalle = c("Aquí se escribe y se guarda el código.", "Ctrl + Enter envía la línea a la consola.")),
+  list(titulo = "Consola",
+       detalle = c("Aquí R ejecuta las instrucciones", "y muestra los resultados.")),
+  list(titulo = "Entorno e historial",
+       detalle = c("Lista los objetos creados", "(datos, vectores, resultados).")),
+  list(titulo = "Archivos, gráficos, paquetes y ayuda",
+       detalle = c("Muestra los gráficos, la ayuda", "y las carpetas del proyecto."))),
+  barra = "RStudio     File     Edit     Code     View     …",
+  titulo = "Los cuatro paneles de RStudio")
+```
 
 - **Editor de código.** Es un editor de texto donde se escribe el código y se guarda en un archivo con extensión `.R`, llamado script. Lo que se escribe ahí no se ejecuta hasta que se envía a la consola.
 - **Consola.** Es donde R recibe las instrucciones y responde. Se puede escribir directamente en ella, pero lo que se escribe ahí no queda guardado.
@@ -364,7 +381,16 @@ Cuando un mensaje de error no se entiende, copiarlo tal cual en un buscador casi
 
 Casi todo análisis de datos sigue los mismos pasos (@fig-r-flujo): se importan los datos, se ordenan para que cada columna sea una variable y cada fila una observación, se transforman (se calculan columnas nuevas, se filtran filas, se resumen grupos), se visualizan y se comunican los resultados. Los capítulos 3 a 5 siguen ese orden.
 
-![Pasos de un análisis de datos. Fuente: con base en @wickham2017r4ds.](assets/img/cap01/flujo_analisis.png){#fig-r-flujo fig-alt="Cinco recuadros unidos por flechas: importar, ordenar, transformar, visualizar y comunicar, con el capítulo correspondiente debajo de cada uno" width="80%"}
+```{r}
+#| label: fig-r-flujo
+#| fig-cap: "Pasos de un análisis de datos. Fuente: con base en @wickham2017r4ds."
+#| fig-alt: "Cinco recuadros unidos por flechas: importar, ordenar, transformar, visualizar y comunicar, con el capítulo correspondiente debajo de cada uno"
+#| echo: false
+dg_flujo(list(list(c("Importar", "t0")), list(c("Ordenar", "t0")), list(c("Transformar", "t0")),
+              list(c("Visualizar", "t0")), list(c("Comunicar", "t0"))),
+         notas = c("Cap. 3", "Cap. 3", "Cap. 3", "Cap. 4", "Cap. 5"), clase = "c0", tam = 16,
+         titulo = "Pasos de un análisis de datos")
+```
 
 ## Ejercicios propuestos
 
