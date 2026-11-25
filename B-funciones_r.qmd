@@ -71,12 +71,16 @@ Escriba parte del nombre de una función o de lo que hace, como `media` o `csv`.
 | `var()` | Varianza muestral | `var(x)` | 9 |
 | `quantile()` | Cuantiles (percentiles, cuartiles) | `quantile(x, 0.90)` | 9 |
 | `IQR()` | Rango intercuartílico | `IQR(x)` | 9 |
+| `weighted.mean()` | Media ponderada | `weighted.mean(x, w = longitud)` | 9 |
+| `prod()` | Producto de todos los valores | `prod(x)` | 9 |
 | `round()` | Redondea a cierto número de decimales | `round(28.456, 1)` | 2 |
 | `sqrt()` | Raíz cuadrada | `sqrt(16)` | 1 |
 | `abs()` | Valor absoluto | `abs(-2.5)` | 2 |
 | `cumsum()` | Suma acumulada | `cumsum(c(1, 2, 3))` | 6 |
 | `summary()` | Resumen: mínimo, cuartiles, media y máximo | `summary(x)` | 2 |
 | `table()` | Cuenta cuántas veces aparece cada valor | `table(mezcla)` | 2 |
+| `prop.table()` | Convierte conteos en proporciones | `prop.table(table(material))` | 8 |
+| `addmargins()` | Agrega totales a un cuadro de contingencia | `addmargins(table(a, b))` | 8 |
 | `cut()` | Agrupa números en intervalos (clases) | `cut(x, breaks = 4)` | 4 |
 | `ifelse()` | Elige entre dos valores según una condición | `ifelse(x >= 28, "Cumple", "No cumple")` | 3 |
 
@@ -122,6 +126,8 @@ Todas las funciones de este cuadro son del paquete dplyr y se encadenan con el p
 | `summarise()` | Resume cada grupo en una fila | `summarise(media = mean(resistencia_mpa))` | 3 |
 | `n()` | Número de filas de cada grupo, dentro de `summarise()` | `summarise(cantidad = n())` | 3 |
 | `count()` | Cuenta filas por grupo | `datos %>% count(proyecto)` | 3 |
+| `slice_sample()` | Elige filas al azar | `datos %>% slice_sample(n = 5)` | 7 |
+| `glimpse()` | Muestra las columnas y su tipo | `glimpse(datos)` | 7 |
 
 : Funciones del paquete dplyr. {#tbl-apb-dplyr}
 
@@ -149,6 +155,7 @@ Un gráfico de ggplot2 se arma por capas que se suman con `+` [@wickham2016ggplo
 | `geom_point()` | Capa de puntos | `+ geom_point()` | 4 |
 | `geom_histogram()` | Capa de histograma | `+ geom_histogram(bins = 10)` | 4 |
 | `geom_boxplot()` | Capa de cajas y bigotes | `+ geom_boxplot()` | 4 |
+| `geom_col()` | Barras con la altura que trae una columna | `+ geom_col()` | 8 |
 | `position_jitter()` | Separa un poco los puntos que se tapan | `geom_point(position = position_jitter(width = 0.1))` | 4 |
 | `facet_wrap()` | Un panel por cada grupo | `+ facet_wrap(~ proyecto)` | 4 |
 | `labs()` | Títulos de los ejes y de la leyenda | `+ labs(x = "Edad (días)", y = "Resistencia (MPa)")` | 4 |
