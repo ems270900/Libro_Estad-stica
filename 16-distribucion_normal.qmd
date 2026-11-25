@@ -247,7 +247,7 @@ Antes de usar la normal con datos reales, hay que comprobar que la describe bien
 ```{r}
 #| echo: false
 source("R/ver_datos.R")
-ver_datos("datos/resistencia_cilindros_hipotetica.csv",
+ver_datos("datos/resistencia_obra_60_cilindros_hipotetica.csv",
           nombres = c("Cilindro", "Resistencia (MPa)"))
 ```
 
@@ -269,7 +269,7 @@ ver_datos("datos/resistencia_cilindros_hipotetica.csv",
 library(tidyverse)
 
 # 1) Datos y parámetros estimados
-cilindros <- read.csv("datos/resistencia_cilindros_hipotetica.csv")
+cilindros <- read.csv("datos/resistencia_obra_60_cilindros_hipotetica.csv")
 x <- cilindros$resistencia_mpa
 media <- mean(x)
 desv <- sd(x)

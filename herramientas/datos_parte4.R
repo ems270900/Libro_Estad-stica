@@ -22,7 +22,7 @@ write.csv(data.frame(falla = 1:40, dias = round(rexp(40, rate = 1 / 50), 1)),
 # Capítulo 16: resistencia a compresión de 60 cilindros de concreto (MPa)
 set.seed(16)
 write.csv(data.frame(cilindro = 1:60, resistencia_mpa = round(rnorm(60, mean = 35, sd = 3.5), 1)),
-          "datos/resistencia_cilindros_hipotetica.csv", row.names = FALSE)
+          "datos/resistencia_obra_60_cilindros_hipotetica.csv", row.names = FALSE)
 
 # Capítulo 17: población de 2000 tiempos de viaje en bus (min), asimétrica
 set.seed(17)
