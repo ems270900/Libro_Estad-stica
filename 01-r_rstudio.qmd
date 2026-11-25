@@ -134,7 +134,7 @@ Un detalle que confunde al principio: en R, `log()` es el logaritmo natural (el 
 
 Todo lo que va después del símbolo `#` es un comentario: R no lo ejecuta. Los comentarios sirven para explicar qué hace cada línea, y se usan en todo el libro.
 
-### Del script a la consola
+### Enviar líneas del script a la consola
 
 Para enviar una línea del script a la consola se coloca el cursor en ella y se presiona Ctrl + Enter (en Mac, Cmd + Enter). Si se seleccionan varias líneas, se envían todas. El botón Run, arriba a la derecha del editor, hace lo mismo.
 
