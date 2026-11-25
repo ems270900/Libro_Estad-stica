@@ -186,7 +186,7 @@ El interactivo de la @fig-est-interactivo tiene una población hipotética de 50
 </script>
 ```
 
-Población hipotética de 500 cilindros (puntos grises) y una muestra al azar (puntos azules). Mueva el control para cambiar $n$ y pulse el botón para tomar otra muestra.
+Población hipotética y muestra al azar.
 
 :::
 

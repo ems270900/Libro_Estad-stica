@@ -192,7 +192,7 @@ cuadro %>%
 
 ```{r}
 #| label: fig-cor-mezclas
-#| fig-cap: "Velocidad contra densidad del tránsito en diez periodos."
+#| fig-cap: "Velocidad contra densidad del tránsito."
 #| fig-alt: "Diez puntos que bajan casi en línea recta, desde 77 km/h con 12 veh/km hasta 27 km/h con 76 veh/km"
 
 # 1) Datos y diagrama de dispersión (base R)
@@ -371,7 +371,7 @@ Con el control se cambia la correlación de la población que genera 60 puntos. 
 </script>
 ```
 
-Sesenta puntos generados con la correlación elegida. Mueva el control y active el dato atípico.
+Puntos con la correlación elegida.
 
 :::
 
@@ -530,7 +530,7 @@ La @fig-cor-monotona muestra por qué conviene calcular más de uno. Los puntos 
 
 ```{r}
 #| label: fig-cor-monotona
-#| fig-cap: "Relación creciente pero no lineal y sus tres coeficientes (datos hipotéticos)."
+#| fig-cap: "Relación creciente no lineal."
 #| fig-alt: "Puntos que suben rápido al inicio y luego se aplanan, con los valores de Pearson, Spearman y Kendall anotados"
 #| echo: false
 
@@ -582,7 +582,7 @@ La @fig-cor-confusion simula el caso de la cuenca. Los deslizamientos y el cauda
 
 ```{r}
 #| label: fig-cor-confusion
-#| fig-cap: "Deslizamientos y caudal mensual de una cuenca, coloreados por la lluvia del mes (datos hipotéticos)."
+#| fig-cap: "Deslizamientos, caudal y lluvia mensual."
 #| fig-alt: "Puntos que suben de izquierda a derecha; los de la izquierda son azules (poca lluvia) y los de la derecha amarillos (mucha lluvia)"
 #| echo: false
 
@@ -608,7 +608,7 @@ Para afirmar una relación de causa y efecto se necesita más que una correlaci�
 
 ```{r}
 #| label: fig-cor-anscombe
-#| fig-cap: "Los cuatro conjuntos de Anscombe y su recta de mínimos cuadrados. Fuente: datos de @anscombe1973graphs."
+#| fig-cap: "Cuarteto de Anscombe. Fuente: @anscombe1973graphs."
 #| fig-alt: "Cuatro diagramas de dispersión con la misma recta: uno lineal con ruido, uno en curva, uno lineal con un punto alto y uno con todos los puntos en una columna salvo uno"
 #| fig-width: 8
 #| fig-height: 5.5

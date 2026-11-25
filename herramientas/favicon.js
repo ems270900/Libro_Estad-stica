@@ -1,23 +1,19 @@
-// Genera assets/img/favicon.png (y favicon.svg): integral de línea (∮) sin fondo,
-// en el color de acento de la paleta. Uso: node herramientas/favicon.js "#7a1f3d"
+// Genera assets/img/favicon.svg y assets/img/favicon.png: histograma con su curva
+// de densidad, en blanco y ámbar sobre una teja petróleo (opción 7 de la galería,
+// elegida por el autor el 2026-11-25). La teja hace que se vea igual en pestañas
+// claras y oscuras.
+// Uso:  node herramientas/favicon.js  [color_teja]  [color_curva]
 const { chromium } = require('playwright');
 const fs = require('fs');
-const color = process.argv[2] || '#7a1f3d';
-// Contorno blanco debajo, para que el ícono se vea también en pestañas oscuras
-const figura = (c, extra) => `
-  <path d="M46 9.5c-2.6-3.4-8.2-3.2-10.4 1.6C32.4 18 33.6 28 32 38.5c-1.4 9.6-2.4 15.4-6.6 17.4-3 1.4-5.6 0-6.8-2.2"
-        fill="none" stroke="${c}" stroke-width="${5.2 + extra}" stroke-linecap="round"/>
-  <circle cx="46" cy="9.6" r="${3.4 + extra / 2}" fill="${c}"/>
-  <circle cx="18.6" cy="53.6" r="${3.4 + extra / 2}" fill="${c}"/>
-  <ellipse cx="32.6" cy="32" rx="11.5" ry="9" fill="none" stroke="${c}" stroke-width="${3.6 + extra}"/>`;
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${figura('#ffffff', 3)}${figura(color, 0)}
-</svg>`;
-const svgViejo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <path d="M46 9.5c-2.6-3.4-8.2-3.2-10.4 1.6C32.4 18 33.6 28 32 38.5c-1.4 9.6-2.4 15.4-6.6 17.4-3 1.4-5.6 0-6.8-2.2"
-        fill="none" stroke="${color}" stroke-width="5.2" stroke-linecap="round"/>
-  <circle cx="46" cy="9.6" r="3.4" fill="${color}"/>
-  <circle cx="18.6" cy="53.6" r="3.4" fill="${color}"/>
-  <ellipse cx="32.6" cy="32" rx="11.5" ry="9" fill="none" stroke="${color}" stroke-width="3.6"/>
+const teja = process.argv[2] || '#0f5560';
+const curva = process.argv[3] || '#f0b13a';
+const alturas = [7, 16, 25, 30, 22, 13, 6];
+const barras = alturas.map((h, i) =>
+  `<rect x="${10 + i * 6.6}" y="${50 - h}" width="5.2" height="${h}" rx="0.8" fill="#ffffff"/>`).join('');
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="13" fill="${teja}"/>
+  ${barras}
+  <path d="M8 46 C17 44 20 22 30 15 C39 10 44 32 56 46" fill="none" stroke="${curva}" stroke-width="3.6" stroke-linecap="round"/>
 </svg>`;
 fs.writeFileSync('assets/img/favicon.svg', svg);
 (async () => {
