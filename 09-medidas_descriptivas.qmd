@@ -1216,7 +1216,7 @@ En la @fig-med-int-caja est√°n los tiempos de viaje en bus, en minutos, de 20 d√
 ::: {#fig-med-int-caja}
 
 ```{=html}
-<div class="interactivo" id="int-caja">
+<div class="interactivo" id="int-caja-med">
   <label><span>Tiempo del d√≠a que se agrega (min):</span> <output>95</output>
     <input type="range" min="10" max="120" step="1" value="95"></label>
   <div style="display:flex; flex-wrap:wrap; gap:0.3rem 0.6rem; align-items:center;">
@@ -1225,8 +1225,8 @@ En la @fig-med-int-caja est√°n los tiempos de viaje en bus, en minutos, de 20 d√
     <button type="button" class="restaurar">Volver a los 20 d√≠as</button>
   </div>
   <div style="display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem;">
-    <label><input type="radio" name="int-caja-f" value="1.5" checked> Vallas a 1.5 RIC</label>
-    <label><input type="radio" name="int-caja-f" value="3"> Vallas a 3 RIC</label>
+    <label><input type="radio" name="int-caja-med-f" value="1.5" checked> Vallas a 1.5 RIC</label>
+    <label><input type="radio" name="int-caja-med-f" value="3"> Vallas a 3 RIC</label>
     <label><input type="checkbox" class="puntos" checked> Mostrar los datos</label>
   </div>
   <p class="resultado" aria-live="polite"></p>
@@ -1236,7 +1236,7 @@ En la @fig-med-int-caja est√°n los tiempos de viaje en bus, en minutos, de 20 d√
 (function () {
   var base = [34, 36, 37, 38, 38, 39, 40, 40, 41, 42, 42, 43, 44, 45, 46, 47, 49, 51, 53, 58];
   var datos = base.slice();
-  var raiz = document.getElementById("int-caja");
+  var raiz = document.getElementById("int-caja-med");
   var control = raiz.querySelector("input[type=range]"), salida = raiz.querySelector("output");
   var texto = raiz.querySelector(".resultado"), svg = raiz.querySelector("svg");
   var chk = raiz.querySelector(".puntos"), radios = raiz.querySelectorAll("input[type=radio]");
