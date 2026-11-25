@@ -991,7 +991,7 @@ Esa redacción permite que otra persona juzgue el resultado aunque use otro $\al
 ¿Cómo se sabe si toca $z$, $t$, $\chi^2$ o $F$?
 :::
 
-La distribución del estadístico no se escoge por gusto: la dictan el parámetro, lo que se sabe de la población y la forma en que se tomaron los datos. Las distribuciones de la parte anterior describen los datos (la guía para escogerlas está en la @sec-disc-elegir y en la @sec-cont-elegir); las de esta parte describen estadísticos, como se vio en el capítulo de distribuciones muestrales. La @fig-ph-guia resume la elección para todos los métodos de los capítulos 19 a 23, y el @tbl-ph-guia da la función de R y el capítulo de cada uno.
+La distribución del estadístico no se escoge por gusto: la dictan el parámetro, lo que se sabe de la población y la forma en que se tomaron los datos. Las distribuciones de la parte anterior describen los datos (la guía para escogerlas está en la @sec-guia-distribuciones, con detalle en la @sec-disc-elegir y en la @sec-cont-elegir); las de esta parte describen estadísticos, como se vio en el capítulo de distribuciones muestrales. La @fig-ph-guia resume la elección para todos los métodos de los capítulos 19 a 23, y el @tbl-ph-guia da la función de R y el capítulo de cada uno.
 
 ```{r}
 #| label: fig-ph-guia

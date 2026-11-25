@@ -28,7 +28,7 @@ La prueba depende del parámetro que se quiere contrastar y de lo que se sabe de
 
 : Pruebas de hipótesis para una población. {#tbl-una-eleccion}
 
-La @fig-una-diagrama ordena la elección como una serie de preguntas de sí o no. Se recorre de arriba hacia abajo: primero el parámetro y después la condición que decide el estadístico. Las guías de la @sec-disc-elegir y de la @sec-cont-elegir ayudaban a escoger la distribución de los datos; aquí se escoge la distribución del estadístico, que es otra cosa: aunque los datos de un conteo sean binomiales, el estadístico $z$ de la proporción es aproximadamente normal cuando la muestra es grande.
+La @fig-una-diagrama ordena la elección como una serie de preguntas de sí o no. Se recorre de arriba hacia abajo: primero el parámetro y después la condición que decide el estadístico. Las guías de la @sec-disc-elegir, de la @sec-cont-elegir y de la @sec-guia-distribuciones ayudaban a escoger la distribución de los datos; aquí se escoge la distribución del estadístico, que es otra cosa: aunque los datos de un conteo sean binomiales, el estadístico $z$ de la proporción es aproximadamente normal cuando la muestra es grande.
 
 ```{r}
 #| label: fig-una-diagrama

@@ -9,3 +9,12 @@ Fecha: 2026-11-25. Estado: borrador.
 - Interactivo: binomial, Poisson, geométrica y binomial negativa con parámetros y umbral k (`#fig-disc-interactivo`); probado en el navegador contra `pbinom()`.
 - Correcciones respecto a las diapositivas: la binomial negativa se presenta como número de ensayos hasta el éxito k, con media k/p (la diapositiva daba k(1 − p)/p, que es la media del número de fracasos); el ejemplo del lago Cayuga no se usó porque mezclaba n = 230 y n = 10.
 - Diversificación de ramas (2026-11-25): el ejemplo de la binomial negativa pasa de un aditivo para concreto a pozos de monitoreo junto a un derrame de combustible (mismos números, P = 0.1866 y E(X) = 8.33).
+
+## Ampliación (2026-11-25)
+
+- Agregado: independencia en el proceso de Bernoulli y cuadro de las tres preguntas (binomial, geométrica, binomial negativa), árbol de tres ensayos, cómo reconocer una binomial y cuándo no usarla, sección "Periodo de retorno y riesgo de excedencia" (alcantarilla de 25 años en 30 años de vida útil, con simulación), sobredispersión, regla del 5 % para la hipergeométrica, historia de Bortkiewicz, formas de la Poisson, aditividad, cuándo no usar la Poisson, red de relaciones entre discretas y sección de errores comunes.
+- Citas nuevas: @bortkiewicz1898gesetz, @chow1988applied, @montgomery2014applied cap. 3.
+- Figuras nuevas: árbol de Bernoulli y red de relaciones con el estilo común de diagramas (`R/diagramas_red.R`), riesgo de excedencia, hipergeométrica contra binomial, formas de la Poisson.
+- Interactivo nuevo (`#fig-disc-int-riesgo`): riesgo de excedencia según el periodo de retorno y la vida útil.
+- Pendiente: fuente normativa del criterio de 10 % de excedencia en 50 años (475 años), marcada con CITA PENDIENTE.
+- Ejercicios 10 a 12 y lecturas recomendadas.
