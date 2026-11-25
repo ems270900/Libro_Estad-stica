@@ -1,0 +1,25 @@
+# Capítulo 28. Principios del diseño experimental y ANOVA de un factor
+
+## Qué se escribió (2026-11-25)
+
+- Experimento contra estudio observacional; vocabulario (cuadro); unidad experimental y de observación, con aviso de pseudorreplicación.
+- Los tres principios de Fisher: aleatorización (con `sample()` y `set.seed()`), repetición y bloqueo; cuadro de qué hacer con un factor de ruido.
+- Diseño completamente aleatorizado: modelo e hipótesis.
+- Por qué no se hacen muchas pruebas t: error familiar (fórmula, cuadro, interactivo) y simulación en R (cacheada) que compara seis pruebas t contra un ANOVA.
+- La idea del ANOVA con interactivo (separación y dispersión cambian F y el valor p); descomposición de sumas de cuadrados, cuadrados medios, F, regla de decisión y cuadro ANOVA general.
+- Ejemplo completo del ensayo de curado: Solución a mano con cuadro de desviaciones, pseudocódigo, cálculo en base R (`tapply`, `ave`, `qf`, `pf`) y con `aov()`, cuadro ANOVA, figura de los datos, figura de la distribución F, interpretación.
+- Tamaño del efecto (η²), grupos de distinto tamaño, supuestos.
+- Seis ejercicios sin solucionario y lecturas recomendadas.
+
+## Fuentes
+
+- Montgomery (2017), cap. 1 a 3: modelo, sumas de cuadrados, cuadro ANOVA. Fórmulas verificadas.
+- Fisher (1935): principios del diseño. Fisher (1938): epígrafe ("autopsia"), en Sankhyā 4(1), 14–17.
+- Hurlbert (1984): pseudorreplicación.
+- Lane, *Online Statistics Education* (dominio público), cap. 12 y 15. Illowsky y Dean (OpenStax), cap. 13.
+- Diapositivas de la Semana 8 del curso: estructura y datos del ejemplo (ajustados para que los residuos no sean idénticos en todos los grupos).
+
+## Pendiente para el autor
+
+- Confirmar la traducción del epígrafe de Fisher (1938).
+- Los cálculos se verificaron con R 4.3.3 en la nube.

@@ -1,0 +1,609 @@
+---
+title: "Supuestos, diagnóstico y medidas remediales"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"Todos los modelos están equivocados, pero algunos son útiles."\
+— *George E. P. Box [-@box1979robustness, p. 202]. Traducción propia.*
+:::
+
+`lm()` siempre entrega una ecuación, un $R^2$ y unos valores $p$, aunque el modelo no tenga nada que ver con los datos. Las pruebas e intervalos de los capítulos 25 y 26 solo valen si se cumplen ciertos supuestos sobre los errores, y una recta puede estar dominada por un único dato mal digitado. Este capítulo explica cómo revisar un modelo antes de usarlo: qué supuestos hace, cómo se ven sus fallas en los residuos, cómo encontrar los datos que mueven la recta y qué hacer cuando algo falla. El objetivo no es un modelo perfecto, que no existe, sino uno cuyas limitaciones se conocen.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+library(ggplot2)
+library(patchwork)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+mod_mezclas <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+```
+
+## Supuestos del modelo lineal {#sec-diag-supuestos}
+
+El modelo $Y_i = \beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip} + \varepsilon_i$ supone cuatro cosas sobre los errores $\varepsilon_i$ [@montgomery2012introduction, cap. 4]. Una forma de recordarlas es la sigla LINE, de sus nombres en inglés:
+
+1. **Linealidad.** La media de $Y$ es una función lineal de los predictores; es decir, la forma del modelo es la correcta y los errores tienen media cero para cualquier valor de los predictores.
+2. **Independencia.** El error de una observación no da información sobre el error de otra.
+3. **Normalidad.** Los errores siguen una distribución normal.
+4. **Igualdad de varianzas.** La varianza de los errores, $\sigma^2$, es la misma para cualquier valor de los predictores. A esto se le llama homocedasticidad, y a su falla, heterocedasticidad.
+
+No todos los supuestos pesan igual. El @tbl-diag-supuestos resume qué pasa cuando falla cada uno.
+
+```{r}
+#| label: tbl-diag-supuestos
+#| tbl-cap: "Consecuencias de la falla de cada supuesto y cómo se revisa."
+#| echo: false
+
+data.frame(
+  supuesto = c("Linealidad", "Independencia", "Normalidad", "Varianza constante"),
+  falla = c("Los coeficientes y las predicciones están sesgados: el modelo no describe la media.",
+            "Los errores estándar salen demasiado pequeños y la precisión parece mayor de lo que es.",
+            "Con muestras pequeñas, las pruebas y los intervalos dejan de ser exactos. Con muestras grandes importa poco.",
+            "Los coeficientes siguen bien, pero los errores estándar, las pruebas y los intervalos de predicción fallan."),
+  revisa = c("Residuos contra valores ajustados y contra cada predictor",
+             "Residuos en el orden en que se tomaron los datos; prueba de Durbin-Watson",
+             "Gráfico cuantil-cuantil; prueba de Shapiro-Wilk",
+             "Residuos contra ajustados; gráfico de escala-ubicación; prueba de Breusch-Pagan")
+) %>%
+  kbl(col.names = c("Supuesto", "Qué pasa si falla", "Cómo se revisa"), align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+La linealidad es el supuesto más grave: si la forma del modelo es incorrecta, todo lo demás pierde sentido. La normalidad es el menos grave, porque con muchas observaciones los coeficientes tienen distribución aproximadamente normal aunque los errores no lo sean, por el teorema del límite central del capítulo 17.
+
+## Residuos {#sec-diag-residuos}
+
+Los errores $\varepsilon_i$ no se observan, pero los residuos $e_i = y_i - \hat{y}_i$ son su mejor aproximación. Si el modelo es correcto, los residuos deberían verse como ruido sin estructura: centrados en cero, con la misma dispersión en todas partes y sin patrones.
+
+Los residuos crudos tienen las unidades de $Y$, y eso complica decidir si uno es "grande". Además, no todos tienen la misma varianza: los de puntos con valores extremos de $x$ tienden a ser más pequeños, porque esos puntos jalan la recta hacia ellos. Por eso se usan residuos estandarizados [@montgomery2012introduction, cap. 4]:
+
+$$
+r_i = \frac{e_i}{s \, \sqrt{1 - h_{ii}}}
+$$ {#eq-diag-estandarizado}
+
+donde $s$ es el error estándar de la estimación y $h_{ii}$ es el apalancamiento de la observación $i$, que se define en la @sec-diag-influencia. Los residuos estandarizados no tienen unidades y, si el modelo es correcto, se comportan aproximadamente como una normal estándar: se espera que casi todos queden entre $-2$ y $2$, y un valor mayor que 3 en valor absoluto merece revisión.
+
+Hay una variante, el residuo estudentizado, que calcula $s$ sin la observación $i$, para que un dato muy alejado no infle su propio denominador. En R, `rstandard()` da los residuos estandarizados y `rstudent()` los estudentizados.
+
+## Gráficos de diagnóstico {#sec-diag-graficos}
+
+La revisión de un modelo empieza por los gráficos. La @fig-diag-patrones muestra el gráfico más útil, el de residuos contra valores ajustados, en cuatro situaciones típicas.
+
+```{r}
+#| label: fig-diag-patrones
+#| fig-cap: "Patrones de residuos contra valores ajustados (datos simulados)."
+#| fig-alt: "Cuatro paneles: una nube sin forma alrededor de cero, una curva en forma de U, un embudo que se abre hacia la derecha y una nube con un punto muy alto"
+#| fig-width: 8
+#| fig-height: 5.5
+#| echo: false
+
+set.seed(119)
+k <- 45
+aj <- seq(10, 90, length.out = k)
+pat <- rbind(
+  data.frame(aj, e = rnorm(k, 0, 5), caso = "Adecuado"),
+  data.frame(aj, e = 0.012 * (aj - 50)^2 - 9 + rnorm(k, 0, 2.8), caso = "Curvatura"),
+  data.frame(aj, e = rnorm(k, 0, seq(1.2, 10, length.out = k)), caso = "Varianza creciente"),
+  data.frame(aj, e = c(rnorm(k - 1, 0, 4), 23), caso = "Valor atípico")
+)
+pat$caso <- factor(pat$caso, levels = unique(pat$caso))
+ggplot(pat, aes(aj, e)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_point(color = azul, size = 1.8) +
+  facet_wrap(~ caso, scales = "free_y") +
+  labs(x = "Valores ajustados", y = "Residuos") +
+  theme_minimal(base_size = 13)
+```
+
+Cada patrón apunta a un problema distinto:
+
+- **Adecuado.** Una banda horizontal sin forma, centrada en cero. Es lo que se busca.
+- **Curvatura.** Los residuos forman una U o una U invertida: la relación no es lineal y falta un término en el modelo.
+- **Varianza creciente.** La nube se abre como un embudo: la variabilidad crece con el nivel de la respuesta. Es común en caudales, costos y tiempos.
+- **Valor atípico.** Un punto muy lejos del resto, que puede ser un error o un caso distinto.
+
+La función `plot()` aplicada a un modelo de `lm()` dibuja cuatro gráficos de diagnóstico (@fig-diag-plot-base) [@fox2019companion, cap. 8]:
+
+1. **Residuals vs Fitted**: residuos contra valores ajustados, con una curva suavizada en rojo que debería quedar casi horizontal.
+2. **Q-Q Residuals**: el gráfico cuantil-cuantil de los residuos estandarizados contra los cuantiles de una normal. Si los errores son normales, los puntos siguen la diagonal.
+3. **Scale-Location**: la raíz del valor absoluto de los residuos estandarizados contra los ajustados. Una tendencia creciente indica varianza creciente.
+4. **Residuals vs Leverage**: residuos estandarizados contra apalancamiento, con líneas de la distancia de Cook (@sec-diag-influencia). Ayuda a encontrar puntos influyentes.
+
+```{r}
+#| label: fig-diag-plot-base
+#| fig-cap: "Los cuatro gráficos de diagnóstico de `plot()` para el modelo de las diez mezclas."
+#| fig-alt: "Cuatro gráficos de diagnóstico con pocos puntos y sin patrones claros"
+#| fig-width: 8
+#| fig-height: 7
+
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+par(mfrow = c(2, 2))   # cuatro gráficos en una sola figura, 2 x 2
+plot(modelo)
+par(mfrow = c(1, 1))
+```
+
+Con solo diez puntos los gráficos son difíciles de leer, porque cualquier par de puntos parece formar un patrón. No se ve curvatura clara ni un embudo, y ningún residuo estandarizado pasa de 2. Con muestras pequeñas el diagnóstico gráfico es menos concluyente y conviene apoyarse en lo que se sabe del fenómeno.
+
+::: {.callout-note title="Ejemplo: diagnóstico del modelo de resistencia de los 48 cilindros"}
+
+**Planteamiento.** En el capítulo 26 se ajustó la resistencia de 48 cilindros hipotéticos con la relación agua/cemento, la edad (días) y el aditivo. Revise los residuos de ese modelo y, si encuentra un problema, proponga una corrección.
+
+**Solución:**
+
+1. Se grafican los residuos contra la edad (@fig-diag-cilindros, izquierda). El promedio de los residuos es negativo a los 3 días ($-1.75$ MPa), positivo a los 7 ($2.09$ MPa) y casi cero a los 28 ($-0.33$ MPa). Con un modelo correcto los tres promedios serían cercanos a cero: hay curvatura.
+2. La causa es conocida: el concreto gana resistencia rápido en los primeros días y luego cada vez más despacio. Una recta en la edad no puede seguir esa forma.
+3. Una forma que sube rápido y luego se aplana es la del logaritmo, así que se cambia la edad por $\ln(\text{edad})$.
+4. Con el modelo nuevo los promedios por edad quedan en $-0.13$, $0.21$ y $-0.08$ MPa (@fig-diag-cilindros, derecha), el error estándar de la estimación baja de 2.28 a 1.57 MPa y el $R^2$ sube de 0.936 a 0.970.
+
+**Pseudocódigo**
+
+1. Ajustar el modelo original y calcular sus residuos.
+2. Graficar residuos contra cada predictor y contra los valores ajustados.
+3. Calcular el promedio de los residuos en cada edad.
+4. Ajustar el modelo con $\ln(\text{edad})$ y repetir el diagnóstico.
+
+```{r}
+# 1) Modelo original
+cilindros <- read.csv("datos/cilindros_concreto_hipoteticos.csv")
+cilindros$aditivo <- factor(cilindros$aditivo, levels = c("sin", "con"))
+original <- lm(resistencia_mpa ~ relacion_ac + edad_dias + aditivo, data = cilindros)
+
+# 2) y 3) Residuos promedio por edad
+cilindros$res_original <- residuals(original)
+tapply(cilindros$res_original, cilindros$edad_dias, mean)
+
+# 4) Modelo con el logaritmo de la edad
+con_log <- lm(resistencia_mpa ~ relacion_ac + log(edad_dias) + aditivo, data = cilindros)
+cilindros$res_log <- residuals(con_log)
+tapply(cilindros$res_log, cilindros$edad_dias, mean)
+
+c(s_original = sigma(original), s_log = sigma(con_log),
+  R2_original = summary(original)$r.squared, R2_log = summary(con_log)$r.squared)
+summary(con_log)$coefficients
+```
+
+```{r}
+#| label: fig-diag-cilindros
+#| fig-cap: "Residuos contra la edad con la edad en escala lineal (izquierda) y logarítmica (derecha)."
+#| fig-alt: "A la izquierda, los residuos de 7 días están arriba de cero y los de 3 días abajo; a la derecha, los tres grupos están centrados en cero"
+#| fig-width: 8
+#| fig-height: 3.8
+#| echo: false
+
+g1 <- ggplot(cilindros, aes(factor(edad_dias), res_original)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_jitter(width = 0.1, color = azul, size = 2) +
+  stat_summary(fun = mean, geom = "point", shape = 4, size = 5, stroke = 1.5, color = "#D55E00") +
+  labs(x = "Edad (días)", y = "Residuo (MPa)", subtitle = "Edad lineal") +
+  theme_minimal(base_size = 12)
+g2 <- ggplot(cilindros, aes(factor(edad_dias), res_log)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_jitter(width = 0.1, color = azul, size = 2) +
+  stat_summary(fun = mean, geom = "point", shape = 4, size = 5, stroke = 1.5, color = "#D55E00") +
+  labs(x = "Edad (días)", y = "Residuo (MPa)", subtitle = "Logaritmo de la edad") +
+  theme_minimal(base_size = 12)
+g1 + g2 + plot_layout(axes = "collect")
+```
+
+**Interpretación.** El primer modelo tenía un problema de forma, no de datos, y los residuos lo mostraron. Con $\ln(\text{edad})$ los residuos quedan sin patrón. El coeficiente nuevo se lee así: cada vez que la edad se multiplica por $e \approx 2.72$, la resistencia media sube 6.70 MPa; o, más práctico, al duplicar la edad sube $6.70 \ln 2 = 4.64$ MPa. Las cruces naranjas de la figura son los promedios por edad.
+
+:::
+
+## Pruebas formales de los supuestos {#sec-diag-pruebas}
+
+Los gráficos se complementan con pruebas de hipótesis. En todas, $H_0$ es que el supuesto se cumple.
+
+### Normalidad: prueba de Shapiro-Wilk
+
+La prueba de @shapiro1965analysis compara el orden de los residuos con el que tendría una muestra normal. En R: `shapiro.test(residuals(modelo))`. Un valor $p$ pequeño indica que los residuos no parecen normales.
+
+### Varianza constante: prueba de Breusch-Pagan
+
+La idea de la prueba de @breusch1979simple es sencilla: si la varianza cambia con los predictores, los residuos al cuadrado deberían poder explicarse con ellos. Se hace una regresión auxiliar de $e_i^2$ contra los predictores y, en la versión de @koenker1981note, el estadístico es
+
+$$
+BP = n \, R^2_{\text{aux}}
+$$ {#eq-diag-bp}
+
+donde $R^2_{\text{aux}}$ es el coeficiente de determinación de la regresión auxiliar. Si $H_0$ (varianza constante) es cierta, $BP$ sigue aproximadamente una distribución $\chi^2$ con tantos grados de libertad como predictores. Es la versión que calcula `lmtest::bptest()`.
+
+### Independencia: prueba de Durbin-Watson
+
+Cuando los datos se tomaron en orden de tiempo (lecturas diarias de un piezómetro, ensayos de una planta a lo largo del mes), es común que un error grande vaya seguido de otro del mismo signo. La prueba de @durbin1950testing mide esa correlación entre residuos consecutivos:
+
+$$
+DW = \frac{\sum_{t=2}^{n} \left(e_t - e_{t-1}\right)^2}{\sum_{t=1}^{n} e_t^2}
+$$ {#eq-diag-dw}
+
+donde $e_t$ es el residuo de la observación $t$ en el orden de tiempo. $DW$ va de 0 a 4: cerca de 2 indica que no hay correlación, y valores cercanos a 0 indican correlación positiva. En R: `lmtest::dwtest(modelo)`.
+
+::: {.callout-warning title="Cuidado"}
+Las pruebas formales tienen dos limitaciones. Con muestras pequeñas casi nunca rechazan, aunque el supuesto falle; con muestras muy grandes rechazan por desviaciones tan pequeñas que no afectan los resultados. Además, Durbin-Watson solo tiene sentido si las filas están en el orden en que se tomaron los datos: si se ordenaron por otra variable, el resultado no significa nada. Las pruebas no reemplazan a los gráficos; los acompañan.
+:::
+
+El paquete lmtest se usa en este capítulo para `bptest()` y `dwtest()`. Se instala una vez con `install.packages("lmtest")` y se llama con `lmtest::` delante, sin cargarlo.
+
+## Valores atípicos, apalancamiento e influencia {#sec-diag-influencia}
+
+::: {.pregunta}
+¿Puede un solo dato cambiar toda una recta de regresión?
+:::
+
+Sí, y por eso hay que distinguir tres conceptos que se confunden a menudo [@montgomery2012introduction, cap. 6]:
+
+- **Valor atípico.** Un punto cuya respuesta queda lejos de la recta: tiene un residuo estandarizado grande.
+- **Alto apalancamiento.** Un punto con valores de los predictores lejanos del centro de los datos. Tiene la posibilidad de mover la recta, como una palanca larga.
+- **Punto influyente.** Un punto que, si se quita, cambia mucho los coeficientes o las predicciones. Suele combinar residuo grande y apalancamiento alto.
+
+La @fig-diag-tres-casos muestra los tres casos. Un atípico en el centro de los datos mueve poco la recta. Un punto alejado en $x$ pero alineado con los demás tiene mucho apalancamiento y no es influyente. El punto alejado en $x$ y fuera de la tendencia jala la recta hacia él.
+
+```{r}
+#| label: fig-diag-tres-casos
+#| fig-cap: "Valor atípico, punto de alto apalancamiento y punto influyente. La línea gris punteada es la recta sin el punto naranja (datos hipotéticos)."
+#| fig-alt: "Tres paneles con doce puntos en línea y un punto naranja: en el primero está muy arriba en el centro, en el segundo muy a la derecha sobre la línea, en el tercero muy a la derecha y arriba, y la recta se inclina hacia él"
+#| fig-width: 9
+#| fig-height: 3.6
+#| echo: false
+
+base <- data.frame(x = 1:12, y = 10 + 2 * (1:12) + c(-1.8, 1.1, -0.8, 1.5, -1.1, 0.6, 1.3, -0.5, 0.9, -1.4, 0.4, 1.0))
+panel <- function(extra, titulo) {
+  d <- rbind(base, extra)
+  ggplot(d, aes(x, y)) +
+    geom_smooth(data = base, method = "lm", se = FALSE, color = "grey50", linetype = "dashed", linewidth = 0.8) +
+    geom_smooth(method = "lm", se = FALSE, color = azul, linewidth = 1) +
+    geom_point(data = base, size = 2) +
+    geom_point(data = extra, color = "#D55E00", size = 3.5) +
+    coord_cartesian(xlim = c(0, 23), ylim = c(5, 75)) +
+    labs(x = "X", y = "Y", subtitle = titulo) +
+    theme_minimal(base_size = 12)
+}
+panel(data.frame(x = 7, y = 46), "Valor atípico") +
+  panel(data.frame(x = 22, y = 54), "Alto apalancamiento") +
+  panel(data.frame(x = 22, y = 72), "Punto influyente")
+```
+
+### Apalancamiento
+
+El apalancamiento de la observación $i$ se mide con $h_{ii}$, el elemento $i$ de la diagonal de la matriz $\mathbf{H} = \mathbf{X}\left(\mathbf{X}^{\mathsf T}\mathbf{X}\right)^{-1}\mathbf{X}^{\mathsf T}$. En la regresión simple tiene una forma que se calcula a mano:
+
+$$
+h_{ii} = \frac{1}{n} + \frac{(x_i - \bar{x})^2}{S_{xx}}
+$$ {#eq-diag-h}
+
+donde $n$ es el número de observaciones y $S_{xx}$ la suma de cuadrados de $x$. El valor crece con la distancia de $x_i$ a la media. Los $h_{ii}$ suman $p + 1$ (el número de coeficientes), así que su promedio es $(p + 1)/n$. Una regla usual marca como de alto apalancamiento los puntos con $h_{ii} > 2(p + 1)/n$ [@montgomery2012introduction, cap. 6].
+
+### Distancia de Cook
+
+La distancia de Cook [@cook1977detection] mide cuánto cambian todos los valores ajustados si se quita la observación $i$. Se calcula con el residuo estandarizado y el apalancamiento:
+
+$$
+D_i = \frac{r_i^2}{p + 1} \cdot \frac{h_{ii}}{1 - h_{ii}}
+$$ {#eq-diag-cook}
+
+donde $r_i$ es el residuo estandarizado (@eq-diag-estandarizado), $h_{ii}$ el apalancamiento y $p + 1$ el número de coeficientes del modelo. La fórmula deja ver que un punto es influyente cuando tiene residuo grande, apalancamiento grande o, sobre todo, las dos cosas. Se suele revisar con cuidado cualquier punto con $D_i > 1$ [@montgomery2012introduction, cap. 6]; algunos textos usan el criterio más estricto $D_i > 4/n$.
+
+::: {.callout-note title="Ejemplo: apalancamiento, residuos estandarizados y distancia de Cook de las mezclas"}
+
+**Planteamiento.** Para el modelo de las diez mezclas, calcule el apalancamiento, el residuo estandarizado y la distancia de Cook de cada mezcla. Diga si alguna es de alto apalancamiento o influyente.
+
+**Solución:**
+
+1. Del capítulo 25: $n = 10$, $\bar{x} = 0.559$, $S_{xx} = 0.091890$, $s = 1.0421$ MPa y $p + 1 = 2$ coeficientes.
+2. Para la mezcla 10 ($x = 0.70$, $e = 1.195$ MPa), apalancamiento (@eq-diag-h):
+   $$
+   h_{10} = \frac{1}{10} + \frac{(0.70 - 0.559)^2}{0.091890} = 0.1 + \frac{0.019881}{0.091890} = 0.316
+   $$
+3. Residuo estandarizado (@eq-diag-estandarizado): $r_{10} = 1.195 / \left(1.0421\sqrt{1 - 0.316}\right) = 1.195/0.8616 = 1.39$.
+4. Distancia de Cook (@eq-diag-cook): $D_{10} = (1.39^2/2)(0.316/0.684) = 0.966 \times 0.462 = 0.445$.
+5. Las demás mezclas siguen igual (@tbl-diag-influencia). El límite de apalancamiento es $2(2)/10 = 0.40$: ninguna lo pasa, aunque la mezcla 1 ($h = 0.375$) está cerca por ser la de menor relación. Ningún $|r_i|$ pasa de 2 y ninguna $D_i$ pasa de 1.
+
+```{r}
+#| label: tbl-diag-influencia
+#| tbl-cap: "Apalancamiento, residuos estandarizados y distancia de Cook de las diez mezclas."
+#| echo: false
+
+data.frame(i = 1:10, x = sprintf("%.2f", mezclas$relacion_ac), e = sprintf("%.3f", residuals(mod_mezclas)),
+           h = sprintf("%.3f", hatvalues(mod_mezclas)), r = sprintf("%.2f", rstandard(mod_mezclas)),
+           D = sprintf("%.3f", cooks.distance(mod_mezclas))) %>%
+  kbl(col.names = c("<i>i</i>", "<i>x<sub>i</sub></i>", "<i>e<sub>i</sub></i> (MPa)", "<i>h<sub>ii</sub></i>",
+                    "<i>r<sub>i</sub></i>", "<i>D<sub>i</sub></i>"), escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Pseudocódigo**
+
+1. Ajustar el modelo y obtener $s$, $S_{xx}$ y los residuos.
+2. Calcular $h_{ii}$, $r_i$ y $D_i$ con las fórmulas.
+3. Comparar con `hatvalues()`, `rstandard()` y `cooks.distance()`.
+4. Marcar los puntos que pasan los límites.
+
+```{r}
+# 1) Modelo
+mezclas <- read.csv("datos/mezclas_ac_hipoteticas.csv")
+modelo <- lm(resistencia_mpa ~ relacion_ac, data = mezclas)
+x <- mezclas$relacion_ac
+n <- length(x)
+e <- residuals(modelo)
+s <- sigma(modelo)
+Sxx <- sum((x - mean(x))^2)
+
+# 2) Fórmulas
+h <- 1 / n + (x - mean(x))^2 / Sxx
+r <- e / (s * sqrt(1 - h))
+D <- r^2 / 2 * h / (1 - h)
+
+# 3) Funciones de R
+cbind(h, hatvalues(modelo), r, rstandard(modelo), D, cooks.distance(modelo))
+
+# 4) Límites
+which(h > 2 * 2 / n)
+which(abs(r) > 2)
+which(D > 1)
+```
+
+**Interpretación.** Ninguna mezcla domina el ajuste. La que más influye es la 10 ($D = 0.445$), porque está en un extremo del rango y su residuo es de los más grandes, pero quitarla no cambiaría las conclusiones. Las mezclas de los extremos tienen más apalancamiento que las del centro; por eso, al planear ensayos, se recomienda repetir algunas mezclas en los extremos del rango.
+
+:::
+
+### Interactivo: un punto que se mueve
+
+Con los dos controles se mueve una mezcla adicional (en naranja) que se agrega a las diez del ejemplo. La recta azul se ajusta con los once puntos y la gris punteada con los diez originales. Debajo aparecen el apalancamiento, el residuo estandarizado y la distancia de Cook del punto naranja.
+
+::: {#fig-diag-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-influencia">
+  <label><span>Relación a/c del punto nuevo:</span> <output>0.55</output>
+    <input type="range" min="0.30" max="1.00" step="0.01" value="0.55"></label>
+  <label><span>Resistencia del punto nuevo (MPa):</span> <output>34.0</output>
+    <input type="range" min="5" max="50" step="0.5" value="34"></label>
+  <svg viewBox="0 0 640 320" role="img" aria-label="Diez puntos fijos y uno móvil con dos rectas de regresión"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-influencia");
+  var ctl = raiz.querySelectorAll("input"), sal = raiz.querySelectorAll("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var xs0 = [0.40, 0.45, 0.48, 0.50, 0.55, 0.58, 0.60, 0.65, 0.68, 0.70];
+  var ys0 = [44.1, 41.5, 37.2, 38.0, 33.9, 33.5, 30.2, 28.4, 25.0, 26.1];
+  var w = 640, h = 320, m = 44;
+  var sx = function (x) { return m + (x - 0.30) / 0.70 * (w - 2 * m); };
+  var sy = function (y) { return h - m - (y - 0) / 55 * (h - 2 * m); };
+  function ajuste(xs, ys) {
+    var n = xs.length, mx = 0, my = 0, sxx = 0, sxy = 0, sse = 0;
+    for (var i = 0; i < n; i++) { mx += xs[i] / n; my += ys[i] / n; }
+    for (var j = 0; j < n; j++) { sxx += Math.pow(xs[j] - mx, 2); sxy += (xs[j] - mx) * (ys[j] - my); }
+    var b1 = sxy / sxx, b0 = my - b1 * mx;
+    for (var k = 0; k < n; k++) sse += Math.pow(ys[k] - b0 - b1 * xs[k], 2);
+    return { b0: b0, b1: b1, mx: mx, sxx: sxx, s: Math.sqrt(sse / (n - 2)), n: n };
+  }
+  var a0 = ajuste(xs0, ys0);
+  function recta(a, estilo) {
+    return '<line x1="' + sx(0.30) + '" x2="' + sx(1.00) + '" y1="' + sy(a.b0 + a.b1 * 0.30) + '" y2="' + sy(a.b0 + a.b1 * 1.00) + '" ' + estilo + '/>';
+  }
+  function dibujar() {
+    var xn = parseFloat(ctl[0].value), yn = parseFloat(ctl[1].value);
+    sal[0].textContent = xn.toFixed(2); sal[1].textContent = yn.toFixed(1);
+    var a = ajuste(xs0.concat([xn]), ys0.concat([yn]));
+    var hh = 1 / a.n + Math.pow(xn - a.mx, 2) / a.sxx;
+    var e = yn - a.b0 - a.b1 * xn, r = e / (a.s * Math.sqrt(1 - hh)), D = r * r / 2 * hh / (1 - hh);
+    var g = '<defs><clipPath id="int-influencia-recorte"><rect x="' + m + '" y="0" width="' + (w - 2 * m) + '" height="' + (h - m) + '"/></clipPath></defs>';
+    for (var t = 0; t <= 50; t += 10) g += '<text class="eje-texto" x="' + (m - 8) + '" y="' + (sy(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    for (var u = 0.3; u <= 1.001; u += 0.1) g += '<text class="eje-texto" x="' + sx(u) + '" y="' + (h - m + 18) + '" text-anchor="middle">' + u.toFixed(1) + '</text>';
+    g += '<line class="eje" x1="' + m + '" x2="' + (w - m) + '" y1="' + (h - m) + '" y2="' + (h - m) + '"/>' +
+      '<line class="eje" x1="' + m + '" x2="' + m + '" y1="' + m / 2 + '" y2="' + (h - m) + '"/>' +
+      '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Relación agua/cemento</text>' +
+      '<g clip-path="url(#int-influencia-recorte)">' + recta(a0, 'stroke="#888" stroke-width="2" stroke-dasharray="6 4"') +
+      recta(a, 'stroke="#1C6BA0" stroke-width="2.5"') + '</g>';
+    for (var q = 0; q < xs0.length; q++) g += '<circle cx="' + sx(xs0[q]) + '" cy="' + sy(ys0[q]) + '" r="4" fill="#222"/>';
+    g += '<circle cx="' + sx(xn) + '" cy="' + sy(yn) + '" r="7" fill="#D55E00"/>';
+    svg.innerHTML = g;
+    var marca = D > 1 ? " (influyente: D > 1)" : (hh > 4 / a.n ? " (alto apalancamiento)" : "");
+    texto.textContent = "Recta con el punto: ŷ = " + a.b0.toFixed(1) + " " + (a.b1 < 0 ? "− " : "+ ") + Math.abs(a.b1).toFixed(1) +
+      " x   |   h = " + hh.toFixed(3) + "   r = " + r.toFixed(2) + "   D de Cook = " + D.toFixed(2) + marca;
+  }
+  ctl[0].addEventListener("input", dibujar);
+  ctl[1].addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Una mezcla adicional movible y su efecto sobre la recta. El límite de apalancamiento es 2(2)/11 = 0.36.
+
+:::
+
+Si el punto naranja se pone en el centro (relación 0.55) y se sube hasta 50 MPa, el residuo crece mucho, pero la recta casi no se inclina y $D$ queda debajo de 1. Si se lleva a una relación de 0.95 sobre la prolongación de la recta (unos 9 MPa), el apalancamiento pasa de 0.6 y $D$ sigue pequeña. Si a esa misma relación se le pone una resistencia de 30 MPa, la recta gira y $D$ pasa de 1.
+
+### Qué hacer con un punto influyente
+
+Un dato no se borra solo porque incomoda al modelo. Ante un punto atípico o influyente se sigue este orden [@helsel2020statistical, cap. 9]:
+
+1. **Revisar el dato** en la fuente original: errores de digitación, de unidades o de equipo. Si es un error y se puede corregir, se corrige; si no, se elimina y se informa.
+2. **Preguntar si pertenece a la población estudiada.** Un cilindro que se curó al sol, o una cuenca con un embalse, puede ser un caso distinto que no corresponde a este modelo.
+3. **Ajustar el modelo con y sin el punto** y comparar las conclusiones.
+4. **Informar** lo que se hizo. Si el dato es correcto y pertenece al problema, conservarlo suele dar más información que esconderlo: a veces el punto raro es el que muestra que falta una variable o que la relación es curva.
+
+## Medidas remediales {#sec-diag-remedios}
+
+Una medida remedial ataca la causa del problema que mostró el diagnóstico. El @tbl-diag-remedios resume las más comunes [@montgomery2012introduction, cap. 5].
+
+```{r}
+#| label: tbl-diag-remedios
+#| tbl-cap: "Problemas frecuentes en una regresión y medidas razonables."
+#| echo: false
+
+data.frame(
+  patron = c("Curvatura en los residuos", "Embudo (varianza creciente)", "Residuos con secuencia en el tiempo",
+             "Punto aislado con mucha influencia", "Coeficientes inestables con VIF alto", "Residuos muy asimétricos"),
+  causa = c("Forma del modelo incompleta", "Variabilidad proporcional al nivel de la respuesta",
+            "Errores dependientes", "Error en el dato o caso diferente", "Predictores redundantes",
+            "Respuesta asimétrica o atípicos"),
+  medida = c("Transformar <i>x</i> (logaritmo, raíz), agregar <i>x</i><sup>2</sup> o una variable omitida",
+             "Transformar <i>y</i> (logaritmo, raíz) o usar mínimos cuadrados ponderados",
+             "Agregar el tiempo o la estación como predictor; usar modelos de series de tiempo",
+             "Verificar, comparar con y sin el punto, documentar", "Dejar una de las variables o combinarlas",
+             "Transformar <i>y</i>; revisar atípicos")
+) %>%
+  kbl(col.names = c("Patrón", "Causa probable", "Medida razonable"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Transformaciones
+
+Una transformación cambia la escala de $Y$, de $X$ o de las dos para que la relación se vuelva lineal o la varianza se estabilice. La palabra "lineal" de la regresión se refiere a los coeficientes, no a las variables: un modelo con $\ln x$ o con $x^2$ se ajusta con `lm()` igual que una recta. El @tbl-diag-transformaciones muestra las más usadas.
+
+```{r}
+#| label: tbl-diag-transformaciones
+#| tbl-cap: "Transformaciones frecuentes y cómo se interpreta la pendiente."
+#| echo: false
+
+data.frame(
+  modelo = c("<i>y</i> = <i>β</i><sub>0</sub> + <i>β</i><sub>1</sub> ln <i>x</i>",
+             "ln <i>y</i> = <i>β</i><sub>0</sub> + <i>β</i><sub>1</sub> <i>x</i>",
+             "ln <i>y</i> = <i>β</i><sub>0</sub> + <i>β</i><sub>1</sub> ln <i>x</i>",
+             "√<i>y</i> = <i>β</i><sub>0</sub> + <i>β</i><sub>1</sub> <i>x</i>",
+             "<i>y</i> = <i>β</i><sub>0</sub> + <i>β</i><sub>1</sub> <i>x</i> + <i>β</i><sub>2</sub> <i>x</i><sup>2</sup>"),
+  uso = c("Crecimiento rápido al inicio que luego se frena (resistencia contra edad)",
+          "Crecimiento o decaimiento porcentual; varianza que crece con <i>y</i>",
+          "Relaciones potenciales <i>y</i> = <i>a x<sup>b</sup></i> (caudal contra área de cuenca)",
+          "Conteos (vehículos, fallas) con varianza moderadamente creciente",
+          "Curvatura con un máximo o un mínimo"),
+  interp = c("Al duplicar <i>x</i>, <i>y</i> cambia <i>β</i><sub>1</sub> ln 2 unidades",
+             "Cada unidad de <i>x</i> multiplica <i>y</i> por <i>e</i><sup><i>β</i><sub>1</sub></sup>",
+             "Un aumento de 1 % en <i>x</i> cambia <i>y</i> cerca de <i>β</i><sub>1</sub> %",
+             "Sin lectura directa; se interpreta con predicciones",
+             "La pendiente depende de <i>x</i>: <i>β</i><sub>1</sub> + 2<i>β</i><sub>2</sub><i>x</i>")
+) %>%
+  kbl(col.names = c("Modelo", "Uso frecuente", "Lectura de la pendiente"), escape = FALSE, align = "lll") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Cuando no está claro qué transformación de $Y$ usar, el método de @box1964analysis busca la potencia $\lambda$ que hace que los residuos se parezcan más a una normal con varianza constante. La familia de Box-Cox es $y^{(\lambda)} = (y^{\lambda} - 1)/\lambda$, con $\lambda = 0$ igual a $\ln y$. Un $\lambda$ cercano a 1 indica que no hace falta transformar, cerca de 0.5 sugiere la raíz cuadrada y cerca de 0 el logaritmo. En R se calcula con `MASS::boxcox()`; el paquete MASS viene instalado con R.
+
+::: {.callout-note title="Ejemplo: caudal medio anual y área de la cuenca"}
+
+**Planteamiento.** Para 20 cuencas hipotéticas se tienen el área (km²) y el caudal medio anual (m³/s). Ajuste la recta del caudal contra el área, revise los supuestos y, si hace falta, proponga una transformación. Estime el caudal de una cuenca de 300 km².
+
+```{r}
+#| echo: false
+ver_datos("datos/cuencas_caudal_hipoteticas.csv",
+          nombres = c("Cuenca", "Área (km²)", "Caudal medio anual (m³/s)"))
+```
+
+**Solución:**
+
+1. La recta $\hat{Q} = 1.39 + 0.0428\,A$ tiene $R^2 = 0.771$, pero los residuos forman un embudo (@fig-diag-cuencas, izquierda): las cuencas pequeñas casi no se separan de la recta y las grandes se separan hasta 19 m³/s.
+2. Prueba de Breusch-Pagan (@eq-diag-bp): la regresión de $e_i^2$ contra el área tiene $R^2_{\text{aux}} = 0.376$, así que $BP = 20 \times 0.376 = 7.52$. Con 1 grado de libertad, $\chi^2_{0.95,\,1} = 3.84$; se rechaza la varianza constante ($p = 0.006$). Shapiro-Wilk también rechaza la normalidad ($p = 0.009$).
+3. Box-Cox sugiere $\lambda = 0.24$, con un intervalo de confianza del 95 % que va de $-0.03$ a $0.49$ y contiene al 0. Además, en hidrología es común que el caudal crezca como una potencia del área [@helsel2020statistical, cap. 9]. Se toman logaritmos en las dos variables.
+4. Para la primera cuenca, $A = 6.7$ km² y $Q = 0.59$ m³/s pasan a $\ln A = 1.902$ y $\ln Q = -0.528$. Las demás siguen igual.
+5. El modelo transformado es $\widehat{\ln Q} = -2.958 + 0.988 \ln A$, con $R^2 = 0.965$. Sus residuos no muestran embudo (@fig-diag-cuencas, derecha), $BP = 0.64$ ($p = 0.42$) y Shapiro-Wilk da $p = 0.95$.
+6. Para $A = 300$ km²: $\widehat{\ln Q} = -2.958 + 0.988 \ln 300 = -2.958 + 0.988(5.704) = 2.676$, y $\hat{Q} = e^{2.676} = 14.5$ m³/s.
+
+**Pseudocódigo**
+
+1. Ajustar la recta original y graficar los residuos.
+2. Calcular Breusch-Pagan con la regresión auxiliar y comparar con `lmtest::bptest()`.
+3. Buscar $\lambda$ con `MASS::boxcox()`.
+4. Ajustar el modelo log-log y repetir el diagnóstico.
+5. Predecir en la escala logarítmica y volver a m³/s con `exp()`.
+
+```{r}
+# 1) Recta original
+cuencas <- read.csv("datos/cuencas_caudal_hipoteticas.csv")
+original <- lm(caudal_m3s ~ area_km2, data = cuencas)
+
+# 2) Breusch-Pagan a mano y con lmtest
+e2 <- residuals(original)^2
+auxiliar <- lm(e2 ~ cuencas$area_km2)
+BP <- nrow(cuencas) * summary(auxiliar)$r.squared
+c(BP = BP, p = pchisq(BP, df = 1, lower.tail = FALSE))
+lmtest::bptest(original)
+shapiro.test(residuals(original))
+
+# 3) Box-Cox: lambda que maximiza la verosimilitud
+bc <- MASS::boxcox(caudal_m3s ~ area_km2, data = cuencas,
+                   lambda = seq(-1, 1.5, 0.01), plotit = FALSE)
+bc$x[which.max(bc$y)]
+
+# 4) Modelo log-log y su diagnóstico
+loglog <- lm(log(caudal_m3s) ~ log(area_km2), data = cuencas)
+summary(loglog)$coefficients
+lmtest::bptest(loglog)
+shapiro.test(residuals(loglog))
+
+# 5) Predicción para 300 km², de vuelta en m³/s
+nueva <- data.frame(area_km2 = 300)
+exp(predict(loglog, nueva, interval = "prediction"))
+```
+
+```{r}
+#| label: fig-diag-cuencas
+#| fig-cap: "Residuos contra valores ajustados del modelo lineal (izquierda) y del modelo log-log (derecha)."
+#| fig-alt: "A la izquierda, los residuos se abren como un embudo hacia la derecha; a la derecha, forman una banda pareja alrededor de cero"
+#| fig-width: 8
+#| fig-height: 3.8
+#| echo: false
+
+d1 <- data.frame(aj = fitted(original), e = residuals(original))
+d2 <- data.frame(aj = fitted(loglog), e = residuals(loglog))
+h1 <- ggplot(d1, aes(aj, e)) + geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(color = azul, size = 2) +
+  labs(x = "Caudal ajustado (m³/s)", y = "Residuo (m³/s)", subtitle = "Q contra A") +
+  theme_minimal(base_size = 12)
+h2 <- ggplot(d2, aes(aj, e)) + geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(color = azul, size = 2) +
+  labs(x = "ln del caudal ajustado", y = "Residuo (ln)", subtitle = "ln Q contra ln A") +
+  theme_minimal(base_size = 12)
+h1 + h2
+```
+
+**Interpretación.** En escala original, $Q = e^{-2.958} A^{0.988} = 0.052\,A^{0.988}$: el exponente es casi 1, así que el caudal crece casi en proporción al área, a razón de unos 0.05 m³/s por km². Un aumento de 1 % en el área se asocia con un aumento de 0.99 % en el caudal medio. Para una cuenca de 300 km² se estiman 14.5 m³/s, con un intervalo de predicción del 95 % de 6.5 a 32.5 m³/s. Ese intervalo es asimétrico porque se calculó en logaritmos, y refleja que en cuencas grandes la incertidumbre en m³/s es mayor.
+
+:::
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+Al devolver una predicción con `exp()`, el resultado estima la mediana de $Q$, no su media, porque la media de $\ln Q$ no es el logaritmo de la media de $Q$. Si interesa la media (por ejemplo, para un balance de volúmenes), se multiplica por un factor de corrección. Uno sencillo es el de *smearing* de Duan: el promedio de $e^{e_i}$ de los residuos del modelo logarítmico, que aquí vale `r round(mean(exp(residuals(lm(log(caudal_m3s) ~ log(area_km2), data = read.csv("datos/cuencas_caudal_hipoteticas.csv"))))), 3)`. @helsel2020statistical [cap. 9] discuten este sesgo y sus correcciones en hidrología.
+:::
+
+::: {.callout-warning title="Cuidado"}
+Después de transformar hay que repetir todo el diagnóstico, porque una transformación puede arreglar un problema y crear otro. También cambian la interpretación de los coeficientes y las unidades de $R^2$ y de $s$: un $R^2$ calculado con $\ln Q$ no se compara directamente con uno calculado con $Q$.
+:::
+
+## Estrategia completa de un análisis de regresión {#sec-diag-estrategia}
+
+Los capítulos 24 a 27 se resumen en una secuencia de trabajo que sirve para cualquier problema de regresión:
+
+1. **Definir el objetivo**, la respuesta y los posibles predictores, con base en el conocimiento técnico del problema.
+2. **Graficar los datos**: diagramas de dispersión de la respuesta contra cada predictor y matriz de correlación entre predictores.
+3. **Ajustar un modelo inicial** con los predictores que la teoría señala.
+4. **Revisar los residuos**: contra valores ajustados, contra cada predictor, en orden de tiempo si aplica, y el gráfico cuantil-cuantil.
+5. **Buscar puntos influyentes** con el apalancamiento y la distancia de Cook, y revisar cada uno en su fuente.
+6. **Corregir con criterio**: transformar, agregar términos o quitar predictores redundantes, y volver al paso 4.
+7. **Hacer inferencia** solo cuando el diagnóstico es aceptable: pruebas, intervalos y predicciones.
+8. **Comunicar** la ecuación con sus unidades, la incertidumbre, el rango de validez y las limitaciones.
+
+## Ejercicios propuestos
+
+1. Para cada patrón, diga cuál es el problema más probable y una medida razonable: (a) residuos en forma de U contra los ajustados; (b) residuos cuya dispersión crece con los ajustados; (c) dos predictores con $r = 0.98$ y errores estándar muy grandes; (d) residuos consecutivos en el tiempo con el mismo signo; (e) una observación que cambia todos los coeficientes al quitarla.
+2. En las diez mezclas, suponga que la resistencia de la mezcla 2 se digitó como 31.5 en vez de 41.5 MPa. Ajuste de nuevo el modelo y calcule $h$, $r$ y $D$ de esa mezcla. ¿Es un atípico, un punto de alto apalancamiento o un punto influyente?
+3. Calcule a mano el apalancamiento de una mezcla nueva con relación 0.90 si se agregara a las diez del ejemplo (use $\bar{x}$ y $S_{xx}$ de los once puntos). Compare con el límite $2(p+1)/n$.
+4. Con el modelo log-log de las cuencas, calcule a mano la predicción para 50 km² y para 1000 km². ¿Cuál de las dos es una extrapolación?
+5. Con el modelo de los cilindros con $\ln(\text{edad})$, dibuje los cuatro gráficos de `plot()` y describa lo que ve en cada uno.
+6. Simule en R 100 pares con `x <- runif(100, 1, 10)` y `y <- 2 + 3 * x + rnorm(100, sd = x)`. Ajuste la recta, haga los gráficos de diagnóstico y la prueba de Breusch-Pagan, y explique el resultado.
+7. Con los datos `cars` que trae R (distancia de frenado contra velocidad), ajuste la recta, revise los supuestos y pruebe un modelo con la velocidad al cuadrado. ¿Cuál modelo prefiere y por qué?
+8. Un compañero eliminó tres datos de un análisis "porque tenían residuos mayores que 2". Escriba un párrafo que explique por qué ese criterio no es suficiente y qué debió hacer.
+
+## Lecturas recomendadas
+
+- @montgomery2012introduction, capítulos 4 a 6: diagnóstico con residuos, transformaciones y medidas de influencia, con todas las fórmulas y muchos ejemplos.
+- @fox2019companion, capítulo 8: cómo hacer el diagnóstico de un modelo en R, con los gráficos de `plot()` y las funciones del paquete car.
+- @helsel2020statistical, capítulo 9: regresión simple con datos de recursos hídricos, con atención especial a las transformaciones logarítmicas y a la corrección del sesgo al volver a la escala original.
+- @box1979robustness: el artículo de la frase del epígrafe, sobre cómo construir modelos útiles sabiendo que ninguno es exacto.

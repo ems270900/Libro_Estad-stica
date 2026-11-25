@@ -54,8 +54,55 @@ book:
         - 05-rmarkdown.qmd
         - 06-programacion_simulacion.qmd
 
+    - part: "Estadística descriptiva"
+      chapters:
+        - 07-estadistica_ingenieria.qmd
+        - 08-presentacion_datos.qmd
+        - 09-medidas_descriptivas.qmd
+
+    - part: "Probabilidad"
+      chapters:
+        - 10-experimentos_eventos.qmd
+        - 11-tecnicas_conteo.qmd
+        - 12-probabilidad_condicional.qmd
+
+    - part: "Variables aleatorias y distribuciones"
+      chapters:
+        - 13-variables_aleatorias.qmd
+        - 14-distribuciones_discretas.qmd
+        - 15-distribuciones_continuas.qmd
+        - 16-distribucion_normal.qmd
+        - 17-distribuciones_muestrales.qmd
+
+    - part: "Inferencia estadística"
+      chapters:
+        - 18-estimacion_puntual.qmd
+        - 19-intervalos.qmd
+        - 20-pruebas_fundamentos.qmd
+        - 21-pruebas_una_poblacion.qmd
+        - 22-pruebas_dos_poblaciones.qmd
+        - 23-pruebas_chi_cuadrado.qmd
+
+    - part: "Correlación y regresión"
+      chapters:
+        - 24-correlacion.qmd
+        - 25-regresion_simple.qmd
+        - 26-regresion_multiple.qmd
+        - 27-diagnostico_regresion.qmd
+
+    - part: "Diseño de experimentos"
+      chapters:
+        - 28-anova_un_factor.qmd
+        - 29-comparaciones_bloques.qmd
+        - 30-factoriales.qmd
+
     - epilogo.qmd
     - 99-Referencias.qmd
+
+  appendices:
+    - A-tablas_estadisticas.qmd
+    - B-funciones_r.qmd
+    - C-glosario.qmd
 
 format:
   html:

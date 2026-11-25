@@ -1,0 +1,694 @@
+---
+title: "Distribuciones discretas"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+naranja <- "#E69F00"
+tema_libro <- theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank())
+```
+
+En el capítulo 13 cada función de probabilidad se armó desde cero, contando resultados o usando frecuencias. En la práctica muchas situaciones se repiten con la misma estructura: un número fijo de ensayos que pasan o no pasan, una espera hasta el primer éxito, conteos de eventos raros en un intervalo de tiempo. Para cada una de esas estructuras ya existe una fórmula conocida, con media y varianza deducidas una sola vez. Este capítulo presenta las siete distribuciones discretas más usadas en ingeniería civil, explica cuándo sirve cada una y muestra cómo calcular con ellas a mano y con R. Para usarlas bien no hace falta memorizar las fórmulas, sino aprender a reconocer la estructura del problema.
+
+## Distribuciones con nombre y parámetros {#sec-disc-parametros}
+
+Una distribución con nombre (o distribución paramétrica) es una familia de funciones de probabilidad que comparten una fórmula. Lo que distingue a un miembro de otro son unos pocos números llamados parámetros. Decir "el número de cilindros que fallan sigue una distribución binomial" no dice mucho. Decir "sigue una binomial con $n = 12$ ensayos y probabilidad de falla $p = 0.10$" basta para calcular cualquier probabilidad.
+
+Se usa la notación $X \sim \text{Bin}(n, p)$, que se lee "$X$ sigue una distribución binomial con parámetros $n$ y $p$". El símbolo $\sim$ significa "se distribuye como".
+
+R tiene cuatro funciones para cada distribución, y todas siguen la misma regla de nombres: una letra que dice qué se calcula y una raíz con el nombre de la distribución. El @tbl-disc-funciones-r las resume con la binomial como ejemplo. Aprender esta regla una vez sirve para todas las distribuciones del libro, discretas y continuas.
+
+```{r}
+#| label: tbl-disc-funciones-r
+#| tbl-cap: "Las cuatro funciones de R para cada distribución, con la binomial como ejemplo."
+#| echo: false
+
+tibble(
+  letra = c("d", "p", "q", "r"),
+  calcula = c("Función de probabilidad: <i>P</i>(<i>X</i> = <i>x</i>)",
+              "FDA: <i>P</i>(<i>X</i> ≤ <i>x</i>)",
+              "Cuantil: el menor <i>x</i> con <i>P</i>(<i>X</i> ≤ <i>x</i>) ≥ <i>q</i>",
+              "Números aleatorios (simulación)"),
+  ejemplo = c("<code>dbinom(2, size = 12, prob = 0.1)</code>",
+              "<code>pbinom(2, size = 12, prob = 0.1)</code>",
+              "<code>qbinom(0.95, size = 12, prob = 0.1)</code>",
+              "<code>rbinom(5, size = 12, prob = 0.1)</code>")
+) %>%
+  kbl(col.names = c("Letra", "Qué calcula", "Ejemplo"), escape = FALSE, align = "l") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Las raíces de las distribuciones discretas de este capítulo son `binom` (binomial), `geom` (geométrica), `nbinom` (binomial negativa), `hyper` (hipergeométrica) y `pois` (Poisson). La uniforme discreta no tiene funciones propias porque se calcula con aritmética simple, y la Bernoulli es una binomial con $n = 1$.
+
+::: {.callout-warning title="Cuidado"}
+Las funciones `p` dan $P(X \le x)$, con "menor o igual". Para una probabilidad del tipo "al menos", hay que restar del complemento con un valor menos: $P(X \ge 3) = 1 - P(X \le 2)$, que en R es `1 - pbinom(2, 12, 0.1)`, no `1 - pbinom(3, 12, 0.1)`.
+:::
+
+## Distribución uniforme discreta {#sec-disc-uniforme}
+
+Es la distribución más simple: todos los valores posibles tienen la misma probabilidad. Si $X$ puede tomar los $n$ valores enteros $1, 2, \ldots, n$, entonces
+
+$$
+f_X(x) = \frac{1}{n}, \qquad x = 1, 2, \ldots, n
+$$ {#eq-disc-uniforme}
+
+con media y varianza
+
+$$
+E(X) = \frac{n + 1}{2}, \qquad \operatorname{Var}(X) = \frac{n^2 - 1}{12}
+$$ {#eq-disc-uniforme-momentos}
+
+Para un dado equilibrado ($n = 6$): $E(X) = 7/2 = 3.5$ y $\operatorname{Var}(X) = 35/12 = 2.917$. La uniforme discreta aparece cuando se elige al azar un elemento de una lista, como el número de una viga de un lote para ensayarla o el día de la semana para una inspección sorpresa. En R se simula con `sample(1:n, size, replace = TRUE)`.
+
+## Ensayos y distribución de Bernoulli {#sec-disc-bernoulli}
+
+Un ensayo de Bernoulli es un experimento con solo dos resultados posibles, que se llaman éxito y fracaso. Las etiquetas son arbitrarias: "éxito" es simplemente el resultado que se cuenta, aunque sea algo malo, como una soldadura defectuosa. Se codifica éxito = 1 y fracaso = 0. Si $p$ es la probabilidad de éxito,
+
+$$
+f_X(x) = p^x (1 - p)^{1 - x}, \qquad x \in \{0, 1\}
+$$ {#eq-disc-bernoulli}
+
+es decir, $P(X = 1) = p$ y $P(X = 0) = 1 - p$. Con la @eq-va-esperanza del capítulo 13: $E(X) = 0(1 - p) + 1(p) = p$ y $E(X^2) = p$, de modo que
+
+$$
+E(X) = p, \qquad \operatorname{Var}(X) = p(1 - p)
+$$ {#eq-disc-bernoulli-momentos}
+
+Por ejemplo, si una soldadura de un puente metálico resulta defectuosa con probabilidad 0.03 y se toma "defectuosa" como éxito, entonces $E(X) = 0.03$ y $\operatorname{Var}(X) = 0.03 \cdot 0.97 = 0.0291$. La varianza es máxima cuando $p = 0.5$, porque es cuando más difícil resulta adivinar el resultado.
+
+Una serie de ensayos de Bernoulli forma un proceso de Bernoulli si cumple tres condiciones [@illowsky2018introductory, cap. 4]:
+
+1. Cada ensayo tiene solo dos resultados posibles.
+2. La probabilidad de éxito $p$ es la misma en todos los ensayos.
+3. Los ensayos son independientes: el resultado de uno no cambia la probabilidad de los demás.
+
+Las tres distribuciones siguientes (binomial, geométrica y binomial negativa) salen de un proceso de Bernoulli. Lo que cambia entre ellas es qué se cuenta.
+
+## Distribución binomial {#sec-disc-binomial}
+
+::: {.pregunta}
+Si cada cilindro de una colada tiene un 10 % de probabilidad de no alcanzar la resistencia especificada, ¿qué tan raro es que fallen dos de doce?
+:::
+
+La distribución binomial cuenta el número de éxitos $X$ en un número fijo $n$ de ensayos de Bernoulli. Para entender su fórmula, conviene volver a las tres monedas del capítulo 13. La probabilidad de una secuencia particular con $x$ éxitos y $n - x$ fracasos, como E, E, C, es $p^x (1 - p)^{n - x}$, porque los ensayos son independientes y las probabilidades se multiplican. Pero hay varias secuencias con el mismo número de éxitos. ¿Cuántas? Tantas como formas de escoger en qué $x$ posiciones de las $n$ caen los éxitos, que es el coeficiente binomial del capítulo 11:
+
+$$
+\binom{n}{x} = \frac{n!}{x!\,(n - x)!}
+$$ {#eq-disc-coef-binomial}
+
+Al multiplicar el número de secuencias por la probabilidad de cada una se obtiene la función de probabilidad binomial [@illowsky2018introductory, cap. 4]:
+
+$$
+P(X = x) = \binom{n}{x}\, p^x\, (1 - p)^{n - x}, \qquad x = 0, 1, \ldots, n
+$$ {#eq-disc-binomial}
+
+donde $n$ es el número de ensayos, $p$ es la probabilidad de éxito en cada ensayo y $x$ es el número de éxitos. Como $X$ es la suma de $n$ variables de Bernoulli independientes, con la @eq-va-suma-media y la @eq-va-suma-var del capítulo 13 se obtiene directamente su media y su varianza:
+
+$$
+E(X) = n\,p, \qquad \operatorname{Var}(X) = n\,p\,(1 - p)
+$$ {#eq-disc-binomial-momentos}
+
+Con $n = 3$ y $p = 0.5$, la @eq-disc-binomial da $P(X = 1) = 3 \cdot 0.5 \cdot 0.5^2 = 3/8$ y la media es $3 \cdot 0.5 = 1.5$, los mismos valores que se obtuvieron contando en el capítulo 13.
+
+La @fig-disc-binomial-formas muestra cómo cambia la forma de la distribución con $p$. Con $p$ pequeña se carga a la izquierda; con $p = 0.5$ es simétrica; con $p$ grande se carga a la derecha.
+
+```{r}
+#| label: fig-disc-binomial-formas
+#| fig-cap: "Distribución binomial con n = 12 para tres valores de p."
+#| fig-alt: "Tres gráficos de bastones: con p igual a 0.1 los valores se concentran cerca de 1, con 0.5 cerca de 6 y con 0.8 cerca de 10"
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.2
+
+expand_grid(p = c(0.1, 0.5, 0.8), x = 0:12) %>%
+  mutate(prob = dbinom(x, 12, p), panel = paste("p =", p)) %>%
+  ggplot(aes(x, prob)) +
+  geom_segment(aes(xend = x, yend = 0), linewidth = 1.8, color = azul) +
+  facet_wrap(~panel) +
+  scale_x_continuous(breaks = seq(0, 12, 2)) +
+  labs(x = "Número de éxitos, x", y = "P(X = x)") +
+  tema_libro
+```
+
+::: {.callout-note title="Ejemplo: cilindros de concreto que no cumplen"}
+
+**Planteamiento.** En una obra se moldean 12 cilindros de una misma colada. Con base en el historial de la planta (hipotético), cada cilindro tiene una probabilidad de 0.10 de no alcanzar la resistencia especificada, independientemente de los demás. Sea $X$ el número de cilindros que no cumplen.
+
+a) Calcule la probabilidad de que exactamente 2 cilindros no cumplan.
+b) Calcule la probabilidad de que 3 o más no cumplan.
+c) Calcule la media y la desviación estándar de $X$.
+
+**Solución:**
+
+1. Se verifica la estructura binomial: número fijo de ensayos ($n = 12$), dos resultados (cumple o no), $p = 0.10$ constante y ensayos independientes. Entonces $X \sim \text{Bin}(12, 0.10)$.
+2. Para a), con la @eq-disc-binomial: $\binom{12}{2} = \frac{12 \cdot 11}{2} = 66$, de modo que $P(X = 2) = 66 \cdot 0.10^2 \cdot 0.90^{10} = 66 \cdot 0.01 \cdot 0.3487 = 0.2301$.
+3. Para b), se usa el complemento: $P(X \ge 3) = 1 - [P(X = 0) + P(X = 1) + P(X = 2)]$.
+   - $P(X = 0) = 0.90^{12} = 0.2824$.
+   - $P(X = 1) = 12 \cdot 0.10 \cdot 0.90^{11} = 12 \cdot 0.10 \cdot 0.3138 = 0.3766$.
+   - $P(X \ge 3) = 1 - (0.2824 + 0.3766 + 0.2301) = 1 - 0.8891 = 0.1109$.
+4. Para c), con la @eq-disc-binomial-momentos: $E(X) = 12 \cdot 0.10 = 1.2$ cilindros, $\operatorname{Var}(X) = 12 \cdot 0.10 \cdot 0.90 = 1.08$ y $\sigma = \sqrt{1.08} = 1.04$ cilindros.
+
+**Pseudocódigo**
+
+1. Definir $n$ y $p$.
+2. Calcular $P(X = 2)$ con la fórmula, usando `choose()` para el coeficiente binomial.
+3. Calcular $P(X \ge 3)$ como 1 menos la suma de las probabilidades de 0, 1 y 2.
+4. Calcular la media y la desviación estándar.
+5. Repetir con `dbinom()` y `pbinom()` y comprobar que coinciden.
+
+```{r}
+# 1) Parámetros
+n <- 12
+p <- 0.10
+
+# 2) Fórmula binomial a mano: choose(n, x) es el coeficiente binomial
+p_2 <- choose(n, 2) * p^2 * (1 - p)^(n - 2)
+p_2
+
+# 3) P(X >= 3) con el complemento
+x <- 0:2
+p_0a2 <- choose(n, x) * p^x * (1 - p)^(n - x)
+1 - sum(p_0a2)
+
+# 4) Media y desviación estándar
+c(media = n * p, desv = sqrt(n * p * (1 - p)))
+
+# 5) Lo mismo con las funciones de R
+dbinom(2, size = n, prob = p)          # P(X = 2)
+1 - pbinom(2, size = n, prob = p)      # P(X >= 3) = 1 - P(X <= 2)
+pbinom(2, size = n, prob = p, lower.tail = FALSE)  # otra forma de P(X > 2)
+```
+
+El argumento `lower.tail = FALSE` pide la cola superior, $P(X > x)$, y evita restar de 1 a mano.
+
+```{r}
+#| label: tbl-disc-cilindros
+#| tbl-cap: "Distribución binomial del número de cilindros que no cumplen (n = 12, p = 0.10)."
+#| echo: false
+
+tibble(x = 0:6, px = dbinom(x, 12, 0.1), Fx = pbinom(x, 12, 0.1)) %>%
+  kbl(col.names = c("<i>x</i>", "<i>P</i>(<i>X</i> = <i>x</i>)", "<i>P</i>(<i>X</i> ≤ <i>x</i>)"),
+      escape = FALSE, align = "c", digits = 4) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+El @tbl-disc-cilindros muestra las probabilidades hasta $x = 6$; de 7 en adelante son menores que 0.0001.
+
+**Interpretación.** Que fallen dos de doce cilindros no es raro: pasa casi una de cada cuatro veces (23 %), aunque el proceso esté funcionando como siempre. En cambio, tres o más fallas ocurren solo en el 11 % de las coladas. Por eso un criterio de aceptación no debería alarmarse con dos fallas, pero sí investigar si se repiten tres o más con frecuencia.
+
+:::
+
+## Distribución geométrica {#sec-disc-geometrica}
+
+La distribución geométrica responde a otra pregunta sobre el mismo proceso de Bernoulli: ¿cuántos ensayos hay que hacer hasta obtener el primer éxito? A veces se le llama distribución de espera. Si $X$ es el número del ensayo en que aparece el primer éxito, deben ocurrir $x - 1$ fracasos seguidos y luego un éxito, de modo que
+
+$$
+P(X = x) = (1 - p)^{x - 1}\, p, \qquad x = 1, 2, 3, \ldots
+$$ {#eq-disc-geometrica}
+
+donde $p$ es la probabilidad de éxito en cada ensayo. La probabilidad de que haya que esperar más de $k$ ensayos es la de que los primeros $k$ sean todos fracasos:
+
+$$
+P(X > k) = (1 - p)^k
+$$ {#eq-disc-geometrica-cola}
+
+La media y la varianza son [@illowsky2018introductory, cap. 4]
+
+$$
+E(X) = \frac{1}{p}, \qquad \operatorname{Var}(X) = \frac{1 - p}{p^2}
+$$ {#eq-disc-geometrica-momentos}
+
+La media tiene una lectura intuitiva: si el éxito ocurre con probabilidad $1/10$, en promedio se espera al décimo ensayo.
+
+::: {.callout-tip title="En la práctica"}
+El periodo de retorno de hidrología e ingeniería estructural sale de la distribución geométrica. Si una creciente supera cierto caudal con probabilidad $p = 0.01$ en un año cualquiera, el número de años hasta la primera excedencia es geométrico, y su media es $1/p = 100$ años: esa es la creciente de "100 años de periodo de retorno". La @eq-disc-geometrica-cola muestra que eso no garantiza nada: la probabilidad de que se exceda al menos una vez en una vida útil de 50 años es $1 - 0.99^{50} = 0.395$.
+:::
+
+::: {.callout-note title="Ejemplo: sondeos hasta encontrar arcilla expansiva"}
+
+**Planteamiento.** Una empresa de geotecnia cotiza sondeos de penetración estándar (SPT) para detectar arcillas expansivas. En la zona, cada sondeo encuentra este tipo de arcilla con probabilidad 0.30 (valor hipotético), independientemente de los demás sondeos. Sea $X$ el número del sondeo en que se encuentra la arcilla por primera vez.
+
+a) Calcule la probabilidad de que la arcilla aparezca por primera vez en el tercer sondeo.
+b) Calcule la probabilidad de que se necesiten más de 5 sondeos.
+c) Calcule la media y la desviación estándar de $X$.
+
+**Solución:**
+
+1. Proceso de Bernoulli con $p = 0.30$ y espera hasta el primer éxito: $X \sim \text{Geom}(0.30)$.
+2. Con la @eq-disc-geometrica: $P(X = 3) = 0.70^2 \cdot 0.30 = 0.49 \cdot 0.30 = 0.147$.
+3. Con la @eq-disc-geometrica-cola: $P(X > 5) = 0.70^5 = 0.168$.
+4. Con la @eq-disc-geometrica-momentos: $E(X) = 1/0.30 = 3.33$ sondeos, $\operatorname{Var}(X) = 0.70/0.09 = 7.78$ y $\sigma = 2.79$ sondeos.
+
+**Pseudocódigo**
+
+1. Definir $p$.
+2. Calcular las probabilidades con la @eq-disc-geometrica y la @eq-disc-geometrica-cola.
+3. Calcular la media y la desviación estándar.
+4. Repetir con `dgeom()` y `pgeom()`, cuidando cómo cuenta R.
+
+```{r}
+p <- 0.30
+
+# 2) Fórmulas a mano (X = número del ensayo con el primer éxito)
+(1 - p)^(3 - 1) * p          # P(X = 3)
+(1 - p)^5                    # P(X > 5)
+
+# 3) Media y desviación estándar
+c(media = 1 / p, desv = sqrt((1 - p) / p^2))
+
+# 4) Funciones de R: cuentan los FRACASOS antes del primer éxito (X - 1)
+dgeom(3 - 1, prob = p)                       # P(X = 3)
+pgeom(5 - 1, prob = p, lower.tail = FALSE)   # P(X > 5) = P(fracasos > 4)
+```
+
+**Interpretación.** En promedio se necesitan entre tres y cuatro sondeos para encontrar arcilla expansiva, pero la dispersión es grande ($\sigma = 2.8$): en uno de cada seis casos (17 %) hacen falta más de cinco. Al cotizar, conviene prever ese escenario en vez de presupuestar solo el promedio.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+En R, `dgeom()`, `pgeom()` y `rgeom()` cuentan el número de fracasos antes del primer éxito, que empieza en 0, y no el número de ensayos, que empieza en 1. Con la definición de este libro, $P(X = x)$ se calcula con `dgeom(x - 1, p)`. La media de la versión de R es $(1 - p)/p$, una unidad menos que $1/p$. Antes de usar una fórmula de otro libro, hay que revisar cuál de las dos versiones usa.
+:::
+
+## Distribución binomial negativa {#sec-disc-binomial-negativa}
+
+La binomial negativa generaliza la geométrica: en vez de esperar el primer éxito, se espera el $k$-ésimo. Si $X$ es el número del ensayo en que ocurre el éxito número $k$, en los primeros $x - 1$ ensayos tuvo que haber exactamente $k - 1$ éxitos (en cualquier orden), y el ensayo $x$ tiene que ser un éxito:
+
+$$
+P(X = x) = \binom{x - 1}{k - 1}\, p^k\, (1 - p)^{x - k}, \qquad x = k, k + 1, k + 2, \ldots
+$$ {#eq-disc-binomial-negativa}
+
+donde $k$ es el número de éxitos que se espera y $p$ la probabilidad de éxito en cada ensayo. Su media y su varianza son $k$ veces las de la geométrica, porque la espera hasta el $k$-ésimo éxito es la suma de $k$ esperas geométricas independientes:
+
+$$
+E(X) = \frac{k}{p}, \qquad \operatorname{Var}(X) = \frac{k\,(1 - p)}{p^2}
+$$ {#eq-disc-binomial-negativa-momentos}
+
+Con $k = 1$ se recupera la geométrica.
+
+::: {.callout-note title="Ejemplo: aditivo para concreto"}
+
+**Planteamiento.** Un aditivo mejora la resistencia a compresión en el 60 % de las mezclas en que se usa (dato hipotético). Se prueban cilindros uno tras otro. Calcule la probabilidad de que el quinto cilindro con mejora sea el séptimo cilindro ensayado, y la media del número de cilindros que hay que ensayar para obtener cinco con mejora.
+
+**Solución:**
+
+1. Proceso de Bernoulli con $p = 0.60$, y se espera el éxito número $k = 5$: $X \sim \text{BinNeg}(k = 5, p = 0.60)$.
+2. En los primeros 6 cilindros debe haber exactamente 4 con mejora: $\binom{6}{4} = 15$ formas.
+3. Con la @eq-disc-binomial-negativa: $P(X = 7) = 15 \cdot 0.60^5 \cdot 0.40^2 = 15 \cdot 0.07776 \cdot 0.16 = 0.1866$.
+4. Con la @eq-disc-binomial-negativa-momentos: $E(X) = 5/0.60 = 8.33$ cilindros.
+
+**Pseudocódigo**
+
+1. Definir $k$, $p$ y $x$.
+2. Calcular la probabilidad con la @eq-disc-binomial-negativa.
+3. Repetir con `dnbinom()`, que cuenta los fracasos antes del éxito $k$, es decir, $x - k$.
+
+```{r}
+k <- 5
+p <- 0.60
+x <- 7
+
+# 2) Fórmula a mano
+choose(x - 1, k - 1) * p^k * (1 - p)^(x - k)
+
+# 3) Con R: el primer argumento es el número de fracasos, x - k
+dnbinom(x - k, size = k, prob = p)
+
+# Media del número de ensayos
+k / p
+```
+
+**Interpretación.** Hay un 19 % de probabilidad de completar los cinco cilindros con mejora justo en el séptimo ensayo. En promedio harán falta entre 8 y 9 cilindros, lo que sirve para planificar cuántos moldes preparar.
+
+:::
+
+## Distribución hipergeométrica {#sec-disc-hipergeometrica}
+
+La binomial supone que $p$ no cambia de un ensayo a otro. Eso no se cumple cuando se toman muestras sin reemplazo de un lote pequeño: si un lote de 20 barras tiene 4 defectuosas y se saca una defectuosa, en el lote quedan 3 de 19, y la probabilidad cambió. La distribución hipergeométrica cuenta el número de elementos "marcados" (por ejemplo, defectuosos) en una muestra sin reemplazo. Con un lote de $N$ elementos, de los cuales $K$ están marcados, y una muestra de tamaño $n$:
+
+$$
+P(X = x) = \frac{\dbinom{K}{x}\dbinom{N - K}{n - x}}{\dbinom{N}{n}}
+$$ {#eq-disc-hipergeometrica}
+
+donde el numerador cuenta las muestras con $x$ marcados y $n - x$ sin marcar, y el denominador cuenta todas las muestras posibles de tamaño $n$ (capítulo 11). La media y la varianza son
+
+$$
+E(X) = n\,\frac{K}{N}, \qquad \operatorname{Var}(X) = n\,\frac{K}{N}\left(1 - \frac{K}{N}\right)\frac{N - n}{N - 1}
+$$ {#eq-disc-hipergeometrica-momentos}
+
+La media es la misma que la de una binomial con $p = K/N$. La varianza es menor, por el factor $(N - n)/(N - 1)$, llamado factor de corrección por población finita: al no reponer, cada elemento sacado da información sobre los que quedan. Cuando la muestra es una fracción pequeña del lote, ese factor se acerca a 1 y la binomial da prácticamente lo mismo.
+
+::: {.callout-note title="Ejemplo: inspección de un lote de barras de refuerzo"}
+
+**Planteamiento.** Un lote de 20 barras de refuerzo tiene 4 barras fuera de especificación (el inspector no sabe cuáles). Se eligen 5 barras al azar, sin reemplazo, para ensayarlas a tensión. Calcule la probabilidad de que la muestra no detecte ninguna barra defectuosa y la de que detecte al menos una. Compare con lo que daría, por error, la binomial.
+
+**Solución:**
+
+1. Muestreo sin reemplazo de un lote pequeño: $N = 20$, $K = 4$, $n = 5$.
+2. Muestras posibles: $\binom{20}{5} = 15\,504$. Muestras sin defectuosas: $\binom{4}{0}\binom{16}{5} = 1 \cdot 4368 = 4368$.
+3. Con la @eq-disc-hipergeometrica: $P(X = 0) = 4368/15\,504 = 0.2817$, y $P(X \ge 1) = 1 - 0.2817 = 0.7183$.
+4. Media y varianza: $E(X) = 5 \cdot 4/20 = 1$ y $\operatorname{Var}(X) = 5 \cdot 0.2 \cdot 0.8 \cdot 15/19 = 0.632$.
+5. Con la binomial ($p = 0.2$): $P(X = 0) = 0.8^5 = 0.3277$. La diferencia es grande porque la muestra es la cuarta parte del lote.
+
+**Pseudocódigo**
+
+1. Definir $N$, $K$ y $n$.
+2. Calcular $P(X = 0)$ con `choose()`.
+3. Repetir con `dhyper()` y calcular $P(X \ge 1)$.
+4. Comparar con `dbinom()`.
+
+```{r}
+N <- 20; K <- 4; n <- 5
+
+# 2) Fórmula a mano
+choose(K, 0) * choose(N - K, n - 0) / choose(N, n)
+
+# 3) Con R: dhyper(x, m = marcados, n = no marcados, k = tamaño de muestra)
+p_0 <- dhyper(0, m = K, n = N - K, k = n)
+c(p_ninguna = p_0, p_al_menos_una = 1 - p_0)
+
+# 4) Comparación con la binomial (que aquí no corresponde)
+dbinom(0, size = n, prob = K / N)
+```
+
+::: {.callout-warning title="Cuidado"}
+En `dhyper()` los nombres de los argumentos confunden: `m` es el número de elementos marcados del lote ($K$), `n` es el número de elementos sin marcar ($N - K$) y `k` es el tamaño de la muestra ($n$ en este libro). Conviene escribir siempre los nombres de los argumentos.
+:::
+
+**Interpretación.** Con 5 barras de 20, la inspección deja pasar el lote sin detectar ningún defecto en el 28 % de los casos, aunque una de cada cinco barras esté mal. Si se quiere que esa probabilidad baje del 5 %, hay que ensayar más barras; el ejercicio 6 pide cuántas.
+
+:::
+
+## Distribución de Poisson {#sec-disc-poisson}
+
+::: {.pregunta}
+Si en promedio llegan 3 camiones cada 10 minutos a una planta de concreto, ¿qué tan probable es que lleguen 6 o más y se forme fila?
+:::
+
+La distribución de Poisson cuenta cuántos eventos ocurren en un intervalo de tiempo, de longitud o de área, cuando los eventos ocurren al azar y a una tasa promedio constante. Ejemplos de ingeniería: llegadas de vehículos a una intersección, roturas de tubería por kilómetro de red, fisuras por metro cuadrado de losa, sismos fuertes por año en una región. Para que el modelo sea razonable se piden tres condiciones [@illowsky2018introductory, cap. 4]:
+
+1. Los eventos ocurren de uno en uno (no hay dos exactamente al mismo tiempo).
+2. La tasa promedio de ocurrencia es constante en el intervalo estudiado.
+3. Los conteos en intervalos que no se traslapan son independientes.
+
+Si $\lambda$ (lambda) es el número promedio de eventos en el intervalo, la probabilidad de observar exactamente $x$ eventos es
+
+$$
+P(X = x) = \frac{\lambda^x\, e^{-\lambda}}{x!}, \qquad x = 0, 1, 2, \ldots
+$$ {#eq-disc-poisson}
+
+donde $e = 2.71828\ldots$ es la base de los logaritmos naturales. La Poisson tiene una propiedad que la distingue: su media y su varianza son iguales.
+
+$$
+E(X) = \lambda, \qquad \operatorname{Var}(X) = \lambda
+$$ {#eq-disc-poisson-momentos}
+
+::: {.callout-warning title="Cuidado"}
+$\lambda$ es el promedio de eventos en el intervalo que se pregunta, no en cualquier intervalo. Si la tasa es de 0.8 roturas por kilómetro por año y se estudia un tramo de 2.5 km durante un año, entonces $\lambda = 0.8 \times 2.5 = 2$ roturas. Si se estudian dos años, $\lambda = 4$. Ajustar la tasa al intervalo es el error más común con esta distribución.
+:::
+
+Con ese tramo de 2.5 km y $\lambda = 2$, la probabilidad de un año sin roturas es $P(X = 0) = e^{-2} = 0.135$, y la de 3 o más roturas es
+
+$$
+P(X \ge 3) = 1 - \left(e^{-2} + 2e^{-2} + \frac{2^2 e^{-2}}{2}\right) = 1 - (0.1353 + 0.2707 + 0.2707) = 0.323
+$$
+
+En R: `1 - ppois(2, lambda = 2)`.
+
+::: {.callout-note title="Ejemplo: llegadas de camiones a una planta de concreto"}
+
+**Planteamiento.** En una planta de concreto se contaron los camiones mezcladores que llegaron a cargar en 120 intervalos de 10 minutos (datos hipotéticos). Se quiere saber si la distribución de Poisson describe bien estos conteos y, con ella, estimar la probabilidad de que lleguen 6 o más camiones en 10 minutos, que es cuando se forma fila.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/camiones_planta_hipotetico.csv",
+          nombres = c("Intervalo", "Camiones en 10 min"))
+```
+
+**Solución:**
+
+1. El único parámetro de la Poisson es la media, así que se estima con el promedio de los conteos: $\hat{\lambda} = \bar{x} = 357/120 = 2.975$ camiones por intervalo. El "sombrero" sobre $\lambda$ indica que es una estimación hecha con datos (capítulo 18).
+2. Verificación rápida: la varianza de los conteos es 3.02, muy parecida a la media. Eso es lo que predice la @eq-disc-poisson-momentos.
+3. Frecuencias esperadas: se multiplica cada probabilidad de Poisson por 120. Por ejemplo, $P(X = 3) = 2.975^3 e^{-2.975}/3! = 26.33 \cdot 0.0510/6 = 0.2240$, y $120 \cdot 0.2240 = 26.9$ intervalos, contra 26 observados. El @tbl-disc-camiones tiene el resto.
+4. Probabilidad de fila: $P(X \ge 6) = 1 - P(X \le 5) = 1 - 0.9186 = 0.081$.
+
+**Pseudocódigo**
+
+1. Leer los conteos.
+2. Estimar $\lambda$ con la media y comparar con la varianza.
+3. Calcular las frecuencias esperadas con `dpois()` y compararlas con las observadas.
+4. Calcular $P(X \ge 6)$ con la fórmula y con `ppois()`.
+
+```{r}
+library(tidyverse)
+
+# 1) Datos
+camiones <- read.csv("datos/camiones_planta_hipotetico.csv")
+x <- camiones$camiones
+
+# 2) Estimación de lambda y comparación con la varianza
+lambda <- mean(x)
+c(media = lambda, varianza = var(x))
+
+# 3) Frecuencias observadas y esperadas (el último grupo es "7 o más")
+comparacion <- tibble(valor = 0:7) %>%
+  mutate(observados = sapply(valor, function(v) if (v < 7) sum(x == v) else sum(x >= 7)),
+         prob = ifelse(valor < 7, dpois(valor, lambda), 1 - ppois(6, lambda)),
+         esperados = 120 * prob)
+comparacion
+
+# 4) P(X >= 6): a mano con la fórmula y con ppois()
+1 - sum(lambda^(0:5) * exp(-lambda) / factorial(0:5))
+1 - ppois(5, lambda)
+mean(x >= 6)   # proporción observada en los datos
+```
+
+```{r}
+#| label: tbl-disc-camiones
+#| tbl-cap: "Frecuencias observadas y esperadas con Poisson (λ = 2.975) de camiones por intervalo."
+#| echo: false
+
+comparacion %>%
+  mutate(valor = ifelse(valor == 7, "7 o más", as.character(valor))) %>%
+  kbl(col.names = c("Camiones, <i>x</i>", "Intervalos observados",
+                    "<i>P</i>(<i>X</i> = <i>x</i>)", "Intervalos esperados"),
+      escape = FALSE, align = "c", digits = c(0, 0, 4, 1)) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+La @fig-disc-camiones compara las dos columnas. Las barras son lo observado y los puntos lo que predice el modelo.
+
+```{r}
+#| label: fig-disc-camiones
+#| fig-cap: "Conteos observados de camiones y frecuencias esperadas con Poisson."
+#| fig-alt: "Barras de los intervalos observados para 0 a 7 o más camiones y puntos naranja con las frecuencias de Poisson, que siguen de cerca a las barras"
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3.6
+
+comparacion %>%
+  ggplot(aes(valor)) +
+  geom_col(aes(y = observados), fill = azul, alpha = 0.7, width = 0.7) +
+  geom_point(aes(y = esperados), color = naranja, size = 3) +
+  geom_line(aes(y = esperados), color = naranja) +
+  scale_x_continuous(breaks = 0:7, labels = c(0:6, "7+")) +
+  labs(x = "Camiones en 10 minutos", y = "Número de intervalos") +
+  tema_libro
+```
+
+**Interpretación.** La Poisson sigue de cerca los conteos: las diferencias entre lo observado y lo esperado son de pocos intervalos, del tamaño que se espera por azar (en el capítulo 23 se verá cómo probarlo formalmente con la prueba chi-cuadrado). Con el modelo, se forma fila (6 o más camiones en 10 minutos) en cerca del 8 % de los intervalos, unas cinco veces por cada jornada de 10 horas. Con esa cifra se puede decidir si conviene habilitar una segunda tolva de carga.
+
+:::
+
+### Aproximación de Poisson a la binomial {#sec-disc-aprox-poisson}
+
+Cuando el número de ensayos $n$ es grande y la probabilidad de éxito $p$ es pequeña, la binomial se parece mucho a una Poisson con $\lambda = np$. Una regla usual es aplicarla cuando $n \ge 20$ y $p \le 0.05$ [@illowsky2018introductory, cap. 4]. Antes de las computadoras era un atajo valioso, porque $\binom{n}{x}$ con $n$ grande es difícil de calcular a mano. Hoy sirve sobre todo para entender por qué la Poisson describe eventos raros: cada uno de muchos "intentos" tiene una probabilidad pequeña de producir el evento.
+
+Por ejemplo, en un puente con 400 soldaduras, cada una defectuosa con probabilidad 0.005, el número de soldaduras defectuosas es $\text{Bin}(400, 0.005)$, y la aproximación es una Poisson con $\lambda = 400 \cdot 0.005 = 2$. El @tbl-disc-aprox-poisson muestra que las dos dan casi lo mismo.
+
+```{r}
+#| label: tbl-disc-aprox-poisson
+#| tbl-cap: "Binomial (n = 400, p = 0.005) y su aproximación de Poisson (λ = 2)."
+#| echo: false
+
+tibble(x = 0:6, binom = dbinom(x, 400, 0.005), pois = dpois(x, 2),
+       dif = binom - pois) %>%
+  kbl(col.names = c("<i>x</i>", "Binomial", "Poisson", "Diferencia"),
+      escape = FALSE, align = "c", digits = 4) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+## Interactivo: explorar las distribuciones discretas {#sec-disc-interactivo}
+
+En el interactivo de la @fig-disc-interactivo se elige una distribución y se mueven sus parámetros. Las barras en azul oscuro suman la probabilidad acumulada $P(X \le k)$, y debajo del gráfico se actualizan esa probabilidad, la media y la varianza. Conviene probar, por ejemplo, una binomial con $n = 40$ y $p = 0.05$ y luego una Poisson con $\lambda = 2$, para ver la aproximación de la sección anterior.
+
+::: {#fig-disc-interactivo}
+
+```{=html}
+<div class="interactivo" id="int-discretas">
+  <div class="controles">
+    <label><span>Distribución:</span>
+      <select>
+        <option value="binom">Binomial</option>
+        <option value="pois">Poisson</option>
+        <option value="geom">Geométrica</option>
+        <option value="nbinom">Binomial negativa</option>
+      </select></label>
+    <label><span class="et1">n:</span> <output class="o1"></output>
+      <input class="r1" type="range"></label>
+    <label class="fila2"><span class="et2">p:</span> <output class="o2"></output>
+      <input class="r2" type="range"></label>
+    <label><span>Umbral <i>k</i>:</span> <output class="ok"></output>
+      <input class="rk" type="range" min="0" max="20" step="1" value="2"></label>
+  </div>
+  <svg viewBox="0 0 640 280" role="img" aria-label="Gráfico de barras de la distribución elegida"></svg>
+  <p class="resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-discretas");
+  var sel = raiz.querySelector("select");
+  var r1 = raiz.querySelector(".r1"), r2 = raiz.querySelector(".r2"), rk = raiz.querySelector(".rk");
+  var o1 = raiz.querySelector(".o1"), o2 = raiz.querySelector(".o2"), ok = raiz.querySelector(".ok");
+  var et1 = raiz.querySelector(".et1"), et2 = raiz.querySelector(".et2"), fila2 = raiz.querySelector(".fila2");
+  var svg = raiz.querySelector("svg"), res = raiz.querySelector(".resultado");
+  var w = 640, h = 280, mi = 48, md = 16, ms = 14, mb = 36;
+  function lgamma(z) {
+    var c = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+             12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+    if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+    z -= 1; var a = 0.99999999999980993, t = z + 7.5;
+    for (var i = 0; i < 8; i++) a += c[i] / (z + i + 1);
+    return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+  function lchoose(n, k) { return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1); }
+  var conf = {
+    binom: { e1: "Ensayos <i>n</i>:", a: [1, 50, 1, 12], e2: "Probabilidad <i>p</i>:", b: [0.01, 0.99, 0.01, 0.10],
+      xmin: function () { return 0; }, xmax: function (n) { return n; },
+      f: function (x, n, p) { return Math.exp(lchoose(n, x) + x * Math.log(p) + (n - x) * Math.log(1 - p)); },
+      m: function (n, p) { return [n * p, n * p * (1 - p)]; } },
+    pois: { e1: "Media <i>λ</i>:", a: [0.1, 20, 0.1, 3], e2: null,
+      xmin: function () { return 0; }, xmax: function (l) { return Math.max(10, Math.ceil(l + 5 * Math.sqrt(l) + 2)); },
+      f: function (x, l) { return Math.exp(x * Math.log(l) - l - lgamma(x + 1)); },
+      m: function (l) { return [l, l]; } },
+    geom: { e1: "Probabilidad <i>p</i>:", a: [0.05, 0.95, 0.01, 0.30], e2: null,
+      xmin: function () { return 1; }, xmax: function (p) { return Math.min(60, Math.max(8, Math.ceil(Math.log(0.001) / Math.log(1 - p)))); },
+      f: function (x, p) { return Math.pow(1 - p, x - 1) * p; },
+      m: function (p) { return [1 / p, (1 - p) / (p * p)]; } },
+    nbinom: { e1: "Éxitos <i>k</i>:", a: [1, 10, 1, 3], e2: "Probabilidad <i>p</i>:", b: [0.05, 0.95, 0.01, 0.40],
+      xmin: function (k) { return k; },
+      xmax: function (k, p) { return Math.min(80, Math.ceil(k / p + 4 * Math.sqrt(k * (1 - p)) / p + 3)); },
+      f: function (x, k, p) { return Math.exp(lchoose(x - 1, k - 1) + k * Math.log(p) + (x - k) * Math.log(1 - p)); },
+      m: function (k, p) { return [k / p, k * (1 - p) / (p * p)]; } }
+  };
+  function fijar(r, v) { r.min = v[0]; r.max = v[1]; r.step = v[2]; r.value = v[3]; }
+  function cambiarDist() {
+    var c = conf[sel.value];
+    et1.innerHTML = c.e1; fijar(r1, c.a);
+    if (c.e2) { fila2.style.display = ""; et2.innerHTML = c.e2; fijar(r2, c.b); }
+    else { fila2.style.display = "none"; }
+    dibujar();
+  }
+  function fmt(v, d) { return v.toFixed(d); }
+  function dibujar() {
+    var c = conf[sel.value], a = parseFloat(r1.value), b = parseFloat(r2.value);
+    var dec1 = parseFloat(r1.step) < 1 ? (parseFloat(r1.step) < 0.1 ? 2 : 1) : 0;
+    o1.textContent = fmt(a, dec1); o2.textContent = fmt(b, 2);
+    var x0 = c.xmin(a, b), x1 = c.xmax(a, b);
+    rk.min = x0; rk.max = x1;
+    var k = Math.min(Math.max(parseInt(rk.value, 10), x0), x1); rk.value = k; ok.textContent = k;
+    var ps = [], pmax = 0, acum = 0;
+    for (var x = x0; x <= x1; x++) { var px = c.f(x, a, b); ps.push(px); if (px > pmax) pmax = px; if (x <= k) acum += px; }
+    var nb = x1 - x0 + 1, ancho = (w - mi - md) / nb;
+    var sy = function (y) { return h - mb - y / (pmax * 1.1) * (h - mb - ms); };
+    var s = '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + (h - mb) + '" y2="' + (h - mb) + '"/>' +
+            '<line class="eje" x1="' + mi + '" x2="' + mi + '" y1="' + ms + '" y2="' + (h - mb) + '"/>';
+    var paso = Math.ceil(nb / 15);
+    for (var i = 0; i < nb; i++) {
+      var xv = x0 + i, cx = mi + i * ancho;
+      s += '<rect class="barra-p4' + (xv <= k ? ' barra-sel' : '') + '" x="' + (cx + ancho * 0.15).toFixed(1) +
+           '" y="' + sy(ps[i]).toFixed(1) + '" width="' + (ancho * 0.7).toFixed(1) + '" height="' + (h - mb - sy(ps[i])).toFixed(1) + '"/>';
+      if (i % paso === 0) s += '<text class="eje-texto" x="' + (cx + ancho / 2).toFixed(1) + '" y="' + (h - mb + 16) + '" text-anchor="middle">' + xv + '</text>';
+    }
+    for (var j = 0; j <= 4; j++) {
+      var yv = pmax * 1.1 * j / 4;
+      s += '<text class="eje-texto" x="' + (mi - 6) + '" y="' + (sy(yv) + 4).toFixed(1) + '" text-anchor="end">' + yv.toFixed(2) + '</text>';
+    }
+    s += '<text class="eje-texto" x="' + (w / 2) + '" y="' + (h - 4) + '" text-anchor="middle">x</text>';
+    svg.innerHTML = s;
+    var mv = c.m(a, b);
+    res.innerHTML = "<i>P</i>(<i>X</i> ≤ " + k + ") = " + acum.toFixed(4) + " &nbsp;·&nbsp; <i>P</i>(<i>X</i> &gt; " + k + ") = " +
+      Math.max(0, 1 - acum).toFixed(4) + " &nbsp;·&nbsp; <i>E</i>(<i>X</i>) = " + mv[0].toFixed(3) + " &nbsp;·&nbsp; Var(<i>X</i>) = " + mv[1].toFixed(3);
+  }
+  sel.addEventListener("change", cambiarDist);
+  [r1, r2, rk].forEach(function (r) { r.addEventListener("input", dibujar); });
+  cambiarDist();
+})();
+</script>
+```
+
+Distribuciones discretas. Elija la distribución y mueva los parámetros y el umbral $k$.
+
+:::
+
+## Cómo elegir la distribución {#sec-disc-elegir}
+
+Ante un problema nuevo, la pregunta que decide la distribución es qué se está contando. El @tbl-disc-resumen reúne las distribuciones del capítulo con esa pregunta, sus fórmulas y las funciones de R.
+
+```{r}
+#| label: tbl-disc-resumen
+#| tbl-cap: "Resumen de las distribuciones discretas."
+#| echo: false
+
+tibble(
+  dist = c("Uniforme discreta", "Bernoulli", "Binomial", "Geométrica",
+           "Binomial negativa", "Hipergeométrica", "Poisson"),
+  cuenta = c("Un valor elegido al azar entre <i>n</i> igualmente probables",
+             "Éxito (1) o fracaso (0) en un ensayo",
+             "Éxitos en <i>n</i> ensayos independientes",
+             "Ensayos hasta el primer éxito",
+             "Ensayos hasta el éxito número <i>k</i>",
+             "Marcados en una muestra sin reemplazo de un lote finito",
+             "Eventos en un intervalo de tiempo, longitud o área"),
+  media = c("(<i>n</i> + 1)/2", "<i>p</i>", "<i>np</i>", "1/<i>p</i>", "<i>k</i>/<i>p</i>",
+            "<i>nK</i>/<i>N</i>", "<i>λ</i>"),
+  varianza = c("(<i>n</i><sup>2</sup> − 1)/12", "<i>p</i>(1 − <i>p</i>)", "<i>np</i>(1 − <i>p</i>)",
+               "(1 − <i>p</i>)/<i>p</i><sup>2</sup>", "<i>k</i>(1 − <i>p</i>)/<i>p</i><sup>2</sup>",
+               "<i>n</i>(<i>K</i>/<i>N</i>)(1 − <i>K</i>/<i>N</i>)(<i>N</i> − <i>n</i>)/(<i>N</i> − 1)", "<i>λ</i>"),
+  r = c("<code>sample()</code>", "<code>dbinom(x, 1, p)</code>", "<code>dbinom(x, n, p)</code>",
+        "<code>dgeom(x - 1, p)</code>", "<code>dnbinom(x - k, k, p)</code>",
+        "<code>dhyper(x, K, N - K, n)</code>", "<code>dpois(x, lambda)</code>")
+) %>%
+  kbl(col.names = c("Distribución", "Qué cuenta", "Media", "Varianza", "En R"),
+      escape = FALSE, align = "l") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+::: {.callout-tip title="En la práctica"}
+Tres preguntas ordenan casi todos los casos. ¿El número de ensayos está fijo de antemano? Entonces es binomial (o hipergeométrica si se muestrea sin reemplazo de un lote pequeño). ¿Se cuenta cuánto hay que esperar hasta uno o varios éxitos? Entonces es geométrica o binomial negativa. ¿No hay ensayos sino eventos que ocurren en un intervalo continuo? Entonces es Poisson.
+:::
+
+## Ejercicios propuestos
+
+1. Un laboratorio ensaya 20 probetas de mortero. Cada una falla prematuramente con probabilidad 0.05, independientemente de las demás. Calcule la probabilidad de que ninguna falle, de que fallen exactamente 2 y de que fallen más de 3. Hágalo a mano para las dos primeras y con R para todas.
+2. En una intersección semaforizada, el 15 % de los vehículos gira a la izquierda (dato hipotético). En un ciclo pasan 25 vehículos. Calcule la media y la desviación estándar del número que gira a la izquierda y la probabilidad de que giren 6 o más, que es la capacidad del carril de giro.
+3. Una estructura se diseña para un sismo con probabilidad anual de excedencia de 1/475. Calcule el periodo de retorno, la probabilidad de que el sismo se exceda al menos una vez en 50 años y la probabilidad de que la primera excedencia ocurra justo en el año 50.
+4. Un inspector revisa uniones soldadas hasta encontrar la tercera defectuosa. Si cada unión es defectuosa con probabilidad 0.08, calcule la probabilidad de que la tercera defectuosa sea la unión número 30 y el número esperado de uniones revisadas. Use `dnbinom()` y la fórmula a mano.
+5. En un lote de 50 sacos de cemento hay 6 hidratados. Se toman 8 sacos al azar. Calcule la probabilidad de encontrar al menos uno hidratado con la hipergeométrica y con la binomial. ¿Por qué se parecen más que en el ejemplo de las barras?
+6. Con los datos del ejemplo de las barras de refuerzo ($N = 20$, $K = 4$), encuentre el menor tamaño de muestra $n$ para que la probabilidad de no detectar ninguna barra defectuosa sea menor que 0.05. Use un ciclo `for` o `sapply()` en R.
+7. En un tramo de carretera de 12 km ocurren, en promedio, 0.4 accidentes por kilómetro por año (dato hipotético). Calcule la probabilidad de que en un año haya menos de 3 accidentes en el tramo, y la de que en un trimestre no haya ninguno.
+8. Simule en R 1000 valores de una Poisson con $\lambda = 2.975$ con `rpois()` y compare su histograma con los datos de los camiones del ejemplo. Repita con $\lambda = 5$ y describa la diferencia.
+9. Use el interactivo para encontrar, con $n = 30$, qué valor de $p$ hace que $P(X \le 2)$ sea aproximadamente 0.5. Compruébelo con `pbinom()`.
+
+## Lecturas recomendadas
+
+- @illowsky2018introductory, capítulo 4: binomial, geométrica, hipergeométrica y Poisson con muchos ejemplos resueltos.
+- @ayala2026estadistica: distribuciones discretas en español, con código de R.
+- @wasserman2004all, capítulo 2: definiciones formales de las distribuciones discretas más comunes.

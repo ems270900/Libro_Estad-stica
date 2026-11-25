@@ -1,0 +1,658 @@
+---
+title: "Comparaciones múltiples y diseño en bloques"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"Es mucho mejor una respuesta aproximada a la pregunta correcta, que suele ser vaga, que una respuesta exacta a la pregunta equivocada, que siempre se puede precisar."\
+— *John W. Tukey, 1962* [@tukey1962future, pp. 13–14]
+:::
+
+El ANOVA del capítulo anterior concluyó que los cuatro métodos de curado no dan la misma resistencia media. Para quien escribe las especificaciones de una obra esa respuesta no basta: necesita saber si el vapor supera a la membrana, si la membrana y el aditivo son equivalentes y cuántos megapascales hay de diferencia. Este capítulo trata de tres temas. Las comparaciones múltiples localizan las diferencias sin inflar el error familiar. Los residuos sirven para revisar los supuestos del ANOVA. El diseño en bloques completos aleatorizados saca del error una fuente de variación conocida, como el lote de cemento, para que las comparaciones sean más precisas. La presentación sigue a @montgomery2017design [cap. 3 y 4].
+
+## Después del ANOVA: qué medias difieren {#sec-mc-familia}
+
+::: {.pregunta}
+Si el ANOVA ya dijo que hay diferencias, ¿por qué no comparar ahora cada pareja con una prueba $t$?
+:::
+
+Porque el problema de la @sec-dce-muchas-t sigue ahí. Con cuatro métodos hay seis parejas, y si cada comparación se hace con $\alpha = 0.05$, la probabilidad de declarar al menos una diferencia falsa en el conjunto es mucho mayor que 5 %. Los métodos de comparaciones múltiples ajustan el criterio para que el error familiar, el de toda la familia de comparaciones, se mantenga en el $\alpha$ elegido.
+
+Este capítulo presenta tres métodos. El de Tukey compara todas las parejas. El de Bonferroni sirve para cualquier grupo pequeño de comparaciones elegidas de antemano. Los contrastes responden preguntas específicas, como comparar un método contra el promedio de los demás. Los ejemplos continúan el ensayo de curado de la @sec-dce-ejemplo, con $CM_E = 2.50$ MPa², 16 grados de libertad del error y cinco cilindros por método.
+
+## Método de Tukey {#sec-mc-tukey}
+
+@tukey1949comparing propuso comparar todas las parejas con una sola distancia mínima. Dos medias se declaran distintas si su diferencia supera la diferencia honestamente significativa (HSD, por sus siglas en inglés). Cuando todos los grupos tienen $n$ observaciones,
+
+$$
+HSD = q_{\alpha;\,k,\,gl_E} \sqrt{\frac{CM_E}{n}}
+$$ {#eq-mc-hsd}
+
+donde $q_{\alpha;\,k,\,gl_E}$ es el valor crítico de la distribución del rango estudentizado para $k$ medias y $gl_E$ grados de libertad del error, $CM_E$ es el cuadrado medio del error del ANOVA y $n$ es el número de observaciones por tratamiento [@montgomery2017design, sec. 3.5]. La regla de decisión es
+
+$$
+|\bar{y}_j - \bar{y}_{j'}| > HSD \quad\Rightarrow\quad \mu_j \neq \mu_{j'}
+$$ {#eq-mc-regla-tukey}
+
+La distribución del rango estudentizado describe la diferencia entre la media mayor y la menor de $k$ medias, dividida entre su error estándar. Como toma en cuenta cuántas medias se comparan, el valor crítico crece con $k$ y protege a la familia completa. Sus valores están en tablas, y en R se obtienen con `qtukey(1 - alpha, nmeans = k, df = gl_E)` [@laneintroduction, cap. 12].
+
+Si los grupos tienen tamaños distintos, se usa la versión de Tukey-Kramer [@kramer1956extension], que cambia la raíz de la @eq-mc-hsd por
+
+$$
+\frac{q_{\alpha;\,k,\,gl_E}}{\sqrt{2}} \sqrt{CM_E\left(\frac{1}{n_j} + \frac{1}{n_{j'}}\right)}
+$$ {#eq-mc-kramer}
+
+donde $n_j$ y $n_{j'}$ son los tamaños de los dos grupos que se comparan. Con $n_j = n_{j'} = n$ la expresión vuelve a ser la @eq-mc-hsd. La función `TukeyHSD()` de R aplica esta versión automáticamente.
+
+::: {.callout-note title="Ejemplo: método de Tukey para los métodos de curado"}
+
+**Planteamiento.** Con los datos hipotéticos del ensayo de curado de la @sec-dce-ejemplo, identifique qué parejas de métodos tienen resistencias medias distintas, con un error familiar de $\alpha = 0.05$.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/curado_concreto_hipotetico.csv",
+          nombres = c("Cilindro", "Método", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Del ANOVA: $CM_E = 2.50$, $gl_E = 16$, $k = 4$ y $n = 5$. Las medias son agua 29, membrana 33, vapor 39 y aditivo 35 MPa.
+2. De la tabla del rango estudentizado, $q_{0.05;\,4,\,16} = 4.05$.
+3. Distancia mínima (@eq-mc-hsd): $HSD = 4.05\sqrt{2.50/5} = 4.05 \times 0.707 = 2.86$ MPa.
+4. Se calcula la diferencia absoluta de cada pareja y se compara con 2.86 MPa (@tbl-mc-tukey-mano). Todas la superan, salvo aditivo contra membrana, con 2 MPa.
+5. Resumen con letras: se ordenan las medias de mayor a menor y se asigna la misma letra a las que no difieren. Vapor (39) recibe la letra a; aditivo (35) y membrana (33) comparten la b; agua (29) recibe la c.
+
+```{r}
+#| label: tbl-mc-tukey-mano
+#| tbl-cap: "Comparaciones por parejas con el método de Tukey (HSD = 2.86 MPa)."
+#| echo: false
+
+library(kableExtra)
+parejas <- data.frame(
+  par = c("Membrana − agua", "Vapor − agua", "Aditivo − agua",
+          "Vapor − membrana", "Aditivo − membrana", "Vapor − aditivo"),
+  dif = c(4, 10, 6, 6, 2, 4),
+  supera = c("Sí", "Sí", "Sí", "Sí", "No", "Sí"),
+  conclusion = c("Distintas", "Distintas", "Distintas", "Distintas",
+                 "Sin evidencia de diferencia", "Distintas")
+)
+parejas %>%
+  kbl(col.names = c("Pareja", "|<i>ȳ<sub>j</sub></i> − <i>ȳ<sub>j'</sub></i>| (MPa)",
+                    "¿Supera 2.86?", "Conclusión"),
+      escape = FALSE, align = "lccl") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Pseudocódigo**
+
+1. Leer los datos y ajustar el ANOVA con `aov()`.
+2. Obtener $CM_E$ y $gl_E$ del modelo.
+3. Calcular $q$ con `qtukey()` y la distancia $HSD$ con la @eq-mc-hsd.
+4. Restar las medias de todas las parejas y compararlas con $HSD$.
+5. Repetir con `TukeyHSD()` y comprobar que da lo mismo.
+
+```{r}
+# 1) Datos y ANOVA
+curado <- read.csv("datos/curado_concreto_hipotetico.csv")
+curado$metodo <- factor(curado$metodo,
+                        levels = c("agua", "membrana", "vapor", "aditivo"))
+modelo <- aov(resistencia_mpa ~ metodo, data = curado)
+
+# 2) Cuadrado medio y grados de libertad del error
+gl_e <- df.residual(modelo)
+cm_e <- sum(residuals(modelo)^2) / gl_e
+
+# 3) Valor crítico y distancia mínima
+medias <- tapply(curado$resistencia_mpa, curado$metodo, mean)
+k <- length(medias)
+n <- 5
+q_crit <- qtukey(0.95, nmeans = k, df = gl_e)
+hsd <- q_crit * sqrt(cm_e / n)
+c(q = q_crit, HSD = hsd)
+
+# 4) Diferencias de todas las parejas
+dif <- outer(medias, medias, "-")   # cuadro con todas las restas
+dif
+abs(dif) > hsd
+```
+
+La función `outer()` arma un cuadro con la resta de cada media de las filas menos cada media de las columnas. Basta mirar la mitad del cuadro, porque la otra mitad repite las mismas diferencias con el signo cambiado.
+
+```{r}
+# 5) Misma comparación con la función de R
+tukey <- TukeyHSD(modelo, conf.level = 0.95)
+tukey
+```
+
+Cada fila de `TukeyHSD()` es una pareja: `diff` es la diferencia de medias, `lwr` y `upr` son los límites del intervalo de confianza simultáneo y `p adj` es el valor $p$ ajustado por la familia. Los intervalos son la diferencia más y menos 2.86 MPa, la misma $HSD$ del cálculo manual.
+
+```{r}
+#| label: fig-mc-tukey
+#| fig-cap: "Intervalos de confianza simultáneos al 95 % de Tukey para las diferencias entre métodos."
+#| fig-alt: "Seis intervalos horizontales; solo el de aditivo menos membrana cruza la línea vertical en cero"
+#| echo: false
+
+library(ggplot2)
+tk <- as.data.frame(tukey$metodo)
+tk$par <- c("Membrana − agua", "Vapor − agua", "Aditivo − agua",
+            "Vapor − membrana", "Aditivo − membrana", "Aditivo − vapor")
+tk$par <- factor(tk$par, levels = rev(tk$par))
+ggplot(tk, aes(x = diff, y = par)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_errorbarh(aes(xmin = lwr, xmax = upr), height = 0.25, color = "#1C6BA0", linewidth = 0.9) +
+  geom_point(size = 2.8, color = "#1C6BA0") +
+  labs(x = "Diferencia de resistencia media (MPa)", y = NULL) +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** El vapor da la mayor resistencia media y el agua la menor, y ambos difieren de todos los demás. La membrana y el aditivo no se distinguen con estos datos: su intervalo en la @fig-mc-tukey incluye el cero. Eso no prueba que sean iguales; dice que, con cinco cilindros por método, una diferencia de 2 MPa no se separa del error experimental.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Las letras de Tukey resumen qué diferencias se detectaron, no cuán importantes son. Dos métodos con letras distintas pueden diferir en 1 MPa, sin importancia práctica, y dos con la misma letra pueden diferir en 3 MPa si hubo pocas repeticiones. Junto a las letras se reportan siempre las medias y los intervalos.
+:::
+
+## Corrección de Bonferroni {#sec-mc-bonferroni}
+
+La corrección de Bonferroni es la forma más simple de proteger una familia de $m$ comparaciones: cada una se hace con nivel $\alpha/m$ en lugar de $\alpha$. Así el error familiar no pasa de $\alpha$, sin importar si las pruebas son independientes [@laneintroduction, cap. 12]. Con $m = 6$ parejas y $\alpha = 0.05$, cada prueba usa $0.05/6 = 0.0083$.
+
+Para dos medias con $n$ observaciones, la diferencia mínima de Bonferroni usa la distribución $t$ con los grados de libertad del error:
+
+$$
+DM_{\text{Bonf}} = t_{\alpha/(2m);\,gl_E} \sqrt{CM_E \left(\frac{1}{n} + \frac{1}{n}\right)}
+$$ {#eq-mc-bonferroni}
+
+donde $t_{\alpha/(2m);\,gl_E}$ es el valor que deja un área $\alpha/(2m)$ a su derecha en la distribución $t$, con la mitad del nivel en cada cola. En el ensayo de curado, $t_{0.05/12;\,16} = 3.01$ y $DM_{\text{Bonf}} = 3.01\sqrt{2.50 \times 2/5} = 3.01$ MPa. En R:
+
+```{r}
+# Valor crítico y diferencia mínima de Bonferroni
+m <- choose(4, 2)                           # 6 parejas
+t_bonf <- qt(1 - 0.05 / (2 * m), df = gl_e)
+dm_bonf <- t_bonf * sqrt(cm_e * (1 / n + 1 / n))
+c(t = t_bonf, DM = dm_bonf)
+
+# Pruebas t por parejas con valores p ajustados por Bonferroni
+pairwise.t.test(curado$resistencia_mpa, curado$metodo,
+                p.adjust.method = "bonferroni")
+```
+
+La función `pairwise.t.test()` usa la desviación estándar combinada de los cuatro grupos, como el ANOVA, y multiplica cada valor $p$ por $m$. Se llega a la misma conclusión que con Tukey: solo aditivo contra membrana no es significativa (valor $p$ ajustado de 0.377).
+
+::: {.callout-tip title="En la práctica"}
+Para comparar todas las parejas, Tukey es mejor que Bonferroni: su distancia mínima es menor (2.86 contra 3.01 MPa en el ejemplo), así que detecta más diferencias con el mismo error familiar. Bonferroni conviene cuando se planean pocas comparaciones, por ejemplo tres de las seis parejas posibles, porque entonces $\alpha/m$ es menos exigente.
+:::
+
+## Contrastes {#sec-mc-contrastes}
+
+A veces la pregunta no es sobre parejas. Un ingeniero puede querer saber si los métodos que no usan agua, en promedio, superan al curado con agua. Esa pregunta se escribe como un contraste, que es una combinación de las medias con coeficientes que suman cero:
+
+$$
+L = \sum_{j=1}^{k} c_j\, \bar{y}_j \qquad \text{con} \qquad \sum_{j=1}^{k} c_j = 0
+$$ {#eq-mc-contraste}
+
+donde $c_j$ es el coeficiente del tratamiento $j$. Para comparar el agua contra el promedio de los otros tres métodos, los coeficientes son $(3, -1, -1, -1)$. Para comparar solo membrana contra aditivo, son $(0, 1, 0, -1)$.
+
+Si los grupos tienen $n_j$ observaciones, el contraste se prueba con
+
+$$
+t = \frac{L}{\sqrt{CM_E \sum_{j} c_j^2 / n_j}}
+$$ {#eq-mc-t-contraste}
+
+que sigue una distribución $t$ con $gl_E$ grados de libertad si el contraste es cero en la población. Su suma de cuadrados es $SC_L = L^2 / \sum_j (c_j^2/n_j)$, con un grado de libertad, y $t^2 = SC_L / CM_E$ es el estadístico $F$ del contraste [@montgomery2017design, sec. 3.5].
+
+::: {.callout-note title="Ejemplo: agua contra los demás métodos de curado"}
+
+**Planteamiento.** Con el ensayo de curado, pruebe si la resistencia media con agua difiere del promedio de los otros tres métodos ($\alpha = 0.05$). La comparación se planeó antes de ver los datos.
+
+**Solución:**
+
+1. Coeficientes $(3, -1, -1, -1)$, que suman cero.
+2. Contraste: $L = 3(29) - 33 - 39 - 35 = 87 - 107 = -20$ MPa.
+3. Error estándar: $\sqrt{2.50 \times (9 + 1 + 1 + 1)/5} = \sqrt{6} = 2.449$ MPa.
+4. Estadístico: $t = -20/2.449 = -8.16$, con 16 grados de libertad.
+5. Como $|t| = 8.16 > t_{0.025;\,16} = 2.12$, se rechaza que el contraste sea cero. El valor $p$ es menor que 0.001.
+6. Suma de cuadrados del contraste: $SC_L = (-20)^2/(12/5) = 166.7$, y $F = 166.7/2.50 = 66.7 = 8.16^2$.
+
+**Pseudocódigo**
+
+1. Definir el vector de coeficientes y comprobar que suma cero.
+2. Calcular $L$, su error estándar y el estadístico $t$ con la @eq-mc-t-contraste.
+3. Calcular el valor $p$ con `pt()`.
+4. Repetir con `lm()` usando el contraste como codificación del factor.
+
+```{r}
+# 1) Coeficientes del contraste
+coef_c <- c(3, -1, -1, -1)
+sum(coef_c)
+
+# 2) Contraste, error estándar y estadístico
+n_j <- tapply(curado$resistencia_mpa, curado$metodo, length)
+L <- sum(coef_c * medias)
+ee_L <- sqrt(cm_e * sum(coef_c^2 / n_j))
+t_L <- L / ee_L
+
+# 3) Valor p bilateral
+p_L <- 2 * pt(-abs(t_L), df = gl_e)
+c(L = L, ee = ee_L, t = t_L, p = p_L)
+```
+
+R también prueba contrastes dentro de `lm()`. Se le asigna al factor una matriz con el contraste de interés en la primera columna y otros dos que lo completan, y la fila de ese contraste en `summary()` da la prueba:
+
+```{r}
+# 4) El mismo contraste con lm()
+cmat <- cbind(agua_vs_resto = c(3, -1, -1, -1),
+              mem_vs_adit   = c(0, 1, 0, -1),
+              vapor_vs_otros = c(0, -1, 2, -1))
+contrasts(curado$metodo) <- cmat
+ajuste <- lm(resistencia_mpa ~ metodo, data = curado)
+summary(ajuste)$coefficients
+```
+
+En la fila `metodoagua_vs_resto` el valor `t value` es el mismo $-8.16$ del cálculo manual. El coeficiente estimado no es $L$, sino $L / \sum c_j^2$, porque `lm()` usa otra escala, pero el estadístico y el valor $p$ no cambian.
+
+**Interpretación.** El promedio de los otros tres métodos supera al agua en $20/3 = 6.7$ MPa, y la diferencia es estadísticamente significativa. Si el contraste se hubiera elegido después de mirar los datos, habría que usar un método más exigente, como el de Scheffé [@montgomery2017design, sec. 3.5].
+
+:::
+
+## Supuestos y diagnóstico con residuos {#sec-mc-supuestos}
+
+Las conclusiones del ANOVA y de las comparaciones dependen de los supuestos de la @sec-dce-supuestos: independencia, normalidad y varianza común de los errores. Los errores no se observan, pero se estiman con los residuos, que son la diferencia entre cada observación y su valor ajustado. En el ANOVA de un factor, el valor ajustado es la media del grupo:
+
+$$
+e_{ij} = y_{ij} - \hat{y}_{ij} = y_{ij} - \bar{y}_j
+$$ {#eq-mc-residuo}
+
+Por ejemplo, el primer cilindro curado con agua dio 28 MPa y la media del agua es 29 MPa, así que su residuo es $e_{11} = 28 - 29 = -1$ MPa.
+
+### Gráficos de residuos
+
+La revisión empieza con dos gráficos. El de residuos contra valores ajustados muestra si la dispersión es parecida en todos los grupos. El gráfico cuantil-cuantil normal, visto en la Parte IV, muestra si los residuos siguen una normal: si es así, los puntos quedan cerca de la recta. El @tbl-mc-patrones resume qué buscar.
+
+```{r}
+#| label: tbl-mc-patrones
+#| tbl-cap: "Patrones en los gráficos de residuos y qué indican."
+#| echo: false
+
+patrones <- data.frame(
+  patron = c("Nube sin forma alrededor de cero", "Embudo: la dispersión crece con el valor ajustado",
+             "Puntos del gráfico cuantil-cuantil curvados", "Un punto muy apartado",
+             "Rachas de residuos del mismo signo en el orden de ensayo"),
+  problema = c("Ninguno.", "Varianzas distintas.", "Errores no normales (asimetría o colas largas).",
+               "Valor atípico.", "Falta de independencia."),
+  accion = c("Seguir con el análisis.", "Transformar la respuesta o usar un método que no suponga varianza común.",
+             "Transformar la respuesta o usar una prueba no paramétrica.",
+             "Revisar el registro y las condiciones del ensayo. No borrarlo sin una causa.",
+             "Revisar la aleatorización. No se corrige con el análisis.")
+)
+patrones %>%
+  kbl(col.names = c("Patrón", "Problema probable", "Qué hacer"), align = "lll") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Pruebas formales
+
+Dos pruebas complementan los gráficos. La de Shapiro-Wilk tiene como hipótesis nula que los residuos vienen de una distribución normal. La de Levene [@levene1960robust] tiene como hipótesis nula que las varianzas de los grupos son iguales. Consiste en hacer un ANOVA sobre los valores absolutos de los residuos: si un grupo es más disperso, sus residuos absolutos serán mayores en promedio. La prueba de Bartlett, que trae base R, tiene la misma hipótesis pero es sensible a la falta de normalidad.
+
+::: {.callout-note title="Ejemplo: revisar los supuestos del ensayo de curado"}
+
+**Planteamiento.** Revise si el ANOVA del ensayo de curado cumple los supuestos de normalidad y varianza común.
+
+**Solución:**
+
+1. Residuos: a cada cilindro se le resta la media de su método. Para el agua son $-1, 1, 0, 2, -2$.
+2. Varianzas por método: agua 2.5, membrana 3.0, vapor 1.5 y aditivo 3.0 MPa². La mayor es el doble de la menor, una diferencia pequeña con cinco datos por grupo.
+3. Levene a mano: los promedios de los residuos absolutos son 1.2, 1.2, 0.8 y 1.2 MPa. El ANOVA sobre esos valores absolutos da $F = 0.21$ con 3 y 16 grados de libertad, muy por debajo de $F_{0.05;\,3,\,16} = 3.24$. No hay evidencia de varianzas distintas.
+
+**Pseudocódigo**
+
+1. Ajustar el ANOVA y extraer los residuos y los valores ajustados.
+2. Graficar residuos contra ajustados y el gráfico cuantil-cuantil normal.
+3. Hacer la prueba de Shapiro-Wilk sobre los residuos.
+4. Hacer la prueba de Levene como ANOVA de los residuos absolutos, y la de Bartlett.
+
+```{r}
+#| label: fig-mc-residuos
+#| fig-cap: "Residuos del ANOVA del ensayo de curado: contra los valores ajustados (izquierda) y gráfico cuantil-cuantil normal (derecha)."
+#| fig-alt: "Dos gráficos de residuos sin patrones visibles; los puntos del gráfico cuantil-cuantil siguen la recta"
+#| fig-width: 9
+#| fig-height: 4
+#| out-width: "90%"
+
+# 1) Residuos y valores ajustados
+modelo <- aov(resistencia_mpa ~ metodo, data = curado)
+residuos <- residuals(modelo)
+ajustados <- fitted(modelo)
+
+# 2) Gráficos de diagnóstico en base R
+par(mfrow = c(1, 2))
+plot(ajustados, residuos, pch = 19, col = "#1C6BA0",
+     xlab = "Valor ajustado (MPa)", ylab = "Residuo (MPa)")
+abline(h = 0, lty = 2)
+qqnorm(residuos, pch = 19, col = "#1C6BA0", main = "",
+       xlab = "Cuantil teórico normal", ylab = "Residuo (MPa)")
+qqline(residuos)
+par(mfrow = c(1, 1))
+```
+
+```{r}
+# 3) Normalidad de los residuos
+shapiro.test(residuos)
+
+# 4) Varianza común: Levene como ANOVA de los residuos absolutos
+abs_res <- abs(residuos)
+summary(aov(abs_res ~ curado$metodo))
+
+# Prueba de Bartlett (base R)
+bartlett.test(resistencia_mpa ~ metodo, data = curado)
+```
+
+En la @fig-mc-residuos los residuos forman una nube sin forma alrededor de cero y los puntos del gráfico cuantil-cuantil quedan cerca de la recta. Las pruebas coinciden: Shapiro-Wilk da un valor $p$ de 0.500, Levene de 0.888 y Bartlett de 0.912.
+
+**Interpretación.** No hay señales de que se incumplan la normalidad o la varianza común, así que las conclusiones del ANOVA y de Tukey se sostienen. La independencia no se revisa con estas pruebas: se garantizó al sortear la asignación y el orden de los ensayos.
+
+:::
+
+::: {.callout-tip title="En la práctica"}
+Con pocos datos por grupo, las pruebas formales casi nunca rechazan, y con muchos datos rechazan por desviaciones sin importancia. Por eso los gráficos pesan más que los valores $p$ de Shapiro-Wilk o Levene. El paquete `car` trae la función `leveneTest()`, que por omisión usa la mediana en lugar de la media (variante de Brown y Forsythe); el cálculo de arriba con base R basta para entender lo que hace.
+:::
+
+### Qué hacer si no se cumplen
+
+Si la desviación estándar crece con la media, cosa común en resistencias, caudales o conteos, una transformación de la respuesta suele arreglar la varianza y la normalidad a la vez: el logaritmo cuando la desviación es proporcional a la media y la raíz cuadrada para conteos [@montgomery2017design, sec. 3.4]. Si no se encuentra una transformación razonable, la prueba de Kruskal-Wallis compara los grupos por rangos sin suponer normalidad. En R es `kruskal.test(resistencia_mpa ~ metodo, data = curado)`, y para el ensayo de curado da $\chi^2 = 16.5$ con 3 grados de libertad y un valor $p$ menor que 0.001.
+
+::: {.callout-warning title="Cuidado"}
+Una transformación cambia la escala en que se interpretan las medias. Se elige por lo que muestran los residuos o por la naturaleza de la variable, nunca probando varias hasta que el valor $p$ resulte favorable.
+:::
+
+## Diseño en bloques completos aleatorizados {#sec-mc-bloques}
+
+Suponga que no hay suficiente cemento de un mismo lote para fabricar los 20 cilindros, y hay que usar cinco lotes. Si los lotes difieren en finura o composición, esa variación se suma al error y puede tapar las diferencias entre métodos. La solución es usar cada lote como un bloque: con cada lote se fabrican cuatro cilindros, uno por método, asignados por sorteo dentro del lote. Así cada método se ensaya una vez en cada lote, y las comparaciones entre métodos se hacen dentro de un mismo cemento. Este es el diseño en bloques completos aleatorizados: completos, porque cada bloque contiene todos los tratamientos.
+
+### Modelo y sumas de cuadrados
+
+Con $a$ tratamientos y $b$ bloques, y una observación por combinación, el modelo es
+
+$$
+y_{ij} = \mu + \tau_i + \beta_j + \varepsilon_{ij}
+$$ {#eq-mc-modelo-bloques}
+
+donde $y_{ij}$ es la respuesta del tratamiento $i$ en el bloque $j$, $\mu$ es la media general, $\tau_i$ es el efecto del tratamiento $i$, $\beta_j$ es el efecto del bloque $j$ y $\varepsilon_{ij}$ es el error. Se supone que los efectos se suman: un lote que sube la resistencia en 2 MPa la sube lo mismo con cualquier método [@montgomery2017design, sec. 4.1].
+
+La variación total se parte ahora en tres piezas:
+
+$$
+SC_T = SC_{\text{trat}} + SC_{\text{bloq}} + SC_E
+$$ {#eq-mc-particion-bloques}
+
+con
+
+$$
+SC_{\text{trat}} = b \sum_{i=1}^{a} (\bar{y}_{i\cdot} - \bar{y})^2 \qquad SC_{\text{bloq}} = a \sum_{j=1}^{b} (\bar{y}_{\cdot j} - \bar{y})^2
+$$ {#eq-mc-sc-bloques}
+
+donde $\bar{y}_{i\cdot}$ es la media del tratamiento $i$ (promedio de sus $b$ bloques), $\bar{y}_{\cdot j}$ es la media del bloque $j$ (promedio de sus $a$ tratamientos) y $\bar{y}$ es la media general. $SC_T$ se calcula igual que en la @eq-dce-sct, y $SC_E$ se obtiene por diferencia. El @tbl-mc-anova-bloques muestra el cuadro ANOVA.
+
+```{r}
+#| label: tbl-mc-anova-bloques
+#| tbl-cap: "Cuadro ANOVA del diseño en bloques completos aleatorizados."
+#| echo: false
+
+anova_bl <- data.frame(
+  fuente = c("Tratamientos", "Bloques", "Error", "Total"),
+  sc = c("<i>SC</i><sub>trat</sub>", "<i>SC</i><sub>bloq</sub>", "<i>SC</i><sub>E</sub>", "<i>SC</i><sub>T</sub>"),
+  gl = c("<i>a</i> − 1", "<i>b</i> − 1", "(<i>a</i> − 1)(<i>b</i> − 1)", "<i>ab</i> − 1"),
+  cm = c("<i>SC</i><sub>trat</sub> / (<i>a</i> − 1)", "<i>SC</i><sub>bloq</sub> / (<i>b</i> − 1)",
+         "<i>SC</i><sub>E</sub> / [(<i>a</i> − 1)(<i>b</i> − 1)]", ""),
+  f = c("<i>CM</i><sub>trat</sub> / <i>CM</i><sub>E</sub>", "<i>CM</i><sub>bloq</sub> / <i>CM</i><sub>E</sub>", "", "")
+)
+anova_bl %>%
+  kbl(col.names = c("Fuente", "Suma de cuadrados", "Grados de libertad", "Cuadrado medio", "<i>F</i>"),
+      escape = FALSE, align = "lcccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+La prueba que interesa es la de tratamientos. El $F$ de bloques solo indica si valió la pena bloquear; los bloques no se sortearon entre las unidades, así que no se interpreta como una prueba de causa.
+
+::: {.callout-note title="Ejemplo: métodos de curado con cinco lotes de cemento"}
+
+**Planteamiento.** Se repite el ensayo de curado, ahora con cinco lotes de cemento. Con cada lote se fabricaron cuatro cilindros y se sorteó qué método recibía cada uno. Los datos son hipotéticos. Con $\alpha = 0.05$, determine si el método de curado cambia la resistencia media, tomando en cuenta los lotes.
+
+```{r}
+#| echo: false
+ver_datos("datos/curado_lotes_hipotetico.csv",
+          nombres = c("Lote", "Método", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Datos en forma de cuadro, con $a = 4$ métodos y $b = 5$ lotes (@tbl-mc-datos-bloques). Las medias de método son 29, 33, 39 y 35 MPa; las de lote, 32, 33, 34, 35 y 36 MPa; la media general es 34 MPa.
+2. Tratamientos (@eq-mc-sc-bloques): $SC_{\text{trat}} = 5\left[(29-34)^2 + (33-34)^2 + (39-34)^2 + (35-34)^2\right] = 5 \times 52 = 260$.
+3. Bloques: $SC_{\text{bloq}} = 4\left[(32-34)^2 + (33-34)^2 + 0^2 + (35-34)^2 + (36-34)^2\right] = 4 \times 10 = 40$.
+4. Total: se suman los cuadrados de las 20 diferencias con 34. Por método dan 135, 21, 135 y 15, y en total $SC_T = 306$.
+5. Error: $SC_E = 306 - 260 - 40 = 6$.
+6. Grados de libertad: tratamientos 3, bloques 4, error $3 \times 4 = 12$, total 19.
+7. Cuadrados medios: $CM_{\text{trat}} = 260/3 = 86.67$, $CM_{\text{bloq}} = 40/4 = 10.0$ y $CM_E = 6/12 = 0.50$.
+8. Estadísticos: $F_{\text{trat}} = 86.67/0.50 = 173.3$, que supera $F_{0.05;\,3,\,12} = 3.49$, y $F_{\text{bloq}} = 10.0/0.50 = 20.0$, que supera $F_{0.05;\,4,\,12} = 3.26$.
+
+```{r}
+#| label: tbl-mc-datos-bloques
+#| tbl-cap: "Resistencia (MPa) por método de curado y lote de cemento, con las medias de fila y de columna."
+#| echo: false
+
+lotes <- read.csv("datos/curado_lotes_hipotetico.csv")
+lotes$metodo <- factor(lotes$metodo, levels = c("agua", "membrana", "vapor", "aditivo"))
+ancho <- tapply(lotes$resistencia_mpa, list(lotes$metodo, lotes$lote), sum)
+cuadro <- data.frame(Metodo = c("Agua", "Membrana", "Vapor", "Aditivo"), ancho, check.names = FALSE)
+cuadro$media <- rowMeans(ancho)
+cuadro <- rbind(cuadro, data.frame(Metodo = "Media del lote", t(colMeans(ancho)),
+                                   media = mean(ancho), check.names = FALSE))
+cuadro %>%
+  kbl(col.names = c("Método", paste("Lote", 1:5), "<i>ȳ<sub>i·</sub></i>"),
+      escape = FALSE, align = "lcccccc", row.names = FALSE) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(5, italic = TRUE)
+```
+
+**Pseudocódigo**
+
+1. Leer los datos y convertir método y lote en factores.
+2. Calcular las medias de método, de lote y la general.
+3. Calcular $SC_{\text{trat}}$, $SC_{\text{bloq}}$, $SC_T$ y $SC_E$ por diferencia.
+4. Calcular cuadrados medios, estadísticos $F$ y valores $p$.
+5. Repetir con `aov(resistencia_mpa ~ metodo + lote)`.
+6. Comparar con el análisis que ignora los lotes.
+
+```{r}
+# 1) Datos; el lote se convierte en factor para que no se trate como número
+lotes <- read.csv("datos/curado_lotes_hipotetico.csv")
+lotes$metodo <- factor(lotes$metodo,
+                       levels = c("agua", "membrana", "vapor", "aditivo"))
+lotes$lote <- factor(lotes$lote)
+y <- lotes$resistencia_mpa
+
+# 2) Medias
+a <- nlevels(lotes$metodo)
+b <- nlevels(lotes$lote)
+media_metodo <- tapply(y, lotes$metodo, mean)
+media_lote <- tapply(y, lotes$lote, mean)
+media_general <- mean(y)
+
+# 3) Sumas de cuadrados
+sc_trat <- b * sum((media_metodo - media_general)^2)
+sc_bloq <- a * sum((media_lote - media_general)^2)
+sc_t <- sum((y - media_general)^2)
+sc_e <- sc_t - sc_trat - sc_bloq
+
+# 4) Cuadrados medios, F y valores p
+gl_e_bl <- (a - 1) * (b - 1)
+cm_e_bl <- sc_e / gl_e_bl
+f_trat <- (sc_trat / (a - 1)) / cm_e_bl
+f_bloq <- (sc_bloq / (b - 1)) / cm_e_bl
+c(SC_trat = sc_trat, SC_bloq = sc_bloq, SC_E = sc_e, CM_E = cm_e_bl,
+  F_trat = f_trat, p_trat = 1 - pf(f_trat, a - 1, gl_e_bl),
+  F_bloq = f_bloq, p_bloq = 1 - pf(f_bloq, b - 1, gl_e_bl))
+```
+
+```{r}
+# 5) Misma prueba con aov(): el bloque se suma en la fórmula
+modelo_bl <- aov(resistencia_mpa ~ metodo + lote, data = lotes)
+summary(modelo_bl)
+
+# 6) Qué pasa si se ignoran los lotes
+summary(aov(resistencia_mpa ~ metodo, data = lotes))
+```
+
+Sin los lotes, su variación pasa al error: $SC_E$ sube de 6 a 46, $CM_E$ de 0.50 a 2.88 y $F$ baja de 173.3 a 30.1. Con estos datos la conclusión sobre los métodos no cambia, porque las diferencias son grandes, pero las comparaciones posteriores sí ganan precisión. La distancia de Tukey con bloques es $q_{0.05;\,4,\,12}\sqrt{CM_E/b} = 4.20\sqrt{0.50/5} = 1.33$ MPa, contra 2.86 MPa en el diseño sin bloques de la @sec-mc-tukey:
+
+```{r}
+# Tukey solo para el factor de interés
+TukeyHSD(modelo_bl, which = "metodo")
+```
+
+Ahora también membrana y aditivo se distinguen (diferencia de 2 MPa, valor $p$ ajustado de 0.004). La @fig-mc-lotes muestra por qué: las líneas de los lotes son casi paralelas. Cada lote sube o baja todos los métodos por igual, y una vez que se descuenta ese desplazamiento, queda muy poco error.
+
+```{r}
+#| label: fig-mc-lotes
+#| fig-cap: "Resistencia por método de curado. Cada línea une los cuatro cilindros de un mismo lote de cemento."
+#| fig-alt: "Cinco líneas casi paralelas, una por lote, que suben de agua a vapor y bajan hacia aditivo"
+#| echo: false
+
+ggplot(lotes, aes(x = metodo, y = resistencia_mpa, group = lote, color = lote)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2.4) +
+  scale_color_viridis_d(name = "Lote", end = 0.9) +
+  scale_x_discrete(labels = c("Agua", "Membrana", "Vapor", "Aditivo")) +
+  labs(x = "Método de curado", y = "Resistencia a compresión (MPa)") +
+  theme_minimal(base_size = 13)
+```
+
+**Interpretación.** El método de curado cambia la resistencia media ($F = 173.3$, $p < 0.001$), y al bloquear por lote el error se redujo a la quinta parte. Con esa precisión, Tukey ordena los cuatro métodos: vapor, aditivo, membrana y agua, todos distintos entre sí. Como cada método se probó en cinco cementos, la conclusión vale para un rango de lotes y no para uno solo.
+
+:::
+
+En la @fig-mc-int-bloques se puede cambiar cuánto difieren los lotes y ver el efecto sobre los dos análisis. Con el control en 1 se obtienen los datos del ejemplo.
+
+::: {#fig-mc-int-bloques}
+
+```{=html}
+<div class="interactivo" id="int-mc-bloques">
+  <label><span>Diferencia entre lotes (veces la del ejemplo):</span> <output>1.00</output>
+    <input type="range" min="0" max="4" step="0.25" value="1"></label>
+  <svg viewBox="0 0 640 250" role="img" aria-label="Líneas de cinco lotes sobre cuatro métodos de curado; se separan al mover el control"></svg>
+  <div class="int-tabla"></div>
+</div>
+<script>
+(function () {
+  function lnGamma(x) {
+    var c = [76.18009172947146, -86.50532032941677, 24.01409824083091,
+             -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    var y = x, t = x + 5.5, s = 1.000000000190015;
+    t -= (x + 0.5) * Math.log(t);
+    for (var j = 0; j < 6; j++) s += c[j] / ++y;
+    return -t + Math.log(2.5066282746310005 * s / x);
+  }
+  function fracBeta(a, b, x) {
+    var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < 1e-30) d = 1e-30;
+    d = 1 / d; var h = d;
+    for (var m = 1; m <= 200; m++) {
+      var m2 = 2 * m, aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30;
+      c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+      d = 1 / d; h *= d * c;
+      aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+      d = 1 + aa * d; if (Math.abs(d) < 1e-30) d = 1e-30;
+      c = 1 + aa / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+      d = 1 / d; var del = d * c; h *= del;
+      if (Math.abs(del - 1) < 1e-12) break;
+    }
+    return h;
+  }
+  function betaInc(x, a, b) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var bt = Math.exp(lnGamma(a + b) - lnGamma(a) - lnGamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+    return x < (a + 1) / (a + b + 2) ? bt * fracBeta(a, b, x) / a : 1 - bt * fracBeta(b, a, 1 - x) / b;
+  }
+  function valorP(f, g1, g2) { return 1 - betaInc(g1 * f / (g1 * f + g2), g1 / 2, g2 / 2); }
+  function fmtP(p) { return p < 0.001 ? "&lt; 0.001" : p.toFixed(3); }
+
+  var raiz = document.getElementById("int-mc-bloques");
+  var control = raiz.querySelector("input"), salida = raiz.querySelector("output");
+  var svg = raiz.querySelector("svg"), cuadro = raiz.querySelector(".int-tabla");
+  var medias = [29, 33, 39, 35], efLote = [-2, -1, 0, 1, 2];
+  var res = [[0, 1, -1, 0, 0], [-1, 0, 1, 0, 0], [1, -1, 0, 0, 0], [0, 0, 0, 0, 0]];
+  var nombres = ["Agua", "Membrana", "Vapor", "Aditivo"];
+  var colores = ["#440154", "#3b528b", "#21918c", "#5ec962", "#c8b51f"];
+  var w = 640, h = 250, mi = 50, mb = 28, ms = 10, ymin = 18, ymax = 50;
+  var sy = function (y) { return h - mb - (y - ymin) / (ymax - ymin) * (h - mb - ms); };
+  var sx = function (i) { return mi + (i + 0.5) * (w - mi - 10) / 4; };
+  function dibujar() {
+    var g = parseFloat(control.value), a = 4, b = 5, datos = [], tot = 0;
+    salida.textContent = g.toFixed(2);
+    for (var i = 0; i < a; i++) {
+      datos.push([]);
+      for (var j = 0; j < b; j++) { var y = medias[i] + g * efLote[j] + res[i][j]; datos[i].push(y); tot += y; }
+    }
+    var mg = tot / (a * b), sct = 0, sctr = 0, scb = 0;
+    for (i = 0; i < a; i++) for (j = 0; j < b; j++) sct += Math.pow(datos[i][j] - mg, 2);
+    for (i = 0; i < a; i++) sctr += b * Math.pow(medias[i] - mg, 2);
+    for (j = 0; j < b; j++) {
+      var mj = 0; for (i = 0; i < a; i++) mj += datos[i][j] / a;
+      scb += a * Math.pow(mj - mg, 2);
+    }
+    var cmeSin = (sct - sctr) / 16, fSin = (sctr / 3) / cmeSin;
+    var cmeCon = (sct - sctr - scb) / 12, fCon = (sctr / 3) / cmeCon;
+    var s = "";
+    for (var v = 20; v <= 50; v += 10) {
+      s += '<line class="eje" x1="' + mi + '" x2="' + (w - 10) + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke-dasharray="2,3"/>' +
+           '<text class="eje-texto" x="' + (mi - 6) + '" y="' + (sy(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    }
+    for (j = 0; j < b; j++) {
+      var d = "";
+      for (i = 0; i < a; i++) d += (i ? "L" : "M") + sx(i).toFixed(1) + "," + sy(datos[i][j]).toFixed(1);
+      s += '<path d="' + d + '" fill="none" stroke="' + colores[j] + '" stroke-width="2"/>';
+      for (i = 0; i < a; i++) s += '<circle cx="' + sx(i).toFixed(1) + '" cy="' + sy(datos[i][j]).toFixed(1) + '" r="4" fill="' + colores[j] + '"/>';
+    }
+    for (i = 0; i < a; i++) s += '<text class="eje-texto" x="' + sx(i) + '" y="' + (h - 8) + '" text-anchor="middle">' + nombres[i] + '</text>';
+    svg.innerHTML = s;
+    cuadro.innerHTML = "<tab" + "le class=\"int-cuadro\"><tr><th>Análisis</th><th><i>CM</i><sub>E</sub></th><th><i>F</i> de métodos</th><th>Valor <i>p</i></th></tr>" +
+      "<tr><td>Sin bloques (un factor)</td><td>" + cmeSin.toFixed(2) + "</td><td>" + fSin.toFixed(1) + "</td><td>" + fmtP(valorP(fSin, 3, 16)) + "</td></tr>" +
+      "<tr><td>Con bloques por lote</td><td>" + cmeCon.toFixed(2) + "</td><td>" + fCon.toFixed(1) + "</td><td>" + fmtP(valorP(fCon, 3, 12)) + "</td></tr></tab" + "le>";
+  }
+  control.addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Efecto de la diferencia entre lotes sobre el ANOVA con bloques y sin ellos. Cada color es un lote.
+
+:::
+
+Al subir la diferencia entre lotes, el análisis sin bloques pierde potencia porque todo ese desplazamiento se cuenta como error; con un valor de 4, su $F$ baja a cerca de 2 y ya no rechaza $H_0$. El análisis con bloques no cambia: el $CM_E$ queda en 0.50 sin importar cuánto difieran los lotes, porque esa variación se separa en $SC_{\text{bloq}}$. Con el control en 0, los lotes no difieren y el diseño con bloques resulta un poco peor que el de un factor, porque gasta cuatro grados de libertad del error en estimar efectos de bloque que no existen.
+
+::: {.callout-tip title="En la práctica"}
+Conviene bloquear cuando se conoce antes del ensayo una fuente de variación importante (lote de material, día de fabricación, equipo u operador), cuando cada bloque alcanza para todos los tratamientos y cuando las unidades de un mismo bloque se parecen más entre sí que a las de otros bloques. Un factor de bloqueo que no tiene relación con la respuesta solo resta grados de libertad al error.
+:::
+
+::: {.callout-warning title="Cuidado"}
+En un diseño en bloques con una observación por combinación no se puede estimar la interacción entre tratamiento y bloque: esa variación queda dentro del error. Si un método funciona muy bien con un lote y mal con otro, el modelo aditivo de la @eq-mc-modelo-bloques no lo representa. Para estudiar interacciones se necesitan repeticiones dentro de cada combinación, que es el diseño factorial del capítulo siguiente.
+:::
+
+## Ejercicios propuestos
+
+1. Con los datos del ejercicio 1 del capítulo anterior (tres dosis de aditivo reductor de agua), aplique el método de Tukey a mano y con `TukeyHSD()`. Resuma el resultado con letras y explique qué dosis recomendaría.
+2. En un ANOVA de un factor con $k = 5$ tratamientos, $n = 6$ observaciones por tratamiento y $CM_E = 4.8$ kN², calcule la distancia de Tukey con `qtukey()` y la diferencia mínima de Bonferroni para las 10 parejas. ¿Cuál es menor? ¿Cuál sería menor si solo interesaran dos comparaciones planeadas?
+3. Para el ensayo de curado, plantee el contraste que compara los dos métodos que agregan humedad (agua y vapor) contra los dos que la retienen (membrana y aditivo). Calcule $L$, su estadístico $t$ y su suma de cuadrados, y compruebe el resultado con `lm()` y una matriz de contrastes.
+4. Se miden las deflexiones (mm) de vigas de cuatro proveedores de madera y se observa que los residuos forman un embudo: la dispersión crece con la deflexión media. Explique qué transformación probaría primero, cómo comprobaría si funcionó y cómo reportaría las medias después de transformar.
+5. Un laboratorio compara tres métodos de compactación de muestras de suelo (Proctor estándar, Proctor modificado y vibratorio) y la densidad seca (kg/m³) depende del operador. Cada uno de cuatro operadores compacta una muestra con cada método. Escriba el modelo, el cuadro ANOVA en forma general con sus grados de libertad y el código de R que usaría. ¿Por qué el operador es un bloque y no un segundo factor de interés?
+6. Con la @fig-mc-int-bloques, encuentre el valor del control a partir del cual el análisis sin bloques deja de rechazar $H_0$ con $\alpha = 0.05$. Explique el resultado con la @eq-mc-particion-bloques.
+
+## Lecturas recomendadas
+
+- @montgomery2017design, capítulos 3 y 4: comparaciones múltiples, revisión de supuestos y diseño en bloques, con muchos ejemplos de ingeniería.
+- @laneintroduction, capítulo 12: explicación sencilla del error familiar, el método de Tukey, Bonferroni y los contrastes, con la idea de que Tukey no requiere un ANOVA previo.
+- @tukey1949comparing: el artículo original del método de comparaciones por parejas.

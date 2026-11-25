@@ -1,0 +1,510 @@
+---
+title: "Diseños factoriales"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"La naturaleza responde mejor a un cuestionario lógico y bien pensado; de hecho, si se le hace una sola pregunta, a menudo se niega a contestar hasta que se haya tratado algún otro tema."\
+— *Ronald A. Fisher, 1926* [@fisher1926arrangement]
+:::
+
+Una mezcla asfáltica no depende de un solo ingrediente. Su desempeño cambia con el contenido de asfalto, el tipo de agregado, la fibra y la temperatura de compactación, y el efecto de cada uno puede depender de los otros. Los capítulos anteriores compararon los niveles de un solo factor. Este capítulo trata de los diseños factoriales, que estudian dos o más factores en el mismo experimento con todas sus combinaciones. Con ellos se estiman los efectos de cada factor con menos ensayos que estudiándolos por separado, y se detecta la interacción: cuando el efecto de un factor cambia según el nivel de otro. La presentación sigue a @montgomery2017design [cap. 5 y 6].
+
+## Por qué estudiar varios factores a la vez {#sec-fac-porque}
+
+::: {.pregunta}
+Si interesan dos factores, ¿no basta con hacer un experimento para cada uno?
+:::
+
+Es la costumbre de variar un factor a la vez: se fija el método de aplicación y se prueban las pinturas, y después se fija la mejor pintura y se prueban los métodos. Tiene dos problemas. El primero es que gasta más ensayos para la misma precisión, porque cada observación sirve para un solo factor. En un diseño factorial cada observación aporta a la estimación de todos los factores. El segundo problema es más serio: si el mejor método depende de la pintura, el experimento de un factor a la vez no lo ve, y puede llevar a una combinación que no es la mejor.
+
+Un diseño factorial completo ensaya todas las combinaciones de los niveles de los factores. Con un factor A de $a$ niveles y un factor B de $b$ niveles hay $a \times b$ tratamientos. Si cada combinación se repite $r$ veces, el experimento tiene $N = a\,b\,r$ observaciones. Por ejemplo, dos métodos de aplicación y tres pinturas dan $2 \times 3 = 6$ tratamientos, y con tres repeticiones son 18 ensayos.
+
+## Efectos principales e interacción {#sec-fac-interaccion}
+
+El efecto principal de un factor es el cambio promedio en la respuesta al pasar de un nivel a otro, promediando sobre los niveles del otro factor. Hay interacción cuando ese cambio no es el mismo en todos los niveles del otro factor [@laneintroduction, cap. 15].
+
+La forma más clara de verlo es el gráfico de interacción: en el eje horizontal van los niveles de un factor, en el vertical la media de la respuesta, y se dibuja una línea por cada nivel del otro factor. Si las líneas son paralelas, el efecto de A es el mismo con cualquier nivel de B y no hay interacción. Si no son paralelas, o se cruzan, hay interacción.
+
+Pruebe con la @fig-fac-int-interaccion. Los controles fijan el efecto de A, el de B y la interacción en un diseño con dos niveles por factor. Con la interacción en cero, las líneas quedan paralelas aunque A y B tengan efectos grandes. Si la interacción es mayor que el efecto de A, las líneas se cruzan: A sube la respuesta con un nivel de B y la baja con el otro.
+
+::: {#fig-fac-int-interaccion}
+
+```{=html}
+<div class="interactivo" id="int-fac-interaccion">
+  <label><span>Efecto de A:</span> <output>8</output>
+    <input type="range" min="-12" max="12" step="1" value="8"></label>
+  <label><span>Efecto de B:</span> <output>6</output>
+    <input type="range" min="-12" max="12" step="1" value="6"></label>
+  <label><span>Interacción AB:</span> <output>0</output>
+    <input type="range" min="-12" max="12" step="1" value="0"></label>
+  <svg viewBox="0 0 640 260" role="img" aria-label="Gráfico de interacción de dos factores con dos niveles; las líneas cambian con los controles"></svg>
+  <p class="int-resultado"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-fac-interaccion");
+  var controles = raiz.querySelectorAll("input"), salidas = raiz.querySelectorAll("output");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".int-resultado");
+  var w = 640, h = 260, mi = 50, md = 150, mb = 30, ms = 12, ymin = 20, ymax = 80;
+  var sy = function (y) { return h - mb - (y - ymin) / (ymax - ymin) * (h - mb - ms); };
+  var x1 = mi + 70, x2 = w - md - 40;
+  function dibujar() {
+    var A = parseFloat(controles[0].value), B = parseFloat(controles[1].value), AB = parseFloat(controles[2].value);
+    salidas[0].textContent = A; salidas[1].textContent = B; salidas[2].textContent = AB;
+    // Medias de las cuatro combinaciones (media general 50)
+    var bb = 50 - A / 2 - B / 2 + AB / 2, ab = 50 + A / 2 - B / 2 - AB / 2;
+    var ba = 50 - A / 2 + B / 2 - AB / 2, aa = 50 + A / 2 + B / 2 + AB / 2;
+    var s = "";
+    for (var v = 20; v <= 80; v += 10) {
+      s += '<line class="eje" x1="' + mi + '" x2="' + (w - md) + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke-dasharray="2,3"/>' +
+           '<text class="eje-texto" x="' + (mi - 6) + '" y="' + (sy(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    }
+    s += '<path class="linea-a" d="M' + x1 + ',' + sy(bb) + 'L' + x2 + ',' + sy(ab) + '"/>' +
+         '<circle class="punto" cx="' + x1 + '" cy="' + sy(bb) + '" r="5"/><circle class="punto" cx="' + x2 + '" cy="' + sy(ab) + '" r="5"/>' +
+         '<path class="linea-b" d="M' + x1 + ',' + sy(ba) + 'L' + x2 + ',' + sy(aa) + '"/>' +
+         '<circle class="punto-b" cx="' + x1 + '" cy="' + sy(ba) + '" r="5"/><circle class="punto-b" cx="' + x2 + '" cy="' + sy(aa) + '" r="5"/>' +
+         '<text class="eje-texto" x="' + (x2 + 12) + '" y="' + (sy(ab) + 4) + '">B bajo</text>' +
+         '<text class="eje-texto" x="' + (x2 + 12) + '" y="' + (sy(aa) + 4) + '">B alto</text>' +
+         '<text class="eje-texto" x="' + x1 + '" y="' + (h - 8) + '" text-anchor="middle">A bajo</text>' +
+         '<text class="eje-texto" x="' + x2 + '" y="' + (h - 8) + '" text-anchor="middle">A alto</text>';
+    svg.innerHTML = s;
+    texto.innerHTML = "Efecto de A con B bajo: <b>" + (ab - bb).toFixed(0) + "</b>; con B alto: <b>" + (aa - ba).toFixed(0) +
+      "</b>. " + (AB === 0 ? "El efecto de A no depende de B: líneas paralelas, sin interacción."
+                           : "El efecto de A cambia con el nivel de B: hay interacción.");
+  }
+  for (var i = 0; i < 3; i++) controles[i].addEventListener("input", dibujar);
+  dibujar();
+})();
+</script>
+```
+
+Gráfico de interacción de un diseño con dos factores de dos niveles. La media general es 50.
+
+:::
+
+El texto del interactivo muestra la definición de la interacción en un diseño con dos niveles: es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo. La @sec-fac-2k desarrolla esa definición.
+
+::: {.callout-warning title="Cuidado"}
+Si hay interacción, el efecto principal de A es un promedio de efectos distintos y puede engañar. En el caso extremo, A sube la respuesta 10 unidades con B bajo y la baja 10 con B alto: el efecto principal de A es cero, aunque A importa mucho. Por eso la interacción se revisa primero, y si es significativa, se estudia el efecto de A dentro de cada nivel de B.
+:::
+
+## Diseño factorial de dos factores {#sec-fac-dos}
+
+### Modelo y sumas de cuadrados
+
+Con $a$ niveles del factor A, $b$ niveles del factor B y $r$ repeticiones por combinación, el modelo es
+
+$$
+y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \varepsilon_{ijk}
+$$ {#eq-fac-modelo}
+
+donde $y_{ijk}$ es la repetición $k$ de la combinación del nivel $i$ de A con el nivel $j$ de B, $\mu$ es la media general, $\alpha_i$ es el efecto del nivel $i$ de A, $\beta_j$ es el efecto del nivel $j$ de B, $(\alpha\beta)_{ij}$ es la interacción de esa combinación y $\varepsilon_{ijk}$ es el error [@montgomery2017design, sec. 5.3]. La interacción es la parte de la media de una combinación que no se explica sumando el efecto de A y el de B.
+
+La notación con puntos indica sobre qué se promedia: $\bar{y}_{ij\cdot}$ es la media de las $r$ repeticiones de una combinación (media de celda), $\bar{y}_{i\cdot\cdot}$ es la media del nivel $i$ de A sobre todos los niveles de B, $\bar{y}_{\cdot j\cdot}$ es la media del nivel $j$ de B y $\bar{y}$ es la media general. La variación total se parte en cuatro piezas:
+
+$$
+SC_T = SC_A + SC_B + SC_{AB} + SC_E
+$$ {#eq-fac-particion}
+
+con
+
+$$
+SC_A = b\,r \sum_{i=1}^{a} (\bar{y}_{i\cdot\cdot} - \bar{y})^2 \qquad SC_B = a\,r \sum_{j=1}^{b} (\bar{y}_{\cdot j\cdot} - \bar{y})^2
+$$ {#eq-fac-sc-principales}
+
+$$
+SC_{AB} = r \sum_{i=1}^{a} \sum_{j=1}^{b} (\bar{y}_{ij\cdot} - \bar{y}_{i\cdot\cdot} - \bar{y}_{\cdot j\cdot} + \bar{y})^2
+$$ {#eq-fac-sc-interaccion}
+
+$$
+SC_E = \sum_{i=1}^{a} \sum_{j=1}^{b} \sum_{k=1}^{r} (y_{ijk} - \bar{y}_{ij\cdot})^2
+$$ {#eq-fac-sc-error}
+
+La @eq-fac-sc-interaccion mide cuánto se apartan las medias de celda de lo que predice un modelo sin interacción, $\bar{y}_{i\cdot\cdot} + \bar{y}_{\cdot j\cdot} - \bar{y}$. La @eq-fac-sc-error mide la variación entre repeticiones de la misma combinación: por eso un factorial necesita $r \geq 2$ para estimar el error. El @tbl-fac-anova-general muestra el cuadro ANOVA.
+
+```{r}
+#| label: tbl-fac-anova-general
+#| tbl-cap: "Cuadro ANOVA del diseño factorial de dos factores."
+#| echo: false
+
+library(kableExtra)
+anova_fac <- data.frame(
+  fuente = c("A", "B", "Interacción AB", "Error", "Total"),
+  sc = c("<i>SC</i><sub>A</sub>", "<i>SC</i><sub>B</sub>", "<i>SC</i><sub>AB</sub>", "<i>SC</i><sub>E</sub>", "<i>SC</i><sub>T</sub>"),
+  gl = c("<i>a</i> − 1", "<i>b</i> − 1", "(<i>a</i> − 1)(<i>b</i> − 1)", "<i>ab</i>(<i>r</i> − 1)", "<i>abr</i> − 1"),
+  cm = c("<i>SC</i><sub>A</sub> / (<i>a</i> − 1)", "<i>SC</i><sub>B</sub> / (<i>b</i> − 1)",
+         "<i>SC</i><sub>AB</sub> / [(<i>a</i> − 1)(<i>b</i> − 1)]", "<i>SC</i><sub>E</sub> / [<i>ab</i>(<i>r</i> − 1)]", ""),
+  f = c("<i>CM</i><sub>A</sub> / <i>CM</i><sub>E</sub>", "<i>CM</i><sub>B</sub> / <i>CM</i><sub>E</sub>",
+        "<i>CM</i><sub>AB</sub> / <i>CM</i><sub>E</sub>", "", "")
+)
+anova_fac %>%
+  kbl(col.names = c("Fuente", "Suma de cuadrados", "Grados de libertad", "Cuadrado medio", "<i>F</i>"),
+      escape = FALSE, align = "lcccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Cada fuente se prueba con su propio $F$ contra $CM_E$, y cada una tiene su par de hipótesis:
+
+- Factor A: $H_0: \alpha_1 = \cdots = \alpha_a = 0$.
+- Factor B: $H_0: \beta_1 = \cdots = \beta_b = 0$.
+- Interacción: $H_0: (\alpha\beta)_{ij} = 0$ para todas las combinaciones.
+
+### Orden de interpretación
+
+1. Se revisa primero la interacción.
+2. Si la interacción es significativa, se describe con el gráfico de interacción y se comparan los niveles de un factor dentro de cada nivel del otro (efectos simples). Los efectos principales se reportan con cautela.
+3. Si la interacción no es significativa, los efectos principales se interpretan como promedios sobre los niveles del otro factor, y se comparan sus niveles con Tukey como en el capítulo anterior.
+
+::: {.callout-note title="Ejemplo: adherencia de pinturas según el método de aplicación"}
+
+**Planteamiento.** Se estudia la adherencia de tres pinturas anticorrosivas (P1, P2 y P3) sobre placas de acero de un puente, aplicadas por inmersión o por rociado. Cada una de las seis combinaciones se ensayó en tres placas asignadas por sorteo, y se midió un índice de adherencia de 0 a 100 puntos. Los datos son hipotéticos; el planteamiento se basa en un ejemplo de @montgomery2017design [sec. 5.3]. Con $\alpha = 0.05$, determine si la adherencia depende del método, de la pintura o de su combinación.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/adherencia_pintura_hipotetica.csv",
+          nombres = c("Método", "Pintura", "Repetición", "Adherencia (puntos)"))
+```
+
+**Solución:**
+
+1. Datos y medias de celda, con $a = 2$ métodos, $b = 3$ pinturas y $r = 3$ (@tbl-fac-medias). Por ejemplo, la media de inmersión con P1 es $(70 + 72 + 74)/3 = 72$.
+2. Medias marginales: inmersión $(72 + 78 + 82)/3 = 77.33$ y rociado $(76 + 80 + 92)/3 = 82.67$; P1 $(72 + 76)/2 = 74$, P2 $79$ y P3 $87$. Media general: $\bar{y} = 80$.
+3. Método (@eq-fac-sc-principales): $SC_A = 3 \times 3\left[(77.33 - 80)^2 + (82.67 - 80)^2\right] = 9 \times 14.22 = 128$.
+4. Pintura: $SC_B = 2 \times 3\left[(74 - 80)^2 + (79 - 80)^2 + (87 - 80)^2\right] = 6 \times 86 = 516$.
+5. Interacción (@eq-fac-sc-interaccion). Para inmersión con P1: $72 - 77.33 - 74 + 80 = 0.67$. Las seis diferencias son $0.67$, $1.67$ y $-2.33$ para inmersión, y las mismas con signo contrario para rociado. Entonces $SC_{AB} = 3 \times 2\,(0.67^2 + 1.67^2 + 2.33^2) = 3 \times 17.33 = 52$.
+6. Error (@eq-fac-sc-error): en cada celda las tres placas están a $-2$, $0$ y $+2$ de su media, así que cada celda aporta $4 + 0 + 4 = 8$ y $SC_E = 6 \times 8 = 48$.
+7. Total: $SC_T = 128 + 516 + 52 + 48 = 744$, con $N - 1 = 17$ grados de libertad.
+8. Grados de libertad y cuadrados medios: método $128/1 = 128$; pintura $516/2 = 258$; interacción $52/2 = 26$; error $48/12 = 4$.
+9. Estadísticos: $F_A = 128/4 = 32.0$, $F_B = 258/4 = 64.5$ y $F_{AB} = 26/4 = 6.5$. Los valores críticos son $F_{0.05;\,1,\,12} = 4.75$ y $F_{0.05;\,2,\,12} = 3.89$. Las tres hipótesis nulas se rechazan, incluida la de la interacción.
+
+```{r}
+#| label: tbl-fac-medias
+#| tbl-cap: "Adherencia (puntos) por método y pintura: observaciones y media de cada combinación."
+#| echo: false
+
+pintura <- read.csv("datos/adherencia_pintura_hipotetica.csv")
+celdas <- aggregate(adherencia ~ metodo + pintura, data = pintura,
+                    FUN = function(v) paste0(paste(v, collapse = ", "), " (", mean(v), ")"))
+ancho <- reshape(celdas, idvar = "metodo", timevar = "pintura", direction = "wide")
+ancho$metodo <- c("Inmersión", "Rociado")
+ancho %>%
+  kbl(col.names = c("Método", "P1", "P2", "P3"), align = "lccc", row.names = FALSE) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  footnote(general = "Entre paréntesis, la media de la combinación.", general_title = "")
+```
+
+**Pseudocódigo**
+
+1. Leer los datos y convertir método y pintura en factores.
+2. Calcular las medias de celda, las marginales y la general.
+3. Calcular $SC_A$, $SC_B$, $SC_{AB}$, $SC_E$ y $SC_T$.
+4. Armar el cuadro ANOVA con cuadrados medios, $F$ y valores $p$.
+5. Repetir con `aov(adherencia ~ metodo * pintura)`.
+6. Dibujar el gráfico de interacción.
+
+```{r}
+# 1) Datos
+pintura <- read.csv("datos/adherencia_pintura_hipotetica.csv")
+pintura$metodo <- factor(pintura$metodo)
+pintura$pintura <- factor(pintura$pintura)
+y <- pintura$adherencia
+a <- nlevels(pintura$metodo)
+b <- nlevels(pintura$pintura)
+r <- 3
+
+# 2) Medias de celda, marginales y general
+celda <- tapply(y, list(pintura$metodo, pintura$pintura), mean)
+media_a <- rowMeans(celda)    # por método
+media_b <- colMeans(celda)    # por pintura
+media_general <- mean(y)
+celda
+
+# 3) Sumas de cuadrados
+sc_a <- b * r * sum((media_a - media_general)^2)
+sc_b <- a * r * sum((media_b - media_general)^2)
+inter <- celda - outer(media_a, media_b, "+") + media_general
+sc_ab <- r * sum(inter^2)
+sc_e <- sum((y - ave(y, pintura$metodo, pintura$pintura))^2)
+sc_t <- sum((y - media_general)^2)
+
+# 4) Cuadro ANOVA
+gl <- c(a - 1, b - 1, (a - 1) * (b - 1), a * b * (r - 1))
+sc <- c(sc_a, sc_b, sc_ab, sc_e)
+cm <- sc / gl
+f <- cm[1:3] / cm[4]
+data.frame(fuente = c("metodo", "pintura", "interaccion", "error"),
+           sc = sc, gl = gl, cm = cm,
+           F = c(f, NA), p = c(1 - pf(f, gl[1:3], gl[4]), NA))
+```
+
+En el paso 3, `outer(media_a, media_b, "+")` arma el cuadro de las sumas $\bar{y}_{i\cdot\cdot} + \bar{y}_{\cdot j\cdot}$ para todas las combinaciones, y al restarlo de las medias de celda y sumar la media general se obtienen los términos de la @eq-fac-sc-interaccion. `ave()` con dos factores da la media de la celda de cada placa.
+
+En la fórmula de `aov()`, `metodo * pintura` es una abreviatura de `metodo + pintura + metodo:pintura`: los dos efectos principales y su interacción.
+
+```{r}
+# 5) Misma prueba con aov()
+modelo <- aov(adherencia ~ metodo * pintura, data = pintura)
+summary(modelo)
+```
+
+```{r}
+#| label: fig-fac-pintura
+#| fig-cap: "Gráfico de interacción: adherencia media por pintura y método de aplicación."
+#| fig-alt: "Dos líneas que suben de P1 a P3; la de rociado se separa mucho de la de inmersión en P3"
+
+# 6) Gráfico de interacción con ggplot2
+library(ggplot2)
+medias_celda <- aggregate(adherencia ~ metodo + pintura, data = pintura, FUN = mean)
+ggplot(medias_celda, aes(x = pintura, y = adherencia, color = metodo, group = metodo)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c(inmersion = "#1C6BA0", rociado = "#E69F00"),
+                     labels = c("Inmersión", "Rociado"), name = "Método") +
+  labs(x = "Pintura", y = "Adherencia media (puntos)") +
+  theme_minimal(base_size = 13)
+```
+
+En base R, el mismo gráfico sale con `interaction.plot(pintura$pintura, pintura$metodo, pintura$adherencia)`.
+
+**Interpretación.** La interacción es significativa ($F = 6.5$, $p = 0.012$): la ventaja del rociado sobre la inmersión depende de la pintura. En la @fig-fac-pintura las líneas no son paralelas; el rociado supera a la inmersión por 4 puntos con P1, por 2 con P2 y por 10 con P3. Decir que "el rociado da 5.3 puntos más", que es el efecto principal, oculta que con P3 la ventaja es casi el doble. La comparación útil es la del método dentro de cada pintura.
+
+:::
+
+### Efectos simples
+
+Cuando hay interacción, se compara un factor dentro de cada nivel del otro. En el ejemplo interesa saber con qué pinturas el rociado supera a la inmersión. La diferencia entre dos medias de celda, cada una con $r$ repeticiones, tiene error estándar $\sqrt{2\,CM_E/r}$, que con $CM_E = 4$ y $r = 3$ es $\sqrt{8/3} = 1.633$ puntos. Como son tres comparaciones de una misma familia, se usa la corrección de Bonferroni de la @sec-mc-bonferroni, con $t_{0.05/6;\,12} = 2.78$.
+
+```{r}
+#| label: tbl-fac-simples
+#| tbl-cap: "Efectos simples del método de aplicación dentro de cada pintura (rociado menos inmersión)."
+#| echo: false
+
+format_p <- function(p) ifelse(p < 0.001, "< 0.001", sprintf("%.3f", p))
+dif <- celda["rociado", ] - celda["inmersion", ]
+ee <- sqrt(2 * cm[4] / r)
+t_s <- dif / ee
+simples <- data.frame(pint = names(dif), dif = dif, t = t_s,
+                      p = format_p(pmin(1, 3 * 2 * pt(-abs(t_s), gl[4]))),
+                      dec = ifelse(abs(t_s) > qt(1 - 0.05 / 6, gl[4]), "Distintos", "Sin evidencia de diferencia"))
+simples %>%
+  kbl(col.names = c("Pintura", "Diferencia (puntos)", "<i>t</i>", "Valor <i>p</i> (Bonferroni)", "Conclusión"),
+      escape = FALSE, digits = 3, align = "lcccl", row.names = FALSE) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Según el @tbl-fac-simples, solo con P3 el rociado mejora claramente la adherencia. Con P1 la diferencia de 4 puntos daría significativa en una prueba aislada ($p = 0.031$), pero no al proteger la familia de tres comparaciones. Para la especificación de la obra, la recomendación es P3 aplicada por rociado, que tiene la mayor media (92 puntos). Las mismas comparaciones se obtienen en R con `pairwise.t.test()` dentro de cada pintura usando el $CM_E$ del modelo, o con el paquete `emmeans`, que no se usa en este libro.
+
+## Diseño factorial 2^k^ {#sec-fac-2k}
+
+Cuando hay muchos factores, un factorial completo con varios niveles cada uno se vuelve enorme: cinco factores con tres niveles son $3^5 = 243$ tratamientos. Para una primera exploración se usa el diseño $2^k$, en el que cada uno de los $k$ factores se ensaya solo en dos niveles, bajo y alto. Con $k = 3$ hay ocho combinaciones; con $k = 4$, dieciséis [@montgomery2017design, cap. 6].
+
+### Notación y signos
+
+Los niveles se codifican con $-1$ (bajo) y $+1$ (alto), o solo con sus signos. Cada combinación se nombra con las letras minúsculas de los factores que están en nivel alto: en un $2^2$, $(1)$ es la combinación con ambos factores bajos, $a$ tiene A alto y B bajo, $b$ tiene A bajo y B alto, y $ab$ tiene ambos altos. El @tbl-fac-signos-22 es la matriz de signos. La columna AB se obtiene multiplicando los signos de A y B.
+
+```{r}
+#| label: tbl-fac-signos-22
+#| tbl-cap: "Matriz de signos del diseño 2²."
+#| echo: false
+
+signos <- data.frame(comb = c("(1)", "<i>a</i>", "<i>b</i>", "<i>ab</i>"),
+                     A = c("−", "+", "−", "+"), B = c("−", "−", "+", "+"),
+                     AB = c("+", "−", "−", "+"))
+signos %>%
+  kbl(col.names = c("Combinación", "A", "B", "AB"), escape = FALSE, align = "cccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Contrastes, efectos y sumas de cuadrados
+
+Para cada efecto, el contraste es la suma de los totales de las combinaciones con el signo de su columna. En un $2^2$, con $T$ el total de las $r$ repeticiones de cada combinación,
+
+$$
+C_A = -T_{(1)} + T_a - T_b + T_{ab} \qquad C_B = -T_{(1)} - T_a + T_b + T_{ab} \qquad C_{AB} = T_{(1)} - T_a - T_b + T_{ab}
+$$ {#eq-fac-contrastes}
+
+El efecto es el contraste dividido entre el número de observaciones con signo positivo, y su suma de cuadrados sale del contraste al cuadrado [@montgomery2017design, sec. 6.2]:
+
+$$
+\text{Efecto} = \frac{C}{r\,2^{k-1}} \qquad SC_{\text{efecto}} = \frac{C^2}{r\,2^{k}}
+$$ {#eq-fac-efecto}
+
+donde $C$ es el contraste del efecto, $r$ es el número de repeticiones por combinación y $k$ es el número de factores. El efecto de A es la diferencia entre la media de las observaciones con A alto y la media de las que tienen A bajo. El de AB es la mitad de la diferencia entre el efecto de A con B alto y el efecto de A con B bajo, la misma definición del interactivo de la @fig-fac-int-interaccion. Cada efecto tiene un grado de libertad.
+
+::: {.callout-note title="Ejemplo: espesor de película de asfalto en un diseño 2²"}
+
+**Planteamiento.** En una mezcla asfáltica se estudian el contenido de asfalto (A) y el contenido de fibra (B), cada uno en un nivel bajo y uno alto. La respuesta es el espesor de película de asfalto que recubre el agregado (µm). Cada combinación se ensayó dos veces ($r = 2$) en orden sorteado. Los datos son hipotéticos. Estime los efectos y determine cuáles son significativos con $\alpha = 0.05$.
+
+```{r}
+#| echo: false
+ver_datos("datos/pelicula_asfalto_hipotetica.csv",
+          nombres = c("Asfalto (A)", "Fibra (B)", "Repetición", "Espesor (µm)"))
+```
+
+**Solución:**
+
+1. Totales por combinación: $T_{(1)} = 8 + 10 = 18$, $T_a = 14 + 16 = 30$, $T_b = 12 + 14 = 26$ y $T_{ab} = 20 + 22 = 42$.
+2. Contrastes (@eq-fac-contrastes): $C_A = -18 + 30 - 26 + 42 = 28$; $C_B = -18 - 30 + 26 + 42 = 20$; $C_{AB} = 18 - 30 - 26 + 42 = 4$.
+3. Efectos (@eq-fac-efecto), con $r\,2^{k-1} = 2 \times 2 = 4$: A $= 28/4 = 7$ µm, B $= 20/4 = 5$ µm y AB $= 4/4 = 1$ µm.
+4. Sumas de cuadrados, con $r\,2^k = 8$: $SC_A = 28^2/8 = 98$, $SC_B = 20^2/8 = 50$ y $SC_{AB} = 4^2/8 = 2$.
+5. Error: en cada combinación las dos repeticiones están a 1 µm de su media, así que $SC_E = 4\,(1^2 + 1^2) = 8$, con $2^k(r - 1) = 4$ grados de libertad y $CM_E = 8/4 = 2$.
+6. Estadísticos: $F_A = 98/2 = 49$, $F_B = 50/2 = 25$ y $F_{AB} = 2/2 = 1$. Con $F_{0.05;\,1,\,4} = 7.71$, A y B son significativos y la interacción no.
+
+**Pseudocódigo**
+
+1. Leer los datos y codificar los niveles como $-1$ y $+1$.
+2. Construir la columna AB como producto de A y B.
+3. Calcular cada contraste como la suma de la respuesta por su columna de signos.
+4. Calcular efectos y sumas de cuadrados con la @eq-fac-efecto, y el cuadro ANOVA.
+5. Repetir con `aov()` y con `lm()` sobre las variables codificadas.
+
+```{r}
+# 1) Datos y codificación -1 / +1
+asfalto <- read.csv("datos/pelicula_asfalto_hipotetica.csv")
+A <- ifelse(asfalto$asfalto == "alto", 1, -1)
+B <- ifelse(asfalto$fibra == "alta", 1, -1)
+y <- asfalto$espesor_um
+r <- 2
+k <- 2
+
+# 2) y 3) Columna de interacción y contrastes (con todas las observaciones
+#         se obtiene lo mismo que con los totales por combinación)
+signos <- cbind(A = A, B = B, AB = A * B)
+contraste <- colSums(signos * y)
+
+# 4) Efectos y sumas de cuadrados
+efecto <- contraste / (r * 2^(k - 1))
+sc <- contraste^2 / (r * 2^k)
+sc_e <- sum((y - ave(y, A, B))^2)
+gl_e <- 2^k * (r - 1)
+f <- sc / (sc_e / gl_e)
+data.frame(contraste, efecto, sc, F = f, p = 1 - pf(f, 1, gl_e))
+```
+
+```{r}
+# 5) Misma prueba con aov() y con lm()
+asfalto$A <- factor(A)
+asfalto$B <- factor(B)
+summary(aov(espesor_um ~ A * B, data = asfalto))
+
+# Con variables codificadas, cada coeficiente de lm() es la mitad del efecto
+coef(lm(y ~ A * B, data = data.frame(y, A, B))) * 2
+```
+
+Los coeficientes de `lm()` con la codificación $-1$ y $+1$ son la mitad de los efectos, porque el efecto mide el cambio de $-1$ a $+1$, dos unidades. Al multiplicarlos por 2 se recuperan los efectos 7, 5 y 1 (el intercepto multiplicado por 2 no tiene interpretación; el intercepto mismo, 14.5 µm, es la media general).
+
+**Interpretación.** Al pasar el contenido de asfalto de bajo a alto, el espesor medio de película aumenta 7 µm, y al aumentar la fibra aumenta 5 µm. No hay evidencia de interacción, así que los dos efectos se suman: la combinación con ambos altos da unos $7 + 5 = 12$ µm más que la de ambos bajos. Con solo dos niveles por factor no se sabe si la relación es lineal entre ellos, y la conclusión no se extrapola fuera del rango ensayado.
+
+:::
+
+### Diseño 2^3^ y experimentos sin repetición
+
+Con tres factores hay ocho combinaciones y siete efectos: tres principales (A, B, C), tres interacciones dobles (AB, AC, BC) y una triple (ABC). La matriz de signos (@tbl-fac-signos-23) se arma igual: las columnas de las interacciones son productos de las columnas de los factores. El orden de las filas, $(1), a, b, ab, c, ac, bc, abc$, se llama orden estándar.
+
+```{r}
+#| label: tbl-fac-signos-23
+#| tbl-cap: "Matriz de signos del diseño 2³ en orden estándar."
+#| echo: false
+
+A3 <- rep(c(-1, 1), 4); B3 <- rep(rep(c(-1, 1), each = 2), 2); C3 <- rep(c(-1, 1), each = 4)
+m23 <- cbind(A3, B3, C3, A3 * B3, A3 * C3, B3 * C3, A3 * B3 * C3)
+m23 <- ifelse(m23 > 0, "+", "−")
+d23 <- data.frame(comb = c("(1)", "<i>a</i>", "<i>b</i>", "<i>ab</i>", "<i>c</i>", "<i>ac</i>", "<i>bc</i>", "<i>abc</i>"), m23)
+d23 %>%
+  kbl(col.names = c("Combinación", "A", "B", "C", "AB", "AC", "BC", "ABC"), escape = FALSE, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Cuando cada ensayo es caro, un $2^k$ se hace a veces con una sola corrida por combinación. Entonces no queda ninguna repetición para estimar el error, y hay que razonar de otro modo. En la mayoría de los procesos, pocos efectos son grandes y las interacciones de orden alto son pequeñas. Los efectos que son solo ruido se comportan como una muestra de una normal con media cero, así que en un gráfico cuantil-cuantil normal quedan alineados, y los efectos reales se apartan de la línea. Este gráfico de efectos fue propuesto por @daniel1959halfnormal.
+
+::: {.callout-note title="Ejemplo: resistencia de mortero en un diseño 2³ sin repetición"}
+
+**Planteamiento.** Se estudia la resistencia a compresión a los 28 días (MPa) de cubos de mortero con tres factores en dos niveles: contenido de cemento (A), relación agua/cemento (B) y tiempo de curado húmedo (C). Se hizo una sola corrida por combinación, en orden sorteado. Los datos son hipotéticos. Identifique los efectos importantes.
+
+```{r}
+#| echo: false
+ver_datos("datos/mortero_factorial_hipotetico.csv",
+          nombres = c("Corrida", "Cemento (A)", "Agua/cemento (B)", "Curado (C)", "Resistencia (MPa)"))
+```
+
+**Solución:**
+
+1. Contraste de A: se suman las ocho respuestas con los signos de la columna A del @tbl-fac-signos-23: $-28.3 + 30.8 - 24.4 + 26.9 - 29.7 + 39.2 - 26.1 + 34.6 = 23.0$.
+2. Efecto de A (@eq-fac-efecto, con $r = 1$ y $2^{k-1} = 4$): $23.0/4 = 5.75$ MPa.
+3. Con el mismo procedimiento, los efectos de B, C, AB, AC, BC y ABC son $-4.00$, $4.80$, $-0.25$, $3.25$, $-0.10$ y $-0.25$ MPa.
+4. Los efectos AB, BC y ABC son muy pequeños comparados con los demás. Si se supone que son ruido, sus sumas de cuadrados ($0.125 + 0.020 + 0.125 = 0.27$, con 3 grados de libertad) forman el error del modelo reducido.
+
+**Pseudocódigo**
+
+1. Leer los datos con los factores codificados en $-1$ y $+1$.
+2. Construir la matriz de signos con `model.matrix()`.
+3. Calcular los siete efectos.
+4. Dibujar el gráfico cuantil-cuantil normal de los efectos y señalar los que se apartan.
+5. Ajustar el modelo reducido con los efectos importantes.
+
+```{r}
+# 1) Datos codificados
+mortero <- read.csv("datos/mortero_factorial_hipotetico.csv")
+names(mortero)[2:4] <- c("A", "B", "C")
+y <- mortero$resistencia_mpa
+
+# 2) Matriz de signos: model.matrix() crea las columnas de las interacciones
+X <- model.matrix(~ A * B * C, data = mortero)[, -1]   # se quita el intercepto
+colnames(X) <- c("A", "B", "C", "AB", "AC", "BC", "ABC")
+
+# 3) Efectos (r = 1, k = 3)
+efectos <- colSums(X * y) / 4
+round(efectos, 3)
+```
+
+```{r}
+#| label: fig-fac-efectos
+#| fig-cap: "Gráfico cuantil-cuantil normal de los efectos del diseño 2³ de mortero."
+#| fig-alt: "Siete puntos; AB, BC y ABC quedan alineados cerca de cero y A, B, C y AC se apartan"
+
+# 4) Gráfico de efectos
+qq <- qqnorm(efectos, pch = 19, col = "#1C6BA0", main = "",
+             xlab = "Cuantil teórico normal", ylab = "Efecto (MPa)")
+text(qq$x, qq$y, labels = names(efectos), pos = 4)
+abline(h = 0, lty = 2, col = "grey50")
+```
+
+```{r}
+# 5) Modelo reducido: A, B, C y la interacción AC
+reducido <- lm(resistencia_mpa ~ A + B + C + A:C, data = mortero)
+anova(reducido)
+```
+
+**Interpretación.** En la @fig-fac-efectos, AB, BC y ABC quedan agrupados cerca de cero, como se espera del ruido, y A, B, C y AC se apartan. Más cemento y más curado suben la resistencia, una relación agua/cemento mayor la baja, y la interacción AC indica que el aumento de cemento rinde más cuando el curado es largo. Esta conclusión descansa en suponer que AB, BC y ABC son ruido; los $F$ tan grandes del modelo reducido se deben a que esos tres efectos resultaron muy pequeños en estos datos hipotéticos.
+
+:::
+
+::: {.callout-warning title="Cuidado"}
+Declarar que una interacción es cero para usarla como error es un supuesto, no un resultado de los datos, y se debe decir en el informe. Si la interacción que se descartó era real, el error queda inflado y algún efecto puede pasar inadvertido. Cuando el presupuesto lo permite, es mejor repetir al menos algunas combinaciones o agregar corridas en el punto central.
+:::
+
+::: {.callout-tip title="En la práctica"}
+Si una interacción resulta importante, el modelo conserva los efectos principales que la forman aunque no sean significativos por sí solos. En el ejemplo, si AC es importante, A y C se quedan en el modelo. Este principio, llamado de jerarquía, evita interpretar una interacción sin sus componentes [@montgomery2017design, sec. 6.5].
+:::
+
+## Qué puede concluirse de un experimento {#sec-fac-conclusiones}
+
+Un informe de un experimento debe dejar claros cinco puntos: qué unidades se usaron y qué población representan; qué factores y niveles se compararon; qué respuesta se midió, cómo y cuándo; el resultado de las pruebas junto con la magnitud de los efectos en sus unidades; y las limitaciones del diseño, como los supuestos sobre interacciones o el rango de los niveles. Las conclusiones valen para los niveles ensayados. Un $2^k$ con contenido de asfalto entre 5.0 % y 6.0 % no dice nada sobre una mezcla con 7 %, ni sobre otros agregados u otros climas.
+
+## Ejercicios propuestos
+
+1. Se ensayan dos tipos de cemento (I y II) con tres temperaturas de curado (10, 20 y 30 °C), con tres cilindros por combinación. La resistencia a 7 días (MPa) fue: cemento I: 10 °C: 18, 20, 19; 20 °C: 24, 25, 23; 30 °C: 27, 28, 29; cemento II: 10 °C: 16, 17, 15; 20 °C: 23, 24, 22; 30 °C: 30, 32, 31. Construya el cuadro ANOVA a mano y con `aov()`, dibuje el gráfico de interacción e interprete con $\alpha = 0.05$.
+2. Complete el cuadro ANOVA de un factorial con $a = 3$, $b = 2$ y $r = 4$, si $SC_A = 96$, $SC_B = 45$, $SC_{AB} = 30$ y $SC_E = 72$. Plantee las tres hipótesis y decida con $\alpha = 0.05$ usando `qf()`.
+3. En un diseño $2^2$ con dos repeticiones, los totales fueron $T_{(1)} = 40$, $T_a = 52$, $T_b = 44$ y $T_{ab} = 64$, y $SC_E = 12$. Estime los efectos, calcule sus sumas de cuadrados y el cuadro ANOVA, y decida qué efectos son significativos.
+4. Con la @fig-fac-int-interaccion, encuentre una combinación de controles en la que el efecto principal de A sea cero pero A cambie la respuesta en 10 unidades con cada nivel de B. Explique por qué en ese caso el ANOVA diría que A "no tiene efecto" y por qué esa lectura es engañosa.
+5. Un estudio de estabilización de suelos con cal considera cuatro factores en dos niveles: porcentaje de cal, contenido de humedad, energía de compactación y tiempo de curado. ¿Cuántas corridas tiene un $2^4$ sin repetición? ¿Cuántos efectos se estiman? Construya la matriz de signos con `expand.grid()` y `model.matrix()` en R.
+6. Repita el ejemplo del diseño $2^3$ de mortero suponiendo que la resistencia de la corrida $ac$ fue 33.2 MPa en lugar de 39.2 MPa. Recalcule los efectos y el gráfico cuantil-cuantil. ¿Qué efectos cambian y por qué cambian todos a la vez?
+
+## Lecturas recomendadas
+
+- @montgomery2017design, capítulos 5 y 6: diseños factoriales generales y $2^k$, con el análisis de experimentos sin repetición.
+- @laneintroduction, capítulo 15: explicación sencilla de los diseños de varios factores, la interacción y los efectos simples.
+- @daniel1959halfnormal: el artículo que propuso analizar los efectos de un $2^k$ con un gráfico de probabilidad normal.

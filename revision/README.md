@@ -14,3 +14,28 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 4. Gráficos en R | Borrador | [04-graficos.md](04-graficos.md) | Parte I |
 | 5. Documentos reproducibles con R Markdown | Borrador | [05-rmarkdown.md](05-rmarkdown.md) | Parte I |
 | 6. Funciones, condiciones, ciclos y simulación | Borrador | [06-programacion_simulacion.md](06-programacion_simulacion.md) | Parte I |
+| 7. La estadística en la ingeniería civil | Borrador | [07-estadistica_ingenieria.md](07-estadistica_ingenieria.md) | Parte II |
+| 8. Presentación de datos: cuadros y gráficos | Borrador | [08-presentacion_datos.md](08-presentacion_datos.md) | Parte II |
+| 9. Medidas de tendencia central, posición y variabilidad | Borrador | [09-medidas_descriptivas.md](09-medidas_descriptivas.md) | Parte II |
+| 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
+| 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
+| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |
+| 13. Variables aleatorias | Borrador | [13-variables_aleatorias.md](13-variables_aleatorias.md) | Parte IV |
+| 14. Distribuciones discretas | Borrador | [14-distribuciones_discretas.md](14-distribuciones_discretas.md) | Parte IV |
+| 15. Distribuciones continuas | Borrador | [15-distribuciones_continuas.md](15-distribuciones_continuas.md) | Parte IV |
+| 16. La distribución normal y sus aproximaciones | Borrador | [16-distribucion_normal.md](16-distribucion_normal.md) | Parte IV |
+| 17. Muestreo, distribuciones muestrales y teorema del límite central | Borrador | [17-distribuciones_muestrales.md](17-distribuciones_muestrales.md) | Parte IV |
+| 24. Asociación y correlación | Borrador | [24-correlacion.md](24-correlacion.md) | Parte VI |
+| 25. Regresión lineal simple | Borrador | [25-regresion_simple.md](25-regresion_simple.md) | Parte VI |
+| 26. Regresión lineal múltiple | Borrador | [26-regresion_multiple.md](26-regresion_multiple.md) | Parte VI |
+| 27. Supuestos, diagnóstico y medidas remediales | Borrador | [27-diagnostico_regresion.md](27-diagnostico_regresion.md) | Parte VI |
+| 28. Principios del diseño experimental y ANOVA de un factor | Borrador | [28-anova_un_factor.md](28-anova_un_factor.md) | Parte VII |
+| 29. Comparaciones múltiples y diseño en bloques | Borrador | [29-comparaciones_bloques.md](29-comparaciones_bloques.md) | Parte VII |
+| 30. Diseños factoriales | Borrador | [30-factoriales.md](30-factoriales.md) | Parte VII |
+| Apéndices A, B y C (tablas, funciones de R, glosario) | Borrador | [apendices.md](apendices.md) | Apéndices |
+| 18. Estimación puntual | Borrador | [18-estimacion_puntual.md](18-estimacion_puntual.md) | Parte V |
+| 19. Intervalos de confianza, de predicción y de tolerancia | Borrador | [19-intervalos.md](19-intervalos.md) | Parte V |
+| 20. Pruebas de hipótesis: fundamentos | Borrador | [20-pruebas_fundamentos.md](20-pruebas_fundamentos.md) | Parte V |
+| 21. Pruebas para una población | Borrador | [21-pruebas_una_poblacion.md](21-pruebas_una_poblacion.md) | Parte V |
+| 22. Pruebas para dos poblaciones | Borrador | [22-pruebas_dos_poblaciones.md](22-pruebas_dos_poblaciones.md) | Parte V |
+| 23. Pruebas chi-cuadrado | Borrador | [23-pruebas_chi_cuadrado.md](23-pruebas_chi_cuadrado.md) | Parte V |

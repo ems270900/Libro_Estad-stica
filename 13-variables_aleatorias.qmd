@@ -1,0 +1,534 @@
+---
+title: "Variables aleatorias"
+bibliography: references.bib
+suppress-bibliography: true
+---
+
+::: {.quote-block}
+"La teoría de las probabilidades no es, en el fondo, más que el sentido común reducido a cálculo."\
+— *Pierre-Simon Laplace*, Ensayo filosófico sobre las probabilidades (1814)
+:::
+
+```{r}
+#| include: false
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = "")
+azul <- "#1C6BA0"
+tema_libro <- theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank())
+```
+
+Antes de vaciar una losa no se sabe cuántos cilindros de la colada van a fallar el ensayo a 28 días, cuántos camiones van a llegar a la planta en la próxima hora ni cuánto va a tardar una cuadrilla en reparar una fuga. Pero sí se sabe qué valores son posibles y cuáles son más probables. Una variable aleatoria es la forma de escribir esa información con números, para poder calcular con ella. Con una variable aleatoria se responden preguntas como "¿cuál es la probabilidad de que fallen dos o más cilindros?" o "¿cuánto se espera gastar, en promedio, en reparaciones?". Este capítulo usa lo visto en la Parte III (espacio muestral, eventos y probabilidad) y prepara los capítulos siguientes, donde se estudian las distribuciones con nombre propio: binomial, Poisson, exponencial, normal y otras.
+
+## Qué es una variable aleatoria {#sec-va-definicion}
+
+::: {.pregunta}
+Si al lanzar tres monedas el resultado es "cara, escudo, escudo", ¿qué número conviene anotar?
+:::
+
+Depende de lo que interese. Si interesa cuántos escudos salieron, se anota 2. Esa regla, que a cada resultado del experimento le asigna un número, es una variable aleatoria. Formalmente, una variable aleatoria $X$ es una función que va del espacio muestral $\Omega$ a los números reales [@wasserman2004all, cap. 2]:
+
+$$
+X: \Omega \to \mathbb{R}
+$$ {#eq-va-funcion}
+
+Se le dice "aleatoria" porque su valor depende del resultado de un experimento que no se puede predecir. Pero la regla en sí no tiene nada de azar: una vez que se conoce el resultado, el valor de $X$ queda fijo.
+
+Se usa una convención de notación que conviene aprender desde el principio. La variable aleatoria se escribe con mayúscula ($X$, $Y$, $T$) y un valor particular que puede tomar se escribe con minúscula ($x$, $y$, $t$). Así, $P(X = 2)$ se lee "la probabilidad de que la variable $X$ tome el valor 2", y $P(X \le x)$ se lee "la probabilidad de que $X$ tome un valor menor o igual que un número $x$ cualquiera".
+
+El @tbl-va-monedas muestra la regla para el experimento de lanzar tres monedas equilibradas, con $X$ igual al número de escudos (E) y C para la cara contraria.
+
+```{r}
+#| label: tbl-va-monedas
+#| tbl-cap: "Resultados de lanzar tres monedas y valor de la variable aleatoria."
+#| echo: false
+
+monedas <- expand.grid(m1 = c("C", "E"), m2 = c("C", "E"), m3 = c("C", "E"),
+                       stringsAsFactors = FALSE)
+monedas <- monedas[, 3:1]
+monedas$resultado <- paste(monedas$m3, monedas$m2, monedas$m1, sep = ", ")
+monedas$x <- rowSums(monedas[, 1:3] == "E")
+monedas <- monedas[order(monedas$x), ]
+data.frame(resultado = paste0("{", monedas$resultado, "}"),
+           x = monedas$x, p = "1/8") %>%
+  kbl(col.names = c("Resultado en <i>Ω</i>", "Valor de <i>X</i>", "Probabilidad del resultado"),
+      escape = FALSE, align = "c", row.names = FALSE) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Los ocho resultados son igualmente probables, cada uno con probabilidad $1/8$. La variable $X$ solo puede valer 0, 1, 2 o 3. El conjunto de valores posibles se llama rango o soporte de la variable y se escribe $R_X = \{0, 1, 2, 3\}$.
+
+## Variables discretas y continuas {#sec-va-tipos}
+
+Las variables aleatorias se dividen en dos tipos, y cada tipo se trabaja con matemática distinta: sumas para uno, integrales para el otro.
+
+- **Discretas.** Toman valores que se pueden contar uno por uno, como 0, 1, 2, 3… Salen casi siempre de conteos: número de cilindros defectuosos en una colada, número de vehículos que cruzan un peaje en un minuto, número de sismos de magnitud mayor que 5 en un año, número de días con lluvia en un mes.
+- **Continuas.** Toman cualquier valor dentro de un intervalo, con tantos decimales como permita el instrumento. Salen de mediciones: resistencia a compresión del concreto (MPa), caudal de un río (m³/s), tiempo hasta la falla de una bomba (h), asentamiento de una zapata (mm).
+
+Una regla práctica para distinguirlas: si la pregunta natural es "¿cuántos?", la variable suele ser discreta; si es "¿cuánto?" o "¿cuánto tiempo?", suele ser continua.
+
+::: {.callout-tip title="En la práctica"}
+Muchas variables continuas se registran redondeadas (la resistencia a 0.1 MPa, la lluvia a 0.1 mm). Ese redondeo no las vuelve discretas: se siguen modelando como continuas, porque el valor real puede caer en cualquier punto del intervalo.
+:::
+
+## Función de probabilidad de una variable discreta {#sec-va-fmp}
+
+Para una variable discreta basta con decir qué probabilidad tiene cada valor posible. Esa lista es la función de probabilidad (también llamada función de masa de probabilidad):
+
+$$
+f_X(x) = P(X = x), \qquad x \in R_X
+$$ {#eq-va-fmp}
+
+donde $f_X(x)$ es la probabilidad de que $X$ tome exactamente el valor $x$ y $R_X$ es el rango de la variable. Para que una función sea una función de probabilidad válida debe cumplir dos condiciones:
+
+$$
+f_X(x) \ge 0 \quad \text{para todo } x, \qquad \sum_{x \in R_X} f_X(x) = 1
+$$ {#eq-va-fmp-condiciones}
+
+La primera dice que ninguna probabilidad es negativa. La segunda dice que, sumando todos los valores posibles, se cubre el espacio muestral completo.
+
+En el caso de las tres monedas, la función de probabilidad se obtiene contando en el @tbl-va-monedas cuántos resultados dan cada valor de $X$: hay un resultado con 0 escudos, tres con 1, tres con 2 y uno con 3. Por eso $f_X(0) = 1/8$, $f_X(1) = 3/8$, $f_X(2) = 3/8$ y $f_X(3) = 1/8$, que suman 1. La @fig-va-monedas-fmp muestra esta función como un gráfico de barras. Las barras se dibujan delgadas, como bastones, para recordar que entre un entero y el siguiente no hay probabilidad.
+
+```{r}
+#| label: fig-va-monedas-fmp
+#| fig-cap: "Función de probabilidad del número de escudos en tres lanzamientos."
+#| fig-alt: "Gráfico de bastones con alturas 1/8, 3/8, 3/8 y 1/8 para x igual a 0, 1, 2 y 3"
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.6
+
+tibble(x = 0:3, p = c(1, 3, 3, 1) / 8) %>%
+  ggplot(aes(x, p)) +
+  geom_segment(aes(xend = x, yend = 0), linewidth = 2.5, color = azul) +
+  geom_point(size = 3, color = azul) +
+  geom_text(aes(label = c("1/8", "3/8", "3/8", "1/8")), vjust = -1.1) +
+  scale_y_continuous(limits = c(0, 0.45)) +
+  labs(x = "Número de escudos, x", y = "P(X = x)") +
+  tema_libro
+```
+
+Con la función de probabilidad se calcula la probabilidad de cualquier evento: se suman las probabilidades de los valores que forman el evento. Por ejemplo, la probabilidad de obtener al menos un escudo es
+
+$$
+P(X \ge 1) = f_X(1) + f_X(2) + f_X(3) = \tfrac{3}{8} + \tfrac{3}{8} + \tfrac{1}{8} = \tfrac{7}{8}
+$$
+
+y el mismo resultado sale más rápido con el complemento (capítulo 10): $P(X \ge 1) = 1 - P(X = 0) = 1 - 1/8 = 7/8$.
+
+::: {.callout-warning title="Cuidado"}
+En las variables discretas importa si la desigualdad es estricta o no. Con las tres monedas, $P(X \le 1) = 1/8 + 3/8 = 1/2$, pero $P(X < 1) = P(X = 0) = 1/8$. Antes de sumar, conviene escribir la lista de valores que entran en el evento: "al menos 2" es $\{2, 3\}$, "más de 2" es $\{3\}$, "a lo sumo 2" es $\{0, 1, 2\}$.
+:::
+
+## Función de distribución acumulada {#sec-va-fda}
+
+Muchas preguntas de ingeniería son del tipo "¿cuál es la probabilidad de que el valor no pase de cierto límite?". Para eso se usa la función de distribución acumulada (FDA), que da la probabilidad acumulada hasta un valor $x$:
+
+$$
+F_X(x) = P(X \le x) = \sum_{k \in R_X,\ k \le x} f_X(k)
+$$ {#eq-va-fda-discreta}
+
+donde la suma recorre todos los valores posibles $k$ que no pasan de $x$. La FDA está definida para cualquier número real $x$, incluidos los que no están en el rango. En el ejemplo de las monedas:
+
+$$
+F_X(x) =
+\begin{cases}
+0 & \text{si } x < 0 \\
+1/8 & \text{si } 0 \le x < 1 \\
+4/8 & \text{si } 1 \le x < 2 \\
+7/8 & \text{si } 2 \le x < 3 \\
+1 & \text{si } x \ge 3
+\end{cases}
+$$
+
+Por ejemplo, $F_X(1.7) = P(X \le 1.7) = P(X = 0) + P(X = 1) = 4/8$, porque 1.7 escudos no es posible y la probabilidad acumulada no cambia entre 1 y 2. Por eso la FDA de una variable discreta tiene forma de escalera, como en la @fig-va-monedas-fda: salta en cada valor posible y se mantiene plana entre ellos. El tamaño de cada salto es la probabilidad de ese valor.
+
+```{r}
+#| label: fig-va-monedas-fda
+#| fig-cap: "Función de distribución acumulada del número de escudos en tres lanzamientos."
+#| fig-alt: "Función escalonada que vale 0 antes de x igual a 0 y sube a 1/8, 4/8, 7/8 y 1 en x igual a 0, 1, 2 y 3"
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.6
+
+escalones <- tibble(x0 = c(-1, 0, 1, 2, 3), x1 = c(0, 1, 2, 3, 4),
+                    Fx = c(0, 1, 4, 7, 8) / 8)
+ggplot(escalones) +
+  geom_segment(aes(x = x0, xend = x1, y = Fx, yend = Fx), linewidth = 1.2, color = azul) +
+  geom_point(data = escalones[-1, ], aes(x0, Fx), size = 3, color = azul) +
+  geom_point(data = escalones[-5, ], aes(x1, Fx), size = 3, shape = 21,
+             fill = "white", color = azul) +
+  scale_y_continuous(breaks = c(0, 1, 4, 7, 8) / 8,
+                     labels = c("0", "1/8", "4/8", "7/8", "1")) +
+  labs(x = "x", y = expression(F[X](x) == P(X <= x))) +
+  tema_libro
+```
+
+Toda FDA cumple estas propiedades [@wasserman2004all, cap. 2]:
+
+1. Está entre 0 y 1: $0 \le F_X(x) \le 1$.
+2. Nunca baja: si $a < b$, entonces $F_X(a) \le F_X(b)$.
+3. Tiende a 0 a la izquierda y a 1 a la derecha: $F_X(x) \to 0$ cuando $x \to -\infty$ y $F_X(x) \to 1$ cuando $x \to +\infty$.
+
+De la definición salen dos fórmulas que se usan en todo el libro:
+
+$$
+P(X > x) = 1 - F_X(x), \qquad P(a < X \le b) = F_X(b) - F_X(a)
+$$ {#eq-va-fda-usos}
+
+En R, las funciones que empiezan con `p` (`pbinom()`, `ppois()`, `pnorm()`…) calculan precisamente $F_X(x)$. Se verán en los capítulos 14 a 16.
+
+## Variables continuas y función de densidad {#sec-va-fdp}
+
+Con una variable continua no se puede hacer una lista de valores, porque entre dos valores cualesquiera hay infinitos otros. La probabilidad se describe entonces con una curva, la función de densidad de probabilidad (FDP), $f_X(x)$. La probabilidad de que $X$ caiga en un intervalo es el área bajo esa curva sobre el intervalo:
+
+$$
+P(a \le X \le b) = \int_a^b f_X(x)\, dx
+$$ {#eq-va-fdp-area}
+
+Para que una curva sea una densidad válida, debe estar siempre por encima del eje y su área total debe ser 1:
+
+$$
+f_X(x) \ge 0 \quad \text{para todo } x, \qquad \int_{-\infty}^{\infty} f_X(x)\, dx = 1
+$$ {#eq-va-fdp-condiciones}
+
+La FDA de una variable continua es el área acumulada desde la izquierda, y la densidad es la derivada de la FDA:
+
+$$
+F_X(x) = P(X \le x) = \int_{-\infty}^{x} f_X(t)\, dt, \qquad f_X(x) = \frac{d F_X(x)}{dx}
+$$ {#eq-va-fda-continua}
+
+donde $t$ es solo la variable de integración, que recorre los valores desde $-\infty$ hasta $x$.
+
+Hay dos diferencias con el caso discreto que confunden al principio:
+
+- **La probabilidad de un valor exacto es cero.** $P(X = a) = \int_a^a f_X(x)\,dx = 0$. No es que el valor sea imposible: es que un solo punto no tiene ancho y, por tanto, no tiene área. Por eso, en las variables continuas da lo mismo escribir $<$ o $\le$: $P(a < X < b) = P(a \le X \le b)$.
+- **La densidad no es una probabilidad.** $f_X(x)$ puede ser mayor que 1. Lo que no puede pasar de 1 es el área. La densidad indica dónde se concentran los valores: donde la curva es más alta, hay más probabilidad por unidad de $x$.
+
+::: {.callout-note title="Ejemplo: tiempo de reparación de una fuga"}
+
+**Planteamiento.** En una red de acueducto, el tiempo $Y$ (h) que tarda una cuadrilla en reparar una fuga pequeña se modela con la siguiente densidad (hipotética)
+
+$$
+f_Y(y) =
+\begin{cases}
+\dfrac{3}{8}\, y^2 & \text{si } 0 \le y \le 2 \\[4pt]
+0 & \text{en otro caso}
+\end{cases}
+$$
+
+Compruebe que es una densidad válida, encuentre su FDA y calcule la probabilidad de que la reparación tarde entre media hora y hora y media.
+
+**Solución:**
+
+1. La función es positiva en $[0, 2]$ y vale 0 fuera. Su área total es $\int_0^2 \tfrac{3}{8} y^2\, dy = \tfrac{3}{8} \cdot \tfrac{y^3}{3} \Big|_0^2 = \tfrac{3}{8} \cdot \tfrac{8}{3} = 1$. Es una densidad válida.
+2. FDA, para $0 \le y \le 2$: $F_Y(y) = \int_0^y \tfrac{3}{8} t^2\, dt = \tfrac{y^3}{8}$. Vale 0 para $y < 0$ y 1 para $y > 2$.
+3. Probabilidad pedida, con la @eq-va-fda-usos: $P(0.5 \le Y \le 1.5) = F_Y(1.5) - F_Y(0.5) = \tfrac{3.375}{8} - \tfrac{0.125}{8} = \tfrac{3.25}{8} = 0.406$.
+
+**Pseudocódigo**
+
+1. Escribir la densidad como una función de R.
+2. Integrar la densidad en todo su rango y verificar que el área es 1.
+3. Integrar la densidad entre 0.5 y 1.5.
+4. Comparar con el resultado de la FDA obtenida a mano.
+
+```{r}
+# 1) Densidad como función de R (vale 0 fuera de [0, 2])
+f_y <- function(y) ifelse(y >= 0 & y <= 2, 3 / 8 * y^2, 0)
+
+# 2) Área total: debe dar 1
+integrate(f_y, lower = 0, upper = 2)
+
+# 3) P(0.5 <= Y <= 1.5) por integración numérica
+integrate(f_y, lower = 0.5, upper = 1.5)
+
+# 4) Con la FDA obtenida a mano
+F_y <- function(y) y^3 / 8
+F_y(1.5) - F_y(0.5)
+```
+
+La función `integrate()` de R calcula el área bajo una curva por métodos numéricos. Da el valor y una estimación del error, que aquí es despreciable. La @fig-va-reparacion muestra el área calculada.
+
+```{r}
+#| label: fig-va-reparacion
+#| fig-cap: "Densidad del tiempo de reparación y área entre 0.5 h y 1.5 h."
+#| fig-alt: "Curva creciente de 0 a 2 horas con el área sombreada entre 0.5 y 1.5 horas"
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.6
+
+curva <- tibble(y = seq(0, 2, length.out = 300), f = 3 / 8 * y^2)
+ggplot(curva, aes(y, f)) +
+  geom_area(data = filter(curva, y >= 0.5, y <= 1.5), fill = azul, alpha = 0.35) +
+  geom_line(color = azul, linewidth = 1.2) +
+  annotate("text", x = 1.1, y = 0.25, label = "Área = 0.406") +
+  labs(x = "Tiempo de reparación, y (h)", y = expression(f[Y](y))) +
+  tema_libro
+```
+
+**Interpretación.** Cerca del 41 % de las reparaciones de este tipo terminan entre 0.5 h y 1.5 h. Como la densidad crece con $y$, las reparaciones largas (cerca de 2 h) son más frecuentes que las muy cortas: $P(Y \le 0.5) = 0.016$, mientras que $P(Y > 1.5) = 1 - 0.422 = 0.578$.
+
+:::
+
+## Valor esperado {#sec-va-esperanza}
+
+::: {.pregunta}
+Si se lanza un dado muchísimas veces y se promedian los resultados, ¿a qué número se acerca ese promedio?
+:::
+
+Se acerca a 3.5, aunque ningún lanzamiento puede dar 3.5. Ese número es el valor esperado (o esperanza, o media) de la variable. Es el promedio de los valores posibles, ponderado por sus probabilidades:
+
+$$
+E(X) = \mu = \sum_{x \in R_X} x\, f_X(x) \quad \text{(discreta)}, \qquad
+E(X) = \mu = \int_{-\infty}^{\infty} x\, f_X(x)\, dx \quad \text{(continua)}
+$$ {#eq-va-esperanza}
+
+donde $\mu$ (letra griega mu) es el símbolo habitual de la media de una variable aleatoria. Para el dado: $E(X) = (1 + 2 + 3 + 4 + 5 + 6)/6 = 21/6 = 3.5$.
+
+Hay dos formas de entender el valor esperado, y las dos son útiles:
+
+- **Promedio a largo plazo.** Si el experimento se repite muchas veces, el promedio de los resultados se acerca a $E(X)$. Es la ley de los grandes números, que se simuló en el capítulo 10.
+- **Centro de gravedad.** Si cada valor $x$ fuera un peso de masa $f_X(x)$ colocado sobre una regla, la regla se equilibraría justo en $E(X)$.
+
+Con las tres monedas, $E(X) = 0 \cdot \tfrac{1}{8} + 1 \cdot \tfrac{3}{8} + 2 \cdot \tfrac{3}{8} + 3 \cdot \tfrac{1}{8} = \tfrac{12}{8} = 1.5$ escudos. Con la densidad del tiempo de reparación, $E(Y) = \int_0^2 y \cdot \tfrac{3}{8} y^2\, dy = \tfrac{3}{8} \cdot \tfrac{y^4}{4}\Big|_0^2 = 1.5$ h.
+
+A veces interesa el valor esperado de una función de la variable, $g(X)$, como un costo que depende del número de defectos. No hace falta encontrar la distribución de $g(X)$: basta con ponderar $g(x)$ por la probabilidad de cada $x$ [@wasserman2004all, cap. 3]:
+
+$$
+E\big(g(X)\big) = \sum_{x \in R_X} g(x)\, f_X(x) \quad \text{(discreta)}, \qquad
+E\big(g(X)\big) = \int_{-\infty}^{\infty} g(x)\, f_X(x)\, dx \quad \text{(continua)}
+$$ {#eq-va-esperanza-g}
+
+El caso más usado es $g(x) = x^2$, que lleva a la varianza.
+
+## Varianza y desviación estándar {#sec-va-varianza}
+
+Dos variables pueden tener el mismo valor esperado y comportarse muy distinto. Un concreto con resistencias entre 33 y 37 MPa y otro con resistencias entre 25 y 45 MPa pueden tener ambos media 35 MPa, pero el segundo es mucho menos confiable. La varianza mide qué tan lejos de la media caen los valores, en promedio:
+
+$$
+\operatorname{Var}(X) = \sigma^2 = E\big[(X - \mu)^2\big]
+$$ {#eq-va-varianza}
+
+donde $\sigma^2$ (sigma al cuadrado) es el símbolo habitual de la varianza y $\mu = E(X)$. Desarrollando el cuadrado se llega a una fórmula más cómoda para calcular a mano:
+
+$$
+\operatorname{Var}(X) = E(X^2) - \big[E(X)\big]^2
+$$ {#eq-va-varianza-atajo}
+
+La varianza queda en unidades al cuadrado (MPa², h²), que son difíciles de interpretar. Por eso se reporta también la desviación estándar, que es su raíz cuadrada y tiene las mismas unidades que la variable:
+
+$$
+\sigma = \sqrt{\operatorname{Var}(X)}
+$$ {#eq-va-desviacion}
+
+Con las tres monedas: $E(X^2) = 0^2 \cdot \tfrac{1}{8} + 1^2 \cdot \tfrac{3}{8} + 2^2 \cdot \tfrac{3}{8} + 3^2 \cdot \tfrac{1}{8} = \tfrac{24}{8} = 3$, así que $\operatorname{Var}(X) = 3 - 1.5^2 = 0.75$ y $\sigma = \sqrt{0.75} = 0.866$ escudos. Con el tiempo de reparación: $E(Y^2) = \int_0^2 y^2 \cdot \tfrac{3}{8} y^2\, dy = \tfrac{3}{8} \cdot \tfrac{32}{5} = 2.4$, así que $\operatorname{Var}(Y) = 2.4 - 1.5^2 = 0.15$ h² y $\sigma = 0.387$ h, unos 23 minutos.
+
+::: {.callout-warning title="Cuidado"}
+$E(X^2)$ no es lo mismo que $[E(X)]^2$. Con las monedas, $E(X^2) = 3$ y $[E(X)]^2 = 2.25$. Su diferencia es justamente la varianza, que nunca es negativa. Si al calcular a mano sale una varianza negativa, hay un error en alguno de los dos términos.
+:::
+
+## Propiedades del valor esperado y de la varianza {#sec-va-propiedades}
+
+En ingeniería es común transformar una variable: pasar de MPa a kg/cm², convertir un número de defectos en un costo, sumar las cargas de varios elementos. Estas propiedades dicen qué pasa con la media y la varianza sin tener que recalcular todo [@wasserman2004all, cap. 3]. Sean $a$ y $b$ constantes:
+
+$$
+E(aX + b) = a\,E(X) + b, \qquad \operatorname{Var}(aX + b) = a^2 \operatorname{Var}(X)
+$$ {#eq-va-lineal}
+
+La constante $b$ desplaza todos los valores y, con ellos, la media, pero no cambia la dispersión. El factor $a$ multiplica la media por $a$ y la varianza por $a^2$; la desviación estándar queda multiplicada por $|a|$.
+
+Para la suma de dos variables aleatorias $X$ y $Y$:
+
+$$
+E(X + Y) = E(X) + E(Y)
+$$ {#eq-va-suma-media}
+
+y, si además $X$ y $Y$ son independientes,
+
+$$
+\operatorname{Var}(X + Y) = \operatorname{Var}(X) + \operatorname{Var}(Y)
+$$ {#eq-va-suma-var}
+
+La primera vale siempre. La segunda solo vale con independencia; si las variables están relacionadas, aparece un término adicional, la covarianza, que se estudia en el capítulo 24.
+
+::: {.callout-warning title="Cuidado"}
+Las varianzas se suman, pero las desviaciones estándar no. Si dos cargas independientes tienen $\sigma_1 = 3$ kN y $\sigma_2 = 4$ kN, la desviación estándar de la suma es $\sqrt{3^2 + 4^2} = 5$ kN, no 7 kN. Y la varianza de una diferencia también se suma: $\operatorname{Var}(X - Y) = \operatorname{Var}(X) + \operatorname{Var}(Y)$ cuando son independientes.
+:::
+
+## Ejemplo completo con datos {#sec-va-ejemplo}
+
+::: {.callout-note title="Ejemplo: defectos superficiales en vigas prefabricadas"}
+
+**Planteamiento.** Una planta de prefabricados inspeccionó 200 vigas y anotó cuántos defectos superficiales (nidos de piedra, fisuras de retracción) tenía cada una. Los datos son hipotéticos. Sea $X$ el número de defectos de una viga elegida al azar.
+
+a) Construya la función de probabilidad y la FDA de $X$ a partir de las frecuencias relativas.
+b) Calcule $E(X)$, $\operatorname{Var}(X)$ y $\sigma$.
+c) Calcule la probabilidad de que una viga tenga dos o más defectos.
+d) Reparar cada defecto cuesta ₡25 000 y la inspección de cada viga cuesta ₡40 000. Calcule el costo esperado por viga y su desviación estándar.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/defectos_vigas_hipotetico.csv",
+          nombres = c("Defectos por viga", "Número de vigas"))
+```
+
+**Solución:**
+
+1. Frecuencias relativas: se divide cada frecuencia entre 200. Por ejemplo, $f_X(0) = 62/200 = 0.31$ y $f_X(1) = 74/200 = 0.37$. Las demás están en el @tbl-va-vigas. La FDA es la suma acumulada de esa columna.
+2. Valor esperado, con la @eq-va-esperanza: $E(X) = 0(0.31) + 1(0.37) + 2(0.20) + 3(0.08) + 4(0.03) + 5(0.01) = 1.18$ defectos.
+3. Segundo momento: $E(X^2) = 0(0.31) + 1(0.37) + 4(0.20) + 9(0.08) + 16(0.03) + 25(0.01) = 2.62$.
+4. Varianza, con la @eq-va-varianza-atajo: $\operatorname{Var}(X) = 2.62 - 1.18^2 = 2.62 - 1.3924 = 1.228$, y $\sigma = \sqrt{1.228} = 1.108$ defectos.
+5. Dos o más defectos: $P(X \ge 2) = 1 - F_X(1) = 1 - 0.68 = 0.32$.
+6. El costo por viga, en miles de colones, es $C = 40 + 25X$. Con la @eq-va-lineal: $E(C) = 40 + 25(1.18) = 69.5$ y $\sigma_C = 25 \cdot 1.108 = 27.7$. El costo esperado es ₡69 500 por viga, con una desviación estándar de ₡27 700.
+
+**Pseudocódigo**
+
+1. Leer el archivo con las frecuencias.
+2. Calcular la probabilidad de cada valor (frecuencia entre total) y la acumulada.
+3. Calcular $E(X)$, $E(X^2)$, la varianza y la desviación estándar.
+4. Calcular $P(X \ge 2)$ con el complemento de la FDA.
+5. Aplicar las propiedades de la @eq-va-lineal al costo.
+6. Repetir el cálculo con dplyr y con una simulación, y comprobar que coinciden.
+
+Primero, en base R:
+
+```{r}
+# 1) Datos
+vigas <- read.csv("datos/defectos_vigas_hipotetico.csv")
+x <- vigas$defectos
+
+# 2) Función de probabilidad y FDA
+p <- vigas$vigas / sum(vigas$vigas)
+F_x <- cumsum(p)
+data.frame(x, p, F_x)
+
+# 3) Valor esperado, varianza y desviación estándar
+media <- sum(x * p)
+varianza <- sum(x^2 * p) - media^2
+desv <- sqrt(varianza)
+c(media = media, varianza = varianza, desv = desv)
+
+# 4) P(X >= 2) = 1 - F(1)
+1 - F_x[x == 1]
+
+# 5) Costo por viga en miles de colones: C = 40 + 25 X
+c(media_costo = 40 + 25 * media, desv_costo = 25 * desv)
+```
+
+Después, el mismo cálculo con dplyr. La función `weighted.mean()` de R calcula directamente el promedio ponderado de la @eq-va-esperanza:
+
+```{r}
+library(tidyverse)
+
+resumen <- vigas %>%
+  mutate(p = vigas / sum(vigas),
+         F_x = cumsum(p)) %>%
+  summarise(media = weighted.mean(defectos, w = p),
+            varianza = weighted.mean((defectos - media)^2, w = p),
+            desv = sqrt(varianza),
+            p_dos_o_mas = sum(p[defectos >= 2]))
+resumen
+```
+
+Por último, una simulación: se "fabrican" 100 000 vigas con `sample()`, que elige valores al azar con las probabilidades dadas (@sec-prog-simulacion), y se promedian. El resultado se acerca a los valores teóricos.
+
+```{r}
+set.seed(13)
+simuladas <- sample(x, size = 100000, replace = TRUE, prob = p)
+c(media_sim = mean(simuladas), desv_sim = sd(simuladas),
+  p_dos_o_mas_sim = mean(simuladas >= 2))
+```
+
+```{r}
+#| label: tbl-va-vigas
+#| tbl-cap: "Función de probabilidad y FDA del número de defectos por viga."
+#| echo: false
+
+tibble(x = x, n = vigas$vigas, p = p, F_x = F_x, xp = x * p, x2p = x^2 * p) %>%
+  kbl(col.names = c("<i>x</i>", "Vigas", "<i>f<sub>X</sub></i>(<i>x</i>)",
+                    "<i>F<sub>X</sub></i>(<i>x</i>)", "<i>x</i> <i>f<sub>X</sub></i>(<i>x</i>)",
+                    "<i>x</i><sup>2</sup> <i>f<sub>X</sub></i>(<i>x</i>)"),
+      escape = FALSE, align = "c", digits = 2) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+Las sumas de las dos últimas columnas del @tbl-va-vigas son $E(X) = 1.18$ y $E(X^2) = 2.62$. La @fig-va-vigas muestra la función de probabilidad con la media marcada.
+
+```{r}
+#| label: fig-va-vigas
+#| fig-cap: "Función de probabilidad del número de defectos por viga."
+#| fig-alt: "Gráfico de bastones de 0 a 5 defectos con la media 1.18 marcada con una línea discontinua"
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.6
+
+tibble(x = x, p = p) %>%
+  ggplot(aes(x, p)) +
+  geom_segment(aes(xend = x, yend = 0), linewidth = 2.5, color = azul) +
+  geom_point(size = 3, color = azul) +
+  geom_vline(xintercept = media, linetype = "dashed") +
+  annotate("text", x = media + 0.15, y = 0.36, label = "E(X) = 1.18", hjust = 0) +
+  scale_x_continuous(breaks = 0:5) +
+  labs(x = "Defectos por viga, x", y = "P(X = x)") +
+  tema_libro
+```
+
+**Interpretación.** Una viga tiene, en promedio, 1.18 defectos, con una desviación estándar de 1.1 defectos. Una de cada tres vigas (32 %) tiene dos o más defectos. Para presupuestar, la planta puede contar con unos ₡69 500 por viga entre inspección y reparación; en un lote de 100 vigas, eso da del orden de ₡6.95 millones.
+
+:::
+
+::: {.callout-note title="Para profundizar" collapse="true"}
+**Por qué la fórmula corta de la varianza es correcta.** Se desarrolla el cuadrado y se usan las propiedades de la @eq-va-lineal y la @eq-va-suma-media, con $\mu$ como constante:
+
+$$
+E\big[(X - \mu)^2\big] = E\big[X^2 - 2\mu X + \mu^2\big] = E(X^2) - 2\mu\,E(X) + \mu^2 = E(X^2) - \mu^2
+$$
+
+porque $E(X) = \mu$. Del mismo modo, $\operatorname{Var}(aX + b) = E\big[(aX + b - a\mu - b)^2\big] = a^2 E\big[(X - \mu)^2\big] = a^2 \operatorname{Var}(X)$.
+:::
+
+## Resumen de fórmulas {#sec-va-resumen}
+
+El @tbl-va-resumen reúne las fórmulas del capítulo para los dos tipos de variable.
+
+```{r}
+#| label: tbl-va-resumen
+#| tbl-cap: "Fórmulas para variables aleatorias discretas y continuas."
+#| echo: false
+
+tibble(
+  concepto = c("Probabilidad de un valor", "Probabilidad de un intervalo",
+               "FDA", "Valor esperado", "Varianza"),
+  discreta = c("<i>P</i>(<i>X</i> = <i>x</i>) = <i>f<sub>X</sub></i>(<i>x</i>)",
+               "Suma de <i>f<sub>X</sub></i>(<i>x</i>) en el intervalo",
+               "<i>F<sub>X</sub></i>(<i>x</i>) = Σ<sub><i>k</i> ≤ <i>x</i></sub> <i>f<sub>X</sub></i>(<i>k</i>)",
+               "<i>E</i>(<i>X</i>) = Σ <i>x</i> <i>f<sub>X</sub></i>(<i>x</i>)",
+               "<i>E</i>(<i>X</i><sup>2</sup>) − [<i>E</i>(<i>X</i>)]<sup>2</sup>"),
+  continua = c("<i>P</i>(<i>X</i> = <i>x</i>) = 0",
+               "Área bajo <i>f<sub>X</sub></i>(<i>x</i>) en el intervalo",
+               "<i>F<sub>X</sub></i>(<i>x</i>) = ∫<sub>−∞</sub><sup><i>x</i></sup> <i>f<sub>X</sub></i>(<i>t</i>) <i>dt</i>",
+               "<i>E</i>(<i>X</i>) = ∫ <i>x</i> <i>f<sub>X</sub></i>(<i>x</i>) <i>dx</i>",
+               "<i>E</i>(<i>X</i><sup>2</sup>) − [<i>E</i>(<i>X</i>)]<sup>2</sup>")
+) %>%
+  kbl(col.names = c("Concepto", "Variable discreta", "Variable continua"),
+      escape = FALSE, align = "l") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+## Ejercicios propuestos
+
+1. Se lanzan dos dados equilibrados y se define $X$ como la suma de los puntos. Escriba la función de probabilidad de $X$, dibújela y calcule $E(X)$ y $\sigma$. Compruebe sus resultados con una simulación de 10 000 lanzamientos en R.
+2. El número de vehículos pesados que llegan a una báscula de pesaje en 5 minutos tiene esta función de probabilidad (datos hipotéticos): $f(0) = 0.15$, $f(1) = 0.30$, $f(2) = 0.25$, $f(3) = 0.20$, $f(4) = 0.10$. Calcule la FDA, $P(X \ge 2)$, $P(1 < X \le 3)$, $E(X)$ y $\operatorname{Var}(X)$.
+3. Determine el valor de $k$ para que $f(x) = k\,x$, con $x = 1, 2, 3, 4$, sea una función de probabilidad. Después calcule $E(X)$ y $E(X^2)$.
+4. La densidad del espesor $Y$ (cm) de una capa de base granular es $f(y) = 0.5$ para $14 \le y \le 16$ y 0 en otro caso. Calcule $P(Y < 14.5)$, $E(Y)$ y $\sigma$, a mano y con `integrate()`.
+5. Sea $f(y) = c\,(4 - y^2)$ para $0 \le y \le 2$. Encuentre $c$, la FDA, $E(Y)$ y la mediana (el valor $m$ con $F(m) = 0.5$). Para la mediana, use `uniroot()` en R.
+6. La resistencia $X$ de un lote de concreto tiene $E(X) = 30$ MPa y $\sigma = 3$ MPa. Si $1$ MPa equivale a $10.197$ kg/cm², calcule la media y la desviación estándar de la resistencia en kg/cm².
+7. Una losa recibe una carga muerta $D$ con media 12 kN/m² y desviación estándar 0.6 kN/m², y una carga viva $L$ independiente con media 4 kN/m² y desviación estándar 1.2 kN/m². Calcule la media y la desviación estándar de la carga total $D + L$ y de la combinación $1.2D + 1.6L$.
+8. Explique con sus palabras por qué $P(X = 30)$ vale 0 si $X$ es la resistencia de un cilindro (continua), pero puede ser distinta de 0 si $X$ es el número de cilindros que fallan en un lote.
+
+## Lecturas recomendadas
+
+- @illowsky2018introductory, capítulo 4: variables aleatorias discretas con muchos ejemplos resueltos paso a paso, en un nivel muy accesible.
+- @ayala2026estadistica: texto en español con ejemplos en R.
+- @wasserman2004all, capítulos 2 y 3: definiciones formales de variable aleatoria, FDA y esperanza, para quien quiera ver la teoría con más rigor.
