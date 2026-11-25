@@ -14,3 +14,6 @@ Estados: **Por escribir**, **Borrador**, **Revisado** (revisión completa con `G
 | 4. Gráficos en R | Borrador | [04-graficos.md](04-graficos.md) | Parte I |
 | 5. Documentos reproducibles con R Markdown | Borrador | [05-rmarkdown.md](05-rmarkdown.md) | Parte I |
 | 6. Funciones, condiciones, ciclos y simulación | Borrador | [06-programacion_simulacion.md](06-programacion_simulacion.md) | Parte I |
+| 10. Experimentos, eventos y axiomas de la probabilidad | Borrador | [10-experimentos_eventos.md](10-experimentos_eventos.md) | Parte III |
+| 11. Técnicas de conteo | Borrador | [11-tecnicas_conteo.md](11-tecnicas_conteo.md) | Parte III |
+| 12. Probabilidad condicional, independencia y teorema de Bayes | Borrador | [12-probabilidad_condicional.md](12-probabilidad_condicional.md) | Parte III |

@@ -1,5 +1,661 @@
 ---
-title: "x"
+title: "Probabilidad condicional, independencia y teorema de Bayes"
+bibliography: references.bib
+suppress-bibliography: true
 ---
 
-x
+::: {.quote-block}
+"Para nosotros, la probabilidad es la guía misma de la vida."\
+— *Joseph Butler, The Analogy of Religion (1736)*
+:::
+
+En ingeniería casi nunca se calcula una probabilidad a ciegas: casi siempre se sabe algo. Se sabe que la varilla que se compró es lisa, que el ensayo no destructivo dio positivo o que la carga de concreto vino de cierta planta. Esa información cambia las probabilidades. La probabilidad condicional es la manera de incorporar al cálculo lo que ya se sabe. De ella salen tres resultados que se usan todo el tiempo: la regla de la multiplicación, para calcular la probabilidad de que pasen varias cosas seguidas; la idea de independencia, que dice cuándo un evento no da información sobre otro; y el teorema de Bayes, que dice cómo cambiar una probabilidad cuando llega un dato nuevo.
+
+El capítulo sigue a @bertsekas2008introduction [secs. 1.3 a 1.5], @illowsky2018introductory [secs. 3.2 a 3.5] y @blitzstein2019introduction [cap. 2].
+
+```{r}
+#| echo: false
+# Función auxiliar (oculta) para dibujar árboles de probabilidad de dos niveles
+library(ggplot2)
+arbol <- function(nivel1, p1, nivel2, p2, unir = " y ") {
+  # nivel1: nombres de las ramas del primer nivel; p1: sus probabilidades
+  # nivel2: nombres de las ramas del segundo nivel; p2: matriz de probabilidades
+  #         condicionales, una fila por rama del primer nivel
+  k1 <- length(nivel1); k2 <- length(nivel2)
+  y2 <- rev(seq_len(k1 * k2)); y1 <- sapply(seq_len(k1), function(i) mean(y2[(i - 1) * k2 + 1:k2]))
+  r1 <- data.frame(x = 1, y = y1, et = nivel1, p = p1, y0 = mean(y2))
+  r2 <- data.frame(x = 2, y = y2, et = rep(nivel2, k1), p = as.vector(t(p2)),
+                   padre = rep(y1, each = k2), p_padre = rep(p1, each = k2),
+                   et_padre = rep(nivel1, each = k2))
+  r2$conjunta <- sprintf("%s%s%s:  %.3f", r2$et_padre, unir, r2$et, r2$p_padre * r2$p)
+  ggplot() +
+    geom_segment(data = r1, aes(x = 0, y = y0, xend = x, yend = y), color = "#1C6BA0", linewidth = 0.8) +
+    geom_segment(data = r2, aes(x = 1, y = padre, xend = x, yend = y), color = "#1C6BA0", linewidth = 0.8) +
+    geom_label(data = r1, aes(x = 0.5, y = (y0 + y) / 2, label = format(p)), size = 4, label.size = 0, fill = "white") +
+    geom_label(data = r2, aes(x = 1.5, y = (padre + y) / 2, label = format(p)), size = 4, label.size = 0, fill = "white") +
+    geom_point(aes(x = 0, y = mean(y2)), size = 3) +
+    geom_label(data = r1, aes(x, y, label = et), size = 4.5) +
+    geom_label(data = r2, aes(x, y, label = et), size = 4.5) +
+    geom_text(data = r2, aes(x = 2.3, y = y, label = conjunta), hjust = 0, size = 4.3) +
+    xlim(-0.1, 3.6) +
+    theme_void()
+}
+```
+
+## Probabilidad condicional {#sec-condicional-definicion}
+
+::: {.pregunta}
+Si se sabe que dos dados sumaron 9, ¿cuál es la probabilidad de que el primero haya sido un 6?
+:::
+
+Sin información, la probabilidad de que el primer dado sea 6 es 1/6. Pero si se sabe que la suma fue 9, ya no hay 36 resultados posibles: solo quedan los que suman 9, que son (3, 6), (4, 5), (5, 4) y (6, 3). Entre esos 4 resultados, que siguen siendo igual de probables, solo uno tiene un 6 en el primer dado. La probabilidad pasa a ser 1/4. Saber algo redujo el espacio muestral.
+
+Esa es la idea de la probabilidad condicional. La probabilidad de $A$ dado $B$, que se escribe $P(A \mid B)$, es la probabilidad de que ocurra $A$ cuando ya se sabe que ocurrió $B$. Como $B$ pasa a ser el nuevo espacio muestral, se mide qué parte de $B$ ocupa también $A$ [@bertsekas2008introduction, sec. 1.3]:
+
+$$
+P(A \mid B) = \frac{P(A \cap B)}{P(B)}, \qquad P(B) > 0,
+$$ {#eq-condicional-def}
+
+donde $P(A \cap B)$ es la probabilidad de que ocurran los dos eventos y $P(B)$ es la probabilidad del evento que se sabe que ocurrió. La barra vertical se lee "dado" o "sabiendo que". Con el ejemplo de los dados, $P(A \cap B) = 1/36$ (solo el resultado (6, 3)) y $P(B) = 4/36$, así que $P(A \mid B) = (1/36)/(4/36) = 1/4$, igual que al contar.
+
+La @fig-condicional-venn muestra la idea en un diagrama de Venn. A la izquierda, $P(A)$ es la parte de $S$ que ocupa $A$. A la derecha, al saber que ocurrió $B$, todo lo que está fuera de $B$ desaparece, y $P(A \mid B)$ es la parte de $B$ que ocupa la intersección.
+
+```{r}
+#| label: fig-condicional-venn
+#| fig-cap: "Al condicionar en B, el círculo B pasa a ser el nuevo espacio muestral."
+#| fig-alt: "Dos diagramas de Venn. En el izquierdo se colorea el círculo A dentro del rectángulo S. En el derecho solo queda el círculo B en gris claro y se colorea la intersección de A y B."
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.4
+#| out-width: "85%"
+
+rejilla <- expand.grid(x = seq(-2.3, 2.3, length.out = 230), y = seq(-1.45, 1.45, length.out = 150))
+en_a <- (rejilla$x + 0.6)^2 + rejilla$y^2 <= 1
+en_b <- (rejilla$x - 0.6)^2 + rejilla$y^2 <= 1
+paneles <- c("Sin información: P(A)", "Sabiendo que ocurrió B: P(A | B)")
+fondo <- rbind(data.frame(rejilla[en_a, ], panel = paneles[1], tono = "a"),
+               data.frame(rejilla[en_b & !en_a, ], panel = paneles[2], tono = "b"),
+               data.frame(rejilla[en_a & en_b, ], panel = paneles[2], tono = "a"))
+fondo$panel <- factor(fondo$panel, levels = paneles)
+ang <- seq(0, 2 * pi, length.out = 200)
+circ <- rbind(data.frame(x = -0.6 + cos(ang), y = sin(ang), c = "A", panel = paneles[1]),
+              data.frame(x = 0.6 + cos(ang), y = sin(ang), c = "B", panel = paneles[1]),
+              data.frame(x = 0.6 + cos(ang), y = sin(ang), c = "B", panel = paneles[2]),
+              data.frame(x = -0.6 + cos(ang), y = sin(ang), c = "A", panel = paneles[2]))
+circ$panel <- factor(circ$panel, levels = paneles)
+circ$tipo <- ifelse(circ$panel == paneles[2] & circ$c == "A", "punteado", "continuo")
+rot <- data.frame(x = c(-1.15, 1.15, 2.05, 1.15, -1.15), y = c(0.95, 0.95, -1.2, 0.95, 0.95),
+                  r = c("A", "B", "S", "B", "A"), panel = factor(paneles[c(1, 1, 1, 2, 2)], levels = paneles))
+marco <- data.frame(panel = factor(paneles[1], levels = paneles))
+ggplot() +
+  geom_raster(data = fondo, aes(x, y, fill = tono), alpha = 0.8) +
+  scale_fill_manual(values = c(a = "#1C6BA0", b = "#d9e4ee"), guide = "none") +
+  geom_rect(data = marco, aes(xmin = -2.3, xmax = 2.3, ymin = -1.45, ymax = 1.45), fill = NA, color = "grey30") +
+  geom_path(data = circ, aes(x, y, group = c, linetype = tipo), color = "grey15", linewidth = 0.7) +
+  scale_linetype_manual(values = c(continuo = "solid", punteado = "dashed"), guide = "none") +
+  geom_text(data = rot, aes(x, y, label = r), size = 5, fontface = "italic") +
+  facet_wrap(~panel) +
+  coord_equal() +
+  theme_void(base_size = 14) +
+  theme(strip.text = element_text(margin = margin(4, 0, 6, 0)))
+```
+
+::: {.callout-warning title="Cuidado"}
+$P(A \mid B)$ y $P(B \mid A)$ casi nunca son iguales. La probabilidad de que una persona tenga fiebre dado que tiene dengue es alta; la probabilidad de que tenga dengue dado que tiene fiebre es mucho más baja, porque la fiebre tiene muchas otras causas. Confundir las dos es uno de los errores más comunes al razonar con probabilidades, y el teorema de Bayes (@sec-condicional-bayes) es la forma correcta de pasar de una a la otra.
+:::
+
+::: {.callout-note title="Ejemplo: falla de una columna de concreto reforzado"}
+
+**Planteamiento.** En una columna de concreto reforzado sometida a una carga axial extrema, sea $C$ = "falla el concreto" y $A$ = "falla el acero". Se estima que $P(C) = 0.50$, $P(A) = 0.60$ y $P(C \cap A) = 0.30$. Calcule: (a) la probabilidad de que falle el concreto si se sabe que falló el acero; (b) la probabilidad de que falle el acero si se sabe que falló el concreto.
+
+**Solución:**
+
+1. (a) Se pide $P(C \mid A)$. Con la @eq-condicional-def: $P(C \mid A) = \dfrac{P(C \cap A)}{P(A)} = \dfrac{0.30}{0.60} = 0.50$.
+2. (b) Se pide $P(A \mid C)$: $P(A \mid C) = \dfrac{P(A \cap C)}{P(C)} = \dfrac{0.30}{0.50} = 0.60$.
+
+**Pseudocódigo**
+
+1. Guardar las probabilidades conocidas.
+2. Dividir la probabilidad de la intersección entre la del evento que se sabe que ocurrió.
+
+```{r}
+# 1) Datos
+p_c <- 0.50
+p_a <- 0.60
+p_ca <- 0.30
+
+# 2) Probabilidades condicionales
+p_c_dado_a <- p_ca / p_a
+p_a_dado_c <- p_ca / p_c
+c(C_dado_A = p_c_dado_a, A_dado_C = p_a_dado_c)
+```
+
+**Interpretación.** Las dos condicionales son distintas (0.50 y 0.60), como advierte el recuadro anterior. Hay algo más: $P(C \mid A) = 0.50$ es igual a $P(C)$, y $P(A \mid C) = 0.60$ es igual a $P(A)$. Saber que falló el acero no cambió la probabilidad de que falle el concreto. Cuando eso pasa, los eventos se llaman independientes, y el tema se retoma en la @sec-condicional-independencia.
+
+:::
+
+## Cuadros de contingencia {#sec-condicional-contingencia}
+
+Cuando los datos clasifican cada elemento según dos características, se resumen en un cuadro de contingencia (o cuadro de doble entrada): las filas son las categorías de una característica, las columnas las de la otra y cada celda cuenta los elementos que tienen las dos. Con un cuadro de contingencia, las probabilidades condicionales se leen casi directamente: se fija la fila (o la columna) de lo que se sabe y se divide entre su total [@illowsky2018introductory, sec. 3.4].
+
+::: {.callout-note title="Ejemplo: inspección de varillas de acero"}
+
+**Planteamiento.** Una fábrica produce 1000 varillas de acero por semana, de dos tipos: corrugadas y lisas. En una semana se inspeccionaron todas y se registró si estaban buenas o defectuosas. Los datos son hipotéticos. Si se escoge una varilla al azar, calcule la probabilidad de que: (a) esté defectuosa; (b) sea lisa; (c) esté defectuosa, si se sabe que es lisa; (d) esté defectuosa, si se sabe que es corrugada; (e) sea lisa, si se sabe que está defectuosa.
+
+```{r}
+#| echo: false
+source("R/ver_datos.R")
+ver_datos("datos/inspeccion_varillas_hipotetica.csv",
+          nombres = c("Varilla", "Tipo", "Condición"))
+```
+
+El @tbl-condicional-varillas resume los 1000 registros.
+
+```{r}
+#| label: tbl-condicional-varillas
+#| tbl-cap: "Varillas inspeccionadas en una semana, por tipo y condición (datos hipotéticos)."
+#| echo: false
+
+library(kableExtra)
+varillas <- read.csv("datos/inspeccion_varillas_hipotetica.csv")
+cuadro <- addmargins(table(varillas$tipo, varillas$condicion))
+cuadro_df <- data.frame(Tipo = c("Corrugada", "Lisa", "Total"),
+                        Buenas = cuadro[, 1], Defectuosas = cuadro[, 2], Total = cuadro[, 3])
+cuadro_df %>%
+  kbl(row.names = FALSE, align = "lccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed")) %>%
+  row_spec(3, bold = TRUE)
+```
+
+**Solución:**
+
+Sean $D$ = "defectuosa", $L$ = "lisa" y $R$ = "corrugada".
+
+1. (a) Total de defectuosas entre el total: $P(D) = 177/1000 = 0.177$.
+2. (b) Total de lisas entre el total: $P(L) = 400/1000 = 0.400$.
+3. (c) Si se sabe que es lisa, el nuevo espacio muestral es la fila de las lisas, con 400 varillas, de las cuales 85 son defectuosas: $P(D \mid L) = 85/400 = 0.2125$. Con la @eq-condicional-def se llega a lo mismo: $P(D \mid L) = \dfrac{85/1000}{400/1000} = 0.2125$.
+4. (d) Fila de las corrugadas: $P(D \mid R) = 92/600 = 0.1533$.
+5. (e) Ahora lo que se sabe es la columna de las defectuosas, con 177 varillas, de las cuales 85 son lisas: $P(L \mid D) = 85/177 = 0.4802$.
+
+**Pseudocódigo**
+
+1. Leer los datos y armar el cuadro de contingencia con `table()`.
+2. Agregar los totales con `addmargins()`.
+3. Dividir cada celda entre el total de su fila con `prop.table(..., 1)`: son las probabilidades condicionales dado el tipo.
+4. Dividir cada celda entre el total de su columna con `prop.table(..., 2)`: son las probabilidades condicionales dada la condición.
+5. Repetir el cálculo con `dplyr`.
+
+```{r}
+# 1) Datos y cuadro de contingencia
+varillas <- read.csv("datos/inspeccion_varillas_hipotetica.csv")
+cuadro <- table(varillas$tipo, varillas$condicion)
+
+# 2) Cuadro con totales
+addmargins(cuadro)
+
+# (a) y (b) Probabilidades simples
+mean(varillas$condicion == "defectuosa")
+mean(varillas$tipo == "lisa")
+
+# 3) Condicionales dado el tipo: cada fila suma 1
+prop.table(cuadro, margin = 1)
+
+# 4) Condicionales dada la condición: cada columna suma 1
+prop.table(cuadro, margin = 2)
+```
+
+`prop.table(cuadro, margin = 1)` divide cada celda entre el total de su fila; con `margin = 2`, entre el total de su columna. En la primera salida, la columna "defectuosa" tiene $P(D \mid R) = 0.1533$ y $P(D \mid L) = 0.2125$; en la segunda, la fila "lisa" de la columna "defectuosa" tiene $P(L \mid D) = 0.4802$.
+
+Con `dplyr`, la condicional se obtiene agrupando por lo que se sabe y calculando la proporción dentro de cada grupo:
+
+```{r}
+library(dplyr)
+
+# P(D | tipo): se agrupa por tipo
+varillas %>%
+  group_by(tipo) %>%
+  summarise(n = n(), defectuosas = sum(condicion == "defectuosa"),
+            p_defectuosa = mean(condicion == "defectuosa"))
+
+# P(L | D): se filtran las defectuosas y se calcula la proporción de lisas
+varillas %>%
+  filter(condicion == "defectuosa") %>%
+  summarise(p_lisa = mean(tipo == "lisa"))
+```
+
+**Interpretación.** Una varilla lisa tiene más probabilidad de salir defectuosa (21.3 %) que una corrugada (15.3 %), y de cada 100 defectuosas, 48 son lisas, aunque las lisas son solo el 40 % de la producción. Si hubiera que mejorar un proceso, convendría empezar por la línea de varillas lisas.
+
+:::
+
+## Regla de la multiplicación {#sec-condicional-multiplicacion}
+
+Si se despeja $P(A \cap B)$ de la @eq-condicional-def se obtiene la regla de la multiplicación: la probabilidad de que ocurran $A$ y $B$ es la probabilidad de $A$ por la probabilidad de $B$ dado que ya ocurrió $A$ [@bertsekas2008introduction, sec. 1.3]:
+
+$$
+P(A \cap B) = P(A) \, P(B \mid A) = P(B) \, P(A \mid B),
+$$ {#eq-condicional-mult}
+
+donde las dos formas dan lo mismo y se usa la que tenga los datos disponibles. Con tres eventos, la regla se extiende en cadena:
+
+$$
+P(A \cap B \cap C) = P(A) \, P(B \mid A) \, P(C \mid A \cap B).
+$$ {#eq-condicional-cadena}
+
+La regla de la multiplicación es la que se usa cuando un proceso ocurre por etapas. Se representa con un diagrama de árbol: cada nivel es una etapa, cada rama lleva la probabilidad condicional de esa etapa dado lo que pasó antes. La probabilidad de un camino completo es el producto de las probabilidades de sus ramas.
+
+::: {.callout-note title="Ejemplo: inspección de vigas sin reemplazo"}
+
+**Planteamiento.** Un lote de 10 vigas prefabricadas tiene 3 defectuosas. Se escogen 2 vigas al azar, una después de la otra, sin devolver la primera. Calcule la probabilidad de que: (a) las dos sean defectuosas; (b) exactamente una sea defectuosa; (c) ninguna sea defectuosa.
+
+**Solución:**
+
+Sean $D_1$ = "la primera es defectuosa" y $D_2$ = "la segunda es defectuosa"; $B_1$ y $B_2$ son los eventos de que sean buenas.
+
+1. Primera viga: $P(D_1) = 3/10$ y $P(B_1) = 7/10$.
+2. Segunda viga: depende de la primera, porque no se devuelve. Si la primera fue defectuosa, quedan 9 vigas con 2 defectuosas: $P(D_2 \mid D_1) = 2/9$. Si la primera fue buena, quedan 9 vigas con 3 defectuosas: $P(D_2 \mid B_1) = 3/9$.
+3. (a) Con la @eq-condicional-mult: $P(D_1 \cap D_2) = \dfrac{3}{10} \times \dfrac{2}{9} = \dfrac{6}{90} = 0.0667$.
+4. (b) Hay dos caminos que no se pueden dar a la vez: defectuosa y buena, o buena y defectuosa. Se calcula cada uno y se suman:
+   $P = \dfrac{3}{10} \times \dfrac{7}{9} + \dfrac{7}{10} \times \dfrac{3}{9} = \dfrac{21}{90} + \dfrac{21}{90} = \dfrac{42}{90} = 0.4667$.
+5. (c) $P(B_1 \cap B_2) = \dfrac{7}{10} \times \dfrac{6}{9} = \dfrac{42}{90} = 0.4667$.
+6. Revisión: $0.0667 + 0.4667 + 0.4667 = 1$. Los tres casos cubren todo el espacio muestral.
+
+La @fig-condicional-arbol-vigas resume el cálculo. La probabilidad de cada camino aparece a la derecha.
+
+```{r}
+#| label: fig-condicional-arbol-vigas
+#| fig-cap: "Árbol de probabilidad para dos vigas escogidas sin reemplazo de un lote con 3 defectuosas y 7 buenas."
+#| fig-alt: "Árbol con dos ramas iniciales, D con 0.3 y B con 0.7; de D salen D con 2/9 y B con 7/9; de B salen D con 3/9 y B con 6/9; a la derecha las probabilidades de los cuatro caminos"
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.8
+
+arbol(nivel1 = c("D1", "B1"), p1 = c(0.3, 0.7),
+      nivel2 = c("D2", "B2"),
+      p2 = matrix(c(2/9, 7/9, 3/9, 6/9), nrow = 2, byrow = TRUE) %>% round(3))
+```
+
+**Pseudocódigo**
+
+1. Calcular cada camino del árbol multiplicando sus ramas.
+2. Sumar los caminos que corresponden a cada pregunta.
+3. Comprobar con combinaciones (capítulo 11) el inciso (a).
+4. Comprobar todo con una simulación de muchas inspecciones.
+
+```{r}
+#| cache: true
+# 1) y 2) Caminos del árbol
+p_dd <- (3/10) * (2/9)
+p_una <- (3/10) * (7/9) + (7/10) * (3/9)
+p_bb <- (7/10) * (6/9)
+c(dos = p_dd, una = p_una, ninguna = p_bb, suma = p_dd + p_una + p_bb)
+
+# 3) Comprobación con combinaciones: muestras con 2 defectuosas entre todas las muestras de 2
+choose(3, 2) / choose(10, 2)
+
+# 4) Simulación
+set.seed(2026)
+lote <- c(rep("D", 3), rep("B", 7))
+defectuosas <- replicate(20000, sum(sample(lote, size = 2) == "D"))
+table(defectuosas) / 20000
+```
+
+**Interpretación.** Hay una probabilidad de 0.467 de que la muestra no detecte ninguna viga defectuosa, aunque el 30 % del lote lo es. Con dos vigas la inspección es poco sensible; el ejercicio 6 pide calcular cuántas habría que revisar para que esa probabilidad baje del 10 %.
+
+:::
+
+## Independencia {#sec-condicional-independencia}
+
+Dos eventos son independientes cuando saber que ocurrió uno no cambia la probabilidad del otro: $P(A \mid B) = P(A)$. Al sustituir esa igualdad en la regla de la multiplicación se obtiene la definición que se usa en la práctica [@bertsekas2008introduction, sec. 1.5]:
+
+$$
+A \text{ y } B \text{ son independientes si } P(A \cap B) = P(A) \, P(B).
+$$ {#eq-condicional-indep}
+
+La definición es simétrica: si $A$ es independiente de $B$, también $B$ lo es de $A$. Para probar si dos eventos son independientes se calculan los dos lados de la @eq-condicional-indep y se comparan. En el ejemplo de la columna, $P(C) \, P(A) = 0.50 \times 0.60 = 0.30$, que es igual a $P(C \cap A)$: la falla del concreto y la del acero son independientes con esos valores. En el ejemplo de las varillas, $P(D) \, P(L) = 0.177 \times 0.400 = 0.0708$, pero $P(D \cap L) = 0.085$: el tipo de varilla y su condición no son independientes.
+
+La independencia aparece sola cuando los experimentos no se afectan entre sí: dos lanzamientos de un dado, dos extracciones con reemplazo o dos equipos que trabajan por separado. En cambio, las extracciones sin reemplazo, como las de las vigas, no son independientes, porque lo que sale primero cambia lo que queda.
+
+::: {.callout-warning title="Cuidado"}
+Mutuamente excluyentes no es lo mismo que independientes. Si $A$ y $B$ son mutuamente excluyentes y los dos tienen probabilidad positiva, saber que ocurrió $A$ dice que $B$ no ocurrió: $P(B \mid A) = 0$, que es distinto de $P(B)$. Por lo tanto, dos eventos mutuamente excluyentes con probabilidad positiva nunca son independientes. Tampoco es cierto que dos eventos sean dependientes solo porque $P(A \cap B) > 0$: la prueba es siempre la comparación de la @eq-condicional-indep.
+:::
+
+### Sistemas en serie y en paralelo
+
+Una aplicación de la independencia en ingeniería es el cálculo de la confiabilidad de un sistema, es decir, la probabilidad de que funcione, a partir de la confiabilidad de sus componentes [@bertsekas2008introduction, sec. 1.5].
+
+- **Sistema en serie.** Funciona solo si funcionan todos sus componentes, como una cadena que se rompe por su eslabón más débil. Si los $n$ componentes funcionan independientemente, con confiabilidades $p_1, p_2, \ldots, p_n$, la confiabilidad del sistema es el producto:
+
+$$
+R_{\text{serie}} = p_1 \, p_2 \cdots p_n.
+$$ {#eq-condicional-serie}
+
+- **Sistema en paralelo.** Funciona si funciona al menos uno de sus componentes, como dos bombas en las que una respalda a la otra. Es más fácil calcular el complemento: el sistema falla solo si fallan todos, con probabilidad $(1 - p_1)(1 - p_2) \cdots (1 - p_n)$. Entonces:
+
+$$
+R_{\text{paralelo}} = 1 - (1 - p_1)(1 - p_2) \cdots (1 - p_n).
+$$ {#eq-condicional-paralelo}
+
+En las dos ecuaciones, $p_i$ es la probabilidad de que el componente $i$ funcione durante el periodo de análisis.
+
+::: {.callout-note title="Ejemplo: confiabilidad de un sistema de bombeo"}
+
+**Planteamiento.** Un acueducto rural lleva agua de un tanque de captación a un tanque de distribución. El sistema tiene dos bombas iguales instaladas en paralelo, cada una con confiabilidad 0.90 durante un mes, seguidas de una tubería de impulsión con confiabilidad 0.98. Suponga que los componentes fallan independientemente unos de otros. Calcule la confiabilidad del sistema completo y compárela con la de un sistema con una sola bomba.
+
+**Solución:**
+
+1. Las dos bombas forman un subsistema en paralelo. Con la @eq-condicional-paralelo:
+   $R_{\text{bombas}} = 1 - (1 - 0.90)(1 - 0.90) = 1 - 0.01 = 0.99$.
+2. El subsistema de bombas y la tubería están en serie. Con la @eq-condicional-serie:
+   $R_{\text{sistema}} = 0.99 \times 0.98 = 0.9702$.
+3. Con una sola bomba, todo está en serie: $R = 0.90 \times 0.98 = 0.882$.
+
+**Pseudocódigo**
+
+1. Calcular la confiabilidad del subsistema en paralelo y luego la del sistema en serie.
+2. Comprobar con una simulación: para cada mes simulado, sortear si funciona cada componente con `runif()`, aplicar las reglas de serie ("y") y paralelo ("o") y calcular la proporción de meses en que el sistema funciona.
+
+```{r}
+#| cache: true
+# 1) Fórmulas
+p_bomba <- 0.90
+p_tubo <- 0.98
+r_bombas <- 1 - (1 - p_bomba)^2
+r_sistema <- r_bombas * p_tubo
+r_una_bomba <- p_bomba * p_tubo
+c(bombas = r_bombas, sistema = r_sistema, una_bomba = r_una_bomba)
+
+# 2) Simulación de 100 000 meses
+set.seed(2026)
+n <- 100000
+bomba1 <- runif(n) < p_bomba     # TRUE si la bomba 1 funciona ese mes
+bomba2 <- runif(n) < p_bomba
+tubo <- runif(n) < p_tubo
+funciona <- (bomba1 | bomba2) & tubo   # paralelo: |   serie: &
+mean(funciona)
+```
+
+`runif(n)` genera `n` números al azar entre 0 y 1, todos con la misma probabilidad. La comparación `runif(n) < 0.90` es `TRUE` el 90 % de las veces, así que imita un componente con confiabilidad 0.90.
+
+**Interpretación.** La bomba de respaldo sube la confiabilidad mensual de 0.882 a 0.970: la probabilidad de quedarse sin servicio en un mes baja de 0.118 a 0.030, unas cuatro veces menos. Ahora el componente más débil es la tubería, porque ya no tiene respaldo. El resultado depende del supuesto de independencia: si las dos bombas dependen de la misma alimentación eléctrica, un corte las detiene a la vez y la confiabilidad real es menor.
+
+:::
+
+## Probabilidad total {#sec-condicional-total}
+
+Muchas veces un evento puede ocurrir por varios caminos, y se conoce su probabilidad en cada camino, pero no la total. Por ejemplo, el concreto de una obra llega de tres plantas, y para cada planta se sabe qué proporción de sus cargas sale fuera de especificación. ¿Cuál es la proporción total?
+
+Para responder se necesita una partición del espacio muestral: un grupo de eventos $A_1, A_2, \ldots, A_k$ que no se traslapan y que juntos cubren todo $S$ (cada carga viene de una y solo una planta). Entonces cualquier evento $B$ se parte en los pedazos $B \cap A_1, B \cap A_2, \ldots$, y al sumar sus probabilidades, cada una escrita con la regla de la multiplicación, se obtiene el teorema de la probabilidad total [@bertsekas2008introduction, sec. 1.4]:
+
+$$
+P(B) = \sum_{i=1}^{k} P(A_i) \, P(B \mid A_i) = P(A_1) \, P(B \mid A_1) + \cdots + P(A_k) \, P(B \mid A_k),
+$$ {#eq-condicional-total}
+
+donde $P(A_i)$ es la probabilidad de cada camino y $P(B \mid A_i)$ es la probabilidad de $B$ por ese camino. En un árbol, es la suma de todos los caminos que terminan en $B$.
+
+## Teorema de Bayes {#sec-condicional-bayes}
+
+La probabilidad total va "hacia adelante": de las causas (la planta) al efecto (la carga fuera de especificación). El teorema de Bayes va "hacia atrás": si se observó el efecto, ¿cuál es la probabilidad de cada causa? Se obtiene al escribir $P(A_i \cap B)$ de las dos formas de la @eq-condicional-mult y usar la @eq-condicional-total en el denominador [@bayes1763essay; @bertsekas2008introduction, sec. 1.4]:
+
+$$
+P(A_i \mid B) = \frac{P(A_i) \, P(B \mid A_i)}{P(B)} = \frac{P(A_i) \, P(B \mid A_i)}{\sum_{j=1}^{k} P(A_j) \, P(B \mid A_j)},
+$$ {#eq-condicional-bayes}
+
+donde los términos tienen nombres propios:
+
+- $P(A_i)$ es la probabilidad a priori de la causa $A_i$: lo que se sabía antes del dato.
+- $P(B \mid A_i)$ es la verosimilitud: qué tan probable es el dato observado si la causa es $A_i$.
+- $P(A_i \mid B)$ es la probabilidad a posteriori: lo que se sabe de la causa después de ver el dato.
+
+En palabras, el teorema dice que la probabilidad a posteriori de una causa es proporcional a su probabilidad a priori por la verosimilitud del dato, y el denominador solo sirve para que las probabilidades a posteriori sumen 1.
+
+::: {.callout-note title="Ejemplo: cargas de concreto fuera de especificación"}
+
+**Planteamiento.** Una obra recibe concreto premezclado de tres plantas: la planta 1 entrega el 45 % de las cargas, la planta 2 el 35 % y la planta 3 el 20 %. Por registros de control de calidad (hipotéticos), la proporción de cargas con revenimiento fuera de especificación es 0.04 en la planta 1, 0.06 en la planta 2 y 0.10 en la planta 3. (a) ¿Qué proporción de las cargas que llegan a la obra está fuera de especificación? (b) Si una carga está fuera de especificación, ¿cuál es la probabilidad de que venga de cada planta?
+
+**Solución:**
+
+Sean $A_1$, $A_2$ y $A_3$ los eventos "la carga viene de la planta 1, 2 o 3", y $F$ = "la carga está fuera de especificación".
+
+1. Datos: $P(A_1) = 0.45$, $P(A_2) = 0.35$, $P(A_3) = 0.20$; $P(F \mid A_1) = 0.04$, $P(F \mid A_2) = 0.06$, $P(F \mid A_3) = 0.10$.
+2. Caminos que terminan en $F$ (regla de la multiplicación):
+   $P(A_1 \cap F) = 0.45 \times 0.04 = 0.018$; $P(A_2 \cap F) = 0.35 \times 0.06 = 0.021$; $P(A_3 \cap F) = 0.20 \times 0.10 = 0.020$.
+3. (a) Probabilidad total (@eq-condicional-total): $P(F) = 0.018 + 0.021 + 0.020 = 0.059$.
+4. (b) Teorema de Bayes (@eq-condicional-bayes), cada camino entre el total:
+   $P(A_1 \mid F) = 0.018/0.059 = 0.305$; $P(A_2 \mid F) = 0.021/0.059 = 0.356$; $P(A_3 \mid F) = 0.020/0.059 = 0.339$.
+5. Revisión: $0.305 + 0.356 + 0.339 = 1$.
+
+La @fig-condicional-arbol-plantas muestra el árbol. Los caminos que terminan en $F$ son los que entran en la suma de la probabilidad total.
+
+```{r}
+#| label: fig-condicional-arbol-plantas
+#| fig-cap: "Árbol de probabilidad para el origen de una carga de concreto y su cumplimiento de la especificación."
+#| fig-alt: "Árbol con tres ramas iniciales, planta 1 con 0.45, planta 2 con 0.35 y planta 3 con 0.20; de cada una salen las ramas F, fuera de especificación, y C, conforme; a la derecha las probabilidades de los seis caminos"
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.6
+
+arbol(nivel1 = c("A1", "A2", "A3"), p1 = c(0.45, 0.35, 0.20),
+      nivel2 = c("F", "C"),
+      p2 = matrix(c(0.04, 0.96, 0.06, 0.94, 0.10, 0.90), nrow = 3, byrow = TRUE))
+```
+
+**Pseudocódigo**
+
+1. Guardar las probabilidades a priori y las verosimilitudes como vectores, una posición por planta.
+2. Multiplicar posición por posición para obtener los caminos.
+3. Sumar los caminos para la probabilidad total.
+4. Dividir cada camino entre la suma para obtener las probabilidades a posteriori.
+5. Armar un cuadro con `dplyr` que reúna todo.
+
+```{r}
+# 1) Datos
+a_priori <- c(planta1 = 0.45, planta2 = 0.35, planta3 = 0.20)
+p_fuera <- c(0.04, 0.06, 0.10)          # P(F | planta)
+
+# 2) Caminos: P(planta y F)
+caminos <- a_priori * p_fuera
+caminos
+
+# 3) Probabilidad total
+p_f <- sum(caminos)
+p_f
+
+# 4) Teorema de Bayes
+a_posteriori <- caminos / p_f
+round(a_posteriori, 3)
+sum(a_posteriori)
+```
+
+El mismo cálculo, organizado como cuadro con `dplyr`:
+
+```{r}
+library(dplyr)
+
+bayes <- tibble(
+  planta = c("Planta 1", "Planta 2", "Planta 3"),
+  a_priori = c(0.45, 0.35, 0.20),
+  verosimilitud = c(0.04, 0.06, 0.10)
+) %>%
+  mutate(camino = a_priori * verosimilitud,
+         a_posteriori = camino / sum(camino))
+bayes
+```
+
+El resultado se resume en el @tbl-condicional-bayes.
+
+```{r}
+#| label: tbl-condicional-bayes
+#| tbl-cap: "Probabilidades a priori y a posteriori del origen de una carga fuera de especificación."
+#| echo: false
+
+bayes %>%
+  mutate(across(where(is.numeric), ~ sprintf("%.3f", .x))) %>%
+  kbl(col.names = c("Planta", "A priori <i>P</i>(<i>A<sub>i</sub></i>)",
+                    "Verosimilitud <i>P</i>(<i>F</i> | <i>A<sub>i</sub></i>)",
+                    "Camino <i>P</i>(<i>A<sub>i</sub></i> ∩ <i>F</i>)",
+                    "A posteriori <i>P</i>(<i>A<sub>i</sub></i> | <i>F</i>)"),
+      escape = FALSE, align = "lcccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+**Interpretación.** El 5.9 % de las cargas llega fuera de especificación. La planta 3 entrega solo el 20 % del concreto, pero si una carga está mal, la probabilidad de que venga de ella sube a 0.339, casi lo mismo que la planta 1, que entrega más del doble. Esa es la lógica de Bayes: el dato "fuera de especificación" pesa más a favor de la planta con peor control. Para reducir el problema convendría empezar por la planta 3, que tiene la tasa más alta, aunque cada planta aporte una parte parecida de las cargas defectuosas.
+
+:::
+
+### Pruebas con resultado positivo o negativo
+
+El uso más conocido del teorema de Bayes es la interpretación de pruebas de detección: una prueba médica, un ensayo no destructivo que busca daños ocultos o un sistema que detecta fugas en una red de tuberías. Ninguna prueba es perfecta, y para describirla se usan tres números:
+
+- **Prevalencia** $P(D)$: proporción de elementos que de verdad tienen el problema antes de hacer la prueba.
+- **Sensibilidad** $P(+ \mid D)$: probabilidad de que la prueba dé positivo si el problema existe.
+- **Tasa de falsos positivos** $P(+ \mid D^c)$: probabilidad de que la prueba dé positivo si el problema no existe. Su complemento, $P(- \mid D^c)$, se llama especificidad.
+
+Lo que interesa a quien recibe un resultado positivo es otra cosa: $P(D \mid +)$, la probabilidad de que el problema exista dado que la prueba lo señaló. Se calcula con la @eq-condicional-bayes y suele ser bastante menor de lo que se espera.
+
+::: {.callout-note title="Ejemplo: ensayo no destructivo en pilotes"}
+
+**Planteamiento.** En una obra con muchos pilotes colados en sitio se usa un ensayo de integridad para detectar defectos en el fuste. Suponga, con valores hipotéticos, que el 5 % de los pilotes tiene un defecto, que el ensayo detecta el defecto el 90 % de las veces cuando existe y que da una falsa alarma en el 8 % de los pilotes sanos. Un pilote da resultado positivo. ¿Cuál es la probabilidad de que de verdad tenga un defecto? ¿Y si se repite un segundo ensayo independiente y también da positivo?
+
+**Solución:**
+
+1. Datos: $P(D) = 0.05$, $P(D^c) = 0.95$, $P(+ \mid D) = 0.90$, $P(+ \mid D^c) = 0.08$.
+2. Probabilidad total de un positivo: $P(+) = 0.05 \times 0.90 + 0.95 \times 0.08 = 0.045 + 0.076 = 0.121$.
+3. Teorema de Bayes: $P(D \mid +) = \dfrac{0.045}{0.121} = 0.372$.
+4. Con frecuencias en lugar de probabilidades el resultado se ve más claro. De 1000 pilotes, 50 tienen defecto y el ensayo detecta 45. De los 950 sanos, el ensayo marca por error 76. En total hay $45 + 76 = 121$ positivos, de los cuales solo 45 tienen defecto: $45/121 = 0.372$.
+5. Segundo ensayo: la probabilidad a posteriori del primer ensayo, 0.372, pasa a ser la probabilidad a priori del segundo:
+   $P(D \mid ++) = \dfrac{0.372 \times 0.90}{0.372 \times 0.90 + 0.628 \times 0.08} = \dfrac{0.3347}{0.3347 + 0.0502} = 0.870$.
+
+**Pseudocódigo**
+
+1. Escribir una función que reciba la prevalencia, la sensibilidad y la tasa de falsos positivos y devuelva $P(D \mid +)$ con la @eq-condicional-bayes.
+2. Aplicarla al primer ensayo.
+3. Aplicarla de nuevo usando el resultado como nueva prevalencia.
+4. Comprobar con una simulación de muchos pilotes.
+
+```{r}
+#| cache: true
+# 1) Función del teorema de Bayes para una prueba
+prob_si_positivo <- function(prevalencia, sensibilidad, falso_positivo) {
+  p_positivo <- prevalencia * sensibilidad + (1 - prevalencia) * falso_positivo
+  prevalencia * sensibilidad / p_positivo
+}
+
+# 2) Primer ensayo
+p1 <- prob_si_positivo(0.05, 0.90, 0.08)
+p1
+
+# 3) Segundo ensayo: la probabilidad a posteriori pasa a ser la nueva a priori
+p2 <- prob_si_positivo(p1, 0.90, 0.08)
+p2
+
+# 4) Simulación de 100 000 pilotes
+set.seed(2026)
+n <- 100000
+defecto <- runif(n) < 0.05
+positivo <- ifelse(defecto, runif(n) < 0.90, runif(n) < 0.08)
+mean(defecto[positivo])     # proporción con defecto entre los positivos
+```
+
+En la simulación, `defecto[positivo]` se queda solo con los pilotes que dieron positivo, y `mean()` calcula qué proporción de ellos tiene defecto: es exactamente la definición de $P(D \mid +)$ en frecuencias.
+
+**Interpretación.** Un solo positivo eleva la probabilidad de defecto del 5 % al 37 %, pero todavía es más probable que el pilote esté sano. Eso pasa porque los pilotes sanos son tantos que, aunque la tasa de falsas alarmas sea baja, producen más positivos que los pilotes defectuosos. Con un segundo ensayo positivo la probabilidad sube a 0.87. Por eso, antes de demoler o reforzar un elemento por un único ensayo positivo, se acostumbra confirmar con otro método, como la extracción de núcleos.
+
+:::
+
+### Interactivo: el teorema de Bayes con 1000 elementos
+
+En el interactivo de la @fig-condicional-int-bayes se cambian la prevalencia, la sensibilidad y la tasa de falsos positivos, y se ve el resultado en una población de 1000 elementos. Cada cuadro es un elemento: los oscuros tienen el problema y los claros no; los que tienen borde grueso dieron positivo. La probabilidad que se busca es la proporción de cuadros oscuros entre los que tienen borde grueso. Conviene probar con una prevalencia muy baja (1 %) para ver por qué, en ese caso, la mayoría de los positivos son falsas alarmas.
+
+::: {#fig-condicional-int-bayes}
+
+```{=html}
+<div class="interactivo" id="int-bayes">
+  <label><span>Prevalencia <i>P</i>(<i>D</i>):</span> <output class="s-prev">0.05</output>
+    <input class="c-prev" type="range" min="0.01" max="0.5" step="0.01" value="0.05"></label>
+  <label><span>Sensibilidad <i>P</i>(+ | <i>D</i>):</span> <output class="s-sens">0.90</output>
+    <input class="c-sens" type="range" min="0.5" max="1" step="0.01" value="0.9"></label>
+  <label><span>Falsos positivos <i>P</i>(+ | <i>D</i><sup>c</sup>):</span> <output class="s-fp">0.08</output>
+    <input class="c-fp" type="range" min="0" max="0.3" step="0.01" value="0.08"></label>
+  <svg viewBox="0 0 640 286" role="img" aria-label="Cuadrícula de 1000 elementos coloreados según si tienen el problema y si la prueba dio positivo"></svg>
+  <p class="resultado" aria-live="polite"></p>
+</div>
+<script>
+(function () {
+  var raiz = document.getElementById("int-bayes");
+  var cp = raiz.querySelector(".c-prev"), cs = raiz.querySelector(".c-sens"), cf = raiz.querySelector(".c-fp");
+  var sp = raiz.querySelector(".s-prev"), ss = raiz.querySelector(".s-sens"), sf = raiz.querySelector(".s-fp");
+  var svg = raiz.querySelector("svg"), texto = raiz.querySelector(".resultado");
+  var columnas = 50, filas = 20, lado = 11, sep = 1.6, x0 = 12, y0 = 8;
+  function dibujar() {
+    var prev = parseFloat(cp.value), sens = parseFloat(cs.value), fp = parseFloat(cf.value);
+    sp.textContent = prev.toFixed(2); ss.textContent = sens.toFixed(2); sf.textContent = fp.toFixed(2);
+    // Frecuencias esperadas en 1000 elementos
+    var enfermos = Math.round(1000 * prev), vp = Math.round(enfermos * sens);
+    var sanos = 1000 - enfermos, fpos = Math.round(sanos * fp);
+    var s = "";
+    for (var i = 0; i < 1000; i++) {
+      var c = i % columnas, f = Math.floor(i / columnas);
+      var x = x0 + c * (lado + sep), y = y0 + f * (lado + sep);
+      var tiene = i < enfermos, positivo = tiene ? (i < vp) : (i - enfermos < fpos);
+      var relleno = tiene ? "#1C6BA0" : "#cfdce8";
+      var borde = positivo ? 'stroke="#C0392B" stroke-width="2.4"' : 'stroke="none"';
+      s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + lado + '" height="' + lado + '" fill="' + relleno + '" ' + borde + '/>';
+    }
+    var ly = y0 + filas * (lado + sep) + 22;
+    s += '<rect x="12" y="' + (ly - 11) + '" width="12" height="12" fill="#1C6BA0"/><text class="eje-texto" x="30" y="' + ly + '">Tiene el problema</text>' +
+         '<rect x="170" y="' + (ly - 11) + '" width="12" height="12" fill="#cfdce8"/><text class="eje-texto" x="188" y="' + ly + '">No lo tiene</text>' +
+         '<rect x="300" y="' + (ly - 11) + '" width="12" height="12" fill="none" stroke="#C0392B" stroke-width="2.4"/><text class="eje-texto" x="318" y="' + ly + '">Prueba positiva</text>';
+    svg.innerHTML = s;
+    var pos = vp + fpos;
+    var p = (prev * sens) / (prev * sens + (1 - prev) * fp);
+    texto.textContent = "De 1000 elementos: " + enfermos + " tienen el problema y la prueba detecta " + vp +
+      "; de los " + sanos + " sanos, " + fpos + " dan falsa alarma. Positivos: " + pos +
+      ". P(D | +) = " + (isFinite(p) ? p.toFixed(3) : "—") + " (en la cuadrícula: " + vp + "/" + pos + ").";
+  }
+  [cp, cs, cf].forEach(function (c) { c.addEventListener("input", dibujar); });
+  dibujar();
+})();
+</script>
+```
+
+Teorema de Bayes en una población de 1000 elementos. Mueva los controles y observe cuántos de los positivos tienen de verdad el problema.
+
+:::
+
+## Resumen de fórmulas {#sec-condicional-resumen}
+
+El @tbl-condicional-formulas reúne las reglas del capítulo.
+
+| Regla | Fórmula | Cuándo se usa | Ecuación |
+|:--|:--|:--|:--|
+| Probabilidad condicional | $P(A \mid B) = P(A \cap B)/P(B)$ | Se sabe que ocurrió $B$ | @eq-condicional-def |
+| Regla de la multiplicación | $P(A \cap B) = P(A)\,P(B \mid A)$ | Eventos que ocurren por etapas | @eq-condicional-mult |
+| Independencia | $P(A \cap B) = P(A)\,P(B)$ | Un evento no informa sobre el otro | @eq-condicional-indep |
+| Sistema en serie | $R = p_1 \, p_2 \cdots p_n$ | Componentes independientes; fallan todos si falla uno | @eq-condicional-serie |
+| Sistema en paralelo | $R = 1 - (1-p_1) \cdots (1-p_n)$ | Componentes independientes; basta uno | @eq-condicional-paralelo |
+| Probabilidad total | $P(B) = \sum_i P(A_i)\,P(B \mid A_i)$ | $B$ ocurre por varios caminos | @eq-condicional-total |
+| Teorema de Bayes | $P(A_i \mid B) = P(A_i)\,P(B \mid A_i)/P(B)$ | Se observó $B$ y se busca la causa | @eq-condicional-bayes |
+
+: Reglas de la probabilidad condicional. {#tbl-condicional-formulas}
+
+## Ejercicios propuestos
+
+1. Se lanzan dos dados. Si se sabe que la suma es mayor que 8, ¿cuál es la probabilidad de que los dos dados muestren el mismo número? Resuelva contando el espacio muestral reducido y compruebe con `expand.grid()`.
+2. En una red de alcantarillado pluvial, el 40 % de los tramos necesita limpieza ($L$), el 30 % necesita reparación estructural ($E$) y el 15 % necesita ambas cosas. (a) Si un tramo necesita limpieza, ¿cuál es la probabilidad de que necesite reparación? (b) Si necesita reparación, ¿cuál es la probabilidad de que necesite limpieza? (c) ¿Son $L$ y $E$ independientes?
+3. Se inspeccionaron 400 juntas de un puente según su ubicación (sobre el río o sobre tierra) y si tenían filtración. Sobre el río había 150 juntas, 45 con filtración; sobre tierra, 250 juntas, 30 con filtración. Arme el cuadro de contingencia en R con `matrix()` o con un data frame y calcule: (a) la probabilidad de filtración; (b) la probabilidad de filtración dado que la junta está sobre el río; (c) la probabilidad de que esté sobre el río dado que tiene filtración. ¿La ubicación y la filtración son independientes?
+4. Con los datos de varillas, compruebe numéricamente que $P(D \cap L) = P(L)\,P(D \mid L) = P(D)\,P(L \mid D)$.
+5. Una caja tiene 5 probetas de acero de una colada A y 3 de una colada B. Se sacan 3 probetas sin reemplazo. Dibuje el árbol y calcule la probabilidad de que las tres sean de la colada A. Repita con reemplazo y explique por qué cambia el resultado.
+6. En el ejemplo de las vigas, ¿cuántas vigas habría que revisar (sin reemplazo) para que la probabilidad de no encontrar ninguna defectuosa sea menor que 0.10? Escriba un ciclo `for` o use `choose()` para probar con 2, 3, 4, … vigas.
+7. Un puente tiene dos apoyos que deben funcionar los dos (serie). Cada apoyo tiene dos aisladores en paralelo, cada uno con confiabilidad 0.95. Suponiendo independencia, calcule la confiabilidad del sistema a mano y con una simulación en R.
+8. Tres cuadrillas, A, B y C, hacen el 50 %, el 30 % y el 20 % de las soldaduras de una estructura. La proporción de soldaduras rechazadas es 0.02 para A, 0.04 para B y 0.07 para C. (a) ¿Qué proporción de soldaduras se rechaza? (b) Si una soldadura fue rechazada, ¿cuál es la probabilidad de que la haya hecho cada cuadrilla? Arme el cuadro con `dplyr` como en el ejemplo de las plantas.
+9. Un sensor de humedad para detectar fugas en una tubería da alarma el 95 % de las veces cuando hay fuga y el 3 % de las veces cuando no la hay. En un tramo dado, la probabilidad de fuga es 0.02. (a) Si suena la alarma, ¿cuál es la probabilidad de que haya fuga? (b) Si no suena, ¿cuál es la probabilidad de que haya fuga? (c) Compruebe los resultados con una simulación y con el interactivo de la @fig-condicional-int-bayes.
+10. Demuestre que si $A$ y $B$ son independientes, también lo son $A$ y $B^c$. Sugerencia: escriba $P(A) = P(A \cap B) + P(A \cap B^c)$.
+11. Explique con un ejemplo de ingeniería civil por qué dos eventos mutuamente excluyentes con probabilidad positiva no pueden ser independientes.
+12. En el ejemplo de los pilotes, ¿cuántos ensayos positivos seguidos e independientes hacen falta para que la probabilidad de defecto pase de 0.99? Use la función `prob_si_positivo()` dentro de un ciclo.
+
+## Lecturas recomendadas
+
+- @bertsekas2008introduction, secciones 1.3 a 1.5: desarrolla la probabilidad condicional, la probabilidad total, Bayes y la independencia, con ejemplos de confiabilidad de redes.
+- @illowsky2018introductory, secciones 3.2 a 3.5: explica la independencia, los cuadros de contingencia y los diagramas de árbol y de Venn con muchos ejercicios de práctica.
+- @blitzstein2019introduction, capítulo 2: trata el teorema de Bayes con ejemplos de pruebas diagnósticas y discute los errores de razonamiento más comunes.
+- @laneintroduction, capítulo 5: presenta el teorema de Bayes y la falacia del jugador con ejemplos cortos.

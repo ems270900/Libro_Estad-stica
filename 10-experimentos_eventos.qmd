@@ -84,7 +84,7 @@ A
 nrow(A)
 ```
 
-En el código, `S == "C"` compara cada celda con la letra `"C"` y da `TRUE` o `FALSE`; `rowSums()` suma por filas, y como R cuenta cada `TRUE` como 1, el resultado es el número de cilindros que cumplen en cada fila. `expand.grid()` ordena las filas cambiando primero la primera columna, por eso el orden no es el mismo de la lista a mano, pero los 8 resultados son los mismos.
+En el código, `S == "C"` compara cada celda con la letra `"C"` y da `TRUE` o `FALSE`; `rowSums()` suma por filas. Como R cuenta cada `TRUE` como 1, el resultado es el número de cilindros que cumplen en cada fila. `expand.grid()` ordena las filas cambiando primero la primera columna, por eso el orden no es el mismo de la lista a mano, pero los 8 resultados son los mismos.
 
 **Interpretación.** El espacio muestral tiene 8 resultados y el evento $A$ tiene 4. Que $A$ tenga la mitad de los resultados no quiere decir todavía que su probabilidad sea 0.5: eso solo es cierto si los 8 resultados son igual de probables, lo que se discute en la @sec-eventos-clasica.
 
@@ -239,7 +239,7 @@ resumen %>%
 
 ### Interactivo: operaciones en el diagrama de Venn
 
-En el interactivo de la @fig-eventos-int-venn se elige una operación y se colorea su región. Los números del 1 al 6 están ubicados en la zona del diagrama que les corresponde con los eventos del ejemplo del dado, así que debajo del gráfico aparece también el conjunto que resulta y su probabilidad si el dado es justo.
+En el interactivo de la @fig-eventos-int-venn se elige una operación y se colorea su región. Los números del 1 al 6 están ubicados en la zona del diagrama que les corresponde con los eventos del ejemplo del dado. Debajo del gráfico aparece también el conjunto que resulta y su probabilidad si el dado es justo.
 
 ::: {#fig-eventos-int-venn}
 
@@ -612,7 +612,7 @@ A veces no hay resultados igual de probables ni registros para contar. ¿Cuál e
 
 ## La ley de los grandes números {#sec-eventos-lgn}
 
-La interpretación frecuentista se apoya en un resultado matemático: la ley de los grandes números. En palabras, dice que si un experimento se repite muchas veces en las mismas condiciones y de forma independiente, la frecuencia relativa de un evento se acerca cada vez más a su probabilidad [@bertsekas2008introduction, sec. 5.2; @illowsky2018introductory, sec. 3.1]. Con pocos lanzamientos de una moneda, la proporción de escudos puede alejarse bastante de 0.5; con miles de lanzamientos, casi no se aleja.
+La interpretación frecuentista se apoya en un resultado matemático: la ley de los grandes números. En palabras, dice que si un experimento se repite muchas veces en las mismas condiciones y sin que una repetición influya en otra, la frecuencia relativa de un evento se acerca cada vez más a su probabilidad [@bertsekas2008introduction, sec. 5.2; @illowsky2018introductory, sec. 3.1]. Con pocos lanzamientos de una moneda, la proporción de escudos puede alejarse bastante de 0.5; con miles de lanzamientos, casi no se aleja.
 
 ::: {.callout-note title="Para profundizar" collapse="true"}
 En forma matemática, para cualquier margen $\varepsilon > 0$, por pequeño que sea,
@@ -694,7 +694,7 @@ ggplot(simulacion, aes(x = lanzamiento, y = frecuencia)) +
   theme_minimal(base_size = 13)
 ```
 
-Como en la @sec-prog-simulacion, `sample(1:6, size = n, replace = TRUE)` saca `n` valores al azar del vector `1:6` y permite que se repitan (`replace = TRUE`), que es lo que pasa con un dado. `cumsum()` es la suma acumulada: en la posición 100 tiene el número de seises entre los primeros 100 lanzamientos. El eje horizontal está en escala logarítmica para que se vea bien tanto el inicio como el final.
+Como en la @sec-prog-simulacion, `sample(1:6, size = n, replace = TRUE)` saca `n` valores al azar del vector `1:6` y deja que se repitan (`replace = TRUE`), que es lo que pasa con un dado. `cumsum()` es la suma acumulada: en la posición 100 tiene el número de seises entre los primeros 100 lanzamientos. El eje horizontal está en escala logarítmica para que se vea bien tanto el inicio como el final.
 
 **Interpretación.** Al principio la frecuencia relativa salta mucho (como en el @tbl-eventos-acumulada), pero después de unos 1000 lanzamientos se queda muy cerca de 1/6, como predice la ley de los grandes números (@fig-eventos-lgn). Esta es la razón por la que la simulación sirve para comprobar cálculos de probabilidad: si la fórmula y la simulación con muchos casos no coinciden, hay un error en alguna de las dos.
 
