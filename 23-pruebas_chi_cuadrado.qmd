@@ -10,6 +10,8 @@ source("R/ver_datos.R")
 library(tidyverse)
 library(kableExtra)
 options(knitr.kable.NA = "")
+# jQuery antes del primer cuadro: kableExtra lo necesita y aquí el primer cuadro va antes que ver_datos()
+knitr::knit_meta_add(list(rmarkdown::html_dependency_jquery()))
 ```
 
 Las pruebas de los capítulos anteriores trabajan con medias, proporciones y varianzas. Muchas preguntas de ingeniería, en cambio, se responden contando: cuántos accidentes ocurren cada día de la semana, cuántos camiones llegan en cada intervalo, qué tipo de falla presenta cada cilindro según la planta que lo despachó. Las pruebas chi-cuadrado comparan esos conteos observados con los que se esperarían si una hipótesis fuera cierta. Se usan para dos preguntas: si los datos siguen una distribución propuesta (bondad de ajuste) y si dos variables categóricas están relacionadas (independencia). Ambas vienen del mismo estadístico, propuesto por Pearson [-@pearson1900criterion].
