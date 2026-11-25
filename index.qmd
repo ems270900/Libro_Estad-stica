@@ -25,8 +25,8 @@ format:
 
 <figure class="portada-imagen">
 <!-- Imagen de portada: para cambiarla basta con reemplazar assets/img/portada.png (proporción 1.85:1). -->
-<img src="assets/img/portada.png" alt="Ilustración de la portada con gráficos de datos y distribuciones de probabilidad">
-<figcaption>Ilustración generada con R y SVG a partir de datos y modelos.</figcaption>
+<img src="assets/img/portada.png" alt="Gráficos estadísticos sobre fondo petróleo: diagramas de caja a lo largo del tiempo, una nube de puntos con una curva suavizada y su banda, y las distribuciones previa, verosimilitud y posterior del teorema de Bayes">
+<figcaption>Ilustración generada por código a partir de datos y modelos.</figcaption>
 </figure>
 
 <div class="portada-pie">

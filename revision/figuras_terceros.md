@@ -18,8 +18,7 @@ El texto se publica con CC BY-NC-SA 4.0 y el código con MIT. Esas licencias no 
 |:--|:--|:--|:--|:--|
 | Portada | `assets/img/logoucr.png`, `assets/img/logoeic.png` | UCR, Escuela de Ingeniería Civil | Uso institucional | Confirmar uso si cambia la institución |
 | Portada | `assets/img/by-nc-sa.png` | Creative Commons | CC BY 4.0 | Mantener |
-| Portada | `assets/img/ciclo_h.png` | USGS, igual que el libro de hidrología | Dominio público | Se reemplaza por `assets/img/portada.png`; borrar cuando la portada nueva esté integrada |
-| Portada | `assets/img/portada.png` | Propia, generada con `herramientas/portada.js` (datos y curvas calculados) | CC BY-NC-SA 4.0, como el texto | No es de terceros; se anota para que conste el origen |
+| Portada | `assets/img/portada.png` | Propia, generada con `herramientas/portada.js` (propuesta E2, curvas calculadas) | CC BY-NC-SA 4.0, como el texto | No es de terceros; se anota para que conste el origen |
 | 1 | `assets/img/cap01/paneles_rstudio.png` | Esquema propio de la ventana de RStudio | Propia | Mantener |
 | 1 | `assets/img/cap01/flujo_analisis.png` | Con base en Wickham y Grolemund (2017) | Propia (redibujada) | Mantener con cita "con base en" |
 | 1 | `assets/img/cap01/rstudio_inicio.png` | Captura de RStudio Server 2026.11.1 con R 4.6.2 (Posit Software, PBC), tomada para el libro el 2026-11-25; RStudio recién abierto | Software RStudio, AGPL v3; interfaz de Posit | Mantener con cita |
